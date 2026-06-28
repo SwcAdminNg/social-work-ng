@@ -4,19 +4,31 @@ import { useState } from "react";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
-import { IconArrowRight, IconCheck, IconLock, IconMail, IconSpinner } from "./shared/icons";
+import {
+  IconArrowRight,
+  IconLock,
+  IconMail,
+  IconPhone,
+  IconSpinner,
+  IconUser,
+} from "./shared/icons";
 
-export default function Login() {
+export default function SignUp() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate async login
+    // Simulate async registration
     setTimeout(() => setLoading(false), 1800);
   };
 
@@ -25,18 +37,54 @@ export default function Login() {
       {/* Heading */}
       <div className="mb-8">
         <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">
-          Welcome back
+          Get started
         </p>
         <h1 className="text-[1.75rem] sm:text-[2rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-2">
-          Sign in to your account
+          Create your account
         </h1>
         <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
-          Continue your learning journey with Social Work Nigeria.
+          Join thousands of social workers advancing their careers.
         </p>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        {/* First / Last name */}
+        <div className="grid grid-cols-2 gap-3">
+          <FloatingInput
+            id="firstName"
+            label="First name"
+            type="text"
+            value={firstName}
+            onChange={setFirstName}
+            icon={<IconUser />}
+            autoComplete="given-name"
+            required
+          />
+          <FloatingInput
+            id="lastName"
+            label="Last name"
+            type="text"
+            value={lastName}
+            onChange={setLastName}
+            icon={<IconUser />}
+            autoComplete="family-name"
+            required
+          />
+        </div>
+
+        {/* Username */}
+        <FloatingInput
+          id="username"
+          label="Username"
+          type="text"
+          value={username}
+          onChange={setUsername}
+          icon={<IconUser />}
+          autoComplete="username"
+          required
+        />
+
         {/* Email */}
         <FloatingInput
           id="email"
@@ -49,6 +97,17 @@ export default function Login() {
           required
         />
 
+        {/* Phone (optional) */}
+        <FloatingInput
+          id="phone"
+          label="Phone number (optional)"
+          type="tel"
+          value={phone}
+          onChange={setPhone}
+          icon={<IconPhone />}
+          autoComplete="tel"
+        />
+
         {/* Password */}
         <FloatingInput
           id="password"
@@ -57,7 +116,7 @@ export default function Login() {
           value={password}
           onChange={setPassword}
           icon={<IconLock />}
-          autoComplete="current-password"
+          autoComplete="new-password"
           required
           suffix={
             <PasswordToggle
@@ -67,39 +126,23 @@ export default function Login() {
           }
         />
 
-        {/* Keep me logged in + Forgot password */}
-        <div className="flex items-center justify-between pt-0.5">
-          {/* Custom checkbox */}
-          <label className="flex items-center gap-2.5 cursor-pointer group select-none">
-            <button
-              type="button"
-              role="checkbox"
-              aria-checked={keepLoggedIn}
-              onClick={() => setKeepLoggedIn((v) => !v)}
-              className={`
-                w-[18px] h-[18px] flex-shrink-0 rounded-[5px] border-2 flex items-center justify-center
-                transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] focus-visible:ring-offset-1
-                ${
-                  keepLoggedIn
-                    ? "bg-[#2D6A4F] border-[#2D6A4F] dark:bg-[#2D6A4F] dark:border-[#2D6A4F]"
-                    : "bg-white dark:bg-white/5 border-gray-300 dark:border-white/20 group-hover:border-[#2D6A4F] dark:group-hover:border-[#52b788]"
-                }
-              `}
-            >
-              {keepLoggedIn && <IconCheck />}
-            </button>
-            <span className="text-[0.83rem] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors duration-150">
-              Keep me logged in
-            </span>
-          </label>
-
-          <a
-            href="/forgot-password"
-            className="text-[0.83rem] font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"
-          >
-            Forgot password?
-          </a>
-        </div>
+        {/* Confirm password */}
+        <FloatingInput
+          id="confirmPassword"
+          label="Confirm password"
+          type={showConfirmPassword ? "text" : "password"}
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          icon={<IconLock />}
+          autoComplete="new-password"
+          required
+          suffix={
+            <PasswordToggle
+              visible={showConfirmPassword}
+              onToggle={() => setShowConfirmPassword((v) => !v)}
+            />
+          }
+        />
 
         {/* Submit button */}
         <button
@@ -118,11 +161,11 @@ export default function Login() {
           {loading ? (
             <span className="flex items-center justify-center gap-2.5">
               <IconSpinner className="w-4 h-4 text-white/80" />
-              Signing in…
+              Creating account…
             </span>
           ) : (
             <span className="flex items-center justify-center gap-2">
-              Sign in
+              Create account
               <IconArrowRight />
             </span>
           )}
@@ -138,20 +181,20 @@ export default function Login() {
         <div className="flex-1 h-px bg-gray-200 dark:bg-white/8" />
       </div>
 
-      {/* Register link */}
+      {/* Login link */}
       <p className="text-center text-[0.85rem] text-gray-500 dark:text-gray-400">
-        Don't have an account?{" "}
+        Already have an account?{" "}
         <a
-          href="/register"
+          href="/login"
           className="font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"
         >
-          Create an account
+          Sign in
         </a>
       </p>
 
       {/* Footer note */}
       <p className="mt-10 text-center text-[0.72rem] text-gray-400 dark:text-gray-600 leading-relaxed">
-        By signing in, you agree to our{" "}
+        By creating an account, you agree to our{" "}
         <a
           href="/terms-of-service"
           className="underline hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-150"
