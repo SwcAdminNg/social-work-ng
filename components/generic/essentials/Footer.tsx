@@ -1,7 +1,5 @@
 "use client";
 
-// ─── Social icons ─────────────────────────────────────────────────────────────
-
 function IconFacebook() {
   return (
     <svg
@@ -101,8 +99,6 @@ function IconMail() {
   );
 }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
 const quickLinks = [
   { label: "About Us", href: "https://socialworknigeria.org/about-us/" },
   {
@@ -138,8 +134,6 @@ const contactItems = [
   },
 ];
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2.5 mb-5">
@@ -154,21 +148,18 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
     <footer
       className="relative bg-[#f0f7f4] dark:bg-[#060f0a] overflow-hidden"
       aria-label="Site footer"
     >
-      {/* ── Ambient background glow ── */}
       <div
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] rounded-full bg-[#2D6A4F]/8 dark:bg-[#2D6A4F]/10 blur-[100px] pointer-events-none"
         aria-hidden="true"
       />
-
-      {/* ── Top border line with gradient ── */}
       <div
         className="h-px w-full"
         style={{
@@ -177,11 +168,8 @@ export default function Footer() {
         }}
         aria-hidden="true"
       />
-
-      {/* ── Main content ── */}
       <div className="relative z-10 max-w-6xl mx-auto px-6 pt-14 pb-10">
         <div className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr_1fr] gap-12 md:gap-8 lg:gap-16">
-          {/* ── Column 1: Brand + mission ── */}
           <div className="flex flex-col gap-5">
             {/* Logo wordmark */}
             <a
@@ -302,7 +290,7 @@ export default function Footer() {
         {/* ── Bottom bar ── */}
         <div className="mt-12 pt-6 border-t border-gray-200 dark:border-white/8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-[0.75rem] text-gray-400 dark:text-white/30 text-center sm:text-left">
-            © 2025 Social Work Consultancy. All Rights Reserved.
+            © {year} Social Work Consultancy. All Rights Reserved.
           </p>
 
           <div className="flex items-center gap-1 text-[0.75rem]">
