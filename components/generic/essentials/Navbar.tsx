@@ -8,10 +8,10 @@ export default function Navbar() {
   const [whoWeAreOpen, setWhoWeAreOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+    <nav className="sticky top-0 z-50 bg-white/55 dark:bg-gray-900/55 backdrop-blur-xl backdrop-saturate-150 border-b border-white/30 dark:border-gray-700/40 shadow-[0_1px_20px_-4px_rgba(0,0,0,0.08)]">
       <div
-        className="max-w-6xl mx-auto px-6 h-17 flex items-center gap-6"
-        style={{ height: "68px" }}
+        className="max-w-6xl mx-auto px-6 flex items-center gap-6"
+        style={{ height: "84px" }}
       >
         {/* Logo */}
         <Link
@@ -78,7 +78,7 @@ export default function Navbar() {
             <button
               onClick={() => setWhoWeAreOpen((v) => !v)}
               aria-expanded={whoWeAreOpen}
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 rounded-md transition-colors cursor-pointer bg-transparent border-0 outline-none"
+              className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 rounded-full transition-colors cursor-pointer bg-transparent hover:bg-white/60 dark:hover:bg-gray-800/60 border-0 outline-none"
             >
               Who We Are
               <svg
@@ -102,7 +102,7 @@ export default function Navbar() {
               </svg>
             </button>
             <ul
-              className={`absolute top-full left-0 min-w-44 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-2 list-none m-0 z-50 transition-all duration-200 origin-top ${
+              className={`absolute top-full left-0 mt-2 min-w-44 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-white/40 dark:border-gray-700/50 rounded-2xl shadow-xl p-2 list-none m-0 z-50 transition-all duration-200 origin-top ${
                 whoWeAreOpen
                   ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
                   : "opacity-0 -translate-y-1 scale-95 pointer-events-none"
@@ -112,7 +112,7 @@ export default function Navbar() {
                 <li key={item}>
                   <Link
                     href="#"
-                    className="block px-3 py-2 text-sm text-gray-800 dark:text-gray-200 rounded-lg no-underline transition-colors"
+                    className="block px-3 py-2 text-sm text-gray-800 dark:text-gray-200 rounded-lg no-underline transition-colors hover:bg-gray-100/80 dark:hover:bg-gray-800/80"
                   >
                     {item}
                   </Link>
@@ -125,7 +125,7 @@ export default function Navbar() {
               <li key={item}>
                 <Link
                   href="#"
-                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 rounded-md transition-colors no-underline whitespace-nowrap"
+                  className="flex items-center px-4 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 rounded-full transition-colors no-underline whitespace-nowrap hover:bg-white/60 dark:hover:bg-gray-800/60"
                 >
                   {item}
                 </Link>
@@ -137,7 +137,7 @@ export default function Navbar() {
         {/* Login — desktop */}
         <Link
           href="#"
-          className="hidden lg:inline-flex items-center justify-center px-5 py-2 bg-[#2D6A4F] text-white text-sm font-semibold rounded-full no-underline hover:bg-[#1e4d38] transition-colors shadow-sm flex-shrink-0"
+          className="hidden lg:inline-flex items-center justify-center px-5 py-2 bg-[#2D6A4F] text-white text-sm font-semibold rounded-full no-underline hover:bg-[#1e4d38] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 shadow-sm flex-shrink-0"
         >
           Login
         </Link>
@@ -147,7 +147,7 @@ export default function Navbar() {
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
-          className="lg:hidden ml-auto flex flex-col justify-center gap-[5px] w-9 h-9 bg-transparent border-0 cursor-pointer p-1 rounded-md transition-colors"
+          className="lg:hidden ml-auto flex flex-col justify-center gap-[5px] w-10 h-10 bg-transparent hover:bg-white/60 dark:hover:bg-gray-800/60 border-0 cursor-pointer p-1 rounded-full transition-colors"
         >
           <span
             className={`block w-[22px] h-[2px] bg-gray-800 dark:bg-gray-200 rounded transition-transform duration-200 origin-center ${menuOpen ? "translate-y-[7px] rotate-45" : ""}`}
@@ -163,7 +163,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden overflow-hidden transition-all duration-300 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 ${menuOpen ? "max-h-[500px]" : "max-h-0"}`}
+        className={`lg:hidden overflow-hidden transition-all duration-300 border-t border-white/30 dark:border-gray-700/40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl ${menuOpen ? "max-h-[500px]" : "max-h-0"}`}
         aria-hidden={!menuOpen}
       >
         <ul className="list-none m-0 px-6 py-3 pb-5 flex flex-col gap-1">
