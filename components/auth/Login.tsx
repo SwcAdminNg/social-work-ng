@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
@@ -93,12 +94,12 @@ export default function Login() {
             </span>
           </label>
 
-          <a
+          <Link
             href="/forgot-password"
             className="text-[0.83rem] font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"
           >
             Forgot password?
-          </a>
+          </Link>
         </div>
 
         {/* Submit button */}
@@ -141,30 +142,30 @@ export default function Login() {
       {/* Register link */}
       <p className="text-center text-[0.85rem] text-gray-500 dark:text-gray-400">
         Don't have an account?{" "}
-        <a
+        <Link
           href="/register"
           className="font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"
         >
           Create an account
-        </a>
+        </Link>
       </p>
 
       {/* Footer note */}
       <p className="mt-10 text-center text-[0.72rem] text-gray-400 dark:text-gray-600 leading-relaxed">
         By signing in, you agree to our{" "}
-        <a
+        <Link
           href="/terms-of-service"
           className="underline hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-150"
         >
           Terms of Service
-        </a>{" "}
+        </Link>{" "}
         and{" "}
-        <a
+        <Link
           href="/privacy-policy"
           className="underline hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-150"
         >
           Privacy Policy
-        </a>
+        </Link>
         .
       </p>
     </AuthPageShell>

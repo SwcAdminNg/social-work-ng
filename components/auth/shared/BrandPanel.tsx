@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { IconLogoMark } from "./icons";
 
 export function BrandPanel() {
@@ -48,7 +49,7 @@ export function BrandPanel() {
       {/* Content overlaid on image */}
       <div className="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
         {/* Logo */}
-        <a
+        <Link
           href="/"
           className="flex items-center gap-3 no-underline w-fit group"
           aria-label="Social Work Nigeria home"
@@ -64,7 +65,7 @@ export function BrandPanel() {
               Consultancy
             </p>
           </div>
-        </a>
+        </Link>
 
         {/* Testimonial / mission quote */}
         <div className="max-w-sm">

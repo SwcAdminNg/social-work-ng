@@ -136,7 +136,7 @@ export default function Navbar() {
 
         {/* Login — desktop */}
         <Link
-          href="#"
+          href="/login"
           className="hidden lg:inline-flex items-center justify-center px-5 py-2 bg-[#2D6A4F] text-white text-sm font-semibold rounded-full no-underline hover:bg-[#1e4d38] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 shadow-sm flex-shrink-0"
         >
           Login
