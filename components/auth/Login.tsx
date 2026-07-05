@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
@@ -13,12 +13,49 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    if (!email) {
+      emailRef.current?.focus();
+      return;
+    }
+    if (!password) {
+      passwordRef.current?.focus();
+      return;
+    }
+
     setLoading(true);
-    // Simulate async login
-    setTimeout(() => setLoading(false), 1800);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      const res = await fetch(`${baseUrl}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier: email,
+          password,
+          keep_logged_in: keepLoggedIn,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to sign in. Please check your credentials.");
+      }
+      
+      // In a real app, save tokens and redirect here.
+      alert(data.message || "Login successful!");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,10 +73,17 @@ export default function Login() {
         </p>
       </div>
 
+      {error && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+          {error}
+        </div>
+      )}
+
       {/* Form */}
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         {/* Email */}
         <FloatingInput
+          ref={emailRef}
           id="email"
           label="Email address"
           type="email"
@@ -52,6 +96,7 @@ export default function Login() {
 
         {/* Password */}
         <FloatingInput
+          ref={passwordRef}
           id="password"
           label="Password"
           type={showPassword ? "text" : "password"}
