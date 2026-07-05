@@ -1,28 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
 import { IconArrowRight, IconLock, IconSpinner } from "./shared/icons";
 
-export default function ResetPassword() {
+function ResetPasswordForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
+
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") || "";
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    if (!password) return passwordRef.current?.focus();
+    if (!confirmPassword) return confirmPasswordRef.current?.focus();
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (!token) {
+      setError("Reset token is missing from the URL.");
+      return;
+    }
+
     setLoading(true);
-    // Simulate resetting password
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      const res = await fetch(`${baseUrl}/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          new_password: password,
+          confirm_password: confirmPassword
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to reset password.");
+      }
+      
       setDone(true);
-    }, 1800);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (done) {
@@ -73,9 +114,16 @@ export default function ResetPassword() {
         </p>
       </div>
 
+      {error && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+          {error}
+        </div>
+      )}
+
       {/* Form */}
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <FloatingInput
+          ref={passwordRef}
           id="password"
           label="New password"
           type={showPassword ? "text" : "password"}
@@ -93,6 +141,7 @@ export default function ResetPassword() {
         />
 
         <FloatingInput
+          ref={confirmPasswordRef}
           id="confirmPassword"
           label="Confirm new password"
           type={showConfirmPassword ? "text" : "password"}
@@ -147,5 +196,19 @@ export default function ResetPassword() {
         </Link>
       </p>
     </AuthPageShell>
+  );
+}
+
+export default function ResetPassword() {
+  return (
+    <Suspense fallback={
+      <AuthPageShell>
+        <div className="flex items-center justify-center p-10">
+          <IconSpinner className="w-6 h-6 text-[#2D6A4F] dark:text-[#52b788] animate-spin" />
+        </div>
+      </AuthPageShell>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
