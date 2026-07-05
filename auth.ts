@@ -37,11 +37,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
 
           const response = await res.json();
-          console.log("[NextAuth] Backend Login Response Status:", res.status);
-          console.log(
-            "[NextAuth] Backend Login Response Body:",
-            JSON.stringify(response, null, 2),
-          );
 
           if (res.ok && response.data?.user) {
             return {
