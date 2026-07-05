@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
@@ -8,6 +10,7 @@ import { PasswordToggle } from "./shared/PasswordToggle";
 import { IconArrowRight, IconCheck, IconLock, IconMail, IconSpinner } from "./shared/icons";
 
 export default function Login() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,24 +36,18 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const res = await fetch(`${baseUrl}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          identifier: email,
-          password,
-          keep_logged_in: keepLoggedIn,
-        }),
+      const res = await signIn("credentials", {
+        redirect: false,
+        identifier: email,
+        password,
+        keep_logged_in: keepLoggedIn,
       });
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to sign in. Please check your credentials.");
+      if (res?.error) {
+        throw new Error("Failed to sign in. Please check your credentials.");
       }
       
-      // In a real app, save tokens and redirect here.
-      alert(data.message || "Login successful!");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {

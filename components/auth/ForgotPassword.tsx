@@ -22,8 +22,7 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const res = await fetch(`${baseUrl}/auth/forgot-password`, {
+      const res = await fetch(`/api/proxy/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

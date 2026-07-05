@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
@@ -15,6 +16,7 @@ import {
 } from "./shared/icons";
 
 export default function SignUp() {
+  const router = useRouter();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -47,8 +49,7 @@ export default function SignUp() {
     }
     const timer = setTimeout(async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-        const res = await fetch(`${baseUrl}/auth/username/suggestions?first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}`);
+        const res = await fetch(`/api/proxy/username/suggestions?first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}`);
         const data = await res.json().catch(() => ({}));
         if (res.ok && data?.data?.suggestions) {
           setSuggestions(data.data.suggestions);
@@ -73,8 +74,7 @@ export default function SignUp() {
     const timer = setTimeout(async () => {
       setCheckingUsername(true);
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-        const res = await fetch(`${baseUrl}/auth/username/availability?username=${encodeURIComponent(username)}`);
+        const res = await fetch(`/api/proxy/username/availability?username=${encodeURIComponent(username)}`);
         const data = await res.json().catch(() => ({}));
         if (res.ok && data?.data !== undefined) {
           setUsernameAvailable(data.data.available);
@@ -109,8 +109,7 @@ export default function SignUp() {
 
     setLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const res = await fetch(`${baseUrl}/auth/signup`, {
+      const res = await fetch(`/api/proxy/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -131,7 +130,7 @@ export default function SignUp() {
         throw new Error(data.message || "Failed to create account.");
       }
       
-      alert(data.message || "Account created successfully!");
+      router.push("/login");
     } catch (err: any) {
       setError(err.message);
     } finally {

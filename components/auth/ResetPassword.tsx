@@ -42,8 +42,7 @@ function ResetPasswordForm() {
 
     setLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const res = await fetch(`${baseUrl}/auth/reset-password`, {
+      const res = await fetch(`/api/proxy/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
