@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getPageTitle } from "./nav-items";
 import { useSidebar } from "./SidebarContext";
-import { IconBell, IconLogout, IconMenu } from "./icons";
+import { IconBell, IconMenu } from "./icons";
+import { LogoutButton } from "./LogoutButton";
 
 const NOTIFICATIONS = [
   {
@@ -112,14 +113,7 @@ export function DashboardHeader() {
         </div>
 
         {/* Logout */}
-        <Link
-          href="/login"
-          aria-label="Logout"
-          title="Logout"
-          className="w-10 h-10 flex items-center justify-center rounded-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 no-underline transition-colors"
-        >
-          <IconLogout />
-        </Link>
+        <LogoutButton />
       </div>
     </header>
   );

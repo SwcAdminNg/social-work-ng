@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { IconLogoMark } from "@/components/auth/shared/icons";
 import { dashboardNavItems } from "./nav-items";
 import { useSidebar } from "./SidebarContext";
-import { IconChevronsLeft, IconClose, IconLogout } from "./icons";
+import { IconChevronsLeft, IconClose } from "./icons";
+import { LogoutButton } from "./LogoutButton";
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
@@ -110,16 +111,7 @@ export function Sidebar() {
 
         {/* Logout */}
         <div className="px-3 pb-5 border-t border-gray-100 dark:border-gray-800 pt-3 flex-shrink-0">
-          <Link
-            href="/login"
-            title={collapsed ? "Logout" : undefined}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 no-underline transition-colors duration-150"
-          >
-            <span className="flex-shrink-0">
-              <IconLogout />
-            </span>
-            <span className={`whitespace-nowrap ${collapsed ? "lg:hidden" : ""}`}>Logout</span>
-          </Link>
+          <LogoutButton isSidebar collapsed={collapsed} />
         </div>
       </aside>
     </>
