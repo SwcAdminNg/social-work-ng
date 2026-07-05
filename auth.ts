@@ -1,5 +1,12 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+
+class CustomAuthError extends CredentialsSignin {
+  constructor(message: string) {
+    super(message);
+    this.code = message;
+  }
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -8,15 +15,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         identifier: { label: "Identifier", type: "text" },
         password: { label: "Password", type: "password" },
-        keep_logged_in: { label: "Keep Logged In", type: "text" }
+        keep_logged_in: { label: "Keep Logged In", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.identifier || !credentials?.password) {
           return null;
         }
 
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_API_URL || "";
-        
+        const baseUrl =
+          process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_API_URL || "";
+
         try {
           const res = await fetch(`${baseUrl}/auth/login`, {
             method: "POST",
@@ -29,9 +37,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
 
           const response = await res.json();
+          console.log("[NextAuth] Backend Login Response Status:", res.status);
+          console.log(
+            "[NextAuth] Backend Login Response Body:",
+            JSON.stringify(response, null, 2),
+          );
 
           if (res.ok && response.data?.user) {
-            // Return user object along with tokens
             return {
               id: response.data.user.id,
               name: `${response.data.user.first_name} ${response.data.user.last_name}`,
@@ -41,14 +53,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               refreshToken: response.data.tokens.refresh_token,
             } as any;
           }
-          
-          return null;
-        } catch (error) {
-          console.error("Login error:", error);
-          return null;
+
+          throw new CustomAuthError(
+            response.message || "Invalid credentials provided",
+          );
+        } catch (error: any) {
+          if (error instanceof CredentialsSignin) {
+            throw error;
+          }
+          console.error("Login error:", error.message);
+          throw new CustomAuthError(
+            "An unexpected error occurred during login",
+          );
         }
-      }
-    })
+      },
+    }),
   ],
   callbacks: {
     async jwt({ token, user }) {
@@ -67,7 +86,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         (session as any).accessToken = token.accessToken;
       }
       return session;
-    }
+    },
   },
   pages: {
     signIn: "/login",
