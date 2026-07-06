@@ -7,6 +7,7 @@ import {
   IconSettings,
   IconStar,
   IconUserCircle,
+  IconCreditCard,
 } from "./icons";
 
 export type NavItem = {
@@ -18,6 +19,7 @@ export type NavItem = {
 export const dashboardNavItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: IconGrid },
   { label: "My Profile", href: "/dashboard/profile", icon: IconUserCircle },
+  { label: "Plans & Pricing", href: "/dashboard/pricing", icon: IconCreditCard },
   { label: "Enrolled Courses", href: "/dashboard/courses", icon: IconBookOpen },
   { label: "Reviews", href: "/dashboard/reviews", icon: IconStar },
   { label: "My Quiz Attempts", href: "/dashboard/quiz-attempts", icon: IconClipboardCheck },

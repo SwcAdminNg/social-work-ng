@@ -124,18 +124,22 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               ))}
             </ul>
           </li>
-          {["Our Courses", "Mentorship", "Resources", "Contact Us"].map(
-            (item) => (
-              <li key={item}>
-                <Link
-                  href="#"
-                  className="flex items-center px-4 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 rounded-full transition-colors no-underline whitespace-nowrap hover:bg-white/60 dark:hover:bg-gray-800/60"
-                >
-                  {item}
-                </Link>
-              </li>
-            ),
-          )}
+          {[
+            { name: "Pricing", href: "/pricing" },
+            { name: "Our Courses", href: "/courses" },
+            { name: "Mentorship", href: "#" },
+            { name: "Resources", href: "#" },
+            { name: "Contact Us", href: "#" },
+          ].map((item) => (
+            <li key={item.name}>
+              <Link
+                href={item.href}
+                className="flex items-center px-4 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 rounded-full transition-colors no-underline whitespace-nowrap hover:bg-white/60 dark:hover:bg-gray-800/60"
+              >
+                {item.name}
+              </Link>
+            </li>
+          ))}
         </ul>
 
         {/* Login/Dashboard — desktop */}
@@ -221,18 +225,23 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               ))}
             </ul>
           </li>
-          {["Our Courses", "Mentorship", "Resources", "Contact Us"].map(
-            (item) => (
-              <li key={item}>
-                <Link
-                  href="#"
-                  className="block py-3 text-base font-medium text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-800 no-underline transition-colors"
-                >
-                  {item}
-                </Link>
-              </li>
-            ),
-          )}
+          {[
+            { name: "Pricing", href: "/pricing" },
+            { name: "Our Courses", href: "/courses" },
+            { name: "Mentorship", href: "#" },
+            { name: "Resources", href: "#" },
+            { name: "Contact Us", href: "#" },
+          ].map((item) => (
+            <li key={item.name}>
+              <Link
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                className="block py-3 text-base font-medium text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-800 no-underline transition-colors"
+              >
+                {item.name}
+              </Link>
+            </li>
+          ))}
           <li className="mt-3">
             {isLoggedIn ? (
               <Link

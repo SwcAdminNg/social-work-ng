@@ -127,6 +127,7 @@ export default async function CourseDetailsPage(props: {
               isEnrolled={course.is_enrolled}
               isFree={course.is_free}
               price={course.price}
+              hasAccess={course.has_access}
             />
 
             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 space-y-4">

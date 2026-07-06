@@ -16,7 +16,7 @@ export default async function EnrolledCoursesPage() {
   }
   
   const data = await res.json().catch(() => ({}));
-  const courses = data?.data || [];
+  const courses = Array.isArray(data?.data) ? data.data : data?.data?.items || [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -63,6 +63,7 @@ export default async function EnrolledCoursesPage() {
               is_completed={course.is_completed}
               price={course.price}
               is_enrolled={course.is_enrolled ?? true}
+              has_access={course.has_access}
               href={`/learn/${course.id}`} // Takes them to the full-screen player
             />
           ))}

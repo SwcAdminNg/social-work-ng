@@ -9,9 +9,10 @@ interface EnrollButtonProps {
   isEnrolled: boolean;
   isFree: boolean;
   price?: number;
+  hasAccess?: boolean;
 }
 
-export function EnrollButton({ courseId, isEnrolled, isFree, price }: EnrollButtonProps) {
+export function EnrollButton({ courseId, isEnrolled, isFree, price, hasAccess }: EnrollButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -29,7 +30,7 @@ export function EnrollButton({ courseId, isEnrolled, isFree, price }: EnrollButt
   }
 
   const handleEnrollClick = () => {
-    if (isFree) {
+    if (isFree || hasAccess) {
       executeEnrollment();
     } else {
       setShowModal(true);
@@ -98,7 +99,7 @@ export function EnrollButton({ courseId, isEnrolled, isFree, price }: EnrollButt
           className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl font-bold text-white bg-[#2D6A4F] hover:bg-[#1B4332] dark:bg-[#52b788] dark:hover:bg-[#40916c] transition-colors shadow-lg shadow-[#2D6A4F]/20 disabled:opacity-70"
         >
           {loading ? <IconSpinner className="w-5 h-5 animate-spin" /> : null}
-          {loading ? "Processing..." : isFree ? "Enroll for Free" : "Enroll Now"}
+          {loading ? "Processing..." : isFree ? "Enroll for Free" : hasAccess ? "Enroll Now" : `Buy for ₦${price?.toLocaleString() || "..."}`}
         </button>
         {error && (
           <p className="text-sm font-medium text-red-600 dark:text-red-400 text-center">

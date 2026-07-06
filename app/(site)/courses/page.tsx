@@ -52,6 +52,7 @@ export default async function CoursesPage(props: {
               is_exclusive={course.is_exclusive}
               price={course.price}
               is_enrolled={course.is_enrolled}
+              has_access={course.has_access}
               href={`/courses/${course.slug || course.id}`}
             />
           ))}

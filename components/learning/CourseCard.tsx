@@ -10,6 +10,7 @@ interface CourseCardProps {
   is_exclusive?: boolean;
   price?: number;
   is_enrolled?: boolean;
+  has_access?: boolean;
   progress_percent?: number;
   is_completed?: boolean;
   href: string; // The destination when clicked
@@ -23,6 +24,7 @@ export function CourseCard({
   is_exclusive,
   price,
   is_enrolled,
+  has_access,
   progress_percent,
   is_completed,
   href,
@@ -94,6 +96,11 @@ export function CourseCard({
             <span className="text-[#2D6A4F] dark:text-[#52b788] font-semibold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#2D6A4F] dark:bg-[#52b788]" />
               Enrolled
+            </span>
+          ) : has_access ? (
+            <span className="text-[#2D6A4F] dark:text-[#52b788] font-semibold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#2D6A4F] dark:bg-[#52b788]" />
+              Free Access
             </span>
           ) : (
             <span className="text-gray-500 font-medium">Available to enroll</span>
