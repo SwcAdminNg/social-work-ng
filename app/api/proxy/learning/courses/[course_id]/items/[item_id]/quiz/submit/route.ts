@@ -17,7 +17,7 @@ export async function POST(
       process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_API_URL || "";
 
     const res = await fetch(
-      `${baseUrl}/api/v1/learning/courses/${params.course_id}/items/${params.item_id}/quiz/submit`,
+      `${baseUrl}/learning/courses/${params.course_id}/items/${params.item_id}/quiz/submit`,
       {
         method: "POST",
         headers: {

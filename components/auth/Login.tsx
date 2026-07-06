@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
@@ -11,6 +11,7 @@ import { IconArrowRight, IconCheck, IconLock, IconMail, IconSpinner } from "./sh
 
 export default function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -47,7 +48,8 @@ export default function Login() {
         throw new Error("Failed to sign in. Please check your credentials.");
       }
       
-      router.push("/dashboard");
+      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+      router.push(callbackUrl);
     } catch (err: any) {
       setError(err.message);
     } finally {

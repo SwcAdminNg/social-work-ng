@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { IconSpinner } from "@/components/auth/shared/icons";
-
-const ReactPlayer = dynamic(() => import("react-player"), { ssr: false }) as any;
+import { HlsVideoPlayer } from "./HlsVideoPlayer";
 
 interface VideoPlayerProps {
   url: string;
@@ -17,9 +15,25 @@ interface VideoPlayerProps {
 export function VideoPlayer({ url, courseId, itemId, isCompleted }: VideoPlayerProps) {
   const [mounted, setMounted] = useState(false);
   const [marking, setMarking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Prevent video reload when backend generates new tokens for the same video
+  const [activeUrl, setActiveUrl] = useState(url);
+  const prevBaseUrl = useRef(url.split("?")[0]);
+
   const router = useRouter();
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const currentBaseUrl = url.split("?")[0];
+    if (currentBaseUrl !== prevBaseUrl.current) {
+      prevBaseUrl.current = currentBaseUrl;
+      setActiveUrl(url);
+    }
+  }, [url]);
 
   const markComplete = async () => {
     setMarking(true);
@@ -37,14 +51,26 @@ export function VideoPlayer({ url, courseId, itemId, isCompleted }: VideoPlayerP
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto">
-      <div className="aspect-video bg-black rounded-2xl overflow-hidden shadow-xl border border-gray-800">
-        <ReactPlayer
-          url={url}
-          width="100%"
-          height="100%"
-          controls
-          onEnded={!isCompleted ? markComplete : undefined}
-        />
+      <div className="aspect-video bg-black rounded-2xl overflow-hidden shadow-xl border border-gray-800 relative">
+        {activeUrl.includes("iframe.mediadelivery.net") || activeUrl.includes("youtube.com/embed") || activeUrl.includes("vimeo.com/video") ? (
+          <iframe 
+            src={activeUrl}
+            className="w-full h-full absolute top-0 left-0 border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <HlsVideoPlayer
+            url={activeUrl}
+            onEnded={!isCompleted ? markComplete : undefined}
+          />
+        )}
+        
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10 p-6 text-center">
+            <p className="text-red-500 font-bold bg-red-500/10 p-4 rounded-xl border border-red-500/20">{error}</p>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-between items-center bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">

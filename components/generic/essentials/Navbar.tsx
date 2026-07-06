@@ -3,7 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export default function Navbar() {
+interface NavbarProps {
+  isLoggedIn?: boolean;
+}
+
+export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [whoWeAreOpen, setWhoWeAreOpen] = useState(false);
 
@@ -134,13 +138,22 @@ export default function Navbar() {
           )}
         </ul>
 
-        {/* Login — desktop */}
-        <Link
-          href="/login"
-          className="hidden lg:inline-flex items-center justify-center px-5 py-2 bg-[#2D6A4F] text-white text-sm font-semibold rounded-full no-underline hover:bg-[#1e4d38] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 shadow-sm flex-shrink-0"
-        >
-          Login
-        </Link>
+        {/* Login/Dashboard — desktop */}
+        {isLoggedIn ? (
+          <Link
+            href="/dashboard"
+            className="hidden lg:inline-flex items-center justify-center px-5 py-2 bg-[#2D6A4F] text-white text-sm font-semibold rounded-full no-underline hover:bg-[#1e4d38] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 shadow-sm flex-shrink-0"
+          >
+            Dashboard
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className="hidden lg:inline-flex items-center justify-center px-5 py-2 bg-[#2D6A4F] text-white text-sm font-semibold rounded-full no-underline hover:bg-[#1e4d38] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 shadow-sm flex-shrink-0"
+          >
+            Login
+          </Link>
+        )}
 
         {/* Hamburger — mobile */}
         <button
@@ -221,12 +234,23 @@ export default function Navbar() {
             ),
           )}
           <li className="mt-3">
-            <Link
-              href="#"
-              className="block text-center py-3 px-4 bg-[#2D6A4F] text-white font-semibold rounded-full no-underline hover:bg-[#1e4d38] transition-colors"
-            >
-              Login
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="block text-center py-3 px-4 bg-[#2D6A4F] text-white font-semibold rounded-full no-underline hover:bg-[#1e4d38] transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="block text-center py-3 px-4 bg-[#2D6A4F] text-white font-semibold rounded-full no-underline hover:bg-[#1e4d38] transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                Login
+              </Link>
+            )}
           </li>
         </ul>
       </div>

@@ -1,6 +1,7 @@
 import { fetchApi } from "@/lib/fetchApi";
 import { CourseCard } from "@/components/learning/CourseCard";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { IconBookOpen } from "@/components/dashboard/icons";
 
 export const metadata = {
@@ -8,15 +9,30 @@ export const metadata = {
 };
 
 export default async function EnrolledCoursesPage() {
-  const res = await fetchApi(`/api/v1/learning/courses`, { next: { revalidate: 0 } }); // Real-time for dashboard
+  const res = await fetchApi(`/learning/courses`, { next: { revalidate: 0 } }); // Real-time for dashboard
+  
+  if (res.status === 401) {
+    redirect("/logout?callbackUrl=/dashboard/courses");
+  }
+  
   const data = await res.json().catch(() => ({}));
   const courses = data?.data || [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Enrolled Courses</h1>
-        <p className="text-sm text-gray-500 mt-1">Pick up where you left off and track your progress.</p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Enrolled Courses</h1>
+          <p className="text-sm text-gray-500 mt-1">Pick up where you left off and track your progress.</p>
+        </div>
+        {courses.length > 0 && (
+          <Link
+            href="/courses"
+            className="inline-flex items-center justify-center px-5 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold rounded-xl transition-transform hover:-translate-y-0.5"
+          >
+            Explore More Courses
+          </Link>
+        )}
       </div>
 
       {courses.length === 0 ? (
@@ -45,6 +61,7 @@ export default async function EnrolledCoursesPage() {
               thumbnail_url={course.thumbnail_url}
               progress_percent={course.progress_percent}
               is_completed={course.is_completed}
+              is_enrolled={course.is_enrolled ?? true}
               href={`/learn/${course.id}`} // Takes them to the full-screen player
             />
           ))}

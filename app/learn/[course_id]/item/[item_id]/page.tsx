@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { VideoPlayer } from "@/components/learning/VideoPlayer";
 import { QuizEngine } from "@/components/learning/QuizEngine";
 import { IconClipboardCheck } from "@/components/dashboard/icons";
+import { MarkCompleteButton } from "@/components/learning/MarkCompleteButton";
 
 export default async function LearningItemPage(props: {
   params: Promise<{ course_id: string; item_id: string }>;
@@ -14,7 +15,7 @@ export default async function LearningItemPage(props: {
   );
 
   if (res.status === 401) {
-    redirect("/login");
+    redirect(`/logout?callbackUrl=/learn/${params.course_id}/item/${params.item_id}`);
   }
   if (res.status === 404) {
     notFound();
@@ -52,27 +53,33 @@ export default async function LearningItemPage(props: {
           />
         )}
 
-        {item.item_type === "DOCUMENT" && (
-          <div className="max-w-4xl mx-auto bg-white dark:bg-gray-900 p-12 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 text-center">
-            <div className="w-20 h-20 mx-auto bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-full flex items-center justify-center mb-6">
-              <span className="w-10 h-10 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full">
-                <IconClipboardCheck />
-              </span>
+        {item.item_type === "DOCUMENT" && item.document_url && (
+          <div className="max-w-5xl mx-auto h-[75vh] min-h-[600px] bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col">
+            <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="w-5 h-5 text-blue-500 [&>svg]:w-full [&>svg]:h-full">
+                  <IconClipboardCheck />
+                </span>
+                <h2 className="font-bold text-gray-900 dark:text-white">{item.title}</h2>
+              </div>
+              <div className="flex items-center gap-4">
+                <a 
+                  href={item.document_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Download
+                </a>
+                <MarkCompleteButton courseId={params.course_id} itemId={item.id} isCompleted={item.is_completed} />
+              </div>
             </div>
-            <h2 className="text-2xl font-bold mb-4">{item.title}</h2>
-            <p className="text-gray-500 mb-8">
-              Please review the attached document to continue.
-            </p>
-            {item.document_url && (
-              <a
-                href={item.document_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all"
-              >
-                Open Document
-              </a>
-            )}
+            <div className="flex-1 w-full bg-gray-100 dark:bg-gray-950">
+              <iframe 
+                src={item.document_url.toLowerCase().endsWith('.pdf') ? item.document_url : `https://docs.google.com/viewer?url=${encodeURIComponent(item.document_url)}&embedded=true`} 
+                className="w-full h-full border-0"
+              />
+            </div>
           </div>
         )}
 
@@ -82,6 +89,7 @@ export default async function LearningItemPage(props: {
             itemId={item.id}
             isCompleted={item.is_completed}
             questions={item.questions}
+            previousAttempt={item.previous_attempt}
           />
         )}
       </div>

@@ -19,7 +19,7 @@ export default async function CoursesPage(props: {
 
   const res = await fetchApi(url, { next: { revalidate: 60 } });
   const data = await res.json().catch(() => ({}));
-  const items = data?.data?.items || [];
+  const items = Array.isArray(data?.data) ? data.data : data?.data?.items || [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
