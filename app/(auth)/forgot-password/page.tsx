@@ -1,5 +1,10 @@
 import ForgotPassword from "@/components/auth/ForgotPassword";
+import { Suspense } from "react";
 
 export default function ForgotPasswordPage() {
-  return <ForgotPassword />;
+  return (
+    <Suspense fallback={null}>
+      <ForgotPassword />
+    </Suspense>
+  );
 }
