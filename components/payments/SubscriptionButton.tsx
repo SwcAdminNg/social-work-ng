@@ -23,6 +23,8 @@ export function SubscriptionButton({
 }: SubscriptionButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
+
   const handleSubscribeClick = () => {
     if (!isLoggedIn) {
       router.push("/login?callbackUrl=" + encodeURIComponent(window.location.href));
