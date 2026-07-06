@@ -46,6 +46,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               username: response.data.user.username,
               accessToken: response.data.tokens.access_token,
               refreshToken: response.data.tokens.refresh_token,
+              expiresAt: Math.floor(Date.now() / 1000) + (response.data.tokens.expires_in || 3600),
             } as any;
           }
 
@@ -71,6 +72,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.username = (user as any).username;
         token.accessToken = (user as any).accessToken;
         token.refreshToken = (user as any).refreshToken;
+        token.expiresAt = (user as any).expiresAt;
+      } else if (token.expiresAt && Math.floor(Date.now() / 1000) > (token.expiresAt as number)) {
+        try {
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_API_URL || "";
+          const res = await fetch(`${baseUrl}/auth/refresh-token`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: token.refreshToken }),
+          });
+          const response = await res.json().catch(() => ({}));
+          if (res.ok && response.data?.access_token) {
+            token.accessToken = response.data.access_token;
+            token.refreshToken = response.data.refresh_token;
+            token.expiresAt = Math.floor(Date.now() / 1000) + (response.data.expires_in || 3600);
+            token.error = undefined;
+          } else {
+            token.error = "RefreshAccessTokenError";
+          }
+        } catch (error) {
+          console.error("Error refreshing access token", error);
+          token.error = "RefreshAccessTokenError";
+        }
       }
       return token;
     },
@@ -79,6 +102,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.id as string;
         (session.user as any).username = token.username as string;
         (session as any).accessToken = token.accessToken;
+        (session as any).error = token.error;
       }
       return session;
     },

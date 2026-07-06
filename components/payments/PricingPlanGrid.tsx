@@ -254,7 +254,7 @@ export function PricingPlanGrid({ plans, isLoggedIn, currentSubscription }: Pric
                     {savedCards.map(card => (
                       <label key={card.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedCardId === card.id ? "border-[#52b788] bg-[#52b788]/10" : "border-gray-200 dark:border-gray-800 hover:border-gray-300"}`}>
                         <input type="radio" name="paymentMethod" checked={selectedCardId === card.id} onChange={() => setSelectedCardId(card.id)} className="w-4 h-4 text-[#52b788]" />
-                        <span className="font-medium text-gray-900 dark:text-white capitalize">{card.brand} ending in •••• {card.last4}</span>
+                        <span className="font-medium text-gray-900 dark:text-white capitalize">{(card.card_type || card.brand || "Card").trim()} ending in •••• {card.last4}</span>
                       </label>
                     ))}
                     <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedCardId === "NEW" ? "border-[#52b788] bg-[#52b788]/10" : "border-gray-200 dark:border-gray-800 hover:border-gray-300"}`}>
