@@ -8,6 +8,7 @@ interface CourseCardProps {
   thumbnail_url?: string;
   is_free?: boolean;
   is_exclusive?: boolean;
+  price?: number;
   is_enrolled?: boolean;
   progress_percent?: number;
   is_completed?: boolean;
@@ -20,6 +21,7 @@ export function CourseCard({
   thumbnail_url,
   is_free,
   is_exclusive,
+  price,
   is_enrolled,
   progress_percent,
   is_completed,
@@ -54,6 +56,11 @@ export function CourseCard({
           {is_exclusive && (
             <span className="px-3 py-1 text-xs font-bold bg-[#E76F51] text-white rounded-lg shadow-sm flex items-center gap-1">
               <IconStar /> EXCLUSIVE
+            </span>
+          )}
+          {!is_free && price !== undefined && (
+            <span className="px-3 py-1 text-xs font-bold bg-[#2D6A4F] text-white rounded-lg shadow-sm backdrop-blur-md">
+              ₦{price.toLocaleString()}
             </span>
           )}
         </div>

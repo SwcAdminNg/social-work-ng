@@ -33,11 +33,15 @@ export default async function CourseDetailsPage(props: {
         <div className="flex-1 space-y-12">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              {course.is_free && (
+              {course.is_free ? (
                 <span className="px-3 py-1 text-xs font-bold bg-[#F4A261] text-white rounded-lg shadow-sm">
                   FREE COURSE
                 </span>
-              )}
+              ) : course.price !== undefined ? (
+                <span className="px-3 py-1 text-sm font-bold bg-[#2D6A4F] text-white rounded-lg shadow-sm">
+                  ₦{course.price.toLocaleString()}
+                </span>
+              ) : null}
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6">
               {course.title}
@@ -109,8 +113,8 @@ export default async function CourseDetailsPage(props: {
               )}
             </div>
 
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Ready to start?
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              {course.is_free ? "Free" : course.price !== undefined ? `₦${course.price.toLocaleString()}` : "Premium"}
             </h3>
             <p className="text-sm text-gray-500 mb-8">
               {course.is_enrolled

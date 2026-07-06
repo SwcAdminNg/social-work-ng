@@ -61,6 +61,7 @@ export default async function EnrolledCoursesPage() {
               thumbnail_url={course.thumbnail_url}
               progress_percent={course.progress_percent}
               is_completed={course.is_completed}
+              price={course.price}
               is_enrolled={course.is_enrolled ?? true}
               href={`/learn/${course.id}`} // Takes them to the full-screen player
             />
