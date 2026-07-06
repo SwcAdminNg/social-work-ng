@@ -1,5 +1,6 @@
 import { fetchApi } from "@/lib/fetchApi";
 import { PricingPlanGrid } from "@/components/payments/PricingPlanGrid";
+import { ActiveSubscriptionBanner } from "@/components/payments/ActiveSubscriptionBanner";
 import { auth } from "@/auth";
 
 export const metadata = {
@@ -14,6 +15,11 @@ export default async function DashboardPricingPage() {
   const data = await res.json().catch(() => ({}));
   const plans = data?.data || [];
 
+  // Fetch current subscription
+  const subRes = await fetchApi(`/payments/subscriptions/current`, { next: { revalidate: 0 } });
+  const subData = await subRes.json().catch(() => ({}));
+  const currentSubscription = subData?.data;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-10">
@@ -21,7 +27,11 @@ export default async function DashboardPricingPage() {
         <p className="text-sm text-gray-500 mt-1">Upgrade your account to get unlimited access to all standard courses.</p>
       </div>
 
-      <PricingPlanGrid plans={plans} isLoggedIn={!!session} />
+      {currentSubscription && (
+        <ActiveSubscriptionBanner subscription={currentSubscription} allPlans={plans} />
+      )}
+
+      <PricingPlanGrid plans={plans} isLoggedIn={!!session} currentSubscription={currentSubscription} />
     </div>
   );
 }

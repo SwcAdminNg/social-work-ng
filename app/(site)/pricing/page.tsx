@@ -15,6 +15,14 @@ export default async function PricingPage() {
   const data = await res.json().catch(() => ({}));
   const plans = data?.data || [];
 
+  // Fetch current subscription if logged in
+  let currentSubscription = null;
+  if (session) {
+    const subRes = await fetchApi(`/payments/subscriptions/current`, { next: { revalidate: 0 } });
+    const subData = await subRes.json().catch(() => ({}));
+    currentSubscription = subData?.data;
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
       <div className="text-center max-w-3xl mx-auto mb-20">
@@ -26,7 +34,7 @@ export default async function PricingPage() {
         </p>
       </div>
 
-      <PricingPlanGrid plans={plans} isLoggedIn={!!session} />
+      <PricingPlanGrid plans={plans} isLoggedIn={!!session} currentSubscription={currentSubscription} />
 
       <div className="mt-24 text-center max-w-2xl mx-auto">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>

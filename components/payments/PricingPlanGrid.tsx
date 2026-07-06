@@ -13,9 +13,10 @@ interface Plan {
 interface PricingPlanGridProps {
   plans: Plan[];
   isLoggedIn: boolean;
+  currentSubscription?: any;
 }
 
-export function PricingPlanGrid({ plans, isLoggedIn }: PricingPlanGridProps) {
+export function PricingPlanGrid({ plans, isLoggedIn, currentSubscription }: PricingPlanGridProps) {
   if (!plans || plans.length === 0) {
     return (
       <div className="text-center py-20 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
@@ -29,6 +30,10 @@ export function PricingPlanGrid({ plans, isLoggedIn }: PricingPlanGridProps) {
       {plans.filter(p => p.is_active).map((plan, idx) => {
         // Highlight the middle plan or the one with "Pro" in the name
         const isHighlighted = plan.name.toLowerCase().includes("pro") || idx === 1;
+        
+        const isCurrentPlan = currentSubscription?.plan_id === plan.id;
+        const isPendingPlan = currentSubscription?.pending_plan_id === plan.id;
+        const hasActiveSubscription = !!currentSubscription && currentSubscription.is_active;
 
         return (
           <div 
@@ -93,14 +98,16 @@ export function PricingPlanGrid({ plans, isLoggedIn }: PricingPlanGridProps) {
               </ul>
             </div>
 
-            <div className={isHighlighted ? "filter invert" : ""}>
-               {/* We can invert the button colors inside the highlighted card if needed, or SubscriptionButton can handle it.
-                   Actually, SubscriptionButton uses #2D6A4F which looks good on both dark and light modes. */}
+            <div className="mt-auto">
               <SubscriptionButton 
                 planId={plan.id}
                 price={plan.price}
                 isLoggedIn={isLoggedIn}
                 planName={plan.name}
+                isHighlighted={isHighlighted}
+                isCurrentPlan={isCurrentPlan}
+                isPendingPlan={isPendingPlan}
+                hasActiveSubscription={hasActiveSubscription}
               />
             </div>
           </div>
