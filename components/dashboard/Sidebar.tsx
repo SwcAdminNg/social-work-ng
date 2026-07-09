@@ -55,7 +55,7 @@ export function Sidebar() {
                 alt="SWC Logo"
                 width={151}
                 height={40}
-                className="w-[120px] h-auto object-contain dark:bg-white/95 dark:rounded-md dark:p-1 shadow-sm dark:shadow-none"
+                className="w-[120px] h-auto object-contain dark:bg-white/95 dark:rounded-md dark:p-1 dark:shadow-none"
               />
             </div>
           </Link>
