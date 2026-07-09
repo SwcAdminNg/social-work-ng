@@ -13,7 +13,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Social Work Consultancy",
+  title: "Social Work Nigeria",
   description:
     "Professional Training & CPD for Social Work Practice in Nigeria",
 };

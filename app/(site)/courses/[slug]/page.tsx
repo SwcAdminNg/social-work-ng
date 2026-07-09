@@ -29,7 +29,6 @@ export default async function CourseDetailsPage(props: {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
       <div className="flex flex-col lg:flex-row gap-12">
-        {/* Left Column: Course Info & Curriculum */}
         <div className="flex-1 space-y-12">
           <div>
             <div className="flex items-center gap-3 mb-4">
@@ -94,11 +93,8 @@ export default async function CourseDetailsPage(props: {
             </div>
           </div>
         </div>
-
-        {/* Right Column: Sticky Sidebar with Enroll Button */}
         <div className="w-full lg:w-[400px] flex-shrink-0">
           <div className="sticky top-24 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 shadow-xl">
-            {/* Thumbnail */}
             <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden mb-8">
               {course.thumbnail_url ? (
                 <img
@@ -114,7 +110,11 @@ export default async function CourseDetailsPage(props: {
             </div>
 
             <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {course.is_free ? "Free" : course.price !== undefined ? `₦${course.price.toLocaleString()}` : "Premium"}
+              {course.is_free
+                ? "Free"
+                : course.price !== undefined
+                  ? `₦${course.price.toLocaleString()}`
+                  : "Premium"}
             </h3>
             <p className="text-sm text-gray-500 mb-8">
               {course.is_enrolled
