@@ -1,5 +1,6 @@
 import { fetchApi } from "@/lib/fetchApi";
 import { EnrollButton } from "./EnrollButton";
+import { CourseCurriculum } from "./CourseCurriculum";
 import { IconBookOpen } from "@/components/dashboard/icons";
 import { notFound } from "next/navigation";
 
@@ -55,42 +56,7 @@ export default async function CourseDetailsPage(props: {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
               Curriculum
             </h2>
-            <div className="space-y-4">
-              {course.sections && course.sections.length > 0 ? (
-                course.sections.map((section: any, idx: number) => (
-                  <div
-                    key={section.id}
-                    className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm"
-                  >
-                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-                      <h3 className="font-bold text-gray-900 dark:text-white">
-                        Section {idx + 1}: {section.title}
-                      </h3>
-                    </div>
-                    <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-                      {section.items?.map((item: any) => (
-                        <li
-                          key={item.id}
-                          className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <IconBookOpen />
-                            <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {item.title}
-                            </span>
-                          </div>
-                          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                            {item.item_type}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">No curriculum available yet.</p>
-              )}
-            </div>
+            <CourseCurriculum sections={course.sections} />
           </div>
         </div>
         <div className="w-full lg:w-[400px] flex-shrink-0">
