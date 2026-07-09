@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { IconChevronsLeft } from "@/components/dashboard/icons";
 import { IconCheck } from "@/components/auth/shared/icons";
+import { Menu, X } from "lucide-react";
 
 interface CourseSidebarProps {
   courseId: string;
@@ -12,18 +14,21 @@ interface CourseSidebarProps {
 
 export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
-  return (
-    <aside className="flex-1 flex flex-col overflow-hidden z-10 w-full">
+  const SidebarContent = (
+    <div className="flex flex-col h-full overflow-hidden w-full bg-gray-50/50 dark:bg-gray-900/50">
       
-      {/* Top Header */}
-      <div className="h-16 flex items-center px-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 shrink-0 bg-white dark:bg-gray-950">
         <Link 
           href="/dashboard/courses"
           className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
         >
           <IconChevronsLeft /> Back to Dashboard
         </Link>
+        <button className="md:hidden p-2 text-gray-500" onClick={() => setIsOpen(false)}>
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Progress Bar */}
@@ -99,6 +104,40 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
           </div>
         ))}
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex flex-col w-80 lg:w-96 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 overflow-hidden z-10">
+        {SidebarContent}
+      </aside>
+
+      {/* Mobile Drawer Overlay */}
+      {isOpen && (
+        <div 
+          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity" 
+          onClick={() => setIsOpen(false)} 
+        />
+      )}
+
+      {/* Mobile Drawer Panel */}
+      <aside 
+        className={`md:hidden fixed top-0 right-0 z-50 h-full w-[85%] max-w-sm bg-white dark:bg-gray-950 shadow-2xl transition-transform duration-300 ease-in-out flex flex-col overflow-hidden ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {SidebarContent}
+      </aside>
+
+      {/* Floating Action Button (Mobile Only) */}
+      <button 
+        onClick={() => setIsOpen(true)}
+        className="md:hidden fixed bottom-6 left-6 z-30 w-14 h-14 bg-[#2D6A4F] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#1B4332] transition-transform active:scale-95"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+    </>
   );
 }
