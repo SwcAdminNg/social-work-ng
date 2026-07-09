@@ -5,7 +5,7 @@ export function AboutIntro() {
     <section className="py-20 md:py-32 px-6 bg-white dark:bg-gray-950">
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-16 lg:gap-24 items-center">
         {/* Image Column */}
-        <div className="w-full lg:w-1/2 relative">
+        <div className="hidden lg:block lg:w-1/2 relative">
           <div className="relative aspect-[4/5] overflow-hidden shadow-2xl">
             <img
               src="/images/about-us/about-us.webp"

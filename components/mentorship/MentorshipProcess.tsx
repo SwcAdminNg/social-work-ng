@@ -13,16 +13,16 @@ export function MentorshipProcess() {
   const howItWorks = [
     {
       title: "Submit an Expression of Interest",
-      desc: "Please fill out a simple form indicating your interests, goals, and availability to make it easy for you to start your mentorship journey."
+      desc: "Please fill out a simple form indicating your interests, goals, and availability to make it easy for you to start your mentorship journey.",
     },
     {
       title: "Get Matched",
-      desc: "We will match you with a mentor based on your needs and area of interest."
+      desc: "We will match you with a mentor based on your needs and area of interest.",
     },
     {
       title: "Start Your Journey",
-      desc: "Meet virtually (or in-person where possible) for structured sessions and ongoing support."
-    }
+      desc: "Meet virtually (or in-person where possible) for structured sessions and ongoing support.",
+    },
   ];
 
   return (
@@ -32,7 +32,6 @@ export function MentorshipProcess() {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gray-50/50 dark:bg-gray-900/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3 pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10 space-y-24">
-        
         {/* Who Can Join */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-12">
           <div className="lg:w-1/2">
@@ -54,11 +53,14 @@ export function MentorshipProcess() {
             </ul>
           </div>
           <div className="lg:w-1/2 hidden lg:flex justify-end">
-             {/* Decorative element substituting for the background curves in the screenshot */}
-             <div className="relative w-72 h-72">
-               <div className="absolute inset-0 border-[40px] border-gray-100 dark:border-gray-800 rounded-full opacity-50 translate-x-8 -translate-y-8" />
-               <div className="absolute inset-0 border-[40px] border-gray-50 dark:border-gray-900 rounded-full opacity-50" />
-             </div>
+            <div className="relative w-full max-w-md">
+              <div className="absolute inset-0 bg-[#2D6A4F]/10 dark:bg-[#52b788]/10 rounded-3xl translate-x-4 translate-y-4" />
+              <img
+                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop"
+                alt="Diverse group of students and professionals"
+                className="relative z-10 w-full rounded-3xl object-cover shadow-2xl h-[400px]"
+              />
+            </div>
           </div>
         </div>
 
@@ -91,15 +93,17 @@ export function MentorshipProcess() {
               ))}
             </div>
           </div>
-          <div className="lg:w-1/2 hidden lg:flex justify-start">
-             {/* Decorative element */}
-             <div className="relative w-80 h-80">
-               <div className="absolute inset-0 border-[2px] border-gray-200 dark:border-gray-800 rounded-full translate-x-12 translate-y-12 scale-110" />
-               <div className="absolute inset-0 border-[2px] border-gray-200 dark:border-gray-800 rounded-full" />
-             </div>
+          <div className="lg:w-1/2 hidden lg:flex justify-start relative">
+            <div className="relative w-full max-w-md">
+              <div className="absolute inset-0 bg-[#2D6A4F]/10 dark:bg-[#52b788]/10 rounded-3xl -translate-x-4 translate-y-4" />
+              <img
+                src="https://images.unsplash.com/photo-1531497865144-0464ef8fb9a9?q=80&w=1974&auto=format&fit=crop"
+                alt="Mentorship session"
+                className="relative z-10 w-full rounded-3xl object-cover shadow-2xl h-[400px]"
+              />
+            </div>
           </div>
         </div>
-
       </div>
     </section>
   );

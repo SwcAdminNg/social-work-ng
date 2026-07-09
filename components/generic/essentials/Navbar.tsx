@@ -107,10 +107,12 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden overflow-hidden transition-all duration-300 border-t border-white/30 dark:border-gray-700/40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl ${menuOpen ? "max-h-[500px]" : "max-h-0"}`}
+        className={`lg:hidden absolute top-[84px] left-0 right-0 h-[calc(100dvh-84px)] overflow-y-auto transition-all duration-300 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 flex flex-col ${
+          menuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
+        }`}
         aria-hidden={!menuOpen}
       >
-        <ul className="list-none m-0 px-6 py-3 pb-5 flex flex-col gap-1">
+        <ul className="list-none m-0 px-6 py-6 flex flex-col gap-2">
           {[
             { name: "About Us", href: "/about-us" },
             { name: "Pricing", href: "/pricing" },
@@ -123,32 +125,33 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               <Link
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                className="block py-3 text-base font-medium text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-800 no-underline transition-colors"
+                className="block py-4 text-xl font-bold text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-800/50 no-underline transition-colors active:text-[#2D6A4F] dark:active:text-[#52b788]"
               >
                 {item.name}
               </Link>
             </li>
           ))}
-          <li className="mt-3">
-            {isLoggedIn ? (
-              <Link
-                href="/dashboard"
-                className="block text-center py-3 px-4 bg-[#2D6A4F] text-white font-semibold rounded-full no-underline hover:bg-[#1e4d38] transition-colors"
-                onClick={() => setMenuOpen(false)}
-              >
-                Dashboard
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="block text-center py-3 px-4 bg-[#2D6A4F] text-white font-semibold rounded-full no-underline hover:bg-[#1e4d38] transition-colors"
-                onClick={() => setMenuOpen(false)}
-              >
-                Login
-              </Link>
-            )}
-          </li>
         </ul>
+        
+        <div className="px-6 pb-12 pt-6 mt-auto">
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className="block text-center py-4 px-6 bg-[#2D6A4F] text-white text-lg font-bold rounded-full no-underline hover:bg-[#1e4d38] shadow-lg shadow-[#2D6A4F]/20 transition-all active:scale-95"
+              onClick={() => setMenuOpen(false)}
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="block text-center py-4 px-6 bg-[#2D6A4F] text-white text-lg font-bold rounded-full no-underline hover:bg-[#1e4d38] shadow-lg shadow-[#2D6A4F]/20 transition-all active:scale-95"
+              onClick={() => setMenuOpen(false)}
+            >
+              Login
+            </Link>
+          )}
+        </div>
       </div>
     </nav>
   );
