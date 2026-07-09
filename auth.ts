@@ -66,14 +66,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.username = (user as any).username;
         token.accessToken = (user as any).accessToken;
         token.refreshToken = (user as any).refreshToken;
         token.expiresAt = (user as any).expiresAt;
-      } else if (token.expiresAt && Math.floor(Date.now() / 1000) > (token.expiresAt as number)) {
+      } 
+      
+      // Explicit manual refresh triggered by the client modal
+      else if (trigger === "update" && session?.action === "refresh") {
         try {
           const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_API_URL || "";
           const res = await fetch(`${baseUrl}/auth/refresh-token`, {
@@ -82,6 +85,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             body: JSON.stringify({ refresh_token: token.refreshToken }),
           });
           const response = await res.json().catch(() => ({}));
+          
           if (res.ok && response.data?.access_token) {
             token.accessToken = response.data.access_token;
             token.refreshToken = response.data.refresh_token;
@@ -94,7 +98,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.error("Error refreshing access token", error);
           token.error = "RefreshAccessTokenError";
         }
+      } 
+      // If token is expired and NO manual refresh was triggered, flag it as error so client logs out
+      else if (token.expiresAt && Math.floor(Date.now() / 1000) > (token.expiresAt as number)) {
+        token.error = "RefreshAccessTokenError";
       }
+
       return token;
     },
     async session({ session, token }) {
@@ -102,6 +111,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.id as string;
         (session.user as any).username = token.username as string;
         (session as any).accessToken = token.accessToken;
+        (session as any).expiresAt = token.expiresAt; // Pass expiry time to client
         (session as any).error = token.error;
       }
       return session;

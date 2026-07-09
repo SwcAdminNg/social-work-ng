@@ -85,23 +85,33 @@ const features = [
       >
         <circle
           cx="18"
-          cy="15"
-          r="4"
+          cy="18"
+          r="10"
           fill="#2D6A4F"
           fillOpacity="0.18"
           stroke="#2D6A4F"
           strokeWidth="1.8"
         />
-        <path
-          d="M18 8C13.582 8 10 11.582 10 16c0 6 8 14 8 14s8-8 8-14c0-4.418-3.582-8-8-8z"
+        <ellipse
+          cx="18"
+          cy="18"
+          rx="4.5"
+          ry="10"
           stroke="#2D6A4F"
           strokeWidth="1.8"
-          strokeLinejoin="round"
           fill="none"
+        />
+        <line
+          x1="8"
+          y1="18"
+          x2="28"
+          y2="18"
+          stroke="#2D6A4F"
+          strokeWidth="1.8"
         />
       </svg>
     ),
-    title: "Nigeria-Contextualised Content",
+    title: "Locally Relevant, Globally Informed",
     description:
       "Curriculum grounded in Nigerian social work realities, aligned with global standards while remaining locally relevant and impactful.",
   },
