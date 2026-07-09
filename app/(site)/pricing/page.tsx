@@ -1,6 +1,8 @@
 import { fetchApi } from "@/lib/fetchApi";
 import { PricingPlanGrid } from "@/components/payments/PricingPlanGrid";
 import { auth } from "@/auth";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
 export const metadata = {
   title: "Pricing & Plans | Social Work Consultancy",
@@ -26,21 +28,48 @@ export default async function PricingPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 lg:py-20">
-      <div className="text-center max-w-3xl mx-auto mb-20">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6">
-          Invest in your{" "}
-          <span className="text-[#2D6A4F] dark:text-[#52b788]">
-            career growth
-          </span>
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400">
-          Subscribe to get unlimited access to our entire library of standard
-          social work courses, verified certificates, and more.
-        </p>
+    <div className="w-full bg-white dark:bg-gray-950">
+      {/* Hero Section */}
+      <div className="relative w-full h-[50vh] md:h-[60vh] min-h-[400px] lg:min-h-[500px] xl:min-h-[600px] flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center"
+          style={{ 
+            backgroundImage: 'url("https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2036&auto=format&fit=crop")',
+          }}
+        />
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 z-10 bg-black/50 dark:bg-black/60" />
+
+        {/* Content */}
+        <div className="relative z-20 flex flex-col items-center text-center px-4 max-w-4xl mx-auto mt-12 lg:mt-0">
+          <nav className="flex items-center text-sm text-gray-200 mb-4 tracking-wide font-medium">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+            <span className="text-white">Pricing & Plans</span>
+          </nav>
+          
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight drop-shadow-lg">
+            Pricing
+          </h1>
+        </div>
       </div>
 
-      <PricingPlanGrid
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
+        <div className="text-center max-w-3xl mx-auto mb-20">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6">
+            Invest in your{" "}
+            <span className="text-[#2D6A4F] dark:text-[#52b788]">
+              career growth
+            </span>
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-400">
+            Subscribe to get unlimited access to our entire library of standard
+            social work courses, verified certificates, and more.
+          </p>
+        </div>
+
+        <PricingPlanGrid
         plans={plans}
         isLoggedIn={!!session}
         currentSubscription={currentSubscription}
@@ -81,6 +110,7 @@ export default async function PricingPage() {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

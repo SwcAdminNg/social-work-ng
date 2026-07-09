@@ -10,7 +10,6 @@ interface NavbarProps {
 
 export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [whoWeAreOpen, setWhoWeAreOpen] = useState(false);
   const pathname = usePathname();
 
   return (
@@ -76,70 +75,13 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
         {/* Desktop Nav */}
         <ul className="hidden lg:flex items-center gap-1 list-none m-0 p-0 flex-1 justify-center">
-          <li
-            className="relative group"
-            onMouseEnter={() => setWhoWeAreOpen(true)}
-            onMouseLeave={() => setWhoWeAreOpen(false)}
-          >
-            <button
-              onClick={() => setWhoWeAreOpen((v) => !v)}
-              aria-expanded={whoWeAreOpen}
-              className={`relative flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-colors cursor-pointer bg-transparent hover:bg-white/60 dark:hover:bg-gray-800/60 border-0 outline-none ${
-                whoWeAreOpen ? "text-[#2D6A4F] dark:text-[#52b788]" : "text-gray-800 dark:text-gray-200"
-              }`}
-            >
-              Who We Are
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
-                className="transition-transform duration-200"
-                style={{
-                  transform: whoWeAreOpen ? "rotate(180deg)" : "rotate(0deg)",
-                }}
-              >
-                <path
-                  d="M3 5l4 4 4-4"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              {/* Active Underline */}
-              <span 
-                className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-[#2D6A4F] dark:bg-[#52b788] transition-all duration-300 ${
-                  whoWeAreOpen ? "w-[60%] opacity-100" : "w-0 opacity-0"
-                }`} 
-              />
-            </button>
-            <ul
-              className={`absolute top-full left-0 mt-2 min-w-44 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-white/40 dark:border-gray-700/50 rounded-2xl shadow-xl p-2 list-none m-0 z-50 transition-all duration-200 origin-top ${
-                whoWeAreOpen
-                  ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
-                  : "opacity-0 -translate-y-1 scale-95 pointer-events-none"
-              }`}
-            >
-              {["Our Story", "Our Team", "Our Mission"].map((item) => (
-                <li key={item}>
-                  <Link
-                    href="#"
-                    className="block px-3 py-2 text-sm text-gray-800 dark:text-gray-200 rounded-lg no-underline transition-colors hover:bg-gray-100/80 dark:hover:bg-gray-800/80"
-                  >
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </li>
           {[
-            { name: "Pricing", href: "/pricing" },
             { name: "Our Courses", href: "/courses" },
             { name: "Mentorship", href: "/mentorship" },
-            { name: "Resources", href: "#" },
-            { name: "Contact Us", href: "#" },
+            { name: "About Us", href: "/about-us" },
+            { name: "Pricing", href: "/pricing" },
+            { name: "Resources", href: "/resources" },
+            { name: "Contact Us", href: "/contact" },
           ].map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -147,15 +89,19 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                 <Link
                   href={item.href}
                   className={`relative flex items-center px-4 py-2 text-sm font-medium rounded-full transition-colors no-underline whitespace-nowrap group hover:bg-white/60 dark:hover:bg-gray-800/60 ${
-                    isActive ? "text-[#2D6A4F] dark:text-[#52b788]" : "text-gray-800 dark:text-gray-200"
+                    isActive
+                      ? "text-[#2D6A4F] dark:text-[#52b788]"
+                      : "text-gray-800 dark:text-gray-200"
                   }`}
                 >
                   {item.name}
                   {/* Modern Animated Underline */}
-                  <span 
+                  <span
                     className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-[#2D6A4F] dark:bg-[#52b788] transition-all duration-300 ${
-                      isActive ? "w-[60%] opacity-100" : "w-0 opacity-0 group-hover:w-[30%] group-hover:opacity-40"
-                    }`} 
+                      isActive
+                        ? "w-[60%] opacity-100"
+                        : "w-0 opacity-0 group-hover:w-[30%] group-hover:opacity-40"
+                    }`}
                   />
                 </Link>
               </li>
@@ -205,53 +151,13 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         aria-hidden={!menuOpen}
       >
         <ul className="list-none m-0 px-6 py-3 pb-5 flex flex-col gap-1">
-          <li>
-            <button
-              onClick={() => setWhoWeAreOpen(!whoWeAreOpen)}
-              className="w-full flex items-center justify-between py-3 text-base font-medium text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-800 bg-transparent border-x-0 border-t-0 cursor-pointer transition-colors"
-            >
-              Who We Are
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
-                className="transition-transform duration-200"
-                style={{
-                  transform: whoWeAreOpen ? "rotate(180deg)" : "rotate(0deg)",
-                }}
-              >
-                <path
-                  d="M3 5l4 4 4-4"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <ul
-              className={`list-none pl-4 m-0 overflow-hidden transition-all duration-300 ${whoWeAreOpen ? "max-h-40 py-1" : "max-h-0 py-0"}`}
-            >
-              {["Our Story", "Our Team", "Our Mission"].map((item) => (
-                <li key={item}>
-                  <Link
-                    href="#"
-                    className="block py-2 px-2 text-sm text-gray-500 dark:text-gray-400 no-underline rounded transition-colors"
-                  >
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </li>
           {[
+            { name: "About Us", href: "/about-us" },
             { name: "Pricing", href: "/pricing" },
             { name: "Our Courses", href: "/courses" },
             { name: "Mentorship", href: "/mentorship" },
-            { name: "Resources", href: "#" },
-            { name: "Contact Us", href: "#" },
+            { name: "Resources", href: "/resources" },
+            { name: "Contact Us", href: "/contact" },
           ].map((item) => (
             <li key={item.name}>
               <Link

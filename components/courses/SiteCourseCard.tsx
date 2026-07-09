@@ -21,6 +21,14 @@ const levelColors: Record<string, string> = {
   Advanced: "bg-rose-700 text-white",
 };
 
+function formatEnumString(str: string): string {
+  if (!str) return str;
+  return str
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
   return (
     <div
@@ -60,6 +68,8 @@ export function SiteCourseCard({
 }: SiteCourseCardProps) {
   const displayPrice = is_free ? "Free" : (price ? `₦${price.toLocaleString()}` : "Paid");
   const fallbackImage = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop";
+  const displayCategory = formatEnumString(category);
+  const displayLevel = formatEnumString(level);
 
   return (
     <article
@@ -81,9 +91,9 @@ export function SiteCourseCard({
 
         {/* Level badge */}
         <span
-          className={`absolute top-3 left-3 text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${levelColors[level] || levelColors["Beginner"]}`}
+          className={`absolute top-3 left-3 text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${levelColors[displayLevel] || levelColors["Beginner"]}`}
         >
-          {level}
+          {displayLevel}
         </span>
       </div>
 
@@ -104,7 +114,7 @@ export function SiteCourseCard({
         <p className="text-[0.78rem] text-gray-400 dark:text-gray-500">
           In{" "}
           <span className="text-[#2D6A4F] dark:text-[#52b788] font-semibold">
-            {category}
+            {displayCategory}
           </span>
         </p>
 
