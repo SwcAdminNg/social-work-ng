@@ -9,21 +9,27 @@ export const metadata = {
 };
 
 export default async function EnrolledCoursesPage() {
-  const res = await fetchApi(`/learning/courses`, { next: { revalidate: 0 } }); // Real-time for dashboard
-  
+  const res = await fetchApi(`/learning/courses`, { next: { revalidate: 0 } });
+
   if (res.status === 401) {
     redirect("/logout?callbackUrl=/dashboard/courses");
   }
-  
+
   const data = await res.json().catch(() => ({}));
-  const courses = Array.isArray(data?.data) ? data.data : data?.data?.items || [];
+  const courses = Array.isArray(data?.data)
+    ? data.data
+    : data?.data?.items || [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-0 py-8 lg:py-1">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Enrolled Courses</h1>
-          <p className="text-sm text-gray-500 mt-1">Pick up where you left off and track your progress.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            My Enrolled Courses
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Pick up where you left off and track your progress.
+          </p>
         </div>
         {courses.length > 0 && (
           <Link
@@ -40,9 +46,12 @@ export default async function EnrolledCoursesPage() {
           <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full flex items-center justify-center mb-4">
             <IconBookOpen />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No active enrollments</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            No active enrollments
+          </h3>
           <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-            You aren't enrolled in any courses yet. Browse our catalog to start learning.
+            You aren't enrolled in any courses yet. Browse our catalog to start
+            learning.
           </p>
           <Link
             href="/courses"
@@ -64,7 +73,7 @@ export default async function EnrolledCoursesPage() {
               price={course.price}
               is_enrolled={course.is_enrolled ?? true}
               has_access={course.has_access}
-              href={`/learn/${course.id}`} // Takes them to the full-screen player
+              href={`/learn/${course.id}`}
             />
           ))}
         </div>

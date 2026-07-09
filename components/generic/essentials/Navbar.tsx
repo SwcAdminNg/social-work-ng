@@ -67,7 +67,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               SOCIAL WORK
             </span>
             <span className="text-[10px] font-medium tracking-widest text-gray-500 dark:text-gray-400">
-              CONSULTANCY LTD.
+              NIGERIA LTD.
             </span>
           </span>
         </Link>
