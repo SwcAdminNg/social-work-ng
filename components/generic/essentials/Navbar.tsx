@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface NavbarProps {
   isLoggedIn?: boolean;
@@ -10,6 +11,7 @@ interface NavbarProps {
 export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [whoWeAreOpen, setWhoWeAreOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <nav className="sticky top-0 z-50 bg-white/55 dark:bg-gray-900/55 backdrop-blur-xl backdrop-saturate-150 border-b border-white/30 dark:border-gray-700/40 shadow-[0_1px_20px_-4px_rgba(0,0,0,0.08)]">
@@ -82,7 +84,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             <button
               onClick={() => setWhoWeAreOpen((v) => !v)}
               aria-expanded={whoWeAreOpen}
-              className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 rounded-full transition-colors cursor-pointer bg-transparent hover:bg-white/60 dark:hover:bg-gray-800/60 border-0 outline-none"
+              className={`relative flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-colors cursor-pointer bg-transparent hover:bg-white/60 dark:hover:bg-gray-800/60 border-0 outline-none ${
+                whoWeAreOpen ? "text-[#2D6A4F] dark:text-[#52b788]" : "text-gray-800 dark:text-gray-200"
+              }`}
             >
               Who We Are
               <svg
@@ -104,6 +108,12 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   strokeLinejoin="round"
                 />
               </svg>
+              {/* Active Underline */}
+              <span 
+                className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-[#2D6A4F] dark:bg-[#52b788] transition-all duration-300 ${
+                  whoWeAreOpen ? "w-[60%] opacity-100" : "w-0 opacity-0"
+                }`} 
+              />
             </button>
             <ul
               className={`absolute top-full left-0 mt-2 min-w-44 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-white/40 dark:border-gray-700/50 rounded-2xl shadow-xl p-2 list-none m-0 z-50 transition-all duration-200 origin-top ${
@@ -127,19 +137,30 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           {[
             { name: "Pricing", href: "/pricing" },
             { name: "Our Courses", href: "/courses" },
-            { name: "Mentorship", href: "#" },
+            { name: "Mentorship", href: "/mentorship" },
             { name: "Resources", href: "#" },
             { name: "Contact Us", href: "#" },
-          ].map((item) => (
-            <li key={item.name}>
-              <Link
-                href={item.href}
-                className="flex items-center px-4 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 rounded-full transition-colors no-underline whitespace-nowrap hover:bg-white/60 dark:hover:bg-gray-800/60"
-              >
-                {item.name}
-              </Link>
-            </li>
-          ))}
+          ].map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <li key={item.name}>
+                <Link
+                  href={item.href}
+                  className={`relative flex items-center px-4 py-2 text-sm font-medium rounded-full transition-colors no-underline whitespace-nowrap group hover:bg-white/60 dark:hover:bg-gray-800/60 ${
+                    isActive ? "text-[#2D6A4F] dark:text-[#52b788]" : "text-gray-800 dark:text-gray-200"
+                  }`}
+                >
+                  {item.name}
+                  {/* Modern Animated Underline */}
+                  <span 
+                    className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-[#2D6A4F] dark:bg-[#52b788] transition-all duration-300 ${
+                      isActive ? "w-[60%] opacity-100" : "w-0 opacity-0 group-hover:w-[30%] group-hover:opacity-40"
+                    }`} 
+                  />
+                </Link>
+              </li>
+            );
+          })}
         </ul>
 
         {/* Login/Dashboard — desktop */}
@@ -228,7 +249,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           {[
             { name: "Pricing", href: "/pricing" },
             { name: "Our Courses", href: "/courses" },
-            { name: "Mentorship", href: "#" },
+            { name: "Mentorship", href: "/mentorship" },
             { name: "Resources", href: "#" },
             { name: "Contact Us", href: "#" },
           ].map((item) => (
