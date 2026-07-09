@@ -2,6 +2,7 @@ import { fetchApi } from "@/lib/fetchApi";
 import { SiteCourseCard } from "@/components/courses/SiteCourseCard";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { auth } from "@/auth";
 
 export const metadata = {
   title: "Courses | Social Work Nigeria",
@@ -23,6 +24,22 @@ export default async function CoursesPage(props: {
   const items = Array.isArray(data?.data) ? data.data : data?.data?.items || [];
 
   const hasNextPage = items.length === 12;
+
+  // Fetch enrolled courses if the user is logged in
+  const session = await auth();
+  const enrolledCourseIds = new Set<string>();
+  
+  if (session && (session as any).accessToken) {
+    const enrolledRes = await fetchApi(`/learning/courses`, { next: { revalidate: 0 } });
+    if (enrolledRes.ok) {
+      const enrolledData = await enrolledRes.json().catch(() => ({}));
+      const enrolledCourses = Array.isArray(enrolledData?.data) ? enrolledData.data : enrolledData?.data?.items || [];
+      enrolledCourses.forEach((c: any) => {
+        if (c.id) enrolledCourseIds.add(c.id);
+        if (c.course?.id) enrolledCourseIds.add(c.course.id);
+      });
+    }
+  }
 
   return (
     <div className="w-full bg-white dark:bg-gray-950">
@@ -71,6 +88,7 @@ export default async function CoursesPage(props: {
                   href={`/courses/${course.slug || course.id}`}
                   level={course.level || "Beginner"}
                   category={course.category || "Professional Development"}
+                  is_enrolled={enrolledCourseIds.has(course.id)}
                 />
               ))}
             </div>

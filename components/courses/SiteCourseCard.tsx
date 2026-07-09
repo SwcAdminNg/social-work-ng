@@ -9,6 +9,7 @@ interface SiteCourseCardProps {
   is_free?: boolean;
   price?: number;
   href: string;
+  is_enrolled?: boolean;
   // Optional fields that might not be in the API but are needed for the UI
   level?: string;
   category?: string;
@@ -62,6 +63,7 @@ export function SiteCourseCard({
   is_free,
   price,
   href,
+  is_enrolled,
   level = "Beginner",
   category = "Professional Development",
   rating = 5,
@@ -95,6 +97,12 @@ export function SiteCourseCard({
         >
           {displayLevel}
         </span>
+        {/* Enrolled badge */}
+        {is_enrolled && (
+          <span className="absolute top-3 right-3 text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#1e4d38] text-white shadow-lg shadow-[#1e4d38]/30">
+            Enrolled
+          </span>
+        )}
       </div>
 
       {/* Body */}
@@ -128,7 +136,11 @@ export function SiteCourseCard({
           </span>
           <Link
             href={href}
-            className="inline-flex items-center gap-1.5 text-[0.8rem] font-semibold text-gray-700 dark:text-gray-300 hover:text-[#2D6A4F] dark:hover:text-[#52b788] no-underline transition-colors duration-150"
+            className={`inline-flex items-center gap-1.5 text-[0.8rem] font-semibold no-underline transition-colors duration-150 ${
+              is_enrolled
+                ? "text-[#F4A261] dark:text-[#F4A261] hover:text-[#d98b4f]"
+                : "text-gray-700 dark:text-gray-300 hover:text-[#2D6A4F] dark:hover:text-[#52b788]"
+            }`}
           >
             {/* Grid icon */}
             <svg
@@ -147,7 +159,7 @@ export function SiteCourseCard({
               <rect x="1" y="9" width="6" height="6" rx="1" />
               <rect x="9" y="9" width="6" height="6" rx="1" />
             </svg>
-            Get Enrolled
+            {is_enrolled ? "Continue Course" : "Get Enrolled"}
           </Link>
         </div>
       </div>
