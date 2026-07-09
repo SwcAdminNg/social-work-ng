@@ -48,14 +48,15 @@ export function Sidebar() {
               <IconLogoMark />
             </div>
             <div
-              className={`leading-tight transition-opacity duration-200 whitespace-nowrap ${collapsed ? "lg:opacity-0 lg:w-0" : "opacity-100"}`}
+              className={`leading-tight transition-opacity duration-200 whitespace-nowrap ${collapsed ? "lg:opacity-0 lg:w-0 hidden" : "opacity-100"}`}
             >
-              <p className="text-gray-900 dark:text-white font-bold text-[0.9rem]">
-                Social Work Nigeria
-              </p>
-              <p className="text-[#2D6A4F] dark:text-[#52b788] text-[0.6rem] uppercase tracking-widest font-semibold">
-                Dashboard
-              </p>
+              <img
+                src="/images/home/SWC-Logo.webp"
+                alt="SWC Logo"
+                width={151}
+                height={40}
+                className="w-[120px] h-auto object-contain dark:bg-white/95 dark:rounded-md dark:p-1 shadow-sm dark:shadow-none"
+              />
             </div>
           </Link>
 

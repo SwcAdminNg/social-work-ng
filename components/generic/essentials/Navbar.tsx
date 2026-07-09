@@ -21,56 +21,16 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 flex-shrink-0 no-underline"
+          className="flex items-center flex-shrink-0 no-underline"
           aria-label="Social Work Consultancy Home"
         >
-          <svg
-            width="36"
-            height="36"
-            viewBox="0 0 36 36"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <circle
-              cx="18"
-              cy="18"
-              r="17"
-              stroke="#2D6A4F"
-              strokeWidth="2"
-              fill="none"
-            />
-            <circle cx="18" cy="12" r="4" fill="#2D6A4F" />
-            <path
-              d="M10 28c0-4.418 3.582-8 8-8s8 3.582 8 8"
-              stroke="#2D6A4F"
-              strokeWidth="2"
-              strokeLinecap="round"
-              fill="none"
-            />
-            <path
-              d="M14 16c-2 1-4 2.5-4 5"
-              stroke="#F4A261"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              fill="none"
-            />
-            <path
-              d="M22 16c2 1 4 2.5 4 5"
-              stroke="#F4A261"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              fill="none"
-            />
-          </svg>
-          <span className="flex flex-col leading-tight">
-            <span className="text-xs font-extrabold tracking-wide text-gray-900 dark:text-gray-100">
-              SOCIAL WORK
-            </span>
-            <span className="text-[10px] font-medium tracking-widest text-gray-500 dark:text-gray-400">
-              NIGERIA LTD.
-            </span>
-          </span>
+          <img
+            src="/images/home/SWC-Logo.webp"
+            alt="SWC Logo"
+            width={151}
+            height={40}
+            className="w-[120px] md:w-[151px] h-auto object-contain dark:bg-white/95 dark:rounded-md dark:p-1.5 dark:shadow-none"
+          />
         </Link>
 
         {/* Desktop Nav */}

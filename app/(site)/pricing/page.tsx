@@ -110,6 +110,16 @@ export default async function PricingPage() {
             </p>
           </div>
         </div>
+        
+        <div className="mt-12 text-center">
+          <Link
+            href="/faq"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-full font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            Read all Frequently Asked Questions
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
       </div>
     </div>

@@ -5,7 +5,13 @@ import { Mail, MapPin, Phone } from "lucide-react";
 
 function IconFacebook() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
     </svg>
   );
@@ -13,7 +19,13 @@ function IconFacebook() {
 
 function IconTwitterX() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
   );
@@ -21,7 +33,13 @@ function IconTwitterX() {
 
 function IconLinkedIn() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z" />
       <circle cx="4" cy="4" r="2" />
     </svg>
@@ -38,6 +56,7 @@ const platformLinks = [
 const companyLinks = [
   { label: "About Us", href: "/about-us" },
   { label: "Contact Us", href: "/contact" },
+  { label: "FAQ", href: "/faq" },
 ];
 
 const socialLinks = [
@@ -94,10 +113,9 @@ export default function Footer() {
         className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-[#2D6A4F]/5 dark:bg-[#2D6A4F]/10 blur-[120px] pointer-events-none"
         aria-hidden="true"
       />
-      
+
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-          
           {/* ── Column 1: Brand ── */}
           <div className="flex flex-col gap-6 pr-4">
             <Link
@@ -105,32 +123,13 @@ export default function Footer() {
               className="flex items-center gap-3 no-underline w-fit group"
               aria-label="Social Work Nigeria home"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#2D6A4F] flex items-center justify-center flex-shrink-0 shadow-lg shadow-green-900/20 group-hover:bg-[#1e4d38] dark:group-hover:bg-[#52b788] transition-colors duration-200">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-gray-900 dark:text-white font-bold text-base leading-tight tracking-tight">
-                  Social Work Nigeria
-                </p>
-                <p className="text-[#2D6A4F] dark:text-[#52b788] text-[0.65rem] font-bold uppercase tracking-widest leading-tight">
-                  Consultancy
-                </p>
-              </div>
+              <img
+                src="/images/home/SWC-Logo.webp"
+                alt="SWC Logo"
+                width={151}
+                height={40}
+                className="w-[151px] h-auto object-contain dark:bg-white/95 dark:rounded-md dark:p-1.5 dark:shadow-none"
+              />
             </Link>
 
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs">
@@ -217,7 +216,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
         </div>
 
         {/* ── Bottom bar ── */}
