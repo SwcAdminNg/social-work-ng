@@ -6,14 +6,14 @@ import Hero from "./Hero";
 import LearningTransform from "./LearningTransform";
 import WhyChooseUs from "./WhyChooseUs";
 
-export default function Home() {
+export default function Home({ featuredCourses = [] }: { featuredCourses?: any[] }) {
   return (
     <main>
       <Hero />
       <WhyChooseUs />
       <CourseCategories />
       <LearningTransform />
-      <FeaturedCourses />
+      <FeaturedCourses initialCourses={featuredCourses} />
       <CTABanner />
     </main>
   );
