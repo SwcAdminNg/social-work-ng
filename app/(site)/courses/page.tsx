@@ -64,16 +64,6 @@ export default async function CoursesPage(props: {
   }
 
   // Helpers to build URLs preserving all filters
-  const buildCatalogUrl = (targetCatalog?: string) => {
-    const params = new URLSearchParams();
-    if (targetCatalog) params.set("catalog", targetCatalog);
-    if (search) params.set("search", search);
-    if (level) params.set("level", level);
-    if (category) params.set("category", category);
-    if (is_free) params.set("is_free", is_free);
-    return `/courses?${params.toString()}`;
-  };
-
   const buildPageUrl = (targetPage: number) => {
     const params = new URLSearchParams();
     params.set("page", targetPage.toString());
@@ -112,43 +102,8 @@ export default async function CoursesPage(props: {
       </div>
 
       <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-16 md:py-24">
-        {/* Catalog Filter Pills */}
-        <div className="flex gap-3 overflow-x-auto pb-4 mb-4 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <Link
-            href={buildCatalogUrl()}
-            className={`flex-shrink-0 px-5 py-2.5 rounded-full font-semibold text-[0.95rem] transition-all snap-start ${
-              !catalog
-                ? "bg-[#2D6A4F] text-white shadow-md"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-            }`}
-          >
-            All Courses
-          </Link>
-          {catalogs.map((cat: any) => {
-            const isActive = catalog === cat.slug;
-            return (
-              <Link
-                key={cat.id}
-                href={buildCatalogUrl(cat.slug)}
-                className={`flex-shrink-0 flex items-center px-5 py-2.5 rounded-full font-semibold text-[0.95rem] transition-all snap-start ${
-                  isActive
-                    ? "bg-[#2D6A4F] text-white shadow-md"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                {cat.name}
-                <span
-                  className={`ml-2 text-xs px-2 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"}`}
-                >
-                  {cat.total_courses}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-
         {/* Advanced Filters */}
-        <CourseFilters />
+        <CourseFilters catalogs={catalogs} />
 
         {items.length === 0 ? (
           <div className="text-center py-20 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
