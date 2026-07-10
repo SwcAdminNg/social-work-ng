@@ -1,12 +1,9 @@
-import { EmptyState } from "@/components/dashboard/EmptyState";
-import { IconReceipt } from "@/components/dashboard/icons";
+import OrdersContainer from "@/components/dashboard/orders/OrdersContainer";
 
-export default function OrdersPage() {
-  return (
-    <EmptyState
-      icon={IconReceipt}
-      title="No orders yet"
-      description="Your course purchases and payment receipts will be listed here."
-    />
-  );
+export default function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  return <OrdersContainer searchParams={searchParams} />;
 }
