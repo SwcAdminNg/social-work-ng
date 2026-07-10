@@ -40,8 +40,11 @@ const PANEL_CONFIG: Record<
   },
 };
 
-export function BrandPanel({ variant = "login" }: { variant?: AuthVariant }) {
+export function BrandPanel({ variant = "login", statsData }: { variant?: AuthVariant; statsData?: any }) {
   const config = PANEL_CONFIG[variant];
+
+  const studentsCount = statsData?.total_number_of_students || 4200;
+  const coursesCount = statsData?.number_of_published_courses || 18;
 
   return (
     <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden flex-shrink-0">
@@ -103,7 +106,7 @@ export function BrandPanel({ variant = "login" }: { variant?: AuthVariant }) {
             "{config.quote}"
           </blockquote>
           <div className="flex flex-wrap gap-2">
-            {["4,200+ Trained", "18 Courses", "12 States"].map((badge) => (
+            {[`${studentsCount.toLocaleString()}+ Trained`, `${coursesCount.toLocaleString()} Courses`, "12 States"].map((badge) => (
               <span
                 key={badge}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-white text-[0.72rem] font-semibold"

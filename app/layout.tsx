@@ -26,7 +26,7 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${roboto.className} antialiased`}>
         <ThemeProvider>
           <SessionMonitor session={session}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
@@ -15,8 +15,9 @@ import {
   IconUser,
 } from "./shared/icons";
 
-export default function SignUp() {
+export default function SignUp({ statsData }: { statsData?: any }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -139,7 +140,7 @@ export default function SignUp() {
   };
 
   return (
-    <AuthPageShell variant="register">
+    <AuthPageShell variant="register" statsData={statsData}>
       {/* Heading */}
       <div className="mb-8">
         <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">

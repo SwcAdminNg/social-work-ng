@@ -5,19 +5,64 @@ import { IconSpinner } from "@/components/auth/shared/icons";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 
 export function ContactForm() {
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    phone_number: "",
+    subject: "",
+    message: "",
+  });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
+    setSuccess(false);
+
+    if (!formData.email && !formData.phone_number) {
+      setError("Please provide either an email or a phone number so we can reach you.");
+      return;
+    }
+
     setLoading(true);
-    // Simulate form submission
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const res = await fetch("/api/proxy/contact-us", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          email: formData.email || undefined,
+          phone_number: formData.phone_number || undefined,
+          platform: "NG",
+          category: "general",
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to send message. Please try again.");
+      }
+
       setSuccess(true);
-      (e.target as HTMLFormElement).reset();
+      setFormData({
+        full_name: "",
+        email: "",
+        phone_number: "",
+        subject: "",
+        message: "",
+      });
       setTimeout(() => setSuccess(false), 5000);
-    }, 1500);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,44 +132,54 @@ export function ContactForm() {
             <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Send us a message</h3>
             
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    First Name
-                  </label>
-                  <input 
-                    type="text" 
-                    id="firstName" 
-                    required
-                    placeholder="John" 
-                    className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all"
-                  />
+              {error && (
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl text-sm font-bold border border-red-200 dark:border-red-800/30">
+                  {error}
                 </div>
-                <div>
-                  <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Last Name
-                  </label>
-                  <input 
-                    type="text" 
-                    id="lastName" 
-                    required
-                    placeholder="Doe" 
-                    className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all"
-                  />
-                </div>
-              </div>
-              
+              )}
+
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Email Address
+                <label htmlFor="full_name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Full Name
                 </label>
                 <input 
-                  type="email" 
-                  id="email" 
+                  type="text" 
+                  id="full_name" 
                   required
-                  placeholder="john@example.com" 
+                  value={formData.full_name}
+                  onChange={handleChange}
+                  placeholder="John Doe" 
                   className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all"
                 />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Email Address
+                  </label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="john@example.com" 
+                    className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="phone_number" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Phone Number
+                  </label>
+                  <input 
+                    type="tel" 
+                    id="phone_number" 
+                    value={formData.phone_number}
+                    onChange={handleChange}
+                    placeholder="+234 800 123 4567" 
+                    className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all"
+                  />
+                </div>
               </div>
 
               <div>
@@ -135,6 +190,8 @@ export function ContactForm() {
                   type="text" 
                   id="subject" 
                   required
+                  value={formData.subject}
+                  onChange={handleChange}
                   placeholder="How can we help?" 
                   className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all"
                 />
@@ -148,6 +205,8 @@ export function ContactForm() {
                   id="message" 
                   rows={6}
                   required
+                  value={formData.message}
+                  onChange={handleChange}
                   placeholder="Write your message here..." 
                   className="w-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all resize-y"
                 />

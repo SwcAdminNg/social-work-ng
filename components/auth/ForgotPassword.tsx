@@ -6,7 +6,7 @@ import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
 import { IconArrowRight, IconMail, IconSpinner } from "./shared/icons";
 
-export default function ForgotPassword() {
+export default function ForgotPassword({ statsData }: { statsData?: any }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -84,7 +84,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <AuthPageShell variant="forgot-password">
+    <AuthPageShell variant="forgot-password" statsData={statsData}>
       {/* Heading */}
       <div className="mb-8">
         <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">

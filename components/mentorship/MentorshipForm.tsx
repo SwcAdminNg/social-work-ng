@@ -4,19 +4,62 @@ import { useState } from "react";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
 export function MentorshipForm() {
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    phone_number: "",
+    message: "",
+  });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
+    setSuccess(false);
+
+    if (!formData.email && !formData.phone_number) {
+      setError("Please provide either an email or a phone number so we can reach you.");
+      return;
+    }
+
     setLoading(true);
-    // Simulate form submission
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const res = await fetch("/api/proxy/contact-us", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          email: formData.email || undefined,
+          phone_number: formData.phone_number || undefined,
+          platform: "NG",
+          category: "mentorship",
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to submit message. Please try again.");
+      }
+
       setSuccess(true);
-      (e.target as HTMLFormElement).reset();
+      setFormData({
+        full_name: "",
+        email: "",
+        phone_number: "",
+        message: "",
+      });
       setTimeout(() => setSuccess(false), 5000);
-    }, 1500);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -30,30 +73,61 @@ export function MentorshipForm() {
             className="bg-gray-50 dark:bg-gray-900/50 p-8 rounded-3xl border border-gray-100 dark:border-gray-800"
           >
             <div className="space-y-6">
+              {error && (
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl text-sm font-bold border border-red-200 dark:border-red-800/30">
+                  {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-xl text-sm font-bold border border-green-200 dark:border-green-800/30">
+                  Thank you! Your message has been submitted successfully.
+                </div>
+              )}
+
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="full_name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Name
                 </label>
                 <input 
                   type="text" 
-                  id="name" 
+                  id="full_name" 
                   required
+                  value={formData.full_name}
+                  onChange={handleChange}
                   placeholder="Your Name" 
                   className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all"
                 />
               </div>
               
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Email
-                </label>
-                <input 
-                  type="email" 
-                  id="email" 
-                  required
-                  placeholder="Your Email Address" 
-                  className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Email
+                  </label>
+                  <input 
+                    type="email" 
+                    id="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Your Email Address" 
+                    className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="phone_number" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Phone Number
+                  </label>
+                  <input 
+                    type="tel" 
+                    id="phone_number"
+                    value={formData.phone_number}
+                    onChange={handleChange}
+                    placeholder="Your Phone Number" 
+                    className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all"
+                  />
+                </div>
               </div>
               
               <div>
@@ -64,16 +138,12 @@ export function MentorshipForm() {
                   id="message" 
                   rows={5}
                   required
+                  value={formData.message}
+                  onChange={handleChange}
                   placeholder="Tell us about your experience..." 
                   className="w-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/50 focus:border-[#2D6A4F] transition-all resize-y"
                 />
               </div>
-
-              {success && (
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-xl text-sm font-bold border border-green-200 dark:border-green-800/30">
-                  Thank you! Your message has been sent successfully.
-                </div>
-              )}
 
               <button 
                 type="submit"

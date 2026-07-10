@@ -8,9 +8,10 @@ import LearningTransform from "./LearningTransform";
 import WhyChooseUs from "./WhyChooseUs";
 
 export default async function Home() {
-  const [featuredRes, catalogsRes] = await Promise.all([
+  const [featuredRes, catalogsRes, statsRes] = await Promise.all([
     fetchApi("/courses/featured?limit=6", { cache: "no-store" }),
     fetchApi("/courses/catalogs", { next: { revalidate: 3600 } }),
+    fetchApi("/home/stats", { next: { revalidate: 3600 } }),
   ]);
 
   let featuredCourses = [];
@@ -45,6 +46,12 @@ export default async function Home() {
     catalogs = data?.data || [];
   }
 
+  let stats = null;
+  if (statsRes.ok) {
+    const data = await statsRes.json().catch(() => ({}));
+    stats = data?.data || null;
+  }
+
   return (
     <main>
       <Hero />
@@ -52,7 +59,7 @@ export default async function Home() {
       <CourseCategories catalogs={catalogs} />
       <LearningTransform />
       <FeaturedCourses initialCourses={featuredCourses} />
-      <CTABanner />
+      <CTABanner statsData={stats} />
     </main>
   );
 }

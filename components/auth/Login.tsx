@@ -7,9 +7,9 @@ import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
-import { IconArrowRight, IconCheck, IconLock, IconMail, IconSpinner } from "./shared/icons";
+import { IconArrowRight, IconCheck, IconLock, IconUser, IconSpinner } from "./shared/icons";
 
-export default function Login() {
+export default function Login({ statsData }: { statsData?: any }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -58,7 +58,7 @@ export default function Login() {
   };
 
   return (
-    <AuthPageShell variant="login">
+    <AuthPageShell variant="login" statsData={statsData}>
       {/* Heading */}
       <div className="mb-8">
         <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">
@@ -80,16 +80,16 @@ export default function Login() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-        {/* Email */}
+        {/* Email or Username */}
         <FloatingInput
           ref={emailRef}
-          id="email"
-          label="Email address"
-          type="email"
+          id="identifier"
+          label="Email or username"
+          type="text"
           value={email}
           onChange={setEmail}
-          icon={<IconMail />}
-          autoComplete="email"
+          icon={<IconUser />}
+          autoComplete="username"
           required
         />
 

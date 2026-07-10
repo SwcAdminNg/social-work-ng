@@ -8,7 +8,7 @@ import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
 import { IconArrowRight, IconLock, IconSpinner } from "./shared/icons";
 
-function ResetPasswordForm() {
+function ResetPasswordForm({ statsData }: { statsData?: any }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +67,7 @@ function ResetPasswordForm() {
 
   if (done) {
     return (
-      <AuthPageShell variant="reset-password">
+      <AuthPageShell variant="reset-password" statsData={statsData}>
         <div className="mb-8">
           <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">
             All set
@@ -99,7 +99,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <AuthPageShell variant="reset-password">
+    <AuthPageShell variant="reset-password" statsData={statsData}>
       {/* Heading */}
       <div className="mb-8">
         <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">
@@ -198,16 +198,16 @@ function ResetPasswordForm() {
   );
 }
 
-export default function ResetPassword() {
+export default function ResetPassword({ statsData }: { statsData?: any }) {
   return (
     <Suspense fallback={
-      <AuthPageShell variant="reset-password">
+      <AuthPageShell variant="reset-password" statsData={statsData}>
         <div className="flex items-center justify-center p-10">
           <IconSpinner className="w-6 h-6 text-[#2D6A4F] dark:text-[#52b788] animate-spin" />
         </div>
       </AuthPageShell>
     }>
-      <ResetPasswordForm />
+      <ResetPasswordForm statsData={statsData} />
     </Suspense>
   );
 }

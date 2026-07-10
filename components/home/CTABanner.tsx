@@ -1,8 +1,7 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-
-// ─── Animated counter hook ────────────────────────────────────────────────────
 
 function useCountUp(target: number, duration = 1800, start = false) {
   const [value, setValue] = useState(0);
@@ -23,14 +22,6 @@ function useCountUp(target: number, duration = 1800, start = false) {
 
   return value;
 }
-
-// ─── Stats ────────────────────────────────────────────────────────────────────
-
-const stats = [
-  { value: 4200, suffix: "+", label: "Professionals trained" },
-  { value: 18, suffix: "", label: "Accredited courses" },
-  { value: 96, suffix: "%", label: "Completion rate" },
-];
 
 function Stat({
   value,
@@ -57,13 +48,30 @@ function Stat({
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
-export default function CTABanner() {
+export default function CTABanner({ statsData }: { statsData?: any }) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
-  // Trigger counter animation when section enters viewport
+  const stats = [
+    {
+      value: statsData?.total_number_of_students || 4200,
+      suffix: "+",
+      label: "Professionals trained",
+    },
+    {
+      value: statsData?.number_of_published_courses || 18,
+      suffix: "",
+      label: "Accredited courses",
+    },
+    {
+      value: statsData?.completion_rate_of_course_by_enrolled_users
+        ? Math.round(statsData.completion_rate_of_course_by_enrolled_users)
+        : 96,
+      suffix: "%",
+      label: "Completion rate",
+    },
+  ];
+
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
@@ -149,8 +157,8 @@ export default function CTABanner() {
 
               {/* CTA buttons */}
               <div className="flex flex-wrap items-center gap-3 pt-1">
-                <a
-                  href="#get-started"
+                <Link
+                  href="/register"
                   className="group inline-flex items-center gap-2 px-6 py-3 bg-[#2D6A4F] hover:bg-[#52b788] text-white text-[0.88rem] font-bold rounded-full no-underline transition-all duration-200 shadow-lg shadow-green-900/30 hover:shadow-green-700/40 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#52b788]"
                 >
                   Start Learning Now
@@ -168,10 +176,10 @@ export default function CTABanner() {
                   >
                     <path d="M3 8h10M9 4l4 4-4 4" />
                   </svg>
-                </a>
+                </Link>
 
-                <a
-                  href="#courses"
+                <Link
+                  href="/courses"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white/8 hover:bg-white/14 border border-white/15 hover:border-white/30 text-white text-[0.88rem] font-semibold rounded-full no-underline backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 >
                   Explore Courses
@@ -191,7 +199,7 @@ export default function CTABanner() {
                     <rect x="1" y="9" width="6" height="6" rx="1" />
                     <rect x="9" y="9" width="6" height="6" rx="1" />
                   </svg>
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -298,7 +306,10 @@ export default function CTABanner() {
               </div>
               <div>
                 <p className="text-white text-[0.78rem] font-semibold leading-tight">
-                  4,200+ practitioners
+                  {(
+                    statsData?.total_number_of_students || 4200
+                  ).toLocaleString()}
+                  + practitioners
                 </p>
                 <p className="text-white/50 text-[0.68rem] leading-tight">
                   across 12 states
