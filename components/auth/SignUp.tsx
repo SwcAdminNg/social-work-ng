@@ -139,7 +139,7 @@ export default function SignUp() {
   };
 
   return (
-    <AuthPageShell>
+    <AuthPageShell variant="register">
       {/* Heading */}
       <div className="mb-8">
         <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">

@@ -1,12 +1,52 @@
 import Link from "next/link";
-import { IconLogoMark } from "./icons";
 
-export function BrandPanel() {
+type AuthVariant = "login" | "register" | "forgot-password" | "reset-password";
+
+const PANEL_CONFIG: Record<
+  AuthVariant,
+  {
+    image: string;
+    quote: string;
+    label: string;
+  }
+> = {
+  login: {
+    image:
+      "https://images.unsplash.com/photo-1560264280-88b68371db39?q=80&w=2070&auto=format&fit=crop",
+    quote:
+      "Education is the most powerful weapon you can use to change the world.",
+    label: "Reconnect with your learning journey",
+  },
+  register: {
+    image:
+      "https://images.unsplash.com/photo-1573496799652-408c2ac9fe98?q=80&w=2069&auto=format&fit=crop",
+    quote:
+      "Empowering social workers with knowledge and skills to build stronger communities across Nigeria.",
+    label: "Join thousands of professionals",
+  },
+  "forgot-password": {
+    image:
+      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop",
+    quote:
+      "Every setback is a setup for a comeback. We're here to get you back on track.",
+    label: "Account recovery",
+  },
+  "reset-password": {
+    image:
+      "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=2070&auto=format&fit=crop",
+    quote:
+      "Security and trust are the foundation of every great professional relationship.",
+    label: "Secure your account",
+  },
+};
+
+export function BrandPanel({ variant = "login" }: { variant?: AuthVariant }) {
+  const config = PANEL_CONFIG[variant];
+
   return (
     <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden flex-shrink-0">
-      {/* Photo */}
       <img
-        src="/images/auth/social-work.jpg"
+        src={config.image}
         alt=""
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover object-center"
@@ -14,8 +54,6 @@ export function BrandPanel() {
           (e.currentTarget as HTMLImageElement).style.opacity = "0";
         }}
       />
-
-      {/* Fallback gradient (shows if image 404s) */}
       <div
         className="absolute inset-0 -z-10"
         style={{
@@ -23,53 +61,26 @@ export function BrandPanel() {
             "linear-gradient(145deg, #0d2b1e 0%, #1a4d35 35%, #2D6A4F 65%, #52b788 100%)",
         }}
         aria-hidden="true"
-      >
-        {/* Geometric ring decoration */}
-        <svg
-          className="absolute inset-0 w-full h-full opacity-[0.07]"
-          viewBox="0 0 600 800"
-          fill="none"
-          preserveAspectRatio="xMidYMid slice"
-          aria-hidden="true"
-        >
-          <circle cx="480" cy="160" r="220" stroke="white" strokeWidth="1" />
-          <circle cx="480" cy="160" r="150" stroke="white" strokeWidth="1" />
-          <circle cx="480" cy="160" r="80" stroke="white" strokeWidth="1" />
-          <circle cx="80" cy="680" r="180" stroke="white" strokeWidth="1" />
-          <circle cx="80" cy="680" r="110" stroke="white" strokeWidth="1" />
-        </svg>
-      </div>
-
-      {/* Dark scrim */}
+      />
       <div
         className="absolute inset-0 bg-gradient-to-t from-[#071410]/90 via-[#071410]/40 to-[#071410]/20"
         aria-hidden="true"
       />
-
-      {/* Content overlaid on image */}
       <div className="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
-        {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-3 no-underline w-fit group"
+          className="flex items-center no-underline w-fit"
           aria-label="Social Work Nigeria home"
         >
-          <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center flex-shrink-0 group-hover:bg-white/25 transition-colors duration-200">
-            <IconLogoMark />
-          </div>
-          <div>
-            <p className="text-white font-bold text-[0.95rem] leading-tight">
-              Social Work Nigeria
-            </p>
-            <p className="text-white/50 text-[0.62rem] uppercase tracking-widest font-medium leading-tight">
-              Consultancy
-            </p>
-          </div>
+          <img
+            src="/images/home/SWC-Logo.webp"
+            alt="Social Work Nigeria Logo"
+            width={151}
+            height={40}
+            className="w-[220px] h-auto object-contain px-2 py-1"
+          />
         </Link>
-
-        {/* Testimonial / mission quote */}
         <div className="max-w-sm">
-          {/* Decorative quote mark */}
           <svg
             width="36"
             height="28"
@@ -84,12 +95,13 @@ export function BrandPanel() {
             />
           </svg>
 
-          <blockquote className="text-white text-[1.15rem] leading-relaxed font-medium mb-5">
-            "Empowering social workers with knowledge and skills to build
-            stronger communities across Nigeria."
-          </blockquote>
+          <p className="text-white/60 text-[0.72rem] uppercase tracking-widest font-bold mb-3">
+            {config.label}
+          </p>
 
-          {/* Trust badges */}
+          <blockquote className="text-white text-[1.15rem] leading-relaxed font-medium mb-5">
+            "{config.quote}"
+          </blockquote>
           <div className="flex flex-wrap gap-2">
             {["4,200+ Trained", "18 Courses", "12 States"].map((badge) => (
               <span
@@ -112,18 +124,16 @@ export function BrandPanel() {
 
 export function MobileBrandLogo() {
   return (
-    <div className="flex lg:hidden items-center gap-3 mb-10">
-      <div className="w-9 h-9 rounded-xl bg-[#2D6A4F] flex items-center justify-center flex-shrink-0">
-        <IconLogoMark />
-      </div>
-      <div>
-        <p className="text-gray-900 dark:text-white font-bold text-[0.95rem] leading-tight">
-          Social Work Nigeria
-        </p>
-        <p className="text-[#2D6A4F] dark:text-[#52b788] text-[0.62rem] uppercase tracking-widest font-semibold leading-tight">
-          Consultancy
-        </p>
-      </div>
+    <div className="flex lg:hidden items-center mb-10">
+      <Link href="/" aria-label="Social Work Nigeria home">
+        <img
+          src="/images/home/SWC-Logo.webp"
+          alt="Social Work Nigeria Logo"
+          width={151}
+          height={40}
+          className="w-[180px] h-auto object-contain dark:px-0 dark:py-1"
+        />
+      </Link>
     </div>
   );
 }

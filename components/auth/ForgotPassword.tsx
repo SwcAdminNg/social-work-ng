@@ -43,7 +43,7 @@ export default function ForgotPassword() {
 
   if (sent) {
     return (
-      <AuthPageShell>
+      <AuthPageShell variant="forgot-password">
         <div className="mb-8">
           <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">
             Check your inbox
@@ -84,7 +84,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <AuthPageShell>
+    <AuthPageShell variant="forgot-password">
       {/* Heading */}
       <div className="mb-8">
         <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">
