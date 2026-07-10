@@ -1,58 +1,128 @@
 import Link from "next/link";
+import { fetchApi } from "@/lib/fetchApi";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import {
   IconBookOpen,
   IconClipboardCheck,
-  IconReceipt,
   IconStar,
+  IconReceipt,
 } from "@/components/dashboard/icons";
+import { PlayCircle, CheckCircle2 } from "lucide-react";
 
-const STATS = [
-  { label: "Enrolled Courses", value: 6, icon: IconBookOpen, href: "/dashboard/courses" },
-  { label: "Quiz Attempts", value: 14, icon: IconClipboardCheck, href: "/dashboard/quiz-attempts" },
-  { label: "Orders", value: 9, icon: IconReceipt, href: "/dashboard/orders" },
-  { label: "Reviews Given", value: 3, icon: IconStar, href: "/dashboard/reviews" },
-];
+export const metadata = {
+  title: "Dashboard | Social Work Nigeria",
+};
 
-const ACTIVITY = [
-  { title: "Completed “Ethics in Social Work” quiz", time: "Today, 9:42 AM" },
-  { title: "Enrolled in “Child Safeguarding Basics”", time: "Yesterday, 4:10 PM" },
-  { title: "Left a review for “Trauma-Informed Care”", time: "2 days ago" },
-  { title: "Order #SWC-1042 confirmed", time: "3 days ago" },
-];
+export default async function DashboardPage() {
+  // Fetch user profile and stats concurrently for performance
+  const [userRes, statsRes] = await Promise.all([
+    fetchApi("/users/me", { next: { revalidate: 60 } }),
+    fetchApi("/users/me/dashboard/stats", { next: { revalidate: 0 } }), // Real-time stats
+  ]);
 
-export default function DashboardPage() {
+  const userData = await userRes.json().catch(() => ({}));
+  const statsData = await statsRes.json().catch(() => ({}));
+
+  const user = userData?.data;
+  const stats = statsData?.data || {
+    total_courses_enrolled: 0,
+    quizzes_attempted: 0,
+    completion_rate: 0,
+    total_reviews: 0,
+    in_process_courses: 0,
+    completed_courses: 0,
+  };
+
+  // Determine dynamic greeting based on server time
+  const hour = new Date().getHours();
+  let greeting = "Good evening";
+  if (hour < 12) greeting = "Good morning";
+  else if (hour < 18) greeting = "Good afternoon";
+
+  const firstName = user?.first_name || "there";
+
+  // Map backend stats to UI cards
+  const STATS_CARDS = [
+    {
+      label: "Enrolled Courses",
+      value: stats.total_courses_enrolled,
+      icon: IconBookOpen,
+      href: "/dashboard/courses",
+      color: "text-[#2D6A4F] dark:text-[#52b788]",
+      bg: "bg-[#2D6A4F]/10 dark:bg-[#52b788]/15",
+    },
+    {
+      label: "In-Progress",
+      value: stats.in_process_courses,
+      icon: PlayCircle,
+      href: "/dashboard/courses",
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-100 dark:bg-blue-900/30",
+    },
+    {
+      label: "Completed",
+      value: stats.completed_courses,
+      icon: CheckCircle2,
+      href: "/dashboard/courses",
+      color: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-100 dark:bg-emerald-900/30",
+    },
+    {
+      label: "Completion Rate",
+      value: `${Number(stats.completion_rate || 0).toFixed(1)}%`,
+      icon: IconReceipt,
+      href: "/dashboard/courses",
+      color: "text-purple-600 dark:text-purple-400",
+      bg: "bg-purple-100 dark:bg-purple-900/30",
+    },
+    {
+      label: "Quiz Attempts",
+      value: stats.quizzes_attempted,
+      icon: IconClipboardCheck,
+      href: "/dashboard/quiz-attempts",
+      color: "text-orange-600 dark:text-orange-400",
+      bg: "bg-orange-100 dark:bg-orange-900/30",
+    },
+    {
+      label: "Reviews Given",
+      value: stats.total_reviews,
+      icon: IconStar,
+      href: "/dashboard/courses",
+      color: "text-yellow-600 dark:text-yellow-400",
+      bg: "bg-yellow-100 dark:bg-yellow-900/30",
+    },
+  ];
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* Welcome banner */}
-      <div className="rounded-2xl p-6 sm:p-8 bg-gradient-to-br from-[#2D6A4F] to-[#1e4d38] text-white shadow-lg shadow-green-900/20">
-        <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-white/70 mb-2">
-          Welcome back
-        </p>
-        <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight mb-2">
-          Continue your learning journey
-        </h2>
-        <p className="text-sm text-white/80 max-w-md">
-          Pick up where you left off, check your latest quiz results, or
-          explore new courses tailored for social work practice in Nigeria.
+    <div className="flex flex-col gap-8 pb-12">
+      {/* Dynamic Greeting */}
+      <div className="pt-2">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+          {greeting}, <span className="text-[#2D6A4F] dark:text-[#52b788]">{firstName}</span>!
+        </h1>
+        <p className="mt-2 text-gray-500 dark:text-gray-400 font-medium">
+          Here is what is happening with your learning journey today.
         </p>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {STATS.map(({ label, value, icon: Icon, href }) => (
+      {/* Dynamic Stat Cards Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
+        {STATS_CARDS.map(({ label, value, icon: Icon, href, color, bg }) => (
           <Link
             key={label}
             href={href}
-            className="group flex items-center gap-4 p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 no-underline hover:border-[#2D6A4F]/40 dark:hover:border-[#52b788]/40 hover:shadow-md transition-all duration-200"
+            className="group flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 no-underline hover:border-[#2D6A4F]/40 dark:hover:border-[#52b788]/40 hover:shadow-md transition-all duration-200"
           >
-            <div className="w-11 h-11 flex-shrink-0 rounded-xl bg-[#2D6A4F]/10 dark:bg-[#52b788]/15 text-[#2D6A4F] dark:text-[#52b788] flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-              <Icon />
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-xl sm:rounded-2xl ${bg} ${color} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}>
+              <div className="[&>svg]:w-5 [&>svg]:h-5 sm:[&>svg]:w-6 sm:[&>svg]:h-6">
+                <Icon />
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-none">
+            <div className="mt-1 sm:mt-0">
+              <p className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white leading-none mb-1">
                 {value}
               </p>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400">
                 {label}
               </p>
             </div>
@@ -60,34 +130,8 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Recent activity */}
-      <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-5 sm:p-6">
-        <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">
-          Recent Activity
-        </h3>
-        <ul className="flex flex-col list-none m-0 p-0">
-          {ACTIVITY.map((item, i) => (
-            <li
-              key={item.title}
-              className={`flex items-center justify-between gap-4 py-3 ${
-                i !== ACTIVITY.length - 1
-                  ? "border-b border-gray-100 dark:border-gray-800"
-                  : ""
-              }`}
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="w-2 h-2 rounded-full bg-[#52b788] flex-shrink-0" />
-                <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
-                  {item.title}
-                </span>
-              </div>
-              <span className="text-xs text-gray-400 dark:text-gray-600 flex-shrink-0 whitespace-nowrap">
-                {item.time}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* Client-Side Activity Feed */}
+      <ActivityFeed />
     </div>
   );
 }

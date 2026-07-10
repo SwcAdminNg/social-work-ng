@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { IconLogoMark } from "@/components/auth/shared/icons";
+import { Globe } from "lucide-react";
 import { dashboardNavItems } from "./nav-items";
 import { useSidebar } from "./SidebarContext";
 import { IconChevronsLeft, IconClose } from "./icons";
@@ -119,8 +120,20 @@ export function Sidebar() {
           <span className={collapsed ? "hidden" : ""}>Collapse</span>
         </button>
 
-        {/* Logout */}
-        <div className="px-3 pb-5 border-t border-gray-100 dark:border-gray-800 pt-3 flex-shrink-0">
+        {/* Back to Website & Logout */}
+        <div className="px-3 pb-5 border-t border-gray-100 dark:border-gray-800 pt-3 flex-shrink-0 space-y-1">
+          <Link
+            href="/"
+            title={collapsed ? "Back to Website" : undefined}
+            className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium no-underline transition-colors duration-150 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/70 hover:text-gray-900 dark:hover:text-gray-200`}
+          >
+            <span className="flex-shrink-0 flex items-center justify-center w-[18px] h-[18px]">
+              <Globe className="w-[18px] h-[18px]" />
+            </span>
+            <span className={`whitespace-nowrap transition-opacity duration-200 ${collapsed ? "lg:hidden" : ""}`}>
+              Back to Website
+            </span>
+          </Link>
           <LogoutButton isSidebar collapsed={collapsed} />
         </div>
       </aside>
