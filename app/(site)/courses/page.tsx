@@ -1,5 +1,6 @@
 import { fetchApi } from "@/lib/fetchApi";
 import { SiteCourseCard } from "@/components/courses/SiteCourseCard";
+import { CourseFilters } from "@/components/courses/CourseFilters";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { auth } from "@/auth";
@@ -15,31 +16,74 @@ export default async function CoursesPage(props: {
   const searchParams = await props.searchParams;
   const page = searchParams.page ? parseInt(searchParams.page as string) : 1;
   const search = searchParams.search as string | undefined;
+  const catalog = searchParams.catalog as string | undefined;
+  const level = searchParams.level as string | undefined;
+  const category = searchParams.category as string | undefined;
+  const is_free = searchParams.is_free as string | undefined;
 
   let url = `/courses?page=${page}&limit=12`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
+  if (catalog) url += `&catalog=${encodeURIComponent(catalog)}`;
+  if (level) url += `&level=${encodeURIComponent(level)}`;
+  if (category) url += `&category=${encodeURIComponent(category)}`;
+  if (is_free === "true") url += `&is_free=true`;
 
-  const res = await fetchApi(url, { next: { revalidate: 60 } });
+  const [res, catalogsRes] = await Promise.all([
+    fetchApi(url, { next: { revalidate: 60 } }),
+    fetchApi("/courses/catalogs", { next: { revalidate: 3600 } }),
+  ]);
+
   const data = await res.json().catch(() => ({}));
   const items = Array.isArray(data?.data) ? data.data : data?.data?.items || [];
-
   const hasNextPage = items.length === 12;
+
+  let catalogs = [];
+  if (catalogsRes.ok) {
+    const cData = await catalogsRes.json().catch(() => ({}));
+    catalogs = cData?.data || [];
+  }
 
   // Fetch enrolled courses if the user is logged in
   const session = await auth();
   const enrolledCourseIds = new Set<string>();
-  
+
   if (session && (session as any).accessToken) {
-    const enrolledRes = await fetchApi(`/learning/courses`, { next: { revalidate: 0 } });
+    const enrolledRes = await fetchApi(`/learning/courses`, {
+      next: { revalidate: 0 },
+    });
     if (enrolledRes.ok) {
       const enrolledData = await enrolledRes.json().catch(() => ({}));
-      const enrolledCourses = Array.isArray(enrolledData?.data) ? enrolledData.data : enrolledData?.data?.items || [];
+      const enrolledCourses = Array.isArray(enrolledData?.data)
+        ? enrolledData.data
+        : enrolledData?.data?.items || [];
       enrolledCourses.forEach((c: any) => {
         if (c.id) enrolledCourseIds.add(c.id);
         if (c.course?.id) enrolledCourseIds.add(c.course.id);
       });
     }
   }
+
+  // Helpers to build URLs preserving all filters
+  const buildCatalogUrl = (targetCatalog?: string) => {
+    const params = new URLSearchParams();
+    if (targetCatalog) params.set("catalog", targetCatalog);
+    if (search) params.set("search", search);
+    if (level) params.set("level", level);
+    if (category) params.set("category", category);
+    if (is_free) params.set("is_free", is_free);
+    return `/courses?${params.toString()}`;
+  };
+
+  const buildPageUrl = (targetPage: number) => {
+    const params = new URLSearchParams();
+    params.set("page", targetPage.toString());
+    if (catalog) params.set("catalog", catalog);
+    if (search) params.set("search", search);
+    if (level) params.set("level", level);
+    if (category) params.set("category", category);
+    if (is_free) params.set("is_free", is_free);
+    return `/courses?${params.toString()}`;
+  };
 
   return (
     <div className="w-full bg-white dark:bg-gray-950">
@@ -68,10 +112,51 @@ export default async function CoursesPage(props: {
       </div>
 
       <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-16 md:py-24">
+        {/* Catalog Filter Pills */}
+        <div className="flex gap-3 overflow-x-auto pb-4 mb-4 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <Link
+            href={buildCatalogUrl()}
+            className={`flex-shrink-0 px-5 py-2.5 rounded-full font-semibold text-[0.95rem] transition-all snap-start ${
+              !catalog
+                ? "bg-[#2D6A4F] text-white shadow-md"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+            }`}
+          >
+            All Courses
+          </Link>
+          {catalogs.map((cat: any) => {
+            const isActive = catalog === cat.slug;
+            return (
+              <Link
+                key={cat.id}
+                href={buildCatalogUrl(cat.slug)}
+                className={`flex-shrink-0 flex items-center px-5 py-2.5 rounded-full font-semibold text-[0.95rem] transition-all snap-start ${
+                  isActive
+                    ? "bg-[#2D6A4F] text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                {cat.name}
+                <span
+                  className={`ml-2 text-xs px-2 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"}`}
+                >
+                  {cat.total_courses}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Advanced Filters */}
+        <CourseFilters />
+
         {items.length === 0 ? (
           <div className="text-center py-20 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
-            <p className="text-gray-500 dark:text-gray-400 font-medium">
-              No courses found for this page.
+            <p className="text-gray-500 dark:text-gray-400 font-medium text-lg mb-2">
+              No courses found.
+            </p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm">
+              Try adjusting your filters or search query.
             </p>
           </div>
         ) : (
@@ -95,7 +180,7 @@ export default async function CoursesPage(props: {
             <div className="mt-16 flex items-center justify-center gap-4">
               {page > 1 ? (
                 <Link
-                  href={`/courses?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
+                  href={buildPageUrl(page - 1)}
                   className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 transition-all shadow-sm"
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -117,7 +202,7 @@ export default async function CoursesPage(props: {
 
               {hasNextPage ? (
                 <Link
-                  href={`/courses?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
+                  href={buildPageUrl(page + 1)}
                   className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 transition-all shadow-sm"
                 >
                   Next
