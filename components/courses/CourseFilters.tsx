@@ -177,9 +177,9 @@ export function CourseFilters({ catalogs = [] }: { catalogs?: Catalog[] }) {
               </button>
             </div>
 
-            <div className="flex flex-col xl:flex-row gap-5 items-center justify-between w-full">
+            <div className="flex flex-wrap items-center gap-4 w-full">
               {/* Search */}
-              <div className="relative w-full xl:w-[30%] flex-shrink-0">
+              <div className="relative w-full lg:w-auto lg:flex-1 min-w-[280px]">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Search className="h-5 w-5 text-gray-400" />
                 </div>
@@ -188,65 +188,63 @@ export function CourseFilters({ catalogs = [] }: { catalogs?: Catalog[] }) {
                   placeholder="Search courses..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-[#0a0f0c] border border-gray-200 dark:border-gray-800 rounded-2xl focus:border-none text-[0.95rem] focus:ring-2 focus:ring-[#2D6A4F]/20 focus:border-[#2D6A4F] dark:text-gray-100 transition-all outline-none"
+                  className="block w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-[#0a0f0c] border border-gray-200 dark:border-gray-800 rounded-2xl text-[0.95rem] focus:ring-2 focus:ring-[#2D6A4F]/20 focus:border-[#2D6A4F] dark:text-gray-100 transition-all outline-none"
                 />
               </div>
 
-              <div className="flex flex-wrap items-center gap-4 w-full xl:w-[70%] xl:justify-end">
-                {/* Catalog */}
-                <div className="w-full sm:w-auto sm:flex-1 xl:flex-none">
-                  <SearchableDropdown
-                    options={catalogOptions}
-                    value={currentCatalog}
-                    onChange={(val) => updateFilter("catalog", val)}
-                    placeholder="Catalogs"
-                    searchPlaceholder="Search catalogs..."
-                  />
-                </div>
-
-                {/* Category */}
-                <div className="w-full sm:w-auto sm:flex-1 xl:flex-none">
-                  <SearchableDropdown
-                    options={categoryOptions}
-                    value={currentCategory}
-                    onChange={(val) => updateFilter("category", val)}
-                    placeholder="Categories"
-                    searchPlaceholder="Search categories..."
-                  />
-                </div>
-
-                {/* Level */}
-                <div className="w-full sm:w-auto sm:flex-1 xl:flex-none">
-                  <SearchableDropdown
-                    options={levelOptions}
-                    value={currentLevel}
-                    onChange={(val) => updateFilter("level", val)}
-                    placeholder="Levels"
-                    showSearch={false}
-                  />
-                </div>
-
-                {/* Price */}
-                <div className="w-full sm:w-auto sm:flex-1 xl:flex-none">
-                  <SearchableDropdown
-                    options={priceOptions}
-                    value={currentIsFree}
-                    onChange={(val) => updateFilter("is_free", val)}
-                    placeholder="Prices"
-                    showSearch={false}
-                  />
-                </div>
-
-                {/* Clear Filters Button */}
-                {activeFiltersCount > 0 && (
-                  <button
-                    onClick={() => router.push(pathname)}
-                    className="w-full sm:w-auto px-4 py-3 text-sm font-semibold text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors xl:ml-auto"
-                  >
-                    Clear all
-                  </button>
-                )}
+              {/* Catalog */}
+              <div className="w-full sm:w-auto flex-1 sm:flex-none">
+                <SearchableDropdown
+                  options={catalogOptions}
+                  value={currentCatalog}
+                  onChange={(val) => updateFilter("catalog", val)}
+                  placeholder="Catalogs"
+                  searchPlaceholder="Search catalogs..."
+                />
               </div>
+
+              {/* Category */}
+              <div className="w-full sm:w-auto flex-1 sm:flex-none">
+                <SearchableDropdown
+                  options={categoryOptions}
+                  value={currentCategory}
+                  onChange={(val) => updateFilter("category", val)}
+                  placeholder="Categories"
+                  searchPlaceholder="Search categories..."
+                />
+              </div>
+
+              {/* Level */}
+              <div className="w-full sm:w-auto flex-1 sm:flex-none">
+                <SearchableDropdown
+                  options={levelOptions}
+                  value={currentLevel}
+                  onChange={(val) => updateFilter("level", val)}
+                  placeholder="Levels"
+                  showSearch={false}
+                />
+              </div>
+
+              {/* Price */}
+              <div className="w-full sm:w-auto flex-1 sm:flex-none">
+                <SearchableDropdown
+                  options={priceOptions}
+                  value={currentIsFree}
+                  onChange={(val) => updateFilter("is_free", val)}
+                  placeholder="Prices"
+                  showSearch={false}
+                />
+              </div>
+
+              {/* Clear Filters Button */}
+              {activeFiltersCount > 0 && (
+                <button
+                  onClick={() => router.push(pathname)}
+                  className="w-full sm:w-auto px-4 py-3.5 text-[0.95rem] font-bold text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors flex-shrink-0"
+                >
+                  Clear all
+                </button>
+              )}
             </div>
           </div>
         </div>
