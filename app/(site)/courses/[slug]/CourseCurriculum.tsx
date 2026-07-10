@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, PlayCircle, FileText, HelpCircle, X, Eye } from "lucide-react";
 import { HlsVideoPlayer } from "@/components/learning/HlsVideoPlayer";
+import { QuizEngine } from "@/components/learning/QuizEngine";
 
-export function CourseCurriculum({ sections }: { sections: any[] }) {
+export function CourseCurriculum({ courseId, sections }: { courseId?: string; sections: any[] }) {
   // Store expanded state for each section ID. Initialize the first section as expanded.
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
@@ -152,22 +153,45 @@ export function CourseCurriculum({ sections }: { sections: any[] }) {
                   </div>
                 )
               ) : previewItem.item_type === "DOCUMENT" ? (
-                previewItem.document?.file_url || previewItem.document?.content_url || previewItem.document?.url ? (
-                  <iframe
-                    src={previewItem.document?.file_url || previewItem.document?.content_url || previewItem.document?.url}
-                    className="w-full h-[600px] bg-white rounded-xl"
-                    title={previewItem.title}
-                  />
+                (() => {
+                  const docUrl = previewItem.document?.file_url || previewItem.document?.content_url || previewItem.document?.url || previewItem.document_url || previewItem.content_url;
+                  if (docUrl) {
+                    return (
+                      <iframe
+                        src={docUrl.toLowerCase().endsWith('.pdf') ? docUrl : `https://docs.google.com/viewer?url=${encodeURIComponent(docUrl)}&embedded=true`}
+                        className="w-full h-[600px] bg-white rounded-xl"
+                        title={previewItem.title}
+                      />
+                    );
+                  }
+                  return (
+                    <div className="text-center text-gray-400 bg-gray-900 rounded-xl p-12 border border-gray-800">
+                      <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <h4 className="text-white text-xl font-bold mb-2">{previewItem.document?.file_name || previewItem.title}</h4>
+                      <p>This document is available for preview, but the file link is not provided by the server.</p>
+                    </div>
+                  );
+                })()
+              ) : previewItem.item_type === "QUIZ" ? (
+                previewItem.quiz?.questions ? (
+                  <div className="w-full bg-white dark:bg-gray-50 rounded-xl max-h-[75vh] overflow-y-auto p-4 md:p-6">
+                    <QuizEngine
+                      courseId={courseId || ""}
+                      itemId={previewItem.id}
+                      isCompleted={false}
+                      questions={previewItem.quiz.questions}
+                    />
+                  </div>
                 ) : (
                   <div className="text-center text-gray-400">
-                    <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p>Document preview will be displayed here.</p>
+                    <HelpCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>Quiz preview is not available.</p>
                   </div>
                 )
               ) : (
                 <div className="text-center text-gray-400">
                   <HelpCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p>Quiz or interactive preview will be displayed here.</p>
+                  <p>Preview is not available for this item type.</p>
                 </div>
               )}
             </div>
