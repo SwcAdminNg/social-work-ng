@@ -13,7 +13,8 @@ interface SiteCourseCardProps {
   // Optional fields that might not be in the API but are needed for the UI
   level?: string;
   category?: string;
-  rating?: number;
+  average_rating?: number;
+  total_reviews?: number;
 }
 
 const levelColors: Record<string, string> = {
@@ -66,7 +67,8 @@ export function SiteCourseCard({
   is_enrolled,
   level = "Beginner",
   category = "Professional Development",
-  rating = 5,
+  average_rating,
+  total_reviews,
 }: SiteCourseCardProps) {
   const displayPrice = is_free ? "Free" : (price ? `₦${price.toLocaleString()}` : "Paid");
   const fallbackImage = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop";
@@ -108,7 +110,17 @@ export function SiteCourseCard({
       {/* Body */}
       <div className="flex flex-col flex-1 p-5 gap-3">
         {/* Stars */}
-        <StarRating rating={rating} />
+        {(total_reviews !== undefined && total_reviews > 0) && (
+          <div className="flex items-center gap-1.5">
+            <StarRating rating={average_rating || 0} />
+            <span className="text-[0.8rem] font-bold text-gray-900 dark:text-gray-100">
+              {Number(average_rating).toFixed(1)}
+            </span>
+            <span className="text-[0.75rem] text-gray-500">
+              ({total_reviews} reviews)
+            </span>
+          </div>
+        )}
 
         {/* Title */}
         <h3

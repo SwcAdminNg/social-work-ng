@@ -71,6 +71,8 @@ export default async function EnrolledCoursesPage() {
               progress_percent={course.progress_percent}
               is_completed={course.is_completed}
               price={course.price}
+              average_rating={course.average_rating}
+              total_reviews={course.total_reviews}
               is_enrolled={course.is_enrolled ?? true}
               has_access={course.has_access}
               href={`/learn/${course.id}`}

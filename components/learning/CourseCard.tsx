@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { IconBookOpen, IconStar } from "@/components/dashboard/icons";
+import { Star } from "lucide-react";
 
 interface CourseCardProps {
   id: string;
@@ -13,6 +14,8 @@ interface CourseCardProps {
   has_access?: boolean;
   progress_percent?: number;
   is_completed?: boolean;
+  average_rating?: number;
+  total_reviews?: number;
   href: string; // The destination when clicked
 }
 
@@ -27,6 +30,8 @@ export function CourseCard({
   has_access,
   progress_percent,
   is_completed,
+  average_rating,
+  total_reviews,
   href,
 }: CourseCardProps) {
   return (
@@ -73,6 +78,26 @@ export function CourseCard({
         <h3 className="font-bold text-lg text-gray-900 dark:text-white line-clamp-2 leading-tight group-hover:text-[#2D6A4F] dark:group-hover:text-[#52b788] transition-colors">
           {title}
         </h3>
+
+        {/* Rating */}
+        {(total_reviews !== undefined && total_reviews > 0) && (
+          <div className="flex items-center gap-1.5 mt-2">
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star 
+                  key={i} 
+                  className={`w-3.5 h-3.5 ${i < (average_rating || 0) ? "fill-yellow-400 text-yellow-400" : "fill-transparent text-gray-300 dark:text-gray-600"}`} 
+                />
+              ))}
+            </div>
+            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+              {Number(average_rating).toFixed(1)}
+            </span>
+            <span className="text-xs text-gray-500">
+              ({total_reviews})
+            </span>
+          </div>
+        )}
 
         {/* Progress Bar (if enrolled) */}
         {progress_percent !== undefined && (

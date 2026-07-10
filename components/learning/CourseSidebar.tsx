@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { IconChevronsLeft } from "@/components/dashboard/icons";
 import { IconCheck } from "@/components/auth/shared/icons";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Star } from "lucide-react";
+import { ReviewModal } from "./ReviewModal";
 
 interface CourseSidebarProps {
   courseId: string;
@@ -14,7 +15,29 @@ interface CourseSidebarProps {
 
 export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [userReview, setUserReview] = useState<any>(null);
+
+  const fetchUserReview = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/proxy/courses/${courseId}/reviews/me`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.data?.id) {
+          setUserReview(data.data);
+          localStorage.setItem(`has_reviewed_${courseId}`, "true");
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch user review", e);
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    fetchUserReview();
+  }, [fetchUserReview]);
 
   const SidebarContent = (
     <div className="flex flex-col h-full overflow-hidden w-full bg-gray-50/50 dark:bg-gray-900/50">
@@ -33,9 +56,38 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
 
       {/* Progress Bar */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-800 shrink-0">
-        <h2 className="text-lg font-bold line-clamp-2 mb-4 leading-tight text-gray-900 dark:text-white">
+        <h2 className="text-lg font-bold line-clamp-2 mb-2 leading-tight text-gray-900 dark:text-white">
           {curriculum.course_title || "Course Curriculum"}
         </h2>
+        
+        {/* Course Rating */}
+        <div className="flex items-center gap-1.5 mb-4">
+          {(curriculum.total_reviews !== undefined && curriculum.total_reviews > 0) && (
+            <>
+              <div className="flex items-center gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star 
+                    key={i} 
+                    className={`w-3.5 h-3.5 ${i < (curriculum.average_rating || 0) ? "fill-yellow-400 text-yellow-400" : "fill-transparent text-gray-300 dark:text-gray-600"}`} 
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-bold text-gray-900 dark:text-gray-100 ml-0.5">
+                {Number(curriculum.average_rating).toFixed(1)}
+              </span>
+              <span className="text-xs text-gray-500">
+                ({curriculum.total_reviews} reviews)
+              </span>
+            </>
+          )}
+          <button 
+            onClick={() => setIsReviewModalOpen(true)}
+            className={`${curriculum.total_reviews > 0 ? "ml-auto" : "w-full justify-center"} flex text-xs font-semibold text-[#2D6A4F] hover:text-[#1B4332] dark:text-[#52b788] dark:hover:text-[#40916c] transition-colors bg-[#2D6A4F]/10 dark:bg-[#52b788]/10 px-2 py-1.5 rounded-md`}
+          >
+            {userReview ? "Edit Review" : "Rate & Review"}
+          </button>
+        </div>
+
         <div className="flex justify-between text-xs font-medium text-gray-500 mb-2">
           <span>Course Progress</span>
           <span>{curriculum.progress_percent || 0}%</span>
@@ -138,6 +190,18 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
       >
         <Menu className="w-6 h-6" />
       </button>
+
+      <ReviewModal 
+        courseId={courseId} 
+        isOpen={isReviewModalOpen} 
+        onOpenChange={setIsReviewModalOpen} 
+        onDismiss={() => {}} 
+        existingReview={userReview}
+        onReviewSubmitted={() => {
+          fetchUserReview();
+          router.refresh();
+        }}
+      />
     </>
   );
 }

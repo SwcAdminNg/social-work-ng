@@ -129,6 +129,8 @@ export default async function CoursesPage(props: {
                   href={`/courses/${course.slug || course.id}`}
                   level={course.level || "Beginner"}
                   category={course.category || "Professional Development"}
+                  average_rating={course.average_rating}
+                  total_reviews={course.total_reviews}
                   is_enrolled={enrolledCourseIds.has(course.id)}
                 />
               ))}

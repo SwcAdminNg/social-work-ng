@@ -76,7 +76,17 @@ function CourseCard({ course }: { course: Course }) {
         </span>
       </div>
       <div className="flex flex-col flex-1 p-5 gap-3">
-        <StarRating rating={course.rating} />
+        {(course.reviewCount !== undefined && course.reviewCount > 0) && (
+          <div className="flex items-center gap-1.5">
+            <StarRating rating={course.rating} />
+            <span className="text-[0.8rem] font-bold text-gray-900 dark:text-gray-100">
+              {Number(course.rating).toFixed(1)}
+            </span>
+            <span className="text-[0.75rem] text-gray-500">
+              ({course.reviewCount} reviews)
+            </span>
+          </div>
+        )}
         <h3
           id={`course-${course.id}-title`}
           className="text-[0.95rem] font-bold leading-snug text-gray-900 dark:text-gray-100 tracking-tight"

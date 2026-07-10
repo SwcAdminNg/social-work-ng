@@ -26,8 +26,8 @@ export default async function Home() {
       level: c.level
         ? c.level.charAt(0).toUpperCase() + c.level.slice(1).toLowerCase()
         : "Beginner",
-      rating: 5,
-      reviewCount: Math.floor(Math.random() * (150 - 50 + 1) + 50),
+      rating: c.average_rating || 0,
+      reviewCount: c.total_reviews || 0,
       price: c.is_free
         ? "Free"
         : c.price !== null && c.price !== undefined
