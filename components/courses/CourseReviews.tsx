@@ -198,6 +198,41 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
                   {review.review_text}
                 </p>
               )}
+
+              {review.reply_text && (
+                <div className="mt-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800/80 relative">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="w-6 h-6 rounded-full bg-[#2D6A4F] text-white flex items-center justify-center text-[0.65rem] font-bold shrink-0">
+                      SW
+                    </span>
+                    <h5 className="font-bold text-sm text-gray-900 dark:text-white flex items-center">
+                      Social Work Nigeria
+                      <span className="ml-2 text-[0.65rem] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded bg-[#2D6A4F]/10 text-[#2D6A4F] dark:bg-[#52b788]/20 dark:text-[#52b788]">Team</span>
+                    </h5>
+                    {review.reply_created_at && (
+                      <span className="text-xs text-gray-500 ml-auto hidden sm:block">
+                        {new Date(review.reply_created_at).toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {review.reply_text}
+                  </p>
+                  {review.reply_created_at && (
+                    <span className="text-[0.65rem] text-gray-500 mt-2 block sm:hidden">
+                      {new Date(review.reply_created_at).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
