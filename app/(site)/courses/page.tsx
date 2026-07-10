@@ -26,7 +26,8 @@ export default async function CoursesPage(props: {
   if (catalog) url += `&catalog=${encodeURIComponent(catalog)}`;
   if (level) url += `&level=${encodeURIComponent(level)}`;
   if (category) url += `&category=${encodeURIComponent(category)}`;
-  if (is_free === "true") url += `&is_free=true`;
+  if (is_free === 'true') url += `&is_free=true`;
+  else if (is_free === 'false') url += `&is_free=false`;
 
   const [res, catalogsRes] = await Promise.all([
     fetchApi(url, { next: { revalidate: 60 } }),
