@@ -15,6 +15,8 @@ interface Course {
   price: "Free" | string;
   image: string;
   href: string;
+  is_enrolled?: boolean;
+  has_access?: boolean;
 }
 
 const levelColors: Record<Level, string> = {
@@ -90,29 +92,45 @@ function CourseCard({ course }: { course: Course }) {
         <div className="flex-1" />
         <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
           <span className="text-[0.9rem] font-bold text-[#2D6A4F] dark:text-[#52b788]">
-            {course.price}
+            {course.is_enrolled ? "Enrolled" : course.price}
           </span>
           <Link
             href={course.href}
             className="inline-flex items-center gap-1.5 text-[0.8rem] font-semibold text-gray-700 dark:text-gray-300 hover:text-[#2D6A4F] dark:hover:text-[#52b788] no-underline transition-colors duration-150"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <rect x="1" y="1" width="6" height="6" rx="1" />
-              <rect x="9" y="1" width="6" height="6" rx="1" />
-              <rect x="1" y="9" width="6" height="6" rx="1" />
-              <rect x="9" y="9" width="6" height="6" rx="1" />
-            </svg>
-            Get Enrolled
+            {course.is_enrolled ? (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 8l3.5 3.5L13 4.5" />
+              </svg>
+            ) : (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="1" y="1" width="6" height="6" rx="1" />
+                <rect x="9" y="1" width="6" height="6" rx="1" />
+                <rect x="1" y="9" width="6" height="6" rx="1" />
+                <rect x="9" y="9" width="6" height="6" rx="1" />
+              </svg>
+            )}
+            {course.is_enrolled ? "Continue Learning" : "Get Enrolled"}
           </Link>
         </div>
       </div>

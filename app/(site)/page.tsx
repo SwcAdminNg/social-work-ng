@@ -3,13 +3,13 @@ import { fetchApi } from "@/lib/fetchApi";
 
 export default async function HomePage() {
   const res = await fetchApi("/courses/featured?limit=6", {
-    next: { revalidate: 60 },
+    cache: "no-store",
   });
 
   let featuredCourses = [];
   if (res.ok) {
     const data = await res.json().catch(() => ({}));
-    featuredCourses = (data?.data || []).map((c: any) => ({
+    featuredCourses = (data?.data?.items || []).map((c: any) => ({
       id: c.id,
       title: c.title,
       category: c.category
@@ -27,6 +27,8 @@ export default async function HomePage() {
           : "Premium",
       image: c.thumbnail_url || "/images/auth/social-work.jpg",
       href: `/courses/${c.slug || c.id}`,
+      is_enrolled: c.is_enrolled,
+      has_access: c.has_access,
     }));
   }
 
