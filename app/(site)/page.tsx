@@ -9,7 +9,7 @@ export default async function HomePage() {
   let featuredCourses = [];
   if (res.ok) {
     const data = await res.json().catch(() => ({}));
-    featuredCourses = (data?.data?.items || []).map((c: any) => ({
+    featuredCourses = (data?.data || []).map((c: any) => ({
       id: c.id,
       title: c.title,
       category: c.category
