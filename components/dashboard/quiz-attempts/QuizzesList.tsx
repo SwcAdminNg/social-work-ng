@@ -95,7 +95,7 @@ export default function QuizzesList({
   return (
     <div className="flex flex-col gap-8">
       {/* Tabs */}
-      <div className="flex items-center overflow-x-auto hide-scrollbar gap-2 p-1.5 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl w-fit border border-gray-200/50 dark:border-gray-800/50">
+      <div className="flex items-center overflow-x-auto hide-scrollbar gap-2 p-1.5 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl w-full md:w-fit max-w-full border border-gray-200/50 dark:border-gray-800/50">
         {TABS.map((tab) => {
           const isActive = currentStatus === tab.id;
           return (
