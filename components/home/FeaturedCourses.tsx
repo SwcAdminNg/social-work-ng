@@ -190,8 +190,6 @@ function NavArrow({
   );
 }
 
-const VISIBLE_COUNT = 3;
-
 export default function FeaturedCourses({
   initialCourses = [],
 }: {
@@ -203,13 +201,35 @@ export default function FeaturedCourses({
   const trackRef = useRef<HTMLDivElement>(null);
 
   const displayCourses = initialCourses;
-  const maxIndex = Math.max(0, displayCourses.length - VISIBLE_COUNT);
+  const maxIndex = Math.max(0, displayCourses.length - 1);
 
-  const prev = useCallback(() => setIndex((i) => Math.max(0, i - 1)), []);
-  const next = useCallback(
-    () => setIndex((i) => Math.min(maxIndex, i + 1)),
-    [maxIndex],
-  );
+  const handleScroll = useCallback(() => {
+    if (!trackRef.current) return;
+    const container = trackRef.current;
+    const scrollLeft = container.scrollLeft;
+    const firstChild = container.firstElementChild as HTMLElement;
+    if (!firstChild) return;
+    
+    const itemWidth = firstChild.offsetWidth + 20; // 20px is gap-5
+    const newIndex = Math.round(scrollLeft / itemWidth);
+    setIndex(Math.min(maxIndex, Math.max(0, newIndex)));
+  }, [maxIndex]);
+
+  const scrollTo = useCallback((newIndex: number) => {
+    if (!trackRef.current) return;
+    const container = trackRef.current;
+    const firstChild = container.firstElementChild as HTMLElement;
+    if (!firstChild) return;
+    
+    const itemWidth = firstChild.offsetWidth + 20;
+    container.scrollTo({
+      left: newIndex * itemWidth,
+      behavior: "smooth",
+    });
+  }, []);
+
+  const prev = useCallback(() => scrollTo(Math.max(0, index - 1)), [index, scrollTo]);
+  const next = useCallback(() => scrollTo(Math.min(maxIndex, index + 1)), [index, maxIndex, scrollTo]);
 
   return (
     <section
@@ -244,22 +264,20 @@ export default function FeaturedCourses({
           </p>
         </div>
         <div className="relative">
-          <div className="overflow-hidden" ref={trackRef}>
-            <div
-              className="flex gap-5 transition-transform duration-400 ease-in-out"
-              style={{
-                transform: `translateX(calc(-${index} * (100% / ${VISIBLE_COUNT} + (${VISIBLE_COUNT - 1} * 1.25rem / ${VISIBLE_COUNT}))))`,
-              }}
-            >
-              {displayCourses.map((course) => (
-                <div
-                  key={course.id}
-                  className="flex-shrink-0 w-full sm:w-[calc(50%-0.625rem)] lg:w-[calc(33.333%-0.834rem)]"
-                >
-                  <CourseCard course={course} />
-                </div>
-              ))}
-            </div>
+          <div 
+            className="overflow-x-auto snap-x snap-mandatory flex gap-5 pb-8 -mx-6 px-6 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            ref={trackRef}
+            onScroll={handleScroll}
+          >
+            {displayCourses.map((course) => (
+              <div
+                key={course.id}
+                className="flex-shrink-0 w-[85%] sm:w-[calc(50%-0.625rem)] lg:w-[calc(33.333%-0.834rem)] snap-center sm:snap-start"
+              >
+                <CourseCard course={course} />
+              </div>
+            ))}
           </div>
         </div>
         <div className="mt-10 flex items-center justify-between gap-4">
@@ -274,7 +292,7 @@ export default function FeaturedCourses({
                 role="tab"
                 aria-selected={i === index}
                 aria-label={`Go to slide ${i + 1}`}
-                onClick={() => setIndex(i)}
+                onClick={() => scrollTo(i)}
                 className={`rounded-full transition-all duration-200 ${
                   i === index
                     ? "w-6 h-2 bg-[#2D6A4F] dark:bg-[#52b788]"

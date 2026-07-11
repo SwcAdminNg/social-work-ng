@@ -11,13 +11,15 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function ProfileSettings() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingUsername, setSavingUsername] = useState(false);
+  const [hasSynced, setHasSynced] = useState(false);
 
   // Profile Form State
   const [firstName, setFirstName] = useState("");
@@ -35,31 +37,38 @@ export function ProfileSettings() {
   );
 
   const fetchProfile = async () => {
-    try {
-      const res = await fetch("/api/proxy/users/me");
-      if (res.ok) {
-        const data = await res.json();
-        const user = data.data;
-        if (user) {
-          setFirstName(user.first_name || "");
-          setLastName(user.last_name || "");
-          setPhoneNumber(user.phone_number || "");
-          setAddress(user.address || "");
-          setGender(user.gender || "");
-          setCurrentUsername(user.username || "");
-          setNewUsername(user.username || "");
-        }
-      }
-    } catch (error) {
-      toast.error("Failed to load profile data.");
-    } finally {
-      setLoading(false);
+    const res = await fetch("/api/proxy/users/me");
+    if (!res.ok) {
+      throw new Error("Failed to load profile data.");
     }
+    const data = await res.json();
+    return data.data;
   };
 
+  const { data: user, isPending: loading, isError } = useQuery({
+    queryKey: ['profile'],
+    queryFn: fetchProfile,
+    staleTime: 5 * 60 * 1000,
+  });
+
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (isError) {
+      toast.error("Failed to load profile data.");
+    }
+  }, [isError]);
+
+  useEffect(() => {
+    if (user && !hasSynced) {
+      setFirstName(user.first_name || "");
+      setLastName(user.last_name || "");
+      setPhoneNumber(user.phone_number || "");
+      setAddress(user.address || "");
+      setGender(user.gender || "");
+      setCurrentUsername(user.username || "");
+      setNewUsername(user.username || "");
+      setHasSynced(true);
+    }
+  }, [user, hasSynced]);
 
   // Username Availability Checker (Debounced)
   useEffect(() => {
@@ -114,6 +123,7 @@ export function ProfileSettings() {
 
       if (res.ok) {
         toast.success("Profile updated successfully!");
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
         router.refresh();
       } else {
         const data = await res.json();
@@ -147,6 +157,7 @@ export function ProfileSettings() {
         toast.success("Username updated successfully!");
         setCurrentUsername(newUsername);
         setUsernameAvailable(null);
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
         router.refresh();
       } else {
         const data = await res.json();

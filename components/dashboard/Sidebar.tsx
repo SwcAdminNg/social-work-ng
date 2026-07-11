@@ -52,11 +52,11 @@ export function Sidebar() {
               className={`leading-tight transition-opacity duration-200 whitespace-nowrap ${collapsed ? "lg:opacity-0 lg:w-0 hidden" : "opacity-100"}`}
             >
               <img
-                src="/images/home/SWC-Logo.webp"
+                src="/images/logo/swc-dark-logo.png"
                 alt="SWC Logo"
                 width={151}
                 height={40}
-                className="w-[120px] h-auto object-contain dark:bg-white/95 dark:rounded-md dark:p-1 dark:shadow-none"
+                className="w-[160px] h-auto object-contain"
               />
             </div>
           </Link>
@@ -130,7 +130,9 @@ export function Sidebar() {
             <span className="flex-shrink-0 flex items-center justify-center w-[18px] h-[18px]">
               <Globe className="w-[18px] h-[18px]" />
             </span>
-            <span className={`whitespace-nowrap transition-opacity duration-200 ${collapsed ? "lg:hidden" : ""}`}>
+            <span
+              className={`whitespace-nowrap transition-opacity duration-200 ${collapsed ? "lg:hidden" : ""}`}
+            >
               Back to Website
             </span>
           </Link>

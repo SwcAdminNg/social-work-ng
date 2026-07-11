@@ -9,6 +9,7 @@ import {
   IconReceipt 
 } from "@/components/dashboard/icons";
 import { CheckCircle2, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 interface ActivityItem {
   id: string;
@@ -19,52 +20,38 @@ interface ActivityItem {
 }
 
 export function ActivityFeed() {
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [error, setError] = useState(false);
 
   const fetchActivities = async (pageNumber: number) => {
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/proxy/users/me/dashboard/activity?page=${pageNumber}&page_size=5`);
-      const data = await res.json();
-      
-      if (res.ok && (data.data || data.items)) {
-        const items = data.data || data.items || [];
-        const fetchedTotalPages = data.meta?.total_pages || data.total_pages || 1;
-
-        setActivities(items);
-        setTotalPages(fetchedTotalPages);
-        setError(false);
-      } else {
-        setError(true);
-      }
-    } catch (e) {
-      setError(true);
-    } finally {
-      setLoading(false);
+    const res = await fetch(`/api/proxy/users/me/dashboard/activity?page=${pageNumber}&page_size=5`);
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to fetch activities");
     }
+    return data;
   };
 
-  useEffect(() => {
-    fetchActivities(1);
-  }, []);
+  const { data, isPending, isError, isFetching } = useQuery({
+    queryKey: ['dashboard-activities', page],
+    queryFn: () => fetchActivities(page),
+    placeholderData: keepPreviousData,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const activities: ActivityItem[] = data?.data || data?.items || [];
+  const totalPages = data?.meta?.total_pages || data?.total_pages || 1;
+  const loading = isPending;
+  const error = isError;
 
   const handleNext = () => {
     if (page < totalPages) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchActivities(nextPage);
+      setPage(page + 1);
     }
   };
 
   const handlePrev = () => {
     if (page > 1) {
-      const prevPage = page - 1;
-      setPage(prevPage);
-      fetchActivities(prevPage);
+      setPage(page - 1);
     }
   };
 
@@ -195,7 +182,7 @@ export function ActivityFeed() {
         </span>
       </div>
 
-      {loading && (
+      {isFetching && !isPending && (
         <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-[2px] z-10 flex items-center justify-center min-h-[200px]">
           <IconSpinner className="w-8 h-8 animate-spin text-[#2D6A4F]" />
         </div>

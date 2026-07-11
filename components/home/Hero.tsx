@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <section className="relative w-full h-[50vh] md:h-[60vh] min-h-[400px] lg:min-h-[500px] xl:min-h-[600px] flex items-center overflow-hidden">
+    <section className="relative w-full py-24 md:py-0 md:h-[60vh] min-h-[500px] lg:min-h-[500px] xl:min-h-[600px] flex items-center overflow-hidden">
       {/* Background image */}
       <div className="absolute inset-0 z-0">
         <img

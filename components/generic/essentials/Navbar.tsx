@@ -73,16 +73,22 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         {isLoggedIn ? (
           <Link
             href="/dashboard"
-            className="hidden lg:inline-flex items-center justify-center px-5 py-2 bg-[#2D6A4F] text-white text-sm font-semibold rounded-full no-underline hover:bg-[#1e4d38] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 shadow-sm flex-shrink-0"
+            className="hidden lg:inline-flex items-center justify-center px-2 py-2 text-sm font-bold text-gray-800 dark:text-gray-200 relative group no-underline overflow-hidden flex-shrink-0 uppercase tracking-wide"
           >
-            Dashboard
+            <span className="relative z-10 group-hover:text-[#2D6A4F] dark:group-hover:text-[#52b788] transition-colors duration-300">
+              Dashboard
+            </span>
+            <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#2D6A4F] dark:bg-[#52b788] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
           </Link>
         ) : (
           <Link
             href="/login"
-            className="hidden lg:inline-flex items-center justify-center px-5 py-2 bg-[#2D6A4F] text-white text-sm font-semibold rounded-full no-underline hover:bg-[#1e4d38] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 shadow-sm flex-shrink-0"
+            className="hidden lg:inline-flex items-center justify-center px-2 py-2 text-sm font-bold text-gray-800 dark:text-gray-200 relative group no-underline overflow-hidden flex-shrink-0 uppercase tracking-wide"
           >
-            Login
+            <span className="relative z-10 group-hover:text-[#2D6A4F] dark:group-hover:text-[#52b788] transition-colors duration-300">
+              Login
+            </span>
+            <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#2D6A4F] dark:bg-[#52b788] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
           </Link>
         )}
 
@@ -139,7 +145,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           {isLoggedIn ? (
             <Link
               href="/dashboard"
-              className="block text-center py-4 px-6 bg-[#2D6A4F] text-white text-lg font-bold rounded-full no-underline hover:bg-[#1e4d38] shadow-lg shadow-[#2D6A4F]/20 transition-all active:scale-95"
+              className="block text-center py-4 px-6 text-[#2D6A4F] dark:text-[#52b788] text-lg font-bold uppercase tracking-widest border-2 border-[#2D6A4F] dark:border-[#52b788] no-underline hover:bg-[#2D6A4F] hover:text-white dark:hover:bg-[#52b788] dark:hover:text-gray-900 transition-all duration-300 active:scale-95"
               onClick={() => setMenuOpen(false)}
             >
               Dashboard
@@ -147,7 +153,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           ) : (
             <Link
               href="/login"
-              className="block text-center py-4 px-6 bg-[#2D6A4F] text-white text-lg font-bold rounded-full no-underline hover:bg-[#1e4d38] shadow-lg shadow-[#2D6A4F]/20 transition-all active:scale-95"
+              className="block text-center py-4 px-6 text-[#2D6A4F] dark:text-[#52b788] text-lg font-bold uppercase tracking-widest border-2 border-[#2D6A4F] dark:border-[#52b788] no-underline hover:bg-[#2D6A4F] hover:text-white dark:hover:bg-[#52b788] dark:hover:text-gray-900 transition-all duration-300 active:scale-95"
               onClick={() => setMenuOpen(false)}
             >
               Login

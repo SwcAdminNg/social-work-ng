@@ -5,6 +5,7 @@ import ThemeProvider from "@/components/generic/ThemeProvider";
 import ThemeToggle from "@/components/generic/ThemeToggle";
 import { auth } from "@/auth";
 import SessionMonitor from "@/components/auth/SessionMonitor";
+import QueryProvider from "@/components/generic/QueryProvider";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -29,10 +30,12 @@ export default async function RootLayout({
     <html lang="en" className="scroll-smooth" suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${roboto.className} antialiased`}>
         <ThemeProvider>
-          <SessionMonitor session={session}>
-            {children}
-            <ThemeToggle />
-          </SessionMonitor>
+          <QueryProvider>
+            <SessionMonitor session={session}>
+              {children}
+              <ThemeToggle />
+            </SessionMonitor>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
