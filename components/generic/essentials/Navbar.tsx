@@ -25,11 +25,11 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           aria-label="Social Work Consultancy Home"
         >
           <img
-            src="/images/home/SWC-Logo.webp"
+            src="/images/logo/swc-dark-logo.png"
             alt="SWC Logo"
             width={151}
             height={40}
-            className="w-[120px] md:w-[151px] h-auto object-contain dark:bg-white/95 dark:rounded-md dark:p-1.5 dark:shadow-none"
+            className="w-[170px] md:w-[180px] h-auto object-contain"
           />
         </Link>
 
@@ -108,7 +108,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       {/* Mobile Menu */}
       <div
         className={`lg:hidden absolute top-[84px] left-0 right-0 h-[calc(100dvh-84px)] overflow-y-auto transition-all duration-300 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 flex flex-col ${
-          menuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
+          menuOpen
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 -translate-y-4 pointer-events-none"
         }`}
         aria-hidden={!menuOpen}
       >
@@ -132,7 +134,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             </li>
           ))}
         </ul>
-        
+
         <div className="px-6 pb-12 pt-6 mt-auto">
           {isLoggedIn ? (
             <Link

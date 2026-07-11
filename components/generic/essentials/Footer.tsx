@@ -124,11 +124,11 @@ export default function Footer() {
               aria-label="Social Work Nigeria home"
             >
               <img
-                src="/images/home/SWC-Logo.webp"
+                src="/images/logo/swc-dark-logo.png"
                 alt="SWC Logo"
                 width={151}
                 height={40}
-                className="w-[151px] h-auto object-contain dark:bg-white/95 dark:rounded-md dark:p-1.5 dark:shadow-none"
+                className="w-[170px] md:w-[180px] h-auto object-contain"
               />
             </Link>
 
@@ -140,14 +140,14 @@ export default function Footer() {
 
             <div className="flex items-center gap-3 pt-2">
               {socialLinks.map(({ label, href, icon }) => (
-                <a
+                <Link
                   key={label}
                   href={href}
                   aria-label={label}
                   className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-[#2D6A4F] dark:hover:bg-[#52b788] transition-all duration-300 no-underline"
                 >
                   {icon}
-                </a>
+                </Link>
               ))}
             </div>
           </div>

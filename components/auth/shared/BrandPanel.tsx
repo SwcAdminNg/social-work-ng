@@ -40,7 +40,13 @@ const PANEL_CONFIG: Record<
   },
 };
 
-export function BrandPanel({ variant = "login", statsData }: { variant?: AuthVariant; statsData?: any }) {
+export function BrandPanel({
+  variant = "login",
+  statsData,
+}: {
+  variant?: AuthVariant;
+  statsData?: any;
+}) {
   const config = PANEL_CONFIG[variant];
 
   const studentsCount = statsData?.total_number_of_students || 4200;
@@ -76,7 +82,7 @@ export function BrandPanel({ variant = "login", statsData }: { variant?: AuthVar
           aria-label="Social Work Nigeria home"
         >
           <img
-            src="/images/home/SWC-Logo.webp"
+            src="/images/logo/swc-dark-logo.png"
             alt="Social Work Nigeria Logo"
             width={151}
             height={40}
@@ -106,7 +112,11 @@ export function BrandPanel({ variant = "login", statsData }: { variant?: AuthVar
             "{config.quote}"
           </blockquote>
           <div className="flex flex-wrap gap-2">
-            {[`${studentsCount.toLocaleString()}+ Trained`, `${coursesCount.toLocaleString()} Courses`, "12 States"].map((badge) => (
+            {[
+              `${studentsCount.toLocaleString()}+ Trained`,
+              `${coursesCount.toLocaleString()} Courses`,
+              "12 States",
+            ].map((badge) => (
               <span
                 key={badge}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-white text-[0.72rem] font-semibold"
@@ -130,11 +140,11 @@ export function MobileBrandLogo() {
     <div className="flex lg:hidden items-center mb-10">
       <Link href="/" aria-label="Social Work Nigeria home">
         <img
-          src="/images/home/SWC-Logo.webp"
+          src="/images/logo/swc-dark-logo.png"
           alt="Social Work Nigeria Logo"
           width={151}
           height={40}
-          className="w-[180px] h-auto object-contain dark:px-0 dark:py-1"
+          className="w-[200px] h-auto object-contain dark:px-0 dark:py-1"
         />
       </Link>
     </div>
