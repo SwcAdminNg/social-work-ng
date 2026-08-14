@@ -1,5 +1,4 @@
 import { MetadataRoute } from "next";
-import { fetchApi } from "@/lib/fetchApi";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =
@@ -34,7 +33,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Fetch all courses dynamically
   try {
-    const res = await fetchApi(`/courses?page=1&limit=1000`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_API_URL || "";
+    const res = await fetch(`${apiUrl}/courses?page=1&limit=1000`, {
       next: { revalidate: 3600 },
     });
     const data = await res.json().catch(() => ({}));
