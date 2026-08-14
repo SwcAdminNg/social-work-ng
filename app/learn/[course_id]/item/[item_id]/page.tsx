@@ -6,7 +6,7 @@ import { EssaySubmission } from "@/components/learning/EssaySubmission";
 import { IconClipboardCheck } from "@/components/dashboard/icons";
 import { MarkCompleteButton } from "@/components/learning/MarkCompleteButton";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
+import { CheckCircle, ChevronLeft, ChevronRight, Download } from "lucide-react";
 
 type LearningNavItem = {
   id: string;
@@ -78,11 +78,10 @@ export default async function LearningItemPage(props: {
     (item.item_type === "ASSESSMENT" && item.assessment_type === "ESSAY");
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden bg-white dark:bg-gray-950">
-      {/* MEDIA AREA: Flush edge-to-edge on all screens like Udemy */}
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#f7fcf9] dark:bg-[#0b1220]">
       {item.item_type === "VIDEO" && item.video_url && (
-        <div className="w-full shrink-0 z-20 shadow-md md:shadow-none bg-gray-50 dark:bg-gray-950">
-          <div className="w-full mx-auto">
+        <div className="z-20 w-full flex-shrink-0 border-b border-[#dceee4] bg-slate-950 shadow-sm dark:border-[#27433a]">
+          <div className="mx-auto w-full max-w-[1180px]">
             <VideoPlayer
               url={item.video_url}
               courseId={params.course_id}
@@ -93,42 +92,58 @@ export default async function LearningItemPage(props: {
         </div>
       )}
 
-      {/* SCROLLABLE CONTENT */}
-      <div className="flex-1 overflow-y-auto min-h-0">
-        {/* Header */}
-        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 md:px-8 py-4 md:py-6 shrink-0 z-10 relative">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-            {item.title}
-          </h1>
-          <p className="text-xs font-semibold text-gray-500 mt-1.5 uppercase tracking-widest">
-            {itemLabel}
-          </p>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <header className="sticky top-0 z-10 border-b border-[#dceee4] bg-white/92 px-4 py-3 backdrop-blur dark:border-[#27433a] dark:bg-[#111525]/92 sm:px-5 lg:px-7">
+          <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <span className="rounded-md bg-[#e7f6ee] px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+                  {itemLabel}
+                </span>
+                {item.is_completed && (
+                  <span className="inline-flex items-center gap-1 rounded-md border border-[#b7e4c7] px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:border-[#27433a] dark:text-[#b7e4c7]">
+                    <CheckCircle className="h-3.5 w-3.5" />
+                    Complete
+                  </span>
+                )}
+              </div>
+              <h1 className="line-clamp-2 text-lg font-extrabold leading-6 text-slate-950 dark:text-white sm:text-xl">
+                {item.title}
+              </h1>
+            </div>
+          </div>
         </header>
 
-        <div className="p-4 md:p-8 pb-32 max-w-5xl mx-auto">
+        <div className="mx-auto w-full max-w-[1040px] px-4 py-4 pb-28 sm:px-5 sm:py-5 lg:px-7 lg:pb-8">
 
         {item.item_type === "DOCUMENT" && item.document_url && (
-          <div className="w-full h-[65vh] min-h-[500px] bg-white dark:bg-gray-900 rounded-2xl md:rounded-3xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col">
-            <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row sm:items-center justify-between shrink-0 gap-4">
-              <div className="flex items-center gap-3">
-                <span className="w-5 h-5 text-blue-500 [&>svg]:w-full [&>svg]:h-full shrink-0">
+          <div className="flex h-[calc(100dvh-180px)] min-h-[420px] w-full flex-col overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+            <div className="flex flex-shrink-0 flex-col gap-3 border-b border-[#dceee4] bg-[#fbfefd] px-4 py-3 dark:border-[#27433a] dark:bg-[#0f1726] sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7] [&>svg]:h-5 [&>svg]:w-5">
                   <IconClipboardCheck />
                 </span>
-                <h2 className="font-bold text-gray-900 dark:text-white line-clamp-1">{item.title}</h2>
+                <h2 className="line-clamp-1 text-sm font-extrabold text-slate-950 dark:text-white sm:text-base">{item.title}</h2>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-shrink-0 items-center gap-2">
                 <a 
                   href={item.document_url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                  className="inline-flex h-9 items-center gap-2 rounded-md border border-[#b7e4c7] px-3 text-sm font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
                 >
+                  <Download className="h-4 w-4" />
                   Download
                 </a>
-                <MarkCompleteButton courseId={params.course_id} itemId={item.id} isCompleted={item.is_completed} />
+                <MarkCompleteButton
+                  courseId={params.course_id}
+                  itemId={item.id}
+                  isCompleted={item.is_completed}
+                  className="h-9"
+                />
               </div>
             </div>
-            <div className="flex-1 w-full bg-gray-100 dark:bg-gray-950">
+            <div className="w-full flex-1 bg-slate-100 dark:bg-[#0b1220]">
               <iframe 
                 src={item.document_url.toLowerCase().endsWith('.pdf') ? item.document_url : `https://docs.google.com/viewer?url=${encodeURIComponent(item.document_url)}&embedded=true`} 
                 className="w-full h-full border-0"
@@ -165,44 +180,44 @@ export default async function LearningItemPage(props: {
         )}
 
         {item.item_type === "ASSESSMENT" && !isQuiz && !isEssay && (
-          <div className="rounded-3xl border border-gray-200 bg-white p-8 text-center text-gray-600 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+          <div className="rounded-lg border border-[#dceee4] bg-white p-5 text-center text-sm font-medium text-slate-600 shadow-sm dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-300">
             This assessment type is not available yet.
           </div>
         )}
 
         {/* Course Navigation Footer */}
-        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mt-12 pt-8 border-t border-gray-200 dark:border-gray-800 gap-4">
+        <div className="mt-5 grid gap-3 border-t border-[#dceee4] pt-4 dark:border-[#27433a] sm:grid-cols-2">
           {prevItem ? (
             <Link 
               href={`/learn/${params.course_id}/item/${prevItem.id}`}
-              className="w-full sm:w-1/2 md:w-auto flex items-center justify-center sm:justify-start gap-3 px-6 py-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium transition-colors"
+              className="grid min-h-16 grid-cols-[20px_minmax(0,1fr)] items-center gap-3 rounded-lg border border-[#dceee4] bg-white px-4 py-3 text-slate-700 transition hover:bg-[#f0fbf5] hover:text-[#2D6A4F] dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-300 dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7]"
             >
-              <ChevronLeft className="w-5 h-5 shrink-0" />
-              <div className="text-left flex-1 min-w-0">
-                <div className="text-xs text-gray-500 uppercase tracking-wider font-bold">Previous</div>
-                <div className="text-sm font-semibold line-clamp-1">{prevItem.title}</div>
+              <ChevronLeft className="h-5 w-5" />
+              <div className="min-w-0 text-left">
+                <div className="text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Previous</div>
+                <div className="line-clamp-1 text-sm font-extrabold">{prevItem.title}</div>
               </div>
             </Link>
-          ) : <div className="hidden sm:block sm:w-1/2 md:w-auto" />}
+          ) : <div className="hidden sm:block" />}
           
           {nextItem ? (
             <Link 
               href={`/learn/${params.course_id}/item/${nextItem.id}`}
-              className="w-full sm:w-1/2 md:w-auto flex items-center justify-center sm:justify-end gap-3 px-6 py-4 bg-[#2D6A4F] text-white rounded-xl hover:bg-[#1B4332] font-medium shadow-md shadow-[#2D6A4F]/20 transition-colors"
+              className="grid min-h-16 grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-lg bg-[#2D6A4F] px-4 py-3 text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
             >
-              <div className="text-right flex-1 min-w-0">
-                <div className="text-xs text-[#52b788] uppercase tracking-wider font-bold">Next</div>
-                <div className="text-sm font-semibold line-clamp-1">{nextItem.title}</div>
+              <div className="min-w-0 text-right">
+                <div className="text-[0.68rem] font-extrabold uppercase tracking-wide text-white/70 dark:text-[#1B4332]/70">Next</div>
+                <div className="line-clamp-1 text-sm font-extrabold">{nextItem.title}</div>
               </div>
-              <ChevronRight className="w-5 h-5 shrink-0" />
+              <ChevronRight className="h-5 w-5" />
             </Link>
           ) : (
             <Link
               href={`/dashboard/courses`}
-              className="w-full sm:w-1/2 md:w-auto flex items-center justify-center gap-3 px-6 py-4 bg-[#2D6A4F] text-white rounded-xl hover:bg-[#1B4332] font-medium shadow-md shadow-[#2D6A4F]/20 transition-colors"
+              className="inline-flex min-h-16 items-center justify-center gap-3 rounded-lg bg-[#2D6A4F] px-4 py-3 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
             >
-              <CheckCircle className="w-5 h-5 shrink-0" />
-              <span className="font-semibold">Finish Course</span>
+              <CheckCircle className="h-5 w-5" />
+              <span>Finish Course</span>
             </Link>
           )}
         </div>

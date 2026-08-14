@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, FileText, Upload } from "lucide-react";
+import { CheckCircle, FileText, Send, Upload } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
 type EssaySubmissionValue = {
@@ -139,31 +139,41 @@ export function EssaySubmission({
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <section className="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900 md:p-10">
-        <div className="mb-6 flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-          <span>{mode === "DOCUMENT" ? "Document upload" : "Text response"}</span>
-          {deadline && <span>Due {deadline.toLocaleDateString()}</span>}
+    <div className="mx-auto max-w-[860px] space-y-4">
+      <section className="rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+        <div className="border-b border-[#dceee4] px-4 py-3 dark:border-[#27433a] sm:px-5">
+          <div className="flex flex-wrap gap-2 text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+              {mode === "DOCUMENT" ? "Document upload" : "Text response"}
+            </span>
+            {deadline && (
+              <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+                Due {deadline.toLocaleDateString()}
+              </span>
+            )}
+          </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {essayQuestion || "Essay Assignment"}
-        </h2>
-        {essayDescription && (
-          <p className="mt-4 whitespace-pre-line text-sm leading-6 text-gray-600 dark:text-gray-300">
-            {essayDescription}
-          </p>
-        )}
+        <div className="px-4 py-4 sm:px-5">
+          <h2 className="text-lg font-extrabold leading-7 text-slate-950 dark:text-white">
+            {essayQuestion || "Essay Assignment"}
+          </h2>
+          {essayDescription && (
+            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600 dark:text-slate-300">
+              {essayDescription}
+            </p>
+          )}
+        </div>
       </section>
 
       {hasSubmission && (
-        <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <section className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525] sm:p-5">
           <div className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#2D6A4F]/10 text-[#2D6A4F] dark:bg-[#52b788]/10 dark:text-[#52b788]">
+            <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
               <CheckCircle className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
-              <h3 className="font-bold text-gray-900 dark:text-white">
+              <h3 className="text-sm font-extrabold text-slate-950 dark:text-white">
                 {submission?.is_published
                   ? "Grade published"
                   : isGraded
@@ -183,12 +193,12 @@ export function EssaySubmission({
               )}
 
               {submission?.is_published && typeof submission.score === "number" && (
-                <p className="mt-4 text-lg font-extrabold text-gray-900 dark:text-white">
+                <p className="mt-3 text-base font-extrabold text-slate-950 dark:text-white">
                   Score: {submission.score}
                 </p>
               )}
               {submission?.is_published && submission.feedback && (
-                <p className="mt-3 whitespace-pre-line rounded-2xl bg-gray-50 p-4 text-sm leading-6 text-gray-700 dark:bg-gray-800/60 dark:text-gray-200">
+                <p className="mt-3 whitespace-pre-line rounded-md bg-[#f7fcf9] p-3 text-sm leading-6 text-slate-700 dark:bg-[#0f1726] dark:text-slate-200">
                   {submission.feedback}
                 </p>
               )}
@@ -208,7 +218,7 @@ export function EssaySubmission({
                   href={submission.document_download_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl border border-[#b7e4c7] px-4 py-2 text-sm font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+                  className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-[#b7e4c7] px-3 text-sm font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
                 >
                   <FileText className="h-4 w-4" />
                   {submission.document_file_name || "Download submission"}
@@ -219,60 +229,69 @@ export function EssaySubmission({
         </section>
       )}
 
-      <section className="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-          {hasSubmission ? "Resubmit essay" : "Submit essay"}
-        </h3>
+      <section className="rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+        <div className="border-b border-[#dceee4] px-4 py-3 dark:border-[#27433a] sm:px-5">
+          <h3 className="text-base font-extrabold text-slate-950 dark:text-white">
+            {hasSubmission ? "Resubmit Essay" : "Submit Essay"}
+          </h3>
+        </div>
 
-        {mode === "TEXT" ? (
-          <textarea
-            value={contentText}
-            onChange={(event) => setContentText(event.target.value)}
-            disabled={!canSubmit || submitting}
-            rows={12}
-            className="mt-5 w-full rounded-2xl border border-gray-200 bg-white p-4 text-sm leading-6 text-gray-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-[#52b788] dark:focus:ring-[#52b788]/10 dark:disabled:bg-gray-900"
-            placeholder="Write your response here..."
-          />
-        ) : (
-          <label className={`mt-5 flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition ${
-            canSubmit
-              ? "border-[#b7e4c7] bg-[#f7fcf9] hover:bg-[#eef8f2] dark:border-[#27433a] dark:bg-[#13231d] dark:hover:bg-[#183026]"
-              : "cursor-not-allowed border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900"
-          }`}>
-            <Upload className="mb-3 h-8 w-8 text-[#2D6A4F] dark:text-[#52b788]" />
-            <span className="font-bold text-gray-900 dark:text-white">
-              {file ? file.name : "Choose essay document"}
-            </span>
-            <span className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Upload the final file, then submit it for review.
-            </span>
-            <input
-              type="file"
+        <div className="px-4 py-4 sm:px-5">
+          {mode === "TEXT" ? (
+            <textarea
+              value={contentText}
+              onChange={(event) => setContentText(event.target.value)}
               disabled={!canSubmit || submitting}
-              onChange={(event) => setFile(event.target.files?.[0] || null)}
-              className="sr-only"
+              rows={10}
+              className="min-h-[260px] w-full resize-y rounded-md border border-[#dceee4] bg-[#fbfefd] p-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 dark:border-[#27433a] dark:bg-[#0f1726] dark:text-white dark:focus:border-[#52b788] dark:focus:ring-[#52b788]/10 dark:disabled:bg-[#111525]"
+              placeholder="Write your response here..."
             />
-          </label>
-        )}
+          ) : (
+            <label className={`flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-5 text-center transition ${
+              canSubmit
+                ? "border-[#b7e4c7] bg-[#f7fcf9] hover:bg-[#eef8f2] dark:border-[#27433a] dark:bg-[#13231d] dark:hover:bg-[#183026]"
+                : "cursor-not-allowed border-slate-200 bg-slate-50 dark:border-[#27433a] dark:bg-[#0f1726]"
+            }`}>
+              <Upload className="mb-3 h-7 w-7 text-[#2D6A4F] dark:text-[#52b788]" />
+              <span className="font-extrabold text-slate-950 dark:text-white">
+                {file ? file.name : "Choose essay document"}
+              </span>
+              <span className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Upload the final file, then submit it for review.
+              </span>
+              <input
+                type="file"
+                disabled={!canSubmit || submitting}
+                onChange={(event) => setFile(event.target.files?.[0] || null)}
+                className="sr-only"
+              />
+            </label>
+          )}
 
-        {error && <p className="mt-4 text-sm font-semibold text-red-600 dark:text-red-400">{error}</p>}
-        {success && <p className="mt-4 text-sm font-semibold text-[#2D6A4F] dark:text-[#52b788]">{success}</p>}
-        {!canSubmit && (
-          <p className="mt-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
-            {deadlinePassed
-              ? "The deadline for this essay has passed."
-              : "This essay has been graded and can no longer be resubmitted."}
+          {error && <p className="mt-3 text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
+          {success && <p className="mt-3 text-sm font-bold text-[#2D6A4F] dark:text-[#52b788]">{success}</p>}
+          {!canSubmit && (
+            <p className="mt-3 text-sm font-bold text-slate-600 dark:text-slate-300">
+              {deadlinePassed
+                ? "The deadline for this essay has passed."
+                : "This essay has been graded and can no longer be resubmitted."}
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-[#dceee4] px-4 py-4 dark:border-[#27433a] sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+            {canSubmit ? "Submissions can be updated until grading begins." : "Submission is locked."}
           </p>
-        )}
-
-        <button
-          onClick={mode === "TEXT" ? handleTextSubmit : handleDocumentSubmit}
-          disabled={!canSubmit || submitting || (mode === "TEXT" && contentText.trim().length === 0)}
-          className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-6 text-sm font-bold text-white shadow-lg shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#52b788] dark:text-gray-950 dark:hover:bg-[#40916c] sm:w-auto"
-        >
-          {submitting ? <IconSpinner className="h-5 w-5 animate-spin" /> : null}
-          {submitting ? "Submitting..." : hasSubmission ? "Resubmit" : "Submit"}
-        </button>
+          <button
+            onClick={mode === "TEXT" ? handleTextSubmit : handleDocumentSubmit}
+            disabled={!canSubmit || submitting || (mode === "TEXT" && contentText.trim().length === 0)}
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-5 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
+          >
+            {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {submitting ? "Submitting..." : hasSubmission ? "Resubmit" : "Submit"}
+          </button>
+        </div>
       </section>
     </div>
   );

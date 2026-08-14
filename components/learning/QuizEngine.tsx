@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { CheckCircle, RotateCcw, Send, XCircle } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
 interface QuizEngineProps {
@@ -63,7 +64,7 @@ export function QuizEngine({
           score: previousAttempt.score ?? null,
           resultVisible: previousAttempt.result_visible !== false,
         }
-      : null
+      : null,
   );
   const [error, setError] = useState("");
 
@@ -81,17 +82,17 @@ export function QuizEngine({
 
   const toggleOption = (qId: string, oId: string, allowMultiple: boolean) => {
     if (isReviewingResult || !canSubmit) return;
-    
-    setAnswers(prev => {
+
+    setAnswers((prev) => {
       const current = prev[qId] || [];
       if (allowMultiple) {
         return {
           ...prev,
-          [qId]: current.includes(oId) ? current.filter(id => id !== oId) : [...current, oId]
+          [qId]: current.includes(oId) ? current.filter((id) => id !== oId) : [...current, oId],
         };
-      } else {
-        return { ...prev, [qId]: [oId] };
       }
+
+      return { ...prev, [qId]: [oId] };
     });
   };
 
@@ -105,7 +106,7 @@ export function QuizEngine({
         body: JSON.stringify({ answers }),
       });
       const data = await res.json();
-      
+
       if (!res.ok) throw new Error(data.message || "Failed to submit quiz");
 
       setResult({
@@ -115,8 +116,8 @@ export function QuizEngine({
         message: data.message,
       });
       setAttemptsUsedThisSession((count) => count + 1);
-      
-      router.refresh(); // Update the sidebar checkmarks
+
+      router.refresh();
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to submit quiz"));
     } finally {
@@ -124,7 +125,7 @@ export function QuizEngine({
     }
   };
 
-  const answeredCount = questions.filter(q => answers[q.id] && answers[q.id].length > 0).length;
+  const answeredCount = questions.filter((q) => answers[q.id] && answers[q.id].length > 0).length;
   const hasUnanswered = answeredCount < questions.length;
   const isFormDisabled = isReviewingResult || !canSubmit;
   const attemptLabel =
@@ -135,129 +136,154 @@ export function QuizEngine({
       : `${effectiveAttemptsRemaining} ${effectiveAttemptsRemaining === 1 ? "attempt" : "attempts"} remaining`;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="mx-auto max-w-[860px] space-y-4">
       {result && (
-        <div className={`p-8 rounded-3xl text-center border shadow-sm ${
-          result.resultVisible && result.passed 
-            ? "bg-green-50 dark:bg-[#2D6A4F]/10 border-green-200 dark:border-[#2D6A4F]/30" 
+        <section className={`rounded-lg border p-4 shadow-sm sm:p-5 ${
+          result.resultVisible && result.passed
+            ? "border-[#b7e4c7] bg-[#f0fbf5] dark:border-[#27433a] dark:bg-[#13231d]"
             : result.resultVisible && result.passed === false
-              ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30"
-              : "bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-900/30"
+              ? "border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20"
+              : "border-blue-200 bg-blue-50 dark:border-blue-900/40 dark:bg-blue-950/20"
         }`}>
-          <h2 className={`text-3xl font-extrabold mb-2 ${
-            result.resultVisible && result.passed
-              ? "text-[#2D6A4F] dark:text-[#52b788]"
-              : result.resultVisible && result.passed === false
-                ? "text-red-600 dark:text-red-400"
-                : "text-blue-700 dark:text-blue-300"
-          }`}>
-            {result.resultVisible
-              ? result.passed
-                ? "Congratulations!"
-                : "Keep Trying!"
-              : "Quiz Submitted"}
-          </h2>
-          <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-            {result.resultVisible && typeof result.score === "number"
-              ? <>You scored <span className="font-bold">{result.score}%</span>.</>
-              : "Your submission was recorded. Results are not available for this quiz."}
-          </p>
-          {result.message && !result.resultVisible && (
-            <p className="mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300">
-              {result.message}
-            </p>
-          )}
-          {canSubmit && (
-            <button
-              onClick={() => { setResult(null); setAnswers(previousAttempt?.answers || {}); }}
-              className={`mt-6 px-6 py-2.5 font-bold rounded-xl ${
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md ${
                 result.resultVisible && result.passed
-                  ? "bg-[#2D6A4F] dark:bg-[#52b788] text-white dark:text-gray-900"
-                  : "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
-              }`}
-            >
-              {result.resultVisible && result.passed ? "Retake Quiz" : "Try Again"}
-            </button>
-          )}
-        </div>
+                  ? "bg-[#2D6A4F] text-white dark:bg-[#52b788] dark:text-[#06130d]"
+                  : result.resultVisible && result.passed === false
+                    ? "bg-red-600 text-white"
+                    : "bg-blue-600 text-white"
+              }`}>
+                {result.resultVisible && result.passed === false ? (
+                  <XCircle className="h-5 w-5" />
+                ) : (
+                  <CheckCircle className="h-5 w-5" />
+                )}
+              </span>
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
+                  {result.resultVisible
+                    ? result.passed
+                      ? "Quiz passed"
+                      : "Try again"
+                    : "Quiz submitted"}
+                </h2>
+                <p className="mt-1 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
+                  {result.resultVisible && typeof result.score === "number"
+                    ? <>Score: <span className="font-extrabold text-slate-950 dark:text-white">{result.score}%</span></>
+                    : "Your submission was recorded. Results are not available for this quiz."}
+                </p>
+                {result.message && !result.resultVisible && (
+                  <p className="mt-1 text-xs font-bold text-blue-700 dark:text-blue-300">
+                    {result.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {canSubmit && (
+              <button
+                onClick={() => {
+                  setResult(null);
+                  setAnswers(previousAttempt?.answers || {});
+                }}
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-white px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#e7f6ee] dark:border-[#27433a] dark:bg-[#111525] dark:text-[#b7e4c7] dark:hover:bg-[#183026] sm:w-auto"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {result.resultVisible && result.passed ? "Retake" : "Try Again"}
+              </button>
+            )}
+          </div>
+        </section>
       )}
 
       {!result && isCompleted && !previousAttempt && (
-        <div className="p-8 rounded-3xl text-center bg-green-50 dark:bg-[#2D6A4F]/10 border border-green-200 dark:border-[#2D6A4F]/30 shadow-sm">
-          <h2 className="text-3xl font-extrabold text-[#2D6A4F] dark:text-[#52b788] mb-4">Quiz Passed!</h2>
-          <p className="text-gray-600 dark:text-gray-300">You have already completed this quiz.</p>
-        </div>
+        <section className="rounded-lg border border-[#b7e4c7] bg-[#f0fbf5] p-4 shadow-sm dark:border-[#27433a] dark:bg-[#13231d]">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#2D6A4F] text-white dark:bg-[#52b788] dark:text-[#06130d]">
+              <CheckCircle className="h-5 w-5" />
+            </span>
+            <div>
+              <h2 className="text-base font-extrabold text-slate-950 dark:text-white">Quiz completed</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300">You have already completed this quiz.</p>
+            </div>
+          </div>
+        </section>
       )}
 
-      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 p-8 md:p-10">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Test Your Knowledge</h2>
-          <div className="mb-8 flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            <span>{questions.length} questions</span>
-            {typeof passMarkPercentage === "number" && <span>{passMarkPercentage}% pass mark</span>}
-            {effectiveAttemptsUsed !== null && <span>{effectiveAttemptsUsed} used</span>}
-            <span>{attemptLabel}</span>
-            {deadline && <span>Due {deadline.toLocaleDateString()}</span>}
+      <section className="rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+        <div className="border-b border-[#dceee4] px-4 py-3 dark:border-[#27433a] sm:px-5">
+          <h2 className="text-base font-extrabold text-slate-950 dark:text-white">Knowledge Check</h2>
+          <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">{questions.length} questions</span>
+            {typeof passMarkPercentage === "number" && <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">{passMarkPercentage}% pass mark</span>}
+            {effectiveAttemptsUsed !== null && <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">{effectiveAttemptsUsed} used</span>}
+            <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">{attemptLabel}</span>
+            {deadline && <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">Due {deadline.toLocaleDateString()}</span>}
           </div>
-          
-          <div className="space-y-10">
-            {questions.map((q, idx) => (
-              <div key={q.id} className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                  <span className="text-gray-400 mr-2">{idx + 1}.</span> {q.text}
-                </h3>
-                <div className="space-y-2 pl-6">
-                  {q.options.map((opt) => {
-                    const isSelected = (answers[q.id] || []).includes(opt.id);
-                    return (
-                        <label 
-                          key={opt.id} 
-                          className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all ${
-                            isSelected 
-                              ? "border-[#2D6A4F] bg-[#2D6A4F]/5 dark:bg-[#2D6A4F]/20" 
-                              : "border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30"
-                          } ${!isFormDisabled ? "cursor-pointer hover:border-gray-200 dark:hover:border-gray-700" : "opacity-90"}`}
-                        >
-                        <input
-                          type={q.allow_multiple_answers ? "checkbox" : "radio"}
-                          name={q.id}
-                          checked={isSelected}
-                          disabled={isFormDisabled}
-                          onChange={() => toggleOption(q.id, opt.id, q.allow_multiple_answers === true)}
-                          className={`mt-0.5 shrink-0 ${q.allow_multiple_answers ? "rounded text-[#2D6A4F]" : "text-[#2D6A4F]"} focus:ring-[#2D6A4F] ${isFormDisabled ? "cursor-not-allowed" : "cursor-pointer"}`}
-                        />
-                        <span className="text-gray-700 dark:text-gray-300 text-sm font-medium leading-relaxed">{opt.text}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+        </div>
 
-          {!isFormDisabled && (
-            <div className="mt-12 pt-8 border-t border-gray-100 dark:border-gray-800 flex flex-col items-center">
-              {error && <p className="text-red-500 mb-4 font-medium">{error}</p>}
+        <div className="divide-y divide-[#edf5f0] dark:divide-[#24372e]">
+          {questions.map((q, idx) => (
+            <div key={q.id} className="px-4 py-4 sm:px-5">
+              <h3 className="text-sm font-extrabold leading-6 text-slate-900 dark:text-white">
+                <span className="mr-2 text-[#2D6A4F] dark:text-[#b7e4c7]">{idx + 1}.</span>
+                {q.text}
+              </h3>
+              <div className="mt-3 grid gap-2">
+                {q.options.map((opt) => {
+                  const isSelected = (answers[q.id] || []).includes(opt.id);
+                  return (
+                    <label
+                      key={opt.id}
+                      className={`grid grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-md border px-3 py-2.5 transition ${
+                        isSelected
+                          ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
+                          : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
+                      } ${!isFormDisabled ? "cursor-pointer hover:border-[#b7e4c7] hover:bg-[#f0fbf5] dark:hover:border-[#40916c] dark:hover:bg-[#183026]" : "opacity-90"}`}
+                    >
+                      <input
+                        type={q.allow_multiple_answers ? "checkbox" : "radio"}
+                        name={q.id}
+                        checked={isSelected}
+                        disabled={isFormDisabled}
+                        onChange={() => toggleOption(q.id, opt.id, q.allow_multiple_answers === true)}
+                        className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#b7e4c7] text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-[#315244] dark:bg-[#111525] dark:text-[#52b788] ${q.allow_multiple_answers ? "rounded" : ""}`}
+                      />
+                      <span className="text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">{opt.text}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {!isFormDisabled && (
+          <div className="border-t border-[#dceee4] px-4 py-4 dark:border-[#27433a] sm:px-5">
+            {error && <p className="mb-3 text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                {hasUnanswered ? "Unanswered questions will be scored as 0." : "All questions have a selected answer."}
+              </p>
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="w-full md:w-auto px-12 py-4 font-bold text-white bg-[#2D6A4F] hover:bg-[#1B4332] rounded-xl shadow-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-5 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
               >
-                {submitting ? <IconSpinner className="w-5 h-5 animate-spin" /> : null}
-                {submitting ? "Grading..." : "Submit Answers"}
+                {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {submitting ? "Submitting..." : "Submit"}
               </button>
-              {hasUnanswered && (
-                <p className="text-sm text-gray-500 mt-3">Unanswered questions will be scored as 0.</p>
-              )}
             </div>
-          )}
-          {!isReviewingResult && !canSubmit && (
-            <div className="mt-12 pt-8 border-t border-gray-100 dark:border-gray-800 text-center">
-              <p className="font-semibold text-gray-700 dark:text-gray-300">
-                {deadlinePassed ? "The deadline for this quiz has passed." : "You have no attempts remaining for this quiz."}
-              </p>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {!isReviewingResult && !canSubmit && (
+          <div className="border-t border-[#dceee4] px-4 py-4 text-sm font-bold text-slate-600 dark:border-[#27433a] dark:text-slate-300 sm:px-5">
+            {deadlinePassed ? "The deadline for this quiz has passed." : "You have no attempts remaining for this quiz."}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

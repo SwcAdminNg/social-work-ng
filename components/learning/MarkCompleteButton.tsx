@@ -74,10 +74,10 @@ export function MarkCompleteButton({ courseId, itemId, isCompleted, className = 
       <button
         onClick={handleComplete}
         disabled={isCompleted || marking}
-        className={`flex items-center gap-2 px-4 py-2 font-bold rounded-lg text-sm transition-all ${
+        className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-extrabold transition ${
           isCompleted 
-            ? "bg-green-100 dark:bg-[#2D6A4F]/20 text-green-700 dark:text-[#52b788] cursor-default" 
-            : "bg-[#2D6A4F] hover:bg-[#1B4332] text-white shadow-sm hover:-translate-y-0.5"
+            ? "cursor-default bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]" 
+            : "bg-[#2D6A4F] text-white shadow-sm shadow-[#2D6A4F]/20 hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
         } ${className}`}
       >
         {marking ? (
