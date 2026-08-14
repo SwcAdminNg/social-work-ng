@@ -88,13 +88,13 @@ export function InstructorSummary({
                 </Dialog.Close>
               </div>
 
-              <div className="swcl-sidebar-scroll grid max-h-[58vh] gap-3 overflow-y-auto pr-1">
+              <div className="swcl-sidebar-scroll grid grid-cols-1 sm:grid-cols-2 max-h-[58vh] gap-4 overflow-y-auto pr-1">
                 {instructors.map((instructor) => (
                   <div
                     key={instructor.id || instructor.name}
-                    className="flex gap-3 rounded-lg border border-[#edf5f0] bg-[#fbfefd] p-3 dark:border-[#27433a] dark:bg-[#0f1726]"
+                    className="flex flex-col items-center text-center gap-3 rounded-xl border border-[#edf5f0] bg-[#fbfefd] p-5 shadow-sm dark:border-[#27433a] dark:bg-[#0f1726]"
                   >
-                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#e7f6ee] text-sm font-extrabold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e7f6ee] text-xl font-extrabold text-[#2D6A4F] ring-4 ring-white dark:ring-[#111525] shadow-sm dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
                       {instructor.avatar_url ? (
                         <img
                           src={instructor.avatar_url}
@@ -105,7 +105,7 @@ export function InstructorSummary({
                         initials(instructor.name)
                       )}
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 w-full">
                       <p className="font-extrabold text-slate-950 dark:text-white">
                         {instructor.name}
                       </p>
@@ -115,7 +115,7 @@ export function InstructorSummary({
                         </p>
                       )}
                       {instructor.bio && (
-                        <p className="mt-1 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                        <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
                           {instructor.bio}
                         </p>
                       )}

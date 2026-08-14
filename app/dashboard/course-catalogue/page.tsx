@@ -5,6 +5,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Filter,
   GraduationCap,
   Search,
@@ -510,15 +511,21 @@ function FilterPanel({
   param: string;
   options: Array<{ value: string; label: string }>;
 }) {
+  const hasActiveFilter = filters[param] !== undefined;
   return (
-    <div className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
-      <div className="mb-4 flex items-center justify-between gap-3">
+    <details
+      className="group rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525] [&_summary::-webkit-details-marker]:hidden"
+      open={true}
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 outline-none select-none">
         <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
           {title}
         </h2>
-        <SlidersHorizontal className="h-4 w-4 text-slate-400" />
-      </div>
-      <div className="grid gap-2">
+        <span className="flex items-center justify-center transition-transform duration-200 group-open:rotate-180">
+          <ChevronDown className="h-4 w-4 text-slate-400" />
+        </span>
+      </summary>
+      <div className="mt-4 grid gap-2">
         <SideFilterLink
           href={buildHref(filters, { page: 1, [param]: undefined })}
           active={!filters[param]}
@@ -533,7 +540,7 @@ function FilterPanel({
           />
         ))}
       </div>
-    </div>
+    </details>
   );
 }
 
