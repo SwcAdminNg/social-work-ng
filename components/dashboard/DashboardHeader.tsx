@@ -40,8 +40,10 @@ export function DashboardHeader() {
   const { data: session } = useSession();
   const { setMobileOpen, toggleCollapsed } = useSidebar();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const searchParams = useSearchParams();
   const defaultSearch = searchParams.get("search") ?? "";
@@ -58,6 +60,9 @@ export function DashboardHeader() {
     function handleClickOutside(e: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setNotifOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -167,35 +172,66 @@ export function DashboardHeader() {
           <CircleHelp className="h-5 w-5" strokeWidth={1.9} />
         </Link>
 
-        <Link
-          href="/dashboard/settings"
-          className="ml-1 flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 no-underline transition-colors hover:bg-[#eef8f2] dark:hover:bg-[#52b788]/12 sm:ml-2 sm:gap-3 sm:px-2"
-        >
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#2D6A4F] text-sm font-extrabold text-white shadow-[0_10px_22px_-15px_rgba(45,106,79,0.9)] dark:bg-[#52b788] dark:text-[#06130d]">
-            {avatarImageUrl ? (
-              <img
-                src={avatarImageUrl}
-                alt=""
-                className="h-full w-full object-cover"
-                onError={() => setFailedAvatarUrl(avatarImageUrl)}
-              />
-            ) : (
-              avatarInitial
-            )}
-          </span>
-          <span className="hidden min-w-0 flex-col leading-tight lg:flex">
-            <span className="max-w-40 truncate text-sm font-extrabold text-slate-950 dark:text-white">
-              {displayName}
+        <div className="relative ml-1 sm:ml-2" ref={profileRef}>
+          <button
+            onClick={() => setProfileOpen((v) => !v)}
+            aria-expanded={profileOpen}
+            className="flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 text-left outline-none transition-colors hover:bg-[#eef8f2] dark:hover:bg-[#52b788]/12 sm:gap-3 sm:px-2"
+          >
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#2D6A4F] text-sm font-extrabold text-white shadow-[0_10px_22px_-15px_rgba(45,106,79,0.9)] dark:bg-[#52b788] dark:text-[#06130d]">
+              {avatarImageUrl ? (
+                <img
+                  src={avatarImageUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  onError={() => setFailedAvatarUrl(avatarImageUrl)}
+                />
+              ) : (
+                avatarInitial
+              )}
             </span>
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Learner
+            <span className="hidden min-w-0 flex-col leading-tight lg:flex">
+              <span className="max-w-40 truncate text-sm font-extrabold text-slate-950 dark:text-white">
+                {displayName}
+              </span>
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                Learner
+              </span>
             </span>
-          </span>
-          <ChevronDown
-            className="hidden h-4 w-4 flex-shrink-0 text-slate-500 lg:block"
-            strokeWidth={2}
-          />
-        </Link>
+            <ChevronDown
+              className={`hidden h-4 w-4 flex-shrink-0 text-slate-500 transition-transform duration-200 lg:block ${
+                profileOpen ? "rotate-180" : ""
+              }`}
+              strokeWidth={2}
+            />
+          </button>
+
+          <div
+            className={`absolute right-0 mt-2 w-64 z-50 origin-top-right rounded-lg border border-[#e5e3ee] bg-white shadow-xl transition-all duration-150 dark:border-[#262a3d] dark:bg-[#111525] ${
+              profileOpen
+                ? "pointer-events-auto scale-100 opacity-100"
+                : "pointer-events-none scale-95 opacity-0"
+            }`}
+          >
+            <div className="flex flex-col gap-1 border-b border-[#eceaf4] p-4 dark:border-[#262a3d]">
+              <p className="font-extrabold text-slate-950 dark:text-white truncate">
+                {displayName}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {session?.user?.email || "No email provided"}
+              </p>
+            </div>
+            <div className="p-2">
+              <Link
+                href="/dashboard/settings"
+                onClick={() => setProfileOpen(false)}
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-bold text-slate-700 transition-colors hover:bg-[#f7fcf9] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7]"
+              >
+                Personalize & Manage Profile
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
   );
