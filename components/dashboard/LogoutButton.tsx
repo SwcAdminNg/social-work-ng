@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { signOut } from "next-auth/react";
 import { IconLogout } from "./icons";
@@ -14,11 +14,6 @@ interface LogoutButtonProps {
 export function LogoutButton({ isSidebar, collapsed }: LogoutButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleLogout = async () => {
     setLoading(true);
@@ -26,7 +21,7 @@ export function LogoutButton({ isSidebar, collapsed }: LogoutButtonProps) {
   };
 
   const buttonClass = isSidebar 
-    ? "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors duration-150 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+    ? `w-full flex h-9 items-center gap-3 rounded-md px-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors duration-150 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${collapsed ? "lg:justify-center lg:px-0" : ""}`
     : "w-10 h-10 flex items-center justify-center rounded-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500";
 
   const modalContent = (
@@ -83,7 +78,9 @@ export function LogoutButton({ isSidebar, collapsed }: LogoutButtonProps) {
         {isSidebar && <span className={`whitespace-nowrap transition-opacity ${collapsed ? "lg:hidden" : ""}`}>Logout</span>}
       </button>
 
-      {isOpen && mounted && createPortal(modalContent, document.body)}
+      {isOpen &&
+        typeof document !== "undefined" &&
+        createPortal(modalContent, document.body)}
     </>
   );
 }

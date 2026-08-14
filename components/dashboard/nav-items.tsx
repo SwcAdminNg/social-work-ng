@@ -1,34 +1,153 @@
+import type { LucideIcon } from "lucide-react";
 import {
-  IconBookOpen,
-  IconClipboardCheck,
-  IconGrid,
-  IconReceipt,
-  IconSettings,
-  IconCreditCard,
-} from "./icons";
+  Award,
+  Bell,
+  BookOpen,
+  ChartNoAxesColumnIncreasing,
+  CircleHelp,
+  ClipboardCheck,
+  CreditCard,
+  FileClock,
+  FileText,
+  LayoutDashboard,
+  LibraryBig,
+  LockKeyhole,
+  MessagesSquare,
+  NotebookPen,
+  Radio,
+  Route,
+  Settings,
+  TicketCheck,
+  UsersRound,
+} from "lucide-react";
 
 export type NavItem = {
   label: string;
   href: string;
-  icon: React.ComponentType;
+  icon: LucideIcon;
+  disabled?: boolean;
 };
 
-export const dashboardNavItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: IconGrid },
-  { label: "Enrolled Courses", href: "/dashboard/courses", icon: IconBookOpen },
+export type NavGroup = {
+  label?: string;
+  items: NavItem[];
+};
+
+export const dashboardNavGroups: NavGroup[] = [
   {
-    label: "My Quiz Attempts",
-    href: "/dashboard/quiz-attempts",
-    icon: IconClipboardCheck,
+    items: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    ],
   },
-  { label: "Order History", href: "/dashboard/orders", icon: IconReceipt },
   {
-    label: "Plans & Pricing",
-    href: "/dashboard/pricing",
-    icon: IconCreditCard,
+    label: "My Learning",
+    items: [
+      { label: "My Courses", href: "/dashboard/courses", icon: BookOpen },
+      {
+        label: "Learning Progress",
+        href: "/dashboard/learning-progress",
+        icon: ChartNoAxesColumnIncreasing,
+        disabled: true,
+      },
+      {
+        label: "Assessments",
+        href: "/dashboard/quiz-attempts",
+        icon: ClipboardCheck,
+      },
+      {
+        label: "Certificates",
+        href: "/dashboard/certificates",
+        icon: Award,
+        disabled: true,
+      },
+      {
+        label: "CPD Record",
+        href: "/dashboard/cpd-record",
+        icon: FileClock,
+        disabled: true,
+      },
+      {
+        label: "Reflective Journal",
+        href: "/dashboard/reflective-journal",
+        icon: NotebookPen,
+        disabled: true,
+      },
+    ],
   },
-  { label: "Settings", href: "/dashboard/settings", icon: IconSettings },
+  {
+    label: "Explore",
+    items: [
+      {
+        label: "Course Catalogue",
+        href: "/dashboard/course-catalogue",
+        icon: LibraryBig,
+      },
+      {
+        label: "Learning Pathways",
+        href: "/dashboard/learning-pathways",
+        icon: Route,
+        disabled: true,
+      },
+      {
+        label: "Live Sessions",
+        href: "/dashboard/live-sessions",
+        icon: Radio,
+        disabled: true,
+      },
+      { label: "Resources", href: "/resources", icon: FileText },
+      {
+        label: "Community",
+        href: "/dashboard/community",
+        icon: UsersRound,
+        disabled: true,
+      },
+    ],
+  },
+  {
+    label: "Support",
+    items: [
+      { label: "Help Centre", href: "/contact", icon: CircleHelp },
+      {
+        label: "My Support Tickets",
+        href: "/dashboard/support-tickets",
+        icon: TicketCheck,
+        disabled: true,
+      },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { label: "Profile Settings", href: "/dashboard/settings", icon: Settings },
+      {
+        label: "Payment & Billing",
+        href: "/dashboard/orders",
+        icon: CreditCard,
+      },
+      {
+        label: "Notifications",
+        href: "/dashboard/notifications",
+        icon: Bell,
+        disabled: true,
+      },
+      {
+        label: "Privacy Settings",
+        href: "/dashboard/privacy",
+        icon: LockKeyhole,
+        disabled: true,
+      },
+      {
+        label: "Plans & Pricing",
+        href: "/dashboard/pricing",
+        icon: MessagesSquare,
+      },
+    ],
+  },
 ];
+
+export const dashboardNavItems = dashboardNavGroups.flatMap(
+  (group) => group.items,
+);
 
 export function getPageTitle(pathname: string): string {
   const exact = dashboardNavItems.find((item) => item.href === pathname);

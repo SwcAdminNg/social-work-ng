@@ -1,10 +1,16 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
 
 export default function ThemeToggle() {
   const { theme, toggle } = useTheme();
+  const pathname = usePathname();
   const isDark = theme === "dark";
+
+  if (pathname.startsWith("/dashboard")) {
+    return null;
+  }
 
   return (
     <button

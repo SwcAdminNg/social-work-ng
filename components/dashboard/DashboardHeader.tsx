@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getPageTitle } from "./nav-items";
 import { useSidebar } from "./SidebarContext";
@@ -48,18 +47,18 @@ export function DashboardHeader() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 h-[72px] flex items-center justify-between gap-3 px-4 sm:px-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
+    <header className="sticky top-0 z-30 h-[72px] flex flex-shrink-0 items-center justify-between gap-3 border-b border-[#e5e3ee] bg-white/90 px-4 backdrop-blur-xl dark:border-[#262a3d] dark:bg-[#111525]/90 sm:px-6">
       <div className="flex items-center gap-3 min-w-0">
         {/* Mobile sidebar trigger */}
         <button
           onClick={() => setMobileOpen(true)}
           aria-label="Open sidebar"
-          className="lg:hidden w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] lg:hidden"
         >
           <IconMenu />
         </button>
 
-        <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
+        <h1 className="truncate text-lg font-bold text-slate-950 dark:text-white sm:text-xl">
           {title}
         </h1>
       </div>
@@ -71,21 +70,21 @@ export function DashboardHeader() {
             onClick={() => setNotifOpen((v) => !v)}
             aria-label="Notifications"
             aria-expanded={notifOpen}
-            className="relative w-10 h-10 flex items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7]"
           >
             <IconBell />
-            <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-[#F4A261] ring-2 ring-white dark:ring-gray-900" />
+            <span className="absolute right-2.5 top-2 h-2 w-2 rounded-full bg-[#f43f5e] ring-2 ring-white dark:ring-[#111525]" />
           </button>
 
           <div
-            className={`absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl origin-top-right transition-all duration-150 ${
+            className={`absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] origin-top-right rounded-2xl border border-[#e5e3ee] bg-white shadow-xl transition-all duration-150 dark:border-[#262a3d] dark:bg-[#111525] ${
               notifOpen
                 ? "opacity-100 scale-100 pointer-events-auto"
                 : "opacity-0 scale-95 pointer-events-none"
             }`}
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-              <p className="font-semibold text-sm text-gray-900 dark:text-white">
+            <div className="flex items-center justify-between border-b border-[#eceaf4] px-4 py-3 dark:border-[#262a3d]">
+              <p className="text-sm font-semibold text-slate-950 dark:text-white">
                 Notifications
               </p>
               <span className="text-xs font-medium text-[#2D6A4F] dark:text-[#52b788]">
@@ -95,8 +94,8 @@ export function DashboardHeader() {
             <ul className="list-none m-0 p-2 max-h-80 overflow-y-auto">
               {NOTIFICATIONS.map((n) => (
                 <li key={n.id}>
-                  <button className="w-full text-left flex flex-col gap-0.5 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/70 transition-colors cursor-pointer">
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <button className="flex w-full cursor-pointer flex-col gap-0.5 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[#f7fcf9] dark:hover:bg-[#52b788]/12">
+                    <span className="text-sm font-medium text-slate-950 dark:text-gray-100">
                       {n.title}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
