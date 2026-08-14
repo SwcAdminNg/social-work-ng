@@ -43,7 +43,7 @@ type CourseCategory =
   | "LIFESTYLE"
   | "LANGUAGE";
 
-type CourseItemType = "VIDEO" | "DOCUMENT" | "QUIZ";
+type CourseItemType = "VIDEO" | "DOCUMENT" | "QUIZ" | "ASSESSMENT" | "ESSAY";
 
 type CourseVideo = {
   status?: "PENDING" | "PROCESSING" | "READY" | "FAILED" | null;
@@ -75,8 +75,12 @@ type CourseItem = {
   id: string;
   title: string;
   item_type: CourseItemType;
+  assessment_type?: "QUIZ" | "ESSAY" | string | null;
+  pass_mark_percentage?: number | null;
+  essay_submission_mode?: "TEXT" | "DOCUMENT" | string | null;
   order_index: number;
   is_preview?: boolean | null;
+  questions?: CourseQuiz["questions"] | null;
   video?: CourseVideo | null;
   document?: CourseDocument | null;
   quiz?: CourseQuiz | null;
@@ -188,7 +192,8 @@ export default async function DashboardCourseDetailPage(props: {
   const documentCount = allItems.filter(
     (item) => item.item_type === "DOCUMENT",
   ).length;
-  const quizCount = allItems.filter((item) => item.item_type === "QUIZ").length;
+  const quizCount = allItems.filter(isQuizItem).length;
+  const essayCount = allItems.filter(isEssayItem).length;
   const previewCount = allItems.filter((item) => item.is_preview).length;
   const durationSeconds = allItems.reduce(
     (total, item) => total + Number(item.video?.duration_seconds || 0),
@@ -267,6 +272,7 @@ export default async function DashboardCourseDetailPage(props: {
                 <span>{videoCount} videos</span>
                 <span>{documentCount} docs</span>
                 <span>{quizCount} quizzes</span>
+                {essayCount > 0 && <span>{essayCount} essays</span>}
                 {lockedCount > 0 && <span>{lockedCount} locked</span>}
               </div>
             </div>
@@ -392,7 +398,7 @@ export default async function DashboardCourseDetailPage(props: {
             <ul className="mt-3 grid gap-2 text-sm text-slate-600 dark:text-slate-400">
               {[
                 "Full curriculum content",
-                "Video, document, and quiz access",
+                "Video, document, and assessment access",
                 "Progress tracking in the learning area",
                 "Course access from any device",
               ].map((item) => (
@@ -546,14 +552,14 @@ function CurriculumItem({
     <div className="flex flex-col gap-3 border-b border-[#edf5f0] px-4 py-3 last:border-b-0 dark:border-[#24372e] sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 gap-3">
         <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-          {itemIcon(item.item_type)}
+          {itemIcon(item)}
         </span>
         <div className="min-w-0">
           <p className="font-bold leading-5 text-slate-950 dark:text-white">
             {item.title}
           </p>
           <div className="mt-1 flex flex-wrap gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <span>{titleCaseEnum(item.item_type)}</span>
+            <span>{getItemLabel(item)}</span>
             {itemMeta.map((meta) => (
               <span key={meta}>{meta}</span>
             ))}
@@ -643,9 +649,9 @@ function Pill({
   );
 }
 
-function itemIcon(type: CourseItemType) {
-  if (type === "VIDEO") return <PlayCircle className="h-5 w-5" />;
-  if (type === "QUIZ") return <HelpCircle className="h-5 w-5" />;
+function itemIcon(item: CourseItem) {
+  if (item.item_type === "VIDEO") return <PlayCircle className="h-5 w-5" />;
+  if (isQuizItem(item) || isEssayItem(item)) return <HelpCircle className="h-5 w-5" />;
   return <FileText className="h-5 w-5" />;
 }
 
@@ -664,12 +670,20 @@ function getItemMeta(item: CourseItem) {
     meta.push(formatBytes(item.document.file_size_bytes));
   }
 
-  if (item.quiz?.questions) {
-    meta.push(`${item.quiz.questions.length} questions`);
+  const questions = item.questions || item.quiz?.questions;
+
+  if (questions) {
+    meta.push(`${questions.length} questions`);
   }
 
-  if (typeof item.quiz?.passing_score_percentage === "number") {
-    meta.push(`${item.quiz.passing_score_percentage}% pass mark`);
+  const passMark = item.pass_mark_percentage ?? item.quiz?.passing_score_percentage;
+
+  if (typeof passMark === "number") {
+    meta.push(`${passMark}% pass mark`);
+  }
+
+  if (isEssayItem(item) && item.essay_submission_mode) {
+    meta.push(`${titleCaseEnum(item.essay_submission_mode)} submission`);
   }
 
   return meta;
@@ -687,11 +701,37 @@ function getPayloadStatus(item: CourseItem, unlocked: boolean) {
     return item.document.is_uploaded === false ? "Upload pending" : "Document ready";
   }
 
-  if (item.item_type === "QUIZ") {
-    return item.quiz ? "Quiz ready" : "Quiz hidden";
+  if (isQuizItem(item)) {
+    return item.questions || item.quiz ? "Quiz ready" : "Quiz hidden";
+  }
+
+  if (isEssayItem(item)) {
+    return item.assessment_type || item.item_type === "ESSAY" ? "Essay ready" : "Essay hidden";
   }
 
   return null;
+}
+
+function isQuizItem(item: CourseItem) {
+  return (
+    item.item_type === "QUIZ" ||
+    (item.item_type === "ASSESSMENT" && item.assessment_type === "QUIZ")
+  );
+}
+
+function isEssayItem(item: CourseItem) {
+  return (
+    item.item_type === "ESSAY" ||
+    (item.item_type === "ASSESSMENT" && item.assessment_type === "ESSAY")
+  );
+}
+
+function getItemLabel(item: CourseItem) {
+  if (item.item_type === "ASSESSMENT" && item.assessment_type) {
+    return `${titleCaseEnum(item.assessment_type)} assessment`;
+  }
+
+  return titleCaseEnum(item.item_type);
 }
 
 function getCourseInstructors(course: Course): CourseInstructor[] {

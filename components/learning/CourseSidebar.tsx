@@ -145,7 +145,7 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
                         <p className={`text-xs mt-1 uppercase tracking-wider font-semibold ${
                           isActive ? "text-[#2D6A4F]/70 dark:text-[#52b788]/70" : "text-gray-500"
                         }`}>
-                          {item.item_type}
+                          {getItemLabel(item)}
                         </p>
                       </div>
                     </Link>
@@ -204,4 +204,12 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
       />
     </>
   );
+}
+
+function getItemLabel(item: { item_type?: string | null; assessment_type?: string | null }) {
+  if (item.item_type === "ASSESSMENT" && item.assessment_type) {
+    return `${item.assessment_type} assessment`;
+  }
+
+  return item.item_type;
 }

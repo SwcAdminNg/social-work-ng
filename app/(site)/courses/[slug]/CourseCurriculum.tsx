@@ -5,7 +5,46 @@ import { ChevronDown, ChevronUp, PlayCircle, FileText, HelpCircle, X, Eye } from
 import { HlsVideoPlayer } from "@/components/learning/HlsVideoPlayer";
 import { QuizEngine } from "@/components/learning/QuizEngine";
 
-export function CourseCurriculum({ courseId, sections }: { courseId?: string; sections: any[] }) {
+type CurriculumQuizQuestion = {
+  id: string;
+  text: string;
+  allow_multiple_answers?: boolean | null;
+  options: Array<{
+    id: string;
+    text: string;
+  }>;
+};
+
+type CurriculumItem = {
+  id: string;
+  title: string;
+  item_type?: string | null;
+  assessment_type?: string | null;
+  is_preview?: boolean | null;
+  video?: {
+    playback_url?: string | null;
+  } | null;
+  document?: {
+    file_name?: string | null;
+    file_url?: string | null;
+    content_url?: string | null;
+    url?: string | null;
+  } | null;
+  document_url?: string | null;
+  content_url?: string | null;
+  quiz?: {
+    questions?: CurriculumQuizQuestion[] | null;
+  } | null;
+  questions?: CurriculumQuizQuestion[] | null;
+};
+
+type CurriculumSection = {
+  id: string;
+  title: string;
+  items?: CurriculumItem[] | null;
+};
+
+export function CourseCurriculum({ courseId, sections }: { courseId?: string; sections: CurriculumSection[] }) {
   // Store expanded state for each section ID. Initialize the first section as expanded.
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
@@ -15,7 +54,7 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
     return initialState;
   });
 
-  const [previewItem, setPreviewItem] = useState<any | null>(null);
+  const [previewItem, setPreviewItem] = useState<CurriculumItem | null>(null);
 
   const toggleSection = (id: string) => {
     setExpandedSections((prev) => ({
@@ -24,13 +63,14 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
     }));
   };
 
-  const getItemIcon = (type: string) => {
+  const getItemIcon = (type?: string | null) => {
     switch (type?.toUpperCase()) {
       case "VIDEO":
         return <PlayCircle className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
       case "DOCUMENT":
         return <FileText className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
       case "QUIZ":
+      case "ASSESSMENT":
         return <HelpCircle className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
       default:
         return <FileText className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
@@ -44,7 +84,7 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
   return (
     <>
       <div className="space-y-4">
-        {sections.map((section: any, idx: number) => {
+        {sections.map((section, idx) => {
           const isExpanded = expandedSections[section.id] || false;
           const itemCount = section.items?.length || 0;
 
@@ -77,7 +117,7 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                 }`}
               >
                 <ul className="overflow-hidden min-h-0 divide-y divide-gray-100 dark:divide-gray-800/50 bg-white dark:bg-gray-900">
-                  {section.items?.map((item: any) => (
+                  {section.items?.map((item) => (
                     <li
                       key={item.id}
                       className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors group"
@@ -100,7 +140,7 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                           </button>
                         ) : (
                           <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                            {item.item_type}
+                            {getItemLabel(item)}
                           </span>
                         )}
                       </div>
@@ -172,14 +212,14 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                     </div>
                   );
                 })()
-              ) : previewItem.item_type === "QUIZ" ? (
-                previewItem.quiz?.questions ? (
+              ) : isQuizItem(previewItem) ? (
+                getQuizQuestions(previewItem)?.length ? (
                   <div className="w-full bg-white dark:bg-gray-50 rounded-xl max-h-[75vh] overflow-y-auto p-4 md:p-6">
                     <QuizEngine
                       courseId={courseId || ""}
                       itemId={previewItem.id}
                       isCompleted={false}
-                      questions={previewItem.quiz.questions}
+                      questions={getQuizQuestions(previewItem) || []}
                     />
                   </div>
                 ) : (
@@ -200,4 +240,23 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
       )}
     </>
   );
+}
+
+function isQuizItem(item: CurriculumItem) {
+  return (
+    item?.item_type === "QUIZ" ||
+    (item?.item_type === "ASSESSMENT" && item?.assessment_type === "QUIZ")
+  );
+}
+
+function getQuizQuestions(item: CurriculumItem) {
+  return item?.questions || item?.quiz?.questions;
+}
+
+function getItemLabel(item: CurriculumItem) {
+  if (item?.item_type === "ASSESSMENT" && item?.assessment_type) {
+    return `${item.assessment_type} assessment`;
+  }
+
+  return item?.item_type;
 }

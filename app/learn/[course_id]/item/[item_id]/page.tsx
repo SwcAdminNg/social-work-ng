@@ -2,10 +2,25 @@ import { fetchApi } from "@/lib/fetchApi";
 import { notFound, redirect } from "next/navigation";
 import { VideoPlayer } from "@/components/learning/VideoPlayer";
 import { QuizEngine } from "@/components/learning/QuizEngine";
+import { EssaySubmission } from "@/components/learning/EssaySubmission";
 import { IconClipboardCheck } from "@/components/dashboard/icons";
 import { MarkCompleteButton } from "@/components/learning/MarkCompleteButton";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
+
+type LearningNavItem = {
+  id: string;
+  title: string;
+};
+
+type CurriculumSection = {
+  items?: LearningNavItem[] | null;
+};
+
+type LearningItemLabel = {
+  item_type?: string | null;
+  assessment_type?: string | null;
+};
 
 export default async function LearningItemPage(props: {
   params: Promise<{ course_id: string; item_id: string }>;
@@ -31,12 +46,14 @@ export default async function LearningItemPage(props: {
   const item = itemData?.data;
   const curriculum = currData?.data;
 
-  let prevItem = null;
-  let nextItem = null;
+  let prevItem: LearningNavItem | null = null;
+  let nextItem: LearningNavItem | null = null;
 
   if (curriculum?.sections) {
-    const allItems = curriculum.sections.flatMap((sec: any) => sec.items || []);
-    const currentIndex = allItems.findIndex((i: any) => i.id === params.item_id);
+    const allItems = curriculum.sections.flatMap(
+      (sec: CurriculumSection) => sec.items || [],
+    );
+    const currentIndex = allItems.findIndex((i: LearningNavItem) => i.id === params.item_id);
     
     if (currentIndex > 0) {
       prevItem = allItems[currentIndex - 1];
@@ -51,6 +68,14 @@ export default async function LearningItemPage(props: {
       <div className="p-20 text-center text-red-500">Failed to load item.</div>
     );
   }
+
+  const itemLabel = getLearningItemLabel(item);
+  const isQuiz =
+    item.item_type === "QUIZ" ||
+    (item.item_type === "ASSESSMENT" && item.assessment_type === "QUIZ");
+  const isEssay =
+    item.item_type === "ESSAY" ||
+    (item.item_type === "ASSESSMENT" && item.assessment_type === "ESSAY");
 
   return (
     <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden bg-white dark:bg-gray-950">
@@ -76,7 +101,7 @@ export default async function LearningItemPage(props: {
             {item.title}
           </h1>
           <p className="text-xs font-semibold text-gray-500 mt-1.5 uppercase tracking-widest">
-            {item.item_type}
+            {itemLabel}
           </p>
         </header>
 
@@ -112,14 +137,37 @@ export default async function LearningItemPage(props: {
           </div>
         )}
 
-        {item.item_type === "QUIZ" && item.questions && (
+        {isQuiz && item.questions && (
           <QuizEngine
             courseId={params.course_id}
             itemId={item.id}
             isCompleted={item.is_completed}
             questions={item.questions}
+            maxAttempts={item.max_attempts}
+            attemptsUsed={item.attempts_used}
+            attemptsRemaining={item.attempts_remaining}
+            passMarkPercentage={item.pass_mark_percentage}
+            dueDate={item.due_date}
             previousAttempt={item.previous_attempt}
           />
+        )}
+
+        {isEssay && (
+          <EssaySubmission
+            courseId={params.course_id}
+            itemId={item.id}
+            essayQuestion={item.essay_question}
+            essayDescription={item.essay_description}
+            submissionMode={item.essay_submission_mode}
+            dueDate={item.due_date}
+            submission={item.essay_submission}
+          />
+        )}
+
+        {item.item_type === "ASSESSMENT" && !isQuiz && !isEssay && (
+          <div className="rounded-3xl border border-gray-200 bg-white p-8 text-center text-gray-600 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+            This assessment type is not available yet.
+          </div>
         )}
 
         {/* Course Navigation Footer */}
@@ -162,4 +210,12 @@ export default async function LearningItemPage(props: {
       </div>
     </div>
   );
+}
+
+function getLearningItemLabel(item: LearningItemLabel) {
+  if (item.item_type === "ASSESSMENT" && item.assessment_type) {
+    return `${item.assessment_type} ASSESSMENT`;
+  }
+
+  return item.item_type;
 }
