@@ -1,7 +1,9 @@
 "use client";
 
+import { Clock3 } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, useCallback } from "react";
+import { getCourseDurationLabel } from "@/lib/courseDuration";
 
 type Level = "Beginner" | "Intermediate" | "Advanced";
 
@@ -17,6 +19,8 @@ interface Course {
   href: string;
   is_enrolled?: boolean;
   has_access?: boolean;
+  estimated_total_minutes?: number | null;
+  estimated_duration?: string | null;
 }
 
 const levelColors: Record<Level, string> = {
@@ -52,6 +56,8 @@ function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
 }
 
 function CourseCard({ course }: { course: Course }) {
+  const durationLabel = getCourseDurationLabel(course);
+
   return (
     <article
       className="group flex flex-col bg-white dark:bg-[#141414] rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 h-full"
@@ -93,12 +99,20 @@ function CourseCard({ course }: { course: Course }) {
         >
           {course.title}
         </h3>
-        <p className="text-[0.78rem] text-gray-400 dark:text-gray-500 line-clamp-1">
-          In{" "}
-          <span className="text-[#2D6A4F] dark:text-[#52b788] font-semibold">
-            {course.category}
-          </span>
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[0.78rem] text-gray-400 dark:text-gray-500 line-clamp-1">
+            In{" "}
+            <span className="text-[#2D6A4F] dark:text-[#52b788] font-semibold">
+              {course.category}
+            </span>
+          </p>
+          {durationLabel && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-[#e7f6ee] px-2 py-1 text-[0.72rem] font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+              <Clock3 className="h-3.5 w-3.5" />
+              {durationLabel}
+            </span>
+          )}
+        </div>
         <div className="flex-1" />
         <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
           <span className="text-[0.9rem] font-bold text-[#2D6A4F] dark:text-[#52b788]">
@@ -195,8 +209,6 @@ export default function FeaturedCourses({
 }: {
   initialCourses?: Course[];
 }) {
-  if (initialCourses.length === 0) return null;
-
   const [index, setIndex] = useState<number>(0);
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -230,6 +242,8 @@ export default function FeaturedCourses({
 
   const prev = useCallback(() => scrollTo(Math.max(0, index - 1)), [index, scrollTo]);
   const next = useCallback(() => scrollTo(Math.min(maxIndex, index + 1)), [index, maxIndex, scrollTo]);
+
+  if (initialCourses.length === 0) return null;
 
   return (
     <section

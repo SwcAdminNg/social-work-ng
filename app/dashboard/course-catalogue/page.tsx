@@ -6,15 +6,16 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+  Clock3,
   Filter,
   GraduationCap,
   Search,
-  SlidersHorizontal,
   Sparkles,
   Star,
   UsersRound,
 } from "lucide-react";
 import { fetchApi } from "@/lib/fetchApi";
+import { getCourseDurationLabel } from "@/lib/courseDuration";
 import {
   InstructorSummary,
   type CourseInstructor,
@@ -48,6 +49,8 @@ type Course = {
   is_exclusive?: boolean | null;
   average_rating?: number | null;
   total_reviews?: number | null;
+  estimated_total_minutes?: number | null;
+  estimated_duration?: string | null;
   is_enrolled?: boolean | null;
   is_bookmarked?: boolean | null;
   has_access?: boolean | null;
@@ -513,7 +516,6 @@ function FilterPanel({
   param: string;
   options: Array<{ value: string; label: string }>;
 }) {
-  const hasActiveFilter = filters[param] !== undefined;
   return (
     <details
       className="group rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525] [&_summary::-webkit-details-marker]:hidden"
@@ -585,6 +587,7 @@ function CourseTile({ course }: { course: Course }) {
   const outcomeCount = course.what_you_will_learn?.length ?? 0;
   const materialCount = course.material_includes?.length ?? 0;
   const instructors = getCourseInstructors(course);
+  const durationLabel = getCourseDurationLabel(course);
 
   return (
     <article
@@ -640,6 +643,12 @@ function CourseTile({ course }: { course: Course }) {
             <span className="inline-flex items-center gap-1">
               <UsersRound className="h-3.5 w-3.5" />
               {reviews.toLocaleString()}
+            </span>
+          )}
+          {durationLabel && (
+            <span className="inline-flex items-center gap-1 text-[#2D6A4F] dark:text-[#b7e4c7]">
+              <Clock3 className="h-3.5 w-3.5" />
+              {durationLabel}
             </span>
           )}
           {outcomeCount > 0 && <span>{outcomeCount} outcomes</span>}

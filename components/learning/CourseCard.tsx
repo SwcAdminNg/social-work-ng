@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { IconBookOpen, IconStar } from "@/components/dashboard/icons";
-import { Star } from "lucide-react";
+import { Clock3, Star } from "lucide-react";
+import { getCourseDurationLabel } from "@/lib/courseDuration";
 
 interface CourseCardProps {
   id: string;
@@ -16,11 +17,12 @@ interface CourseCardProps {
   is_completed?: boolean;
   average_rating?: number;
   total_reviews?: number;
+  estimated_total_minutes?: number | null;
+  estimated_duration?: string | null;
   href: string; // The destination when clicked
 }
 
 export function CourseCard({
-  id,
   title,
   thumbnail_url,
   is_free,
@@ -32,8 +34,15 @@ export function CourseCard({
   is_completed,
   average_rating,
   total_reviews,
+  estimated_total_minutes,
+  estimated_duration,
   href,
 }: CourseCardProps) {
+  const durationLabel = getCourseDurationLabel({
+    estimated_duration,
+    estimated_total_minutes,
+  });
+
   return (
     <Link
       href={href}
@@ -78,6 +87,13 @@ export function CourseCard({
         <h3 className="font-bold text-lg text-gray-900 dark:text-white line-clamp-2 leading-tight group-hover:text-[#2D6A4F] dark:group-hover:text-[#52b788] transition-colors">
           {title}
         </h3>
+
+        {durationLabel && (
+          <span className="mt-3 inline-flex w-max max-w-full items-center gap-1 rounded-md bg-[#e7f6ee] px-2.5 py-1 text-xs font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+            <Clock3 className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="truncate">{durationLabel}</span>
+          </span>
+        )}
 
         {/* Rating */}
         {(total_reviews !== undefined && total_reviews > 0) && (

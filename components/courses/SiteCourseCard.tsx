@@ -1,6 +1,8 @@
 "use client";
 
+import { Clock3 } from "lucide-react";
 import Link from "next/link";
+import { getCourseDurationLabel } from "@/lib/courseDuration";
 
 interface SiteCourseCardProps {
   id: string;
@@ -15,6 +17,8 @@ interface SiteCourseCardProps {
   category?: string;
   average_rating?: number;
   total_reviews?: number;
+  estimated_total_minutes?: number | null;
+  estimated_duration?: string | null;
 }
 
 const levelColors: Record<string, string> = {
@@ -69,11 +73,17 @@ export function SiteCourseCard({
   category = "Professional Development",
   average_rating,
   total_reviews,
+  estimated_total_minutes,
+  estimated_duration,
 }: SiteCourseCardProps) {
   const displayPrice = is_free ? "Free" : (price ? `₦${price.toLocaleString()}` : "Paid");
   const fallbackImage = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop";
   const displayCategory = formatEnumString(category);
   const displayLevel = formatEnumString(level);
+  const durationLabel = getCourseDurationLabel({
+    estimated_duration,
+    estimated_total_minutes,
+  });
 
   return (
     <article
@@ -130,13 +140,20 @@ export function SiteCourseCard({
           {title}
         </h3>
 
-        {/* Category */}
-        <p className="text-[0.78rem] text-gray-400 dark:text-gray-500">
-          In{" "}
-          <span className="text-[#2D6A4F] dark:text-[#52b788] font-semibold">
-            {displayCategory}
-          </span>
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[0.78rem] text-gray-400 dark:text-gray-500">
+            In{" "}
+            <span className="text-[#2D6A4F] dark:text-[#52b788] font-semibold">
+              {displayCategory}
+            </span>
+          </p>
+          {durationLabel && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-[#e7f6ee] px-2 py-1 text-[0.72rem] font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+              <Clock3 className="h-3.5 w-3.5" />
+              {durationLabel}
+            </span>
+          )}
+        </div>
 
         {/* Spacer */}
         <div className="flex-1" />

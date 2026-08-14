@@ -10,10 +10,12 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock3,
   CirclePlay,
   EllipsisVertical,
   Search,
 } from "lucide-react";
+import { getCourseDurationLabel } from "@/lib/courseDuration";
 
 export type ProgressStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
 
@@ -62,6 +64,8 @@ export type Course = {
   updated_at?: string | null;
   access_end_date?: string | null;
   access_start_date?: string | null;
+  estimated_total_minutes?: number | null;
+  estimated_duration?: string | null;
 };
 
 export type DashboardStats = {
@@ -833,6 +837,7 @@ function DashboardCourseCard({
   const isComplete = status === "COMPLETED";
   const isStarted = status === "IN_PROGRESS";
   const label = actionLabel(status, savedOnly, course.wishlist);
+  const durationLabel = getCourseDurationLabel(course);
 
   return (
     <article className="group flex min-h-[366px] flex-col overflow-hidden rounded-md border border-[#e5e3ee] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#c9c1eb] hover:shadow-lg dark:border-[#262a3d] dark:bg-[#0f1726]">
@@ -899,6 +904,15 @@ function DashboardCourseCard({
             {instructor.name}
           </span>
         </div>
+
+        {durationLabel && (
+          <div className="mb-4 flex">
+            <span className="inline-flex max-w-full items-center gap-1 rounded-md bg-[#f0fbf5] px-2.5 py-1 text-xs font-extrabold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+              <Clock3 className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="truncate">{durationLabel}</span>
+            </span>
+          </div>
+        )}
 
         <div className="mt-auto">
           {course.wishlist ? (
