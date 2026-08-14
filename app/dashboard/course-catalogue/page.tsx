@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Form from "next/form";
 import {
-  ArrowRight,
   BookOpen,
   Check,
   ChevronLeft,
@@ -9,7 +8,6 @@ import {
   Filter,
   GraduationCap,
   Search,
-  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   Star,
@@ -222,7 +220,6 @@ export default async function CourseCataloguePage(props: {
   };
 
   const { courses, catalogs, meta, error } = await getCatalogueData(filters);
-  const activeCatalog = catalogs.find((item) => item.slug === catalog);
   const enrolledCount = courses.filter((course) => course.is_enrolled).length;
   const showingStart = courses.length ? (meta.page - 1) * meta.page_size + 1 : 0;
   const showingEnd = courses.length ? showingStart + courses.length - 1 : 0;
@@ -491,11 +488,9 @@ function SideFilterLink({
 }
 
 function CourseTile({ course }: { course: Course }) {
-  const courseHref = `/courses/${course.slug || course.id}`;
-  const learnHref = `/learn/${course.id}`;
+  const courseHref = `/dashboard/course-catalogue/${course.slug || course.id}`;
   const isEnrolled = course.is_enrolled === true;
   const hasAccess = course.has_access === true;
-  const actionHref = isEnrolled || hasAccess ? learnHref : courseHref;
   const rating = typeof course.average_rating === "number" ? course.average_rating : 0;
   const reviews = Number(course.total_reviews || 0);
 
@@ -559,7 +554,7 @@ function CourseTile({ course }: { course: Course }) {
             {formatPrice(course)}
           </span>
           <Link
-            href={actionHref}
+            href={courseHref}
             className={`inline-flex h-9 items-center justify-center rounded-md border px-4 text-sm font-bold no-underline transition ${
               isEnrolled || hasAccess
                 ? "border-[#2D6A4F] bg-[#2D6A4F] text-white hover:bg-[#1B4332] dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
