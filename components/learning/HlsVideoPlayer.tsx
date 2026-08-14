@@ -33,6 +33,7 @@ export function HlsVideoPlayer({ url, onEnded, className = "" }: HlsVideoPlayerP
     if (!video) return;
 
     let hls: Hls | null = null;
+    let networkRetries = 0;
 
     if (Hls.isSupported()) {
       hls = new Hls({
@@ -50,12 +51,18 @@ export function HlsVideoPlayer({ url, onEnded, className = "" }: HlsVideoPlayerP
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
               // Try to recover network error
-              console.error("fatal network error encountered, try to recover");
-              hls?.startLoad();
-              setError("Network Error: Could not download video. If this is a Bunny.net stream, CORS might be blocking it.");
+              if (networkRetries < 3) {
+                console.warn("fatal network error encountered, try to recover");
+                networkRetries++;
+                hls?.startLoad();
+              } else {
+                console.error("unrecoverable network error");
+                hls?.destroy();
+                setError("Network Error: Could not download video. If this is a Bunny.net stream, CORS might be blocking it.");
+              }
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
-              console.error("fatal media error encountered, try to recover");
+              console.warn("fatal media error encountered, try to recover");
               hls?.recoverMediaError();
               break;
             default:
