@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   BadgeCheck,
   BookOpen,
+  CalendarDays,
   Check,
   Clock3,
   FileText,
@@ -15,9 +16,12 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
-  UsersRound,
 } from "lucide-react";
 import { fetchApi } from "@/lib/fetchApi";
+import {
+  InstructorSummary,
+  type CourseInstructor,
+} from "../InstructorSummary";
 import { CourseDetailAction } from "./CourseDetailAction";
 
 type CourseLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
@@ -88,6 +92,8 @@ type Course = {
   id: string;
   title: string;
   slug: string;
+  created_at?: string | null;
+  updated_at?: string | null;
   description?: string | null;
   prerequisite?: string | null;
   level?: CourseLevel | null;
@@ -98,14 +104,37 @@ type Course = {
   is_free?: boolean | null;
   price?: number | null;
   thumbnail_url?: string | null;
+  instructor_id?: string | null;
+  instructor_name?: string | null;
+  instructor?: InstructorValue | null;
+  instructors?: InstructorValue[] | null;
+  is_published?: boolean | null;
   is_exclusive?: boolean | null;
-  is_featured?: boolean | null;
   average_rating?: number | null;
   total_reviews?: number | null;
   is_enrolled?: boolean | null;
   has_access?: boolean | null;
   sections?: CourseSection[] | null;
 };
+
+type InstructorValue =
+  | string
+  | {
+      id?: string | null;
+      name?: string | null;
+      full_name?: string | null;
+      display_name?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+      username?: string | null;
+      title?: string | null;
+      role?: string | null;
+      headline?: string | null;
+      bio?: string | null;
+      avatar_url?: string | null;
+      image_url?: string | null;
+      photo_url?: string | null;
+    };
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop";
@@ -165,6 +194,16 @@ export default async function DashboardCourseDetailPage(props: {
   const isEnrolled = course.is_enrolled === true;
   const canViewCourse = hasAccess || isEnrolled;
   const firstUnlockedItem = canViewCourse ? allItems[0] : null;
+  const lockedCount = canViewCourse
+    ? 0
+    : allItems.filter((item) => item.is_preview !== true).length;
+  const readyVideoCount = allItems.filter(
+    (item) => item.video?.status === "READY",
+  ).length;
+  const uploadedDocumentCount = allItems.filter(
+    (item) => item.document?.is_uploaded === true,
+  ).length;
+  const instructors = getCourseInstructors(course);
 
   return (
     <div className="mx-auto flex w-full max-w-[1540px] flex-col gap-5 pb-8">
@@ -178,7 +217,11 @@ export default async function DashboardCourseDetailPage(props: {
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-5">
-          <CourseHero course={course} canViewCourse={canViewCourse} />
+          <CourseHero
+            course={course}
+            canViewCourse={canViewCourse}
+            instructors={instructors}
+          />
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
@@ -220,6 +263,7 @@ export default async function DashboardCourseDetailPage(props: {
                 <span>{videoCount} videos</span>
                 <span>{documentCount} docs</span>
                 <span>{quizCount} quizzes</span>
+                {lockedCount > 0 && <span>{lockedCount} locked</span>}
               </div>
             </div>
 
@@ -288,6 +332,9 @@ export default async function DashboardCourseDetailPage(props: {
                 <p className="mt-1 text-2xl font-extrabold text-slate-950 dark:text-white">
                   {formatPrice(course)}
                 </p>
+                <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
+                  {accessLabel({ isEnrolled, hasAccess, isFree: course.is_free === true })}
+                </p>
               </div>
               <CourseDetailAction
                 courseId={course.id}
@@ -306,6 +353,26 @@ export default async function DashboardCourseDetailPage(props: {
                 </Link>
               )}
             </div>
+          </div>
+
+          <div className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+            <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
+              Course snapshot
+            </h2>
+            <dl className="mt-3 grid gap-3 text-sm">
+              <SnapshotRow label="Published" value={course.is_published === false ? "No" : "Yes"} />
+              <SnapshotRow label="Ready videos" value={`${readyVideoCount}/${videoCount}`} />
+              <SnapshotRow
+                label="Uploaded docs"
+                value={`${uploadedDocumentCount}/${documentCount}`}
+              />
+              {course.updated_at && (
+                <SnapshotRow label="Last updated" value={formatDate(course.updated_at)} />
+              )}
+              {!course.updated_at && course.created_at && (
+                <SnapshotRow label="Created" value={formatDate(course.created_at)} />
+              )}
+            </dl>
           </div>
 
           <div className="rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-4 dark:border-[#27433a] dark:bg-[#13231d]">
@@ -335,9 +402,11 @@ export default async function DashboardCourseDetailPage(props: {
 function CourseHero({
   course,
   canViewCourse,
+  instructors,
 }: {
   course: Course;
   canViewCourse: boolean;
+  instructors: CourseInstructor[];
 }) {
   const rating =
     typeof course.average_rating === "number" ? course.average_rating : 0;
@@ -356,6 +425,7 @@ function CourseHero({
             <Pill>{titleCaseEnum(course.category)}</Pill>
             <Pill>{titleCaseEnum(course.level)}</Pill>
             <Pill>{course.is_free ? "Free" : "Premium"}</Pill>
+            {course.is_exclusive && <Pill>Exclusive</Pill>}
             {canViewCourse && <Pill tone="green">Access granted</Pill>}
           </div>
           <h1 className="max-w-4xl text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
@@ -370,14 +440,18 @@ function CourseHero({
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
               {rating ? rating.toFixed(1) : "New"} rating
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <UsersRound className="h-4 w-4" />
-              {Number(course.total_reviews || 0).toLocaleString()} reviews
-            </span>
+            <span>{Number(course.total_reviews || 0).toLocaleString()} reviews</span>
+            <InstructorSummary instructors={instructors} variant="hero" />
             {course.is_exclusive && (
               <span className="inline-flex items-center gap-1.5">
                 <ShieldCheck className="h-4 w-4" />
                 Exclusive
+              </span>
+            )}
+            {(course.updated_at || course.created_at) && (
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDays className="h-4 w-4" />
+                Updated {formatDate(course.updated_at || course.created_at)}
               </span>
             )}
           </div>
@@ -402,12 +476,17 @@ function InfoGrid({ course }: { course: Course }) {
     {
       title: "Requirements",
       items: course.requirements ?? [],
-      empty: course.prerequisite || "No special requirements listed.",
+      empty: "No special requirements listed.",
+    },
+    {
+      title: "Prerequisite",
+      items: course.prerequisite ? [course.prerequisite] : [],
+      empty: "No prerequisite listed.",
     },
   ];
 
   return (
-    <section className="grid gap-4 lg:grid-cols-3">
+    <section className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
       {panels.map((panel) => (
         <div
           key={panel.title}
@@ -448,8 +527,10 @@ function CurriculumItem({
   item: CourseItem;
   canViewCourse: boolean;
 }) {
-  const unlocked = canViewCourse || hasPreviewPayload(item);
+  const unlocked = canViewCourse || item.is_preview === true;
   const canOpenInLearner = canViewCourse;
+  const itemMeta = getItemMeta(item);
+  const payloadStatus = getPayloadStatus(item, unlocked);
 
   return (
     <div className="flex flex-col gap-3 border-b border-[#edf5f0] px-4 py-3 last:border-b-0 dark:border-[#24372e] sm:flex-row sm:items-center sm:justify-between">
@@ -463,17 +544,18 @@ function CurriculumItem({
           </p>
           <div className="mt-1 flex flex-wrap gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
             <span>{titleCaseEnum(item.item_type)}</span>
-            {item.video?.duration_seconds ? (
-              <span>{formatDuration(item.video.duration_seconds)}</span>
-            ) : null}
-            {item.document?.file_name ? <span>{item.document.file_name}</span> : null}
-            {item.quiz?.questions ? (
-              <span>{item.quiz.questions.length} questions</span>
-            ) : null}
+            {itemMeta.map((meta) => (
+              <span key={meta}>{meta}</span>
+            ))}
           </div>
         </div>
       </div>
-      <div className="flex flex-shrink-0 items-center gap-2 sm:justify-end">
+      <div className="flex flex-shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+        {payloadStatus && (
+          <span className="inline-flex h-8 items-center rounded-md border border-[#dceee4] px-2.5 text-xs font-bold text-slate-600 dark:border-[#27433a] dark:text-slate-300">
+            {payloadStatus}
+          </span>
+        )}
         {unlocked ? (
           <span className="inline-flex h-8 items-center gap-1 rounded-md bg-[#e7f6ee] px-2.5 text-xs font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
             <Check className="h-3.5 w-3.5" />
@@ -522,6 +604,15 @@ function MetricCard({
   );
 }
 
+function SnapshotRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-[#edf5f0] pb-2 last:border-b-0 last:pb-0 dark:border-[#24372e]">
+      <dt className="text-slate-500 dark:text-slate-400">{label}</dt>
+      <dd className="font-bold text-slate-950 dark:text-white">{value}</dd>
+    </div>
+  );
+}
+
 function Pill({
   children,
   tone,
@@ -542,16 +633,125 @@ function Pill({
   );
 }
 
-function hasPreviewPayload(item: CourseItem) {
-  return Boolean(
-    item.is_preview && (item.video || item.document || item.quiz),
-  );
-}
-
 function itemIcon(type: CourseItemType) {
   if (type === "VIDEO") return <PlayCircle className="h-5 w-5" />;
   if (type === "QUIZ") return <HelpCircle className="h-5 w-5" />;
   return <FileText className="h-5 w-5" />;
+}
+
+function getItemMeta(item: CourseItem) {
+  const meta: string[] = [];
+
+  if (item.video?.duration_seconds) {
+    meta.push(formatDuration(item.video.duration_seconds));
+  }
+
+  if (item.document?.file_name) {
+    meta.push(item.document.file_name);
+  }
+
+  if (item.document?.file_size_bytes) {
+    meta.push(formatBytes(item.document.file_size_bytes));
+  }
+
+  if (item.quiz?.questions) {
+    meta.push(`${item.quiz.questions.length} questions`);
+  }
+
+  if (typeof item.quiz?.passing_score_percentage === "number") {
+    meta.push(`${item.quiz.passing_score_percentage}% pass mark`);
+  }
+
+  return meta;
+}
+
+function getPayloadStatus(item: CourseItem, unlocked: boolean) {
+  if (!unlocked) return "Outline only";
+
+  if (item.item_type === "VIDEO") {
+    return item.video?.status ? titleCaseEnum(item.video.status) : "Video hidden";
+  }
+
+  if (item.item_type === "DOCUMENT") {
+    if (!item.document) return "Document hidden";
+    return item.document.is_uploaded === false ? "Upload pending" : "Document ready";
+  }
+
+  if (item.item_type === "QUIZ") {
+    return item.quiz ? "Quiz ready" : "Quiz hidden";
+  }
+
+  return null;
+}
+
+function getCourseInstructors(course: Course): CourseInstructor[] {
+  const candidates: InstructorValue[] = [];
+
+  if (course.instructor) candidates.push(course.instructor);
+  if (course.instructor_name) candidates.push(course.instructor_name);
+  if (Array.isArray(course.instructors)) candidates.push(...course.instructors);
+
+  const normalized = candidates
+    .map(normalizeInstructor)
+    .filter((instructor): instructor is CourseInstructor => Boolean(instructor));
+
+  if (normalized.length > 0) return dedupeInstructors(normalized);
+
+  if (course.instructor_id) {
+    return [{ id: course.instructor_id, name: "Course instructor" }];
+  }
+
+  return [];
+}
+
+function normalizeInstructor(value: InstructorValue): CourseInstructor | null {
+  if (typeof value === "string") {
+    const name = value.trim();
+    return name ? { name } : null;
+  }
+
+  const firstLast = [value.first_name, value.last_name].filter(Boolean).join(" ");
+  const name =
+    value.name ||
+    value.full_name ||
+    value.display_name ||
+    firstLast ||
+    value.username;
+
+  if (!name) return null;
+
+  return {
+    id: value.id,
+    name,
+    title: value.title || value.role || value.headline,
+    bio: value.bio,
+    avatar_url: value.avatar_url || value.image_url || value.photo_url,
+  };
+}
+
+function dedupeInstructors(instructors: CourseInstructor[]) {
+  const seen = new Set<string>();
+  return instructors.filter((instructor) => {
+    const key = instructor.id || instructor.name.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function accessLabel({
+  isEnrolled,
+  hasAccess,
+  isFree,
+}: {
+  isEnrolled: boolean;
+  hasAccess: boolean;
+  isFree: boolean;
+}) {
+  if (isEnrolled) return "You are enrolled in this course.";
+  if (hasAccess) return "Included with your active access.";
+  if (isFree) return "Free enrollment is available.";
+  return "Enrollment or subscription access required.";
 }
 
 function titleCaseEnum(value?: string | null) {
@@ -582,4 +782,26 @@ function formatDuration(seconds: number) {
   if (hours <= 0) return `${minutes}m`;
   if (minutes <= 0) return `${hours}h`;
   return `${hours}h ${minutes}m`;
+}
+
+function formatBytes(bytes: number) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  const index = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    units.length - 1,
+  );
+  const value = bytes / 1024 ** index;
+  return `${value >= 10 || index === 0 ? value.toFixed(0) : value.toFixed(1)} ${units[index]}`;
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
 }

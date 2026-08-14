@@ -14,6 +14,10 @@ import {
   UsersRound,
 } from "lucide-react";
 import { fetchApi } from "@/lib/fetchApi";
+import {
+  InstructorSummary,
+  type CourseInstructor,
+} from "./InstructorSummary";
 
 export const metadata = {
   title: "Course Catalogue | Dashboard",
@@ -35,12 +39,35 @@ type Course = {
   is_free?: boolean | null;
   price?: number | null;
   thumbnail_url?: string | null;
-  is_featured?: boolean | null;
+  instructor_id?: string | null;
+  instructor_name?: string | null;
+  instructor?: InstructorValue | null;
+  instructors?: InstructorValue[] | null;
+  is_exclusive?: boolean | null;
   average_rating?: number | null;
   total_reviews?: number | null;
   is_enrolled?: boolean | null;
   has_access?: boolean | null;
 };
+
+type InstructorValue =
+  | string
+  | {
+      id?: string | null;
+      name?: string | null;
+      full_name?: string | null;
+      display_name?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+      username?: string | null;
+      title?: string | null;
+      role?: string | null;
+      headline?: string | null;
+      bio?: string | null;
+      avatar_url?: string | null;
+      image_url?: string | null;
+      photo_url?: string | null;
+    };
 
 type Catalog = {
   id: string;
@@ -73,7 +100,11 @@ type CourseCategory =
   | "DESIGN"
   | "MARKETING"
   | "HEALTH_FITNESS"
-  | "MUSIC";
+  | "MUSIC"
+  | "TEACHING_ACADEMICS"
+  | "PHOTOGRAPHY_VIDEO"
+  | "LIFESTYLE"
+  | "LANGUAGE";
 
 const PAGE_SIZE = 12;
 
@@ -94,6 +125,10 @@ const CATEGORIES: Array<{ value: CourseCategory; label: string }> = [
   { value: "MARKETING", label: "Marketing" },
   { value: "HEALTH_FITNESS", label: "Health & Fitness" },
   { value: "MUSIC", label: "Music" },
+  { value: "TEACHING_ACADEMICS", label: "Teaching & Academics" },
+  { value: "PHOTOGRAPHY_VIDEO", label: "Photography & Video" },
+  { value: "LIFESTYLE", label: "Lifestyle" },
+  { value: "LANGUAGE", label: "Language" },
 ];
 
 const FALLBACK_IMAGE =
@@ -220,7 +255,9 @@ export default async function CourseCataloguePage(props: {
   };
 
   const { courses, catalogs, meta, error } = await getCatalogueData(filters);
+  const selectedCatalog = catalogs.find((item) => item.slug === catalog);
   const enrolledCount = courses.filter((course) => course.is_enrolled).length;
+  const accessCount = courses.filter((course) => course.has_access).length;
   const showingStart = courses.length ? (meta.page - 1) * meta.page_size + 1 : 0;
   const showingEnd = courses.length ? showingStart + courses.length - 1 : 0;
 
@@ -235,8 +272,8 @@ export default async function CourseCataloguePage(props: {
               </h1>
               <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
                 Explore expert-led courses for social work professionals, with
-                live catalog counts and personalized access flags when you are
-                signed in.
+                catalog browsing, complete filtering, and personalized access
+                flags when you are signed in.
               </p>
             </div>
             <Link
@@ -269,7 +306,7 @@ export default async function CourseCataloguePage(props: {
               <input
                 name="search"
                 defaultValue={search ?? ""}
-                placeholder="Search courses by title, topic or instructor..."
+                placeholder="Search by course title or description..."
                 className="h-12 w-full rounded-md border border-[#dceee4] bg-white pl-12 pr-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-100 dark:focus:border-[#52b788]"
               />
             </label>
@@ -310,6 +347,39 @@ export default async function CourseCataloguePage(props: {
             ))}
           </div>
 
+          {selectedCatalog && (
+            <div className="mb-5 rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-4 dark:border-[#27433a] dark:bg-[#13231d]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
+                    Selected catalog
+                  </p>
+                  <h2 className="mt-1 text-lg font-extrabold text-slate-950 dark:text-white">
+                    {selectedCatalog.name}
+                  </h2>
+                  {selectedCatalog.description && (
+                    <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-400">
+                      {selectedCatalog.description}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-shrink-0 flex-wrap gap-2 text-xs font-bold">
+                  <span className="rounded-md bg-white px-2.5 py-1 text-[#2D6A4F] shadow-sm dark:bg-[#111525] dark:text-[#b7e4c7]">
+                    {Number(selectedCatalog.total_courses || 0).toLocaleString()} courses
+                  </span>
+                  {(selectedCatalog.categories ?? []).slice(0, 2).map((item) => (
+                    <span
+                      key={item}
+                      className="rounded-md border border-[#dceee4] px-2.5 py-1 text-slate-600 dark:border-[#27433a] dark:text-slate-300"
+                    >
+                      {titleCaseEnum(item)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
               {error}
@@ -330,6 +400,11 @@ export default async function CourseCataloguePage(props: {
                   {enrolledCount > 0 && (
                     <span className="ml-2 font-bold text-[#2D6A4F] dark:text-[#b7e4c7]">
                       {enrolledCount} enrolled
+                    </span>
+                  )}
+                  {accessCount > enrolledCount && (
+                    <span className="ml-2 font-bold text-[#2D6A4F] dark:text-[#b7e4c7]">
+                      {accessCount - enrolledCount} subscription access
                     </span>
                   )}
                 </p>
@@ -386,8 +461,9 @@ export default async function CourseCataloguePage(props: {
               Build your learning path
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
-              Catalog tiles use live published-course counts. Select one above
-              to browse grouped courses.
+              Catalog tiles use live published-course counts. You can combine
+              search, catalog, category, level, and price filters in one
+              bookmarkable view.
             </p>
           </div>
         </aside>
@@ -493,6 +569,9 @@ function CourseTile({ course }: { course: Course }) {
   const hasAccess = course.has_access === true;
   const rating = typeof course.average_rating === "number" ? course.average_rating : 0;
   const reviews = Number(course.total_reviews || 0);
+  const outcomeCount = course.what_you_will_learn?.length ?? 0;
+  const materialCount = course.material_includes?.length ?? 0;
+  const instructors = getCourseInstructors(course);
 
   return (
     <article
@@ -512,6 +591,13 @@ function CourseTile({ course }: { course: Course }) {
         <span className="absolute left-3 top-3 rounded-md bg-[#2D6A4F] px-2.5 py-1 text-xs font-bold text-white shadow-sm dark:bg-[#52b788] dark:text-[#06130d]">
           {titleCaseEnum(course.category)}
         </span>
+        <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+          {course.is_exclusive && (
+            <span className="rounded-md bg-slate-950/85 px-2.5 py-1 text-xs font-extrabold text-white shadow-sm">
+              Exclusive
+            </span>
+          )}
+        </div>
         {(isEnrolled || hasAccess) && (
           <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-[#2D6A4F] shadow-sm dark:bg-[#111525]/95 dark:text-[#b7e4c7]">
             <Check className="h-3 w-3" strokeWidth={3} />
@@ -536,6 +622,8 @@ function CourseTile({ course }: { course: Course }) {
               {reviews.toLocaleString()}
             </span>
           )}
+          {outcomeCount > 0 && <span>{outcomeCount} outcomes</span>}
+          {materialCount > 0 && <span>{materialCount} materials</span>}
         </div>
 
         <div>
@@ -547,6 +635,9 @@ function CourseTile({ course }: { course: Course }) {
           <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-slate-600 dark:text-slate-400">
             {course.description || "Professional learning designed for practical social work growth."}
           </p>
+          <div className="mt-3">
+            <InstructorSummary instructors={instructors} />
+          </div>
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#e6f2eb] pt-3 dark:border-[#27433a]">
@@ -567,6 +658,61 @@ function CourseTile({ course }: { course: Course }) {
       </div>
     </article>
   );
+}
+
+function getCourseInstructors(course: Course): CourseInstructor[] {
+  const candidates: InstructorValue[] = [];
+
+  if (course.instructor) candidates.push(course.instructor);
+  if (course.instructor_name) candidates.push(course.instructor_name);
+  if (Array.isArray(course.instructors)) candidates.push(...course.instructors);
+
+  const normalized = candidates
+    .map(normalizeInstructor)
+    .filter((instructor): instructor is CourseInstructor => Boolean(instructor));
+
+  if (normalized.length > 0) return dedupeInstructors(normalized);
+
+  if (course.instructor_id) {
+    return [{ id: course.instructor_id, name: "Course instructor" }];
+  }
+
+  return [];
+}
+
+function normalizeInstructor(value: InstructorValue): CourseInstructor | null {
+  if (typeof value === "string") {
+    const name = value.trim();
+    return name ? { name } : null;
+  }
+
+  const firstLast = [value.first_name, value.last_name].filter(Boolean).join(" ");
+  const name =
+    value.name ||
+    value.full_name ||
+    value.display_name ||
+    firstLast ||
+    value.username;
+
+  if (!name) return null;
+
+  return {
+    id: value.id,
+    name,
+    title: value.title || value.role || value.headline,
+    bio: value.bio,
+    avatar_url: value.avatar_url || value.image_url || value.photo_url,
+  };
+}
+
+function dedupeInstructors(instructors: CourseInstructor[]) {
+  const seen = new Set<string>();
+  return instructors.filter((instructor) => {
+    const key = instructor.id || instructor.name.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function Pagination({

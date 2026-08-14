@@ -1,85 +1,131 @@
-import { fetchApi } from "@/lib/fetchApi";
-import { CourseCard } from "@/components/learning/CourseCard";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { IconBookOpen } from "@/components/dashboard/icons";
+import { fetchApi } from "@/lib/fetchApi";
+import {
+  EnrolledCoursesDashboard,
+  type Course,
+  type DashboardStats,
+  type Meta,
+} from "./EnrolledCoursesDashboard";
 
 export const metadata = {
   title: "My Courses | Dashboard",
 };
 
-export default async function EnrolledCoursesPage() {
-  const res = await fetchApi(`/learning/courses`, { next: { revalidate: 0 } });
+const PAGE_SIZE = 8;
 
-  if (res.status === 401) {
+const emptyStats: DashboardStats = {
+  total_courses_enrolled: 0,
+  quizzes_attempted: 0,
+  completion_rate: 0,
+  total_reviews: 0,
+  in_process_courses: 0,
+  completed_courses: 0,
+  not_started_courses: 0,
+  bookmarked_courses: 0,
+};
+
+const emptyMeta: Meta = {
+  page: 1,
+  page_size: PAGE_SIZE,
+  total_items: 0,
+  total_pages: 1,
+  has_next: false,
+  has_previous: false,
+};
+
+type SearchParams = { [key: string]: string | string[] | undefined };
+
+async function readJson(res: Response) {
+  return res.json().catch(() => ({}));
+}
+
+function firstValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function toPositiveInt(value: string | string[] | undefined, fallback: number) {
+  const parsed = Number.parseInt(firstValue(value) ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function normalizeStatus(value: string | string[] | undefined) {
+  const status = firstValue(value);
+  return status === "IN_PROGRESS" ||
+    status === "NOT_STARTED" ||
+    status === "COMPLETED"
+    ? status
+    : undefined;
+}
+
+export default async function EnrolledCoursesPage(props: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const searchParams = await props.searchParams;
+  const search = firstValue(searchParams.search)?.trim() ?? "";
+  const page = toPositiveInt(searchParams.page, 1);
+  const status = normalizeStatus(searchParams.status);
+  const isSavedView = firstValue(searchParams.tab) === "saved";
+  const listParams = new URLSearchParams({
+    page: String(page),
+    page_size: String(PAGE_SIZE),
+  });
+
+  if (!isSavedView) {
+    if (search) listParams.set("search", search);
+    if (status) listParams.set("status", status);
+  }
+
+  const listEndpoint = isSavedView
+    ? `/courses/bookmarked?${listParams.toString()}`
+    : `/courses/enrolled?${listParams.toString()}`;
+
+  const [statsRes, coursesRes] = await Promise.all([
+    fetchApi("/users/me/dashboard/stats", { cache: "no-store" }),
+    fetchApi(listEndpoint, {
+      cache: "no-store",
+    }),
+  ]);
+
+  if (statsRes.status === 401 || coursesRes.status === 401) {
     redirect("/logout?callbackUrl=/dashboard/courses");
   }
 
-  const data = await res.json().catch(() => ({}));
-  const courses = Array.isArray(data?.data)
-    ? data.data
-    : data?.data?.items || [];
+  const [statsJson, coursesJson] = await Promise.all([
+    readJson(statsRes),
+    readJson(coursesRes),
+  ]);
+
+  const stats = {
+    ...emptyStats,
+    ...(statsJson?.data ?? {}),
+  } as DashboardStats;
+
+  const courses = Array.isArray(coursesJson?.data)
+    ? (coursesJson.data as Course[])
+    : [];
+
+  const meta = {
+    ...emptyMeta,
+    ...(coursesJson?.meta ?? {}),
+  } as Meta;
+
+  const error =
+    !statsRes.ok || !coursesRes.ok
+      ? statsJson?.message ||
+        coursesJson?.message ||
+        "Unable to load all course data right now."
+      : null;
 
   return (
-    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-0 py-8 lg:py-1">
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            My Enrolled Courses
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Pick up where you left off and track your progress.
-          </p>
-        </div>
-        {courses.length > 0 && (
-          <Link
-            href="/courses"
-            className="inline-flex items-center justify-center px-5 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold rounded-xl transition-transform hover:-translate-y-0.5"
-          >
-            Explore More Courses
-          </Link>
-        )}
-      </div>
-
-      {courses.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800 shadow-sm">
-          <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full flex items-center justify-center mb-4">
-            <IconBookOpen />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-            No active enrollments
-          </h3>
-          <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-            You aren't enrolled in any courses yet. Browse our catalog to start
-            learning.
-          </p>
-          <Link
-            href="/courses"
-            className="inline-flex px-6 py-3 bg-[#2D6A4F] hover:bg-[#1B4332] dark:bg-[#52b788] dark:hover:bg-[#40916c] text-white font-bold rounded-xl transition-colors shadow-lg shadow-[#2D6A4F]/20"
-          >
-            Explore Catalog
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course: any) => (
-            <CourseCard
-              key={course.id}
-              id={course.id}
-              title={course.title}
-              thumbnail_url={course.thumbnail_url}
-              progress_percent={course.progress_percent}
-              is_completed={course.is_completed}
-              price={course.price}
-              average_rating={course.average_rating}
-              total_reviews={course.total_reviews}
-              is_enrolled={course.is_enrolled ?? true}
-              has_access={course.has_access}
-              href={`/learn/${course.id}`}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    <EnrolledCoursesDashboard
+      key={`${isSavedView ? "saved" : status || "all"}-${search}-${page}`}
+      stats={stats}
+      courses={courses}
+      meta={meta}
+      activeView={isSavedView ? "SAVED" : status || "ALL"}
+      currentPage={page}
+      initialSearch={search}
+      error={error}
+    />
   );
 }
