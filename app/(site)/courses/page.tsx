@@ -5,6 +5,30 @@ import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { auth } from "@/auth";
 
+type SessionWithAccessToken = {
+  accessToken?: string;
+};
+
+type EnrolledCourse = {
+  id?: string;
+  course?: {
+    id?: string;
+  };
+};
+
+type PublicCourse = {
+  id: string;
+  title: string;
+  slug?: string;
+  thumbnail_url?: string;
+  is_free?: boolean;
+  price?: number;
+  level?: string;
+  category?: string;
+  average_rating?: number;
+  total_reviews?: number;
+};
+
 export const metadata = {
   title: "Courses | Social Work Nigeria",
   description: "Browse our catalog of professional courses and materials.",
@@ -21,7 +45,7 @@ export default async function CoursesPage(props: {
   const category = searchParams.category as string | undefined;
   const is_free = searchParams.is_free as string | undefined;
 
-  let url = `/courses?page=${page}&limit=12`;
+  let url = `/courses?page=${page}&page_size=12`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
   if (catalog) url += `&catalog=${encodeURIComponent(catalog)}`;
   if (level) url += `&level=${encodeURIComponent(level)}`;
@@ -36,7 +60,7 @@ export default async function CoursesPage(props: {
 
   const data = await res.json().catch(() => ({}));
   const items = Array.isArray(data?.data) ? data.data : data?.data?.items || [];
-  const hasNextPage = items.length === 12;
+  const hasNextPage = Boolean(data?.meta?.has_next ?? items.length === 12);
 
   let catalogs = [];
   if (catalogsRes.ok) {
@@ -48,16 +72,16 @@ export default async function CoursesPage(props: {
   const session = await auth();
   const enrolledCourseIds = new Set<string>();
 
-  if (session && (session as any).accessToken) {
+  if (session && (session as SessionWithAccessToken).accessToken) {
     const enrolledRes = await fetchApi(`/learning/courses`, {
       next: { revalidate: 0 },
     });
     if (enrolledRes.ok) {
       const enrolledData = await enrolledRes.json().catch(() => ({}));
       const enrolledCourses = Array.isArray(enrolledData?.data)
-        ? enrolledData.data
-        : enrolledData?.data?.items || [];
-      enrolledCourses.forEach((c: any) => {
+        ? (enrolledData.data as EnrolledCourse[])
+        : ((enrolledData?.data?.items || []) as EnrolledCourse[]);
+      enrolledCourses.forEach((c) => {
         if (c.id) enrolledCourseIds.add(c.id);
         if (c.course?.id) enrolledCourseIds.add(c.course.id);
       });
@@ -118,7 +142,7 @@ export default async function CoursesPage(props: {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8 lg:gap-10">
-              {items.map((course: any) => (
+              {(items as PublicCourse[]).map((course) => (
                 <SiteCourseCard
                   key={course.id}
                   id={course.id}

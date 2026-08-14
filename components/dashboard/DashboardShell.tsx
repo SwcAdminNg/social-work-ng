@@ -14,7 +14,7 @@ function Content({ children }: { children: React.ReactNode }) {
       }`}
     >
       <DashboardHeader />
-      <main className="flex-1 bg-[#f7f7fb] p-4 sm:p-6 lg:p-8 dark:bg-[#0b0f1a]">
+      <main className="flex-1 bg-[#f7f7fb] p-4 sm:p-6 dark:bg-[#0b0f1a]">
         {children}
       </main>
     </div>
