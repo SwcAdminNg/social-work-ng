@@ -143,6 +143,8 @@ export function FAQContent() {
           <input
             type="text"
             className="block w-full pl-20 pr-6 py-5 border-0 rounded-2xl text-lg text-gray-900 dark:text-white bg-white dark:bg-gray-900 shadow-xl shadow-gray-200/50 dark:shadow-none ring-1 ring-gray-100 dark:ring-gray-800 focus:ring-2 focus:ring-[#2D6A4F] focus:outline-none focus:ring-offset-2 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-900 transition-all placeholder:text-gray-400"
+            autoComplete="off"
+
             placeholder="Search for answers..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

@@ -311,6 +311,8 @@ export default async function CourseCataloguePage(props: {
               <input
                 name="search"
                 defaultValue={search ?? ""}
+                autoComplete="off"
+
                 placeholder="Search by course title or description..."
                 className="h-12 w-full rounded-md border border-[#dceee4] bg-white pl-12 pr-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-100 dark:focus:border-[#52b788]"
               />

@@ -92,6 +92,8 @@ export function DashboardHeader() {
             name="search"
             type="search"
             defaultValue={defaultSearch}
+            autoComplete="off"
+
             placeholder="Search courses..."
             className="h-10 sm:h-11 w-full rounded-md border border-[#e2e8ea] bg-white pl-9 sm:pl-12 pr-3 sm:pr-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#273343] dark:bg-[#0f1726] dark:text-slate-100 dark:focus:border-[#52b788]"
           />

@@ -603,6 +603,8 @@ export function EnrolledCoursesDashboard({
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   type="search"
+                  autoComplete="off"
+
                   placeholder="Search my courses..."
                   className="h-10 w-full rounded-md border border-[#dedcea] bg-white pl-10 pr-3 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#5b2dcc] focus:ring-4 focus:ring-[#5b2dcc]/10 dark:border-[#2b3044] dark:bg-[#0f1726] dark:text-slate-100 dark:focus:border-[#8f79ff]"
                 />

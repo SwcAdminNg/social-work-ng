@@ -185,6 +185,8 @@ export function CourseFilters({ catalogs = [] }: { catalogs?: Catalog[] }) {
                 </div>
                 <input
                   type="text"
+                  autoComplete="off"
+
                   placeholder="Search courses..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
