@@ -23,6 +23,7 @@ import {
   type CourseInstructor,
 } from "../InstructorSummary";
 import { CourseDetailAction } from "./CourseDetailAction";
+import { CourseBookmarkButton } from "../CourseBookmarkButton";
 
 type CourseLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
@@ -113,6 +114,7 @@ type Course = {
   average_rating?: number | null;
   total_reviews?: number | null;
   is_enrolled?: boolean | null;
+  is_bookmarked?: boolean | null;
   has_access?: boolean | null;
   sections?: CourseSection[] | null;
 };
@@ -345,6 +347,12 @@ export default async function DashboardCourseDetailPage(props: {
                 price={course.price}
                 isEnrolled={isEnrolled}
                 hasAccess={hasAccess}
+              />
+              <CourseBookmarkButton
+                courseId={course.id}
+                courseTitle={course.title}
+                initialBookmarked={course.is_bookmarked}
+                variant="inline"
               />
               {firstUnlockedItem && (
                 <Link

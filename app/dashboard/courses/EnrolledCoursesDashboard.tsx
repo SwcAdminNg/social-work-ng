@@ -55,6 +55,7 @@ export type Course = {
   instructor?: InstructorValue | null;
   instructors?: InstructorValue[] | null;
   is_bookmarked?: boolean | null;
+  is_enrolled?: boolean | null;
   progress_status?: ProgressStatus | null;
   progress_percent?: number | null;
   is_completed?: boolean | null;
@@ -89,6 +90,8 @@ type DisplayCourse = Course & {
   displayStatus: ProgressStatus | null;
   displayProgress: number;
   bookmarked: boolean;
+  enrolled: boolean;
+  wishlist: boolean;
 };
 
 const fallbackImages = [
@@ -136,14 +139,18 @@ function getProgress(course: Course, status: ProgressStatus | null) {
   return 0;
 }
 
-function normalizeCourse(course: Course): DisplayCourse {
-  const displayStatus = getStatus(course);
+function normalizeCourse(course: Course, view: CourseView): DisplayCourse {
+  const enrolled = view === "SAVED" ? course.is_enrolled === true : course.is_enrolled !== false;
+  const wishlist = view === "SAVED" && !enrolled;
+  const displayStatus = wishlist ? null : getStatus(course);
 
   return {
     ...course,
     displayStatus,
     displayProgress: getProgress(course, displayStatus),
     bookmarked: course.is_bookmarked === true,
+    enrolled,
+    wishlist,
   };
 }
 
@@ -214,7 +221,10 @@ function formatStatus(status: ProgressStatus | null) {
   return "Not Started";
 }
 
-function statusClasses(status: ProgressStatus | null) {
+function statusClasses(status: ProgressStatus | null, wishlist = false) {
+  if (wishlist) {
+    return "bg-[#f43f7f] text-white";
+  }
   if (status === "COMPLETED") {
     return "bg-[#12a150] text-white";
   }
@@ -224,14 +234,21 @@ function statusClasses(status: ProgressStatus | null) {
   return "bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-950";
 }
 
-function actionLabel(status: ProgressStatus | null, savedOnly: boolean) {
-  if (savedOnly && !status) return "View";
+function actionLabel(
+  status: ProgressStatus | null,
+  savedOnly: boolean,
+  wishlist: boolean,
+) {
+  if (wishlist) return "Details";
+  if (savedOnly && !status) return "Start";
   if (status === "COMPLETED") return "Review";
   if (status === "IN_PROGRESS") return "Continue";
   return "Start";
 }
 
 function actionHref(course: DisplayCourse) {
+  if (course.wishlist) return `/dashboard/course-catalogue/${course.slug || course.id}`;
+  if (course.enrolled) return `/learn/${course.id}`;
   if (course.displayStatus) return `/learn/${course.id}`;
   return `/dashboard/course-catalogue/${course.slug || course.id}`;
 }
@@ -247,7 +264,10 @@ function uniqueCourses(courses: Course[]) {
 
 function normalizeCourses(courses: Course[], view: CourseView) {
   return uniqueCourses(courses).map((course) =>
-    normalizeCourse(view === "SAVED" ? { ...course, is_bookmarked: true } : course),
+    normalizeCourse(
+      view === "SAVED" ? { ...course, is_bookmarked: true } : course,
+      view,
+    ),
   );
 }
 
@@ -810,7 +830,7 @@ function DashboardCourseCard({
   const status = course.displayStatus;
   const isComplete = status === "COMPLETED";
   const isStarted = status === "IN_PROGRESS";
-  const label = actionLabel(status, savedOnly);
+  const label = actionLabel(status, savedOnly, course.wishlist);
 
   return (
     <article className="group flex min-h-[366px] flex-col overflow-hidden rounded-md border border-[#e5e3ee] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#c9c1eb] hover:shadow-lg dark:border-[#262a3d] dark:bg-[#0f1726]">
@@ -825,11 +845,11 @@ function DashboardCourseCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
         <span
-          className={`absolute right-3 top-3 rounded-md px-2.5 py-1 text-xs font-extrabold shadow-sm ${statusClasses(status)}`}
+          className={`absolute right-3 top-3 rounded-md px-2.5 py-1 text-xs font-extrabold shadow-sm ${statusClasses(status, course.wishlist)}`}
         >
-          {formatStatus(status)}
+          {course.wishlist ? "Wishlist" : formatStatus(status)}
         </span>
-        {course.bookmarked && (
+        {course.bookmarked && !course.wishlist && (
           <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1 rounded-md bg-[#f43f7f] px-2.5 text-xs font-extrabold text-white shadow-sm">
             <Bookmark className="h-3.5 w-3.5 fill-current" />
             Saved
@@ -879,31 +899,41 @@ function DashboardCourseCard({
         </div>
 
         <div className="mt-auto">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-              <div
-                className={`h-full rounded-full ${
-                  isComplete ? "bg-[#12a150]" : "bg-[#5b2dcc]"
-                }`}
-                style={{ width: `${course.displayProgress}%` }}
-              />
+          {course.wishlist ? (
+            <div className="mb-4 rounded-md border border-[#ffd1e1] bg-[#fff3f8] px-3 py-2 text-xs font-bold text-[#b91d57] dark:border-[#f43f7f]/30 dark:bg-[#f43f7f]/10 dark:text-[#ff9abb]">
+              Saved for later. Enroll to start learning.
             </div>
-            <span className="w-16 text-right text-xs font-bold text-slate-600 dark:text-slate-300">
-              {status === "NOT_STARTED"
-                ? "Not started"
-                : `${course.displayProgress}%`}
-            </span>
-          </div>
+          ) : (
+            <div className="mb-4 flex items-center gap-3">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                <div
+                  className={`h-full rounded-full ${
+                    isComplete ? "bg-[#12a150]" : "bg-[#5b2dcc]"
+                  }`}
+                  style={{ width: `${course.displayProgress}%` }}
+                />
+              </div>
+              <span className="w-16 text-right text-xs font-bold text-slate-600 dark:text-slate-300">
+                {status === "NOT_STARTED"
+                  ? "Not started"
+                  : `${course.displayProgress}%`}
+              </span>
+            </div>
+          )}
 
           <div className="flex items-center justify-between gap-3">
             <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
               {isComplete ? (
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#12a150]" />
+              ) : course.wishlist ? (
+                <Bookmark className="h-4 w-4 flex-shrink-0 fill-current text-[#f43f7f]" />
               ) : (
                 <CalendarDays className="h-4 w-4 flex-shrink-0" />
               )}
               <span className="truncate">
-                {isComplete
+                {course.wishlist
+                  ? "Wishlist course"
+                  : isComplete
                   ? `Completed${completionDate ? ` on ${completionDate}` : ""}`
                   : accessDate
                     ? `Access until ${accessDate}`
@@ -915,7 +945,9 @@ function DashboardCourseCard({
               <Link
                 href={actionHref(course)}
                 className={`inline-flex h-9 items-center justify-center rounded-md border px-4 text-sm font-extrabold no-underline transition ${
-                  isComplete
+                  course.wishlist
+                    ? "border-[#f43f7f] text-[#d82d69] hover:bg-[#fff3f8] dark:border-[#f43f7f]/60 dark:text-[#ff9abb] dark:hover:bg-[#f43f7f]/12"
+                    : isComplete
                     ? "border-[#12a150] text-[#0f8a46] hover:bg-[#ecfff4] dark:border-[#24c66c] dark:text-[#8de5b5] dark:hover:bg-[#15945a]/15"
                     : isStarted
                       ? "border-[#9b86e8] bg-[#f7f4ff] text-[#4c2db8] hover:bg-[#efe9ff] dark:border-[#6f5cc7] dark:bg-[#211a42] dark:text-[#d7ceff] dark:hover:bg-[#2b2257]"

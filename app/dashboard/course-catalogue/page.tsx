@@ -18,6 +18,7 @@ import {
   InstructorSummary,
   type CourseInstructor,
 } from "./InstructorSummary";
+import { CourseBookmarkButton } from "./CourseBookmarkButton";
 
 export const metadata = {
   title: "Course Catalogue | Dashboard",
@@ -47,6 +48,7 @@ type Course = {
   average_rating?: number | null;
   total_reviews?: number | null;
   is_enrolled?: boolean | null;
+  is_bookmarked?: boolean | null;
   has_access?: boolean | null;
 };
 
@@ -583,30 +585,37 @@ function CourseTile({ course }: { course: Course }) {
           : "border-[#e3ede7] dark:border-[#27433a]"
       }`}
     >
-      <Link href={courseHref} className="relative block aspect-[16/9] overflow-hidden bg-[#e7f6ee]">
-        <img
-          src={course.thumbnail_url || FALLBACK_IMAGE}
-          alt=""
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
-        <span className="absolute left-3 top-3 rounded-md bg-[#2D6A4F] px-2.5 py-1 text-xs font-bold text-white shadow-sm dark:bg-[#52b788] dark:text-[#06130d]">
-          {titleCaseEnum(course.category)}
-        </span>
-        <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
-          {course.is_exclusive && (
-            <span className="rounded-md bg-slate-950/85 px-2.5 py-1 text-xs font-extrabold text-white shadow-sm">
-              Exclusive
+      <div className="relative aspect-[16/9] overflow-hidden bg-[#e7f6ee]">
+        <Link href={courseHref} className="block h-full w-full">
+          <img
+            src={course.thumbnail_url || FALLBACK_IMAGE}
+            alt=""
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
+          <span className="absolute left-3 top-3 rounded-md bg-[#2D6A4F] px-2.5 py-1 text-xs font-bold text-white shadow-sm dark:bg-[#52b788] dark:text-[#06130d]">
+            {titleCaseEnum(course.category)}
+          </span>
+          <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+            {course.is_exclusive && (
+              <span className="rounded-md bg-slate-950/85 px-2.5 py-1 text-xs font-extrabold text-white shadow-sm">
+                Exclusive
+              </span>
+            )}
+          </div>
+          {(isEnrolled || hasAccess) && (
+            <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-[#2D6A4F] shadow-sm dark:bg-[#111525]/95 dark:text-[#b7e4c7]">
+              <Check className="h-3 w-3" strokeWidth={3} />
+              {isEnrolled ? "Enrolled" : "Access"}
             </span>
           )}
-        </div>
-        {(isEnrolled || hasAccess) && (
-          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-[#2D6A4F] shadow-sm dark:bg-[#111525]/95 dark:text-[#b7e4c7]">
-            <Check className="h-3 w-3" strokeWidth={3} />
-            {isEnrolled ? "Enrolled" : "Access"}
-          </span>
-        )}
-      </Link>
+        </Link>
+        <CourseBookmarkButton
+          courseId={course.id}
+          courseTitle={course.title}
+          initialBookmarked={course.is_bookmarked}
+        />
+      </div>
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
