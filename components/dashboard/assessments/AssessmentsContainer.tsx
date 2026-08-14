@@ -1,6 +1,7 @@
 import { fetchApi } from "@/lib/fetchApi";
 import { redirect } from "next/navigation";
 import AssessmentsList, {
+  type AssessmentDateRange,
   type AssessmentStats,
   type AssessmentTab,
   type UserAssessment,
@@ -48,9 +49,13 @@ export default async function AssessmentsContainer({
   const currentTab: AssessmentTab =
     requestedTab && VALID_TABS.has(requestedTab as AssessmentTab)
       ? (requestedTab as AssessmentTab)
-      : "upcoming";
+      : "completed";
   const assessmentType = normalizeAssessmentType(
     getString(resolvedParams.assessment_type),
+  );
+  const dateRange = normalizeDateRange(
+    getString(resolvedParams.start_date),
+    getString(resolvedParams.end_date),
   );
 
   const listEndpoint = buildAssessmentsEndpoint({
@@ -58,12 +63,13 @@ export default async function AssessmentsContainer({
     pageSize,
     tab: currentTab,
     assessmentType,
+    dateRange,
   });
 
   const [listResult, statsResult, upcomingResult, completedResult] =
     await Promise.allSettled([
       readAssessments(listEndpoint),
-      readStats("/learning/assessments/stats"),
+      readStats(buildStatsEndpoint(dateRange)),
       readAssessments(
         buildAssessmentsEndpoint({ page: 1, pageSize: 8, tab: "upcoming" }),
       ),
@@ -108,6 +114,7 @@ export default async function AssessmentsContainer({
       currentTab={currentTab}
       pageSize={pageSize}
       assessmentType={assessmentType}
+      dateRange={dateRange}
       error={list.error}
     />
   );
@@ -118,11 +125,13 @@ function buildAssessmentsEndpoint({
   pageSize,
   tab,
   assessmentType,
+  dateRange,
 }: {
   page: number;
   pageSize: number;
   tab: AssessmentTab;
   assessmentType?: "QUIZ" | "ESSAY" | null;
+  dateRange?: AssessmentDateRange | null;
 }) {
   const params = new URLSearchParams({
     page: String(page),
@@ -131,6 +140,11 @@ function buildAssessmentsEndpoint({
 
   if (assessmentType) {
     params.set("assessment_type", assessmentType);
+  }
+
+  if (dateRange) {
+    params.set("start_date", dateRange.startDate);
+    params.set("end_date", dateRange.endDate);
   }
 
   if (tab === "upcoming") {
@@ -150,6 +164,17 @@ function buildAssessmentsEndpoint({
   }
 
   return `/learning/assessments/me?${params.toString()}`;
+}
+
+function buildStatsEndpoint(dateRange: AssessmentDateRange | null) {
+  if (!dateRange) return "/learning/assessments/stats";
+
+  const params = new URLSearchParams({
+    start_date: dateRange.startDate,
+    end_date: dateRange.endDate,
+  });
+
+  return `/learning/assessments/stats?${params.toString()}`;
 }
 
 async function readAssessments(endpoint: string) {
@@ -209,4 +234,26 @@ function getPositiveInt(value: string | string[] | undefined, fallback: number) 
 function normalizeAssessmentType(value?: string) {
   const upper = value?.toUpperCase();
   return upper === "QUIZ" || upper === "ESSAY" ? upper : null;
+}
+
+function normalizeDateRange(startDate?: string, endDate?: string) {
+  if (!startDate || !endDate) return null;
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return null;
+  }
+
+  return {
+    startDate,
+    endDate,
+    label: new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "Africa/Lagos",
+    }).format(start),
+  };
 }

@@ -78,6 +78,7 @@ type CourseItem = {
   assessment_type?: "QUIZ" | "ESSAY" | string | null;
   pass_mark_percentage?: number | null;
   essay_submission_mode?: "TEXT" | "DOCUMENT" | string | null;
+  estimated_minutes?: number | null;
   order_index: number;
   is_preview?: boolean | null;
   questions?: CourseQuiz["questions"] | null;
@@ -670,6 +671,10 @@ function getItemMeta(item: CourseItem) {
     meta.push(formatBytes(item.document.file_size_bytes));
   }
 
+  if (typeof item.estimated_minutes === "number" && item.estimated_minutes > 0) {
+    meta.push(formatMinutes(item.estimated_minutes));
+  }
+
   const questions = item.questions || item.quiz?.questions;
 
   if (questions) {
@@ -836,6 +841,14 @@ function formatDuration(seconds: number) {
   if (hours <= 0) return `${minutes}m`;
   if (minutes <= 0) return `${hours}h`;
   return `${hours}h ${minutes}m`;
+}
+
+function formatMinutes(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
 }
 
 function formatBytes(bytes: number) {

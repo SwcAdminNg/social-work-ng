@@ -10,6 +10,7 @@ interface QuizEngineProps {
   itemId: string;
   isCompleted: boolean;
   questions: QuizQuestion[];
+  estimatedMinutes?: number | null;
   maxAttempts?: number | null;
   attemptsUsed?: number | null;
   attemptsRemaining?: number | null;
@@ -45,6 +46,7 @@ export function QuizEngine({
   itemId,
   isCompleted,
   questions,
+  estimatedMinutes,
   maxAttempts,
   attemptsUsed,
   attemptsRemaining,
@@ -217,6 +219,11 @@ export function QuizEngine({
           <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">{questions.length} questions</span>
             {typeof passMarkPercentage === "number" && <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">{passMarkPercentage}% pass mark</span>}
+            {typeof estimatedMinutes === "number" && estimatedMinutes > 0 && (
+              <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+                {formatMinutes(estimatedMinutes)}
+              </span>
+            )}
             {effectiveAttemptsUsed !== null && <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">{effectiveAttemptsUsed} used</span>}
             <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">{attemptLabel}</span>
             {deadline && <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">Due {deadline.toLocaleDateString()}</span>}
@@ -290,4 +297,12 @@ export function QuizEngine({
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
+}
+
+function formatMinutes(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
 }

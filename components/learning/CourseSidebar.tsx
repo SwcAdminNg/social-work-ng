@@ -29,6 +29,7 @@ type CurriculumItem = {
   item_type?: string | null;
   assessment_type?: string | null;
   is_completed?: boolean | null;
+  estimated_minutes?: number | null;
 };
 
 type CurriculumSection = {
@@ -62,6 +63,10 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
   const allItems = sections.flatMap((section) => section.items || []);
   const activeItem = allItems.find((item) => pathname === `/learn/${courseId}/item/${item.id}`);
   const completedCount = allItems.filter((item) => item.is_completed).length;
+  const totalEstimatedMinutes = allItems.reduce(
+    (total, item) => total + getEstimatedMinutes(item),
+    0,
+  );
 
   const fetchUserReview = useCallback(async () => {
     try {
@@ -128,7 +133,7 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
 
         <div className="mb-2 flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
           <span>{completedCount}/{allItems.length || 0} complete</span>
-          <span>{progress}%</span>
+          <span>{totalEstimatedMinutes > 0 ? `${formatMinutes(totalEstimatedMinutes)} total` : `${progress}%`}</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-[#e3ede7] dark:bg-[#24372e]">
           <div
@@ -195,7 +200,7 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
                           {item.title}
                         </span>
                         <span className="mt-0.5 block text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                          {getItemLabel(item)}
+                          {getItemMetaLabel(item)}
                         </span>
                       </span>
                       <ChevronRight className={`mt-1 h-4 w-4 transition ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
@@ -289,6 +294,27 @@ function getItemLabel(item: { item_type?: string | null; assessment_type?: strin
   }
 
   return titleCaseEnum(item.item_type);
+}
+
+function getItemMetaLabel(item: CurriculumItem) {
+  const estimate = getEstimatedMinutes(item);
+  return estimate > 0
+    ? `${getItemLabel(item)} - ${formatMinutes(estimate)}`
+    : getItemLabel(item);
+}
+
+function getEstimatedMinutes(item: { estimated_minutes?: number | null }) {
+  return typeof item.estimated_minutes === "number" && item.estimated_minutes > 0
+    ? item.estimated_minutes
+    : 0;
+}
+
+function formatMinutes(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
 }
 
 function titleCaseEnum(value?: string | null) {

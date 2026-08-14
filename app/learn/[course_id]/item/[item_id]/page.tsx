@@ -20,6 +20,7 @@ type CurriculumSection = {
 type LearningItemLabel = {
   item_type?: string | null;
   assessment_type?: string | null;
+  estimated_minutes?: number | null;
 };
 
 export default async function LearningItemPage(props: {
@@ -70,6 +71,7 @@ export default async function LearningItemPage(props: {
   }
 
   const itemLabel = getLearningItemLabel(item);
+  const estimatedMinutes = getEstimatedMinutes(item);
   const isQuiz =
     item.item_type === "QUIZ" ||
     (item.item_type === "ASSESSMENT" && item.assessment_type === "QUIZ");
@@ -100,6 +102,11 @@ export default async function LearningItemPage(props: {
                 <span className="rounded-md bg-[#e7f6ee] px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
                   {itemLabel}
                 </span>
+                {estimatedMinutes > 0 && (
+                  <span className="rounded-md border border-[#b7e4c7] px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:border-[#27433a] dark:text-[#b7e4c7]">
+                    {formatMinutes(estimatedMinutes)}
+                  </span>
+                )}
                 {item.is_completed && (
                   <span className="inline-flex items-center gap-1 rounded-md border border-[#b7e4c7] px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:border-[#27433a] dark:text-[#b7e4c7]">
                     <CheckCircle className="h-3.5 w-3.5" />
@@ -158,6 +165,7 @@ export default async function LearningItemPage(props: {
             itemId={item.id}
             isCompleted={item.is_completed}
             questions={item.questions}
+            estimatedMinutes={estimatedMinutes}
             maxAttempts={item.max_attempts}
             attemptsUsed={item.attempts_used}
             attemptsRemaining={item.attempts_remaining}
@@ -173,6 +181,7 @@ export default async function LearningItemPage(props: {
             itemId={item.id}
             essayQuestion={item.essay_question}
             essayDescription={item.essay_description}
+            estimatedMinutes={estimatedMinutes}
             submissionMode={item.essay_submission_mode}
             dueDate={item.due_date}
             submission={item.essay_submission}
@@ -233,4 +242,18 @@ function getLearningItemLabel(item: LearningItemLabel) {
   }
 
   return item.item_type;
+}
+
+function getEstimatedMinutes(item: LearningItemLabel) {
+  return typeof item.estimated_minutes === "number" && item.estimated_minutes > 0
+    ? item.estimated_minutes
+    : 0;
+}
+
+function formatMinutes(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
 }

@@ -21,6 +21,7 @@ type EssaySubmissionProps = {
   itemId: string;
   essayQuestion?: string | null;
   essayDescription?: string | null;
+  estimatedMinutes?: number | null;
   submissionMode?: "TEXT" | "DOCUMENT" | string | null;
   dueDate?: string | null;
   submission?: EssaySubmissionValue | null;
@@ -31,6 +32,7 @@ export function EssaySubmission({
   itemId,
   essayQuestion,
   essayDescription,
+  estimatedMinutes,
   submissionMode,
   dueDate,
   submission,
@@ -149,6 +151,11 @@ export function EssaySubmission({
             {deadline && (
               <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
                 Due {deadline.toLocaleDateString()}
+              </span>
+            )}
+            {typeof estimatedMinutes === "number" && estimatedMinutes > 0 && (
+              <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+                {formatMinutes(estimatedMinutes)}
               </span>
             )}
           </div>
@@ -299,4 +306,12 @@ export function EssaySubmission({
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
+}
+
+function formatMinutes(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
 }

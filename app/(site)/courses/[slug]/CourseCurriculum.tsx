@@ -20,6 +20,7 @@ type CurriculumItem = {
   title: string;
   item_type?: string | null;
   assessment_type?: string | null;
+  estimated_minutes?: number | null;
   is_preview?: boolean | null;
   video?: {
     playback_url?: string | null;
@@ -127,6 +128,11 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                         <span className={`font-medium ${item.is_preview ? "text-[#2D6A4F] dark:text-[#52b788]" : "text-gray-700 dark:text-gray-300"}`}>
                           {item.title}
                         </span>
+                        {getEstimatedMinutes(item) > 0 && (
+                          <span className="hidden rounded-md bg-[#e7f6ee] px-2 py-1 text-xs font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7] sm:inline-flex">
+                            {formatMinutes(getEstimatedMinutes(item))}
+                          </span>
+                        )}
                       </div>
                       
                       <div className="flex items-center gap-4">
@@ -259,4 +265,18 @@ function getItemLabel(item: CurriculumItem) {
   }
 
   return item?.item_type;
+}
+
+function getEstimatedMinutes(item: CurriculumItem) {
+  return typeof item.estimated_minutes === "number" && item.estimated_minutes > 0
+    ? item.estimated_minutes
+    : 0;
+}
+
+function formatMinutes(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
 }
