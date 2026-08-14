@@ -76,10 +76,10 @@ export default async function DashboardPage() {
       bg: "bg-purple-100 dark:bg-purple-900/30",
     },
     {
-      label: "Quiz Attempts",
+      label: "Assessments",
       value: stats.quizzes_attempted,
       icon: IconClipboardCheck,
-      href: "/dashboard/quiz-attempts",
+      href: "/dashboard/assessments",
       color: "text-orange-600 dark:text-orange-400",
       bg: "bg-orange-100 dark:bg-orange-900/30",
     },

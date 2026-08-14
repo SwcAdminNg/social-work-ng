@@ -51,7 +51,7 @@ export const dashboardNavGroups: NavGroup[] = [
       },
       {
         label: "Assessments",
-        href: "/dashboard/quiz-attempts",
+        href: "/dashboard/assessments",
         icon: ClipboardCheck,
       },
       {
