@@ -173,7 +173,7 @@ async function getCatalogueData(filters: Record<string, string | undefined>) {
   try {
     const [coursesRes, catalogsRes] = await Promise.all([
       fetchApi(`/courses?${params.toString()}`, {
-        next: { revalidate: 20 * 60 },
+        cache: "no-store",
       }),
       fetchApi("/courses/catalogs", {
         next: { revalidate: 60 * 60 },
@@ -223,6 +223,7 @@ export default async function CourseCataloguePage(props: {
 
   const { courses, catalogs, meta, error } = await getCatalogueData(filters);
   const activeCatalog = catalogs.find((item) => item.slug === catalog);
+  const enrolledCount = courses.filter((course) => course.is_enrolled).length;
   const showingStart = courses.length ? (meta.page - 1) * meta.page_size + 1 : 0;
   const showingEnd = courses.length ? showingStart + courses.length - 1 : 0;
 
@@ -329,6 +330,11 @@ export default async function CourseCataloguePage(props: {
               <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
                   Showing {showingStart} to {showingEnd} of {meta.total_items} courses
+                  {enrolledCount > 0 && (
+                    <span className="ml-2 font-bold text-[#2D6A4F] dark:text-[#b7e4c7]">
+                      {enrolledCount} enrolled
+                    </span>
+                  )}
                 </p>
                 <Pagination meta={meta} filters={filters} />
               </div>
@@ -485,13 +491,23 @@ function SideFilterLink({
 }
 
 function CourseTile({ course }: { course: Course }) {
-  const href = `/courses/${course.slug || course.id}`;
+  const courseHref = `/courses/${course.slug || course.id}`;
+  const learnHref = `/learn/${course.id}`;
+  const isEnrolled = course.is_enrolled === true;
+  const hasAccess = course.has_access === true;
+  const actionHref = isEnrolled || hasAccess ? learnHref : courseHref;
   const rating = typeof course.average_rating === "number" ? course.average_rating : 0;
   const reviews = Number(course.total_reviews || 0);
 
   return (
-    <article className="group flex min-h-full flex-col overflow-hidden rounded-lg border border-[#e3ede7] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-lg dark:border-[#27433a] dark:bg-[#111525]">
-      <Link href={href} className="relative block aspect-[16/9] overflow-hidden bg-[#e7f6ee]">
+    <article
+      className={`group flex min-h-full flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-lg dark:bg-[#111525] ${
+        isEnrolled
+          ? "border-[#2D6A4F]/55 ring-1 ring-[#2D6A4F]/20 dark:border-[#52b788]/60 dark:ring-[#52b788]/20"
+          : "border-[#e3ede7] dark:border-[#27433a]"
+      }`}
+    >
+      <Link href={courseHref} className="relative block aspect-[16/9] overflow-hidden bg-[#e7f6ee]">
         <img
           src={course.thumbnail_url || FALLBACK_IMAGE}
           alt=""
@@ -501,9 +517,10 @@ function CourseTile({ course }: { course: Course }) {
         <span className="absolute left-3 top-3 rounded-md bg-[#2D6A4F] px-2.5 py-1 text-xs font-bold text-white shadow-sm dark:bg-[#52b788] dark:text-[#06130d]">
           {titleCaseEnum(course.category)}
         </span>
-        {(course.is_enrolled || course.has_access) && (
-          <span className="absolute right-3 top-3 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-[#2D6A4F] shadow-sm dark:bg-[#111525]/95 dark:text-[#b7e4c7]">
-            {course.has_access ? "Access" : "Enrolled"}
+        {(isEnrolled || hasAccess) && (
+          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-[#2D6A4F] shadow-sm dark:bg-[#111525]/95 dark:text-[#b7e4c7]">
+            <Check className="h-3 w-3" strokeWidth={3} />
+            {isEnrolled ? "Enrolled" : "Access"}
           </span>
         )}
       </Link>
@@ -528,7 +545,7 @@ function CourseTile({ course }: { course: Course }) {
 
         <div>
           <h2 className="line-clamp-2 text-base font-extrabold leading-snug text-slate-950 dark:text-white">
-            <Link href={href} className="no-underline hover:text-[#2D6A4F] dark:hover:text-[#b7e4c7]">
+            <Link href={courseHref} className="no-underline hover:text-[#2D6A4F] dark:hover:text-[#b7e4c7]">
               {course.title}
             </Link>
           </h2>
@@ -542,10 +559,14 @@ function CourseTile({ course }: { course: Course }) {
             {formatPrice(course)}
           </span>
           <Link
-            href={href}
-            className="inline-flex h-9 items-center justify-center rounded-md border border-[#2D6A4F] px-4 text-sm font-bold text-[#2D6A4F] no-underline transition hover:bg-[#2D6A4F] hover:text-white dark:border-[#52b788] dark:text-[#b7e4c7] dark:hover:bg-[#52b788] dark:hover:text-[#06130d]"
+            href={actionHref}
+            className={`inline-flex h-9 items-center justify-center rounded-md border px-4 text-sm font-bold no-underline transition ${
+              isEnrolled || hasAccess
+                ? "border-[#2D6A4F] bg-[#2D6A4F] text-white hover:bg-[#1B4332] dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+                : "border-[#2D6A4F] text-[#2D6A4F] hover:bg-[#2D6A4F] hover:text-white dark:border-[#52b788] dark:text-[#b7e4c7] dark:hover:bg-[#52b788] dark:hover:text-[#06130d]"
+            }`}
           >
-            {course.has_access || course.is_enrolled ? "Continue" : "View Course"}
+            {isEnrolled || hasAccess ? "View Course" : "Enroll"}
           </Link>
         </div>
       </div>
