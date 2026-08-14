@@ -32,6 +32,7 @@ type InstructorValue =
       role?: string | null;
       headline?: string | null;
       avatar_url?: string | null;
+      profile_picture_url?: string | null;
       image_url?: string | null;
       photo_url?: string | null;
     };
@@ -170,7 +171,11 @@ function normalizeInstructor(
     id: value.id || value.user_id,
     name,
     title: value.title || value.role || value.headline,
-    avatar_url: value.avatar_url || value.image_url || value.photo_url,
+    avatar_url:
+      value.profile_picture_url ||
+      value.avatar_url ||
+      value.image_url ||
+      value.photo_url,
   };
 }
 

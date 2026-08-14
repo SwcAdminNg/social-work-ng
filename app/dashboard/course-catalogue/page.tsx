@@ -54,6 +54,7 @@ type InstructorValue =
   | string
   | {
       id?: string | null;
+      user_id?: string | null;
       name?: string | null;
       full_name?: string | null;
       display_name?: string | null;
@@ -65,6 +66,7 @@ type InstructorValue =
       headline?: string | null;
       bio?: string | null;
       avatar_url?: string | null;
+      profile_picture_url?: string | null;
       image_url?: string | null;
       photo_url?: string | null;
     };
@@ -697,11 +699,15 @@ function normalizeInstructor(value: InstructorValue): CourseInstructor | null {
   if (!name) return null;
 
   return {
-    id: value.id,
+    id: value.id || value.user_id,
     name,
     title: value.title || value.role || value.headline,
     bio: value.bio,
-    avatar_url: value.avatar_url || value.image_url || value.photo_url,
+    avatar_url:
+      value.profile_picture_url ||
+      value.avatar_url ||
+      value.image_url ||
+      value.photo_url,
   };
 }
 

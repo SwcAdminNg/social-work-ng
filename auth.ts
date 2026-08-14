@@ -1,5 +1,28 @@
-import NextAuth, { CredentialsSignin } from "next-auth";
+import NextAuth, { CredentialsSignin, type DefaultSession, type User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+
+type LoginUser = User & {
+  username?: string | null;
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+};
+
+type SessionUpdate = {
+  action?: string;
+  profile_picture_url?: string | null;
+};
+
+type AppSession = DefaultSession & {
+  accessToken?: unknown;
+  expiresAt?: unknown;
+  error?: unknown;
+  user: DefaultSession["user"] & {
+    id?: string;
+    username?: string | null;
+    image?: string | null;
+  };
+};
 
 class CustomAuthError extends CredentialsSignin {
   constructor(message: string) {
@@ -43,21 +66,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               id: response.data.user.id,
               name: `${response.data.user.first_name} ${response.data.user.last_name}`,
               email: response.data.user.email,
+              image: response.data.user.profile_picture_url,
               username: response.data.user.username,
               accessToken: response.data.tokens.access_token,
               refreshToken: response.data.tokens.refresh_token,
               expiresAt: Math.floor(Date.now() / 1000) + (response.data.tokens.expires_in || 3600),
-            } as any;
+            } satisfies LoginUser;
           }
 
           throw new CustomAuthError(
             response.message || "Invalid credentials provided",
           );
-        } catch (error: any) {
+        } catch (error) {
           if (error instanceof CredentialsSignin) {
             throw error;
           }
-          console.error("Login error:", error.message);
+          console.error(
+            "Login error:",
+            error instanceof Error ? error.message : error,
+          );
           throw new CustomAuthError(
             "An unexpected error occurred during login",
           );
@@ -68,15 +95,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user, trigger, session }) {
       if (user) {
+        const loginUser = user as LoginUser;
         token.id = user.id;
-        token.username = (user as any).username;
-        token.accessToken = (user as any).accessToken;
-        token.refreshToken = (user as any).refreshToken;
-        token.expiresAt = (user as any).expiresAt;
+        token.picture = loginUser.image ?? null;
+        token.username = loginUser.username;
+        token.accessToken = loginUser.accessToken;
+        token.refreshToken = loginUser.refreshToken;
+        token.expiresAt = loginUser.expiresAt;
       } 
       
       // Explicit manual refresh triggered by the client modal
-      else if (trigger === "update" && session?.action === "refresh") {
+      else if (trigger === "update" && (session as SessionUpdate | undefined)?.action === "refresh") {
         try {
           const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_API_URL || "";
           const res = await fetch(`${baseUrl}/auth/refresh-token`, {
@@ -98,6 +127,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.error("Error refreshing access token", error);
           token.error = "RefreshAccessTokenError";
         }
+      } else if (trigger === "update" && "profile_picture_url" in (session ?? {})) {
+        token.picture = (session as SessionUpdate).profile_picture_url ?? null;
       } 
       // If token is expired and NO manual refresh was triggered, flag it as error so client logs out
       else if (token.expiresAt && Math.floor(Date.now() / 1000) > (token.expiresAt as number)) {
@@ -108,11 +139,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.id as string;
-        (session.user as any).username = token.username as string;
-        (session as any).accessToken = token.accessToken;
-        (session as any).expiresAt = token.expiresAt; // Pass expiry time to client
-        (session as any).error = token.error;
+        const appSession = session as AppSession;
+        appSession.user.id = token.id as string;
+        appSession.user.image = token.picture as string | null | undefined;
+        appSession.user.username = token.username as string;
+        appSession.accessToken = token.accessToken;
+        appSession.expiresAt = token.expiresAt; // Pass expiry time to client
+        appSession.error = token.error;
       }
       return session;
     },

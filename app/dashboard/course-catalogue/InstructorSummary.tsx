@@ -32,7 +32,23 @@ export function InstructorSummary({
         isHero ? "text-white/90" : "text-slate-600 dark:text-slate-400"
       }`}
     >
-      <UsersRound className="h-4 w-4 flex-shrink-0" />
+      <span
+        className={`flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-md text-xs font-extrabold ${
+          isHero
+            ? "border border-white/25 bg-white/15 text-white"
+            : "bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]"
+        }`}
+      >
+        {firstInstructor.avatar_url ? (
+          <img
+            src={firstInstructor.avatar_url}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          initials(firstInstructor.name) || <UsersRound className="h-4 w-4" />
+        )}
+      </span>
       <span className="min-w-0 truncate">{firstInstructor.name}</span>
       {extraCount > 0 && (
         <Dialog.Root>

@@ -2,24 +2,44 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { IconSpinner, IconCheck } from "@/components/auth/shared/icons";
+import { IconSpinner } from "@/components/auth/shared/icons";
 import {
   Save,
   UserCircle,
   CheckCircle2,
   XCircle,
   AlertCircle,
+  Camera,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+
+type ProfileUser = {
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  phone_number?: string | null;
+  address?: string | null;
+  gender?: string | null;
+  username?: string | null;
+  profile_picture_url?: string | null;
+};
 
 export function ProfileSettings() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { update } = useSession();
 
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingUsername, setSavingUsername] = useState(false);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
   const [hasSynced, setHasSynced] = useState(false);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [failedProfilePictureUrl, setFailedProfilePictureUrl] = useState<
+    string | null
+  >(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile Form State
   const [firstName, setFirstName] = useState("");
@@ -36,7 +56,7 @@ export function ProfileSettings() {
     null,
   );
 
-  const fetchProfile = async () => {
+  const fetchProfile = async (): Promise<ProfileUser> => {
     const res = await fetch("/api/proxy/users/me");
     if (!res.ok) {
       throw new Error("Failed to load profile data.");
@@ -46,7 +66,7 @@ export function ProfileSettings() {
   };
 
   const { data: user, isPending: loading, isError } = useQuery({
-    queryKey: ['profile'],
+    queryKey: ["profile"],
     queryFn: fetchProfile,
     staleTime: 5 * 60 * 1000,
   });
@@ -59,31 +79,37 @@ export function ProfileSettings() {
 
   useEffect(() => {
     if (user && !hasSynced) {
-      setFirstName(user.first_name || "");
-      setLastName(user.last_name || "");
-      setPhoneNumber(user.phone_number || "");
-      setAddress(user.address || "");
-      setGender(user.gender || "");
-      setCurrentUsername(user.username || "");
-      setNewUsername(user.username || "");
-      setHasSynced(true);
+      const timeout = window.setTimeout(() => {
+        setFirstName(user.first_name || "");
+        setLastName(user.last_name || "");
+        setPhoneNumber(user.phone_number || "");
+        setAddress(user.address || "");
+        setGender(user.gender || "");
+        setCurrentUsername(user.username || "");
+        setNewUsername(user.username || "");
+        setProfilePictureUrl(user.profile_picture_url || null);
+        setHasSynced(true);
+      }, 0);
+
+      return () => window.clearTimeout(timeout);
     }
   }, [user, hasSynced]);
 
   // Username Availability Checker (Debounced)
   useEffect(() => {
     if (!newUsername || newUsername.length < 3) {
-      setUsernameAvailable(null);
-      return;
+      const timeout = window.setTimeout(() => setUsernameAvailable(null), 0);
+      return () => window.clearTimeout(timeout);
     }
 
     if (newUsername === currentUsername) {
-      setUsernameAvailable(null); // It's their current username, no need to show available/taken
-      return;
+      const timeout = window.setTimeout(() => setUsernameAvailable(null), 0);
+      return () => window.clearTimeout(timeout);
     }
 
-    setCheckingUsername(true);
     const delayDebounceFn = setTimeout(async () => {
+      setCheckingUsername(true);
+
       try {
         const res = await fetch(
           `/api/proxy/username/availability?username=${encodeURIComponent(newUsername)}`,
@@ -94,7 +120,7 @@ export function ProfileSettings() {
         } else {
           setUsernameAvailable(null);
         }
-      } catch (e) {
+      } catch {
         setUsernameAvailable(null);
       } finally {
         setCheckingUsername(false);
@@ -123,13 +149,13 @@ export function ProfileSettings() {
 
       if (res.ok) {
         toast.success("Profile updated successfully!");
-        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
         router.refresh();
       } else {
         const data = await res.json();
         toast.error(data.message || "Failed to update profile.");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred. Please try again.");
     } finally {
       setSavingProfile(false);
@@ -157,18 +183,104 @@ export function ProfileSettings() {
         toast.success("Username updated successfully!");
         setCurrentUsername(newUsername);
         setUsernameAvailable(null);
-        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
         router.refresh();
       } else {
         const data = await res.json();
         toast.error(data.message || "Failed to update username.");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred. Please try again.");
     } finally {
       setSavingUsername(false);
     }
   };
+
+  const handleProfilePictureUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+
+    setUploadingPicture(true);
+
+    try {
+      const uploadUrlRes = await fetch(
+        "/api/proxy/users/me/profile-picture-upload-url",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            file_name: file.name,
+            content_type: file.type,
+          }),
+        },
+      );
+
+      const uploadUrlJson = await uploadUrlRes.json().catch(() => ({}));
+
+      if (!uploadUrlRes.ok) {
+        throw new Error(
+          uploadUrlJson?.message || "Could not prepare your profile picture.",
+        );
+      }
+
+      const uploadUrl = uploadUrlJson?.data?.upload_url;
+      const nextProfilePictureUrl = uploadUrlJson?.data?.profile_picture_url;
+
+      if (!uploadUrl || !nextProfilePictureUrl) {
+        throw new Error("Profile picture upload data was incomplete.");
+      }
+
+      const storageRes = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
+
+      if (!storageRes.ok) {
+        throw new Error("Upload failed. Please try choosing the image again.");
+      }
+
+      setProfilePictureUrl(nextProfilePictureUrl);
+      queryClient.setQueryData<ProfileUser | undefined>(["profile"], (current) =>
+        current
+          ? { ...current, profile_picture_url: nextProfilePictureUrl }
+          : current,
+      );
+      await update({ profile_picture_url: nextProfilePictureUrl });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      router.refresh();
+      toast.success("Profile picture updated successfully!");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "An error occurred. Please try again.",
+      );
+    } finally {
+      setUploadingPicture(false);
+    }
+  };
+
+  const displayName =
+    [firstName, lastName].filter(Boolean).join(" ") ||
+    user?.email?.split("@")[0] ||
+    "Learner";
+  const avatarInitial = displayName.trim().charAt(0).toUpperCase() || "L";
+  const profilePictureImageUrl =
+    profilePictureUrl && profilePictureUrl !== failedProfilePictureUrl
+      ? profilePictureUrl
+      : null;
 
   if (loading) {
     return (
@@ -299,6 +411,53 @@ export function ProfileSettings() {
 
         {/* Right Column: Username & Critical Settings */}
         <div className="space-y-6">
+          <div className="bg-white dark:bg-[#121212] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-5">
+              Profile Photo
+            </h2>
+            <div className="flex items-center gap-4">
+              <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#2D6A4F] text-2xl font-extrabold text-white shadow-[0_18px_34px_-24px_rgba(45,106,79,0.95)] dark:bg-[#52b788] dark:text-[#06130d]">
+                {profilePictureImageUrl ? (
+                  <img
+                    src={profilePictureImageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    onError={() =>
+                      setFailedProfilePictureUrl(profilePictureImageUrl)
+                    }
+                  />
+                ) : (
+                  avatarInitial
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-gray-900 dark:text-white">
+                  {displayName}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPicture}
+                  className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-4 text-sm font-semibold text-white transition-all hover:bg-[#1B4332] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {uploadingPicture ? (
+                    <IconSpinner className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Camera className="w-4 h-4" />
+                  )}
+                  {uploadingPicture ? "Uploading..." : "Change Photo"}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={handleProfilePictureUpload}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-900/10 border border-indigo-100 dark:border-indigo-900/30 rounded-3xl p-6 md:p-8 shadow-sm">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
               Username

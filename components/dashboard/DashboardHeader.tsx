@@ -40,6 +40,7 @@ export function DashboardHeader() {
   const { data: session } = useSession();
   const { setMobileOpen, toggleCollapsed } = useSidebar();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
   const searchParams = useSearchParams();
@@ -49,6 +50,9 @@ export function DashboardHeader() {
     session?.user?.email?.split("@")[0] ||
     "Learner";
   const avatarInitial = displayName.trim().charAt(0).toUpperCase() || "L";
+  const avatarUrl = session?.user?.image;
+  const avatarImageUrl =
+    avatarUrl && avatarUrl !== failedAvatarUrl ? avatarUrl : null;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -165,8 +169,17 @@ export function DashboardHeader() {
           href="/dashboard/settings"
           className="ml-1 flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 no-underline transition-colors hover:bg-[#eef8f2] dark:hover:bg-[#52b788]/12 sm:ml-2 sm:gap-3 sm:px-2"
         >
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-[#2D6A4F] text-sm font-extrabold text-white shadow-[0_10px_22px_-15px_rgba(45,106,79,0.9)] dark:bg-[#52b788] dark:text-[#06130d]">
-            {avatarInitial}
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#2D6A4F] text-sm font-extrabold text-white shadow-[0_10px_22px_-15px_rgba(45,106,79,0.9)] dark:bg-[#52b788] dark:text-[#06130d]">
+            {avatarImageUrl ? (
+              <img
+                src={avatarImageUrl}
+                alt=""
+                className="h-full w-full object-cover"
+                onError={() => setFailedAvatarUrl(avatarImageUrl)}
+              />
+            ) : (
+              avatarInitial
+            )}
           </span>
           <span className="hidden min-w-0 flex-col leading-tight lg:flex">
             <span className="max-w-40 truncate text-sm font-extrabold text-slate-950 dark:text-white">
