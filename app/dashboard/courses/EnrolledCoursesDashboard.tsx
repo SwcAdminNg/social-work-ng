@@ -61,6 +61,8 @@ export type Course = {
   progress_status?: ProgressStatus | null;
   progress_percent?: number | null;
   is_completed?: boolean | null;
+  content_updated_at?: string | null;
+  has_new_content?: boolean | null;
   updated_at?: string | null;
   access_end_date?: string | null;
   access_start_date?: string | null;
@@ -851,11 +853,18 @@ function DashboardCourseCard({
           className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
-        <span
-          className={`absolute right-3 top-3 rounded-md px-2.5 py-1 text-xs font-extrabold shadow-sm ${statusClasses(status, course.wishlist)}`}
-        >
-          {course.wishlist ? "Wishlist" : formatStatus(status)}
-        </span>
+        <div className="absolute right-3 top-3 flex flex-col items-end gap-1.5">
+          <span
+            className={`rounded-md px-2.5 py-1 text-xs font-extrabold shadow-sm ${statusClasses(status, course.wishlist)}`}
+          >
+            {course.wishlist ? "Wishlist" : formatStatus(status)}
+          </span>
+          {course.has_new_content && !course.wishlist && (
+            <span className="rounded-md bg-[#f08b13] px-2.5 py-1 text-xs font-extrabold text-white shadow-sm">
+              New content
+            </span>
+          )}
+        </div>
         {course.bookmarked && !course.wishlist && (
           <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1 rounded-md bg-[#f43f7f] px-2.5 text-xs font-extrabold text-white shadow-sm">
             <Bookmark className="h-3.5 w-3.5 fill-current" />
