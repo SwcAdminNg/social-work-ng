@@ -12,6 +12,7 @@ import { CheckCircle, ChevronLeft, ChevronRight, Download, Lock } from "lucide-r
 type LearningNavItem = {
   id: string;
   title: string;
+  is_completed?: boolean | null;
 };
 
 type CurriculumSection = {
@@ -53,6 +54,8 @@ export default async function LearningItemPage(props: {
   let nextItem: LearningNavItem | null = null;
   let sectionFirstItemId: string | null = null;
   let isLastSection = false;
+  let isSequentiallyLocked = false;
+  let frontierItem: LearningNavItem | null = null;
 
   if (curriculum?.sections) {
     const allItems = curriculum.sections.flatMap(
@@ -70,26 +73,49 @@ export default async function LearningItemPage(props: {
     const currentSectionIndex = curriculum.sections.findIndex((sec: CurriculumSection) =>
       (sec.items || []).some((i) => i.id === params.item_id),
     );
-    sectionFirstItemId = curriculum.sections[currentSectionIndex]?.items?.[0]?.id || null;
+    const currentSectionItems: LearningNavItem[] =
+      curriculum.sections[currentSectionIndex]?.items || [];
+    sectionFirstItemId = currentSectionItems[0]?.id || null;
     isLastSection =
       currentSectionIndex !== -1 && currentSectionIndex === curriculum.sections.length - 1;
+
+    const currentItemIndexInSection = currentSectionItems.findIndex(
+      (i) => i.id === params.item_id,
+    );
+    const firstIncompleteIndex = currentSectionItems.findIndex((i) => !i.is_completed);
+    const frontierIndex =
+      firstIncompleteIndex === -1 ? currentSectionItems.length : firstIncompleteIndex;
+    isSequentiallyLocked =
+      currentItemIndexInSection !== -1 && currentItemIndexInSection > frontierIndex;
+    frontierItem =
+      frontierIndex < currentSectionItems.length ? currentSectionItems[frontierIndex] : null;
   }
 
-  if (itemRes.status === 403) {
+  if (itemRes.status === 403 || isSequentiallyLocked) {
     return (
       <div className="mx-auto flex h-full max-w-md flex-col items-center justify-center gap-3 p-10 text-center">
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400">
           <Lock className="h-6 w-6" />
         </span>
-        <h1 className="text-lg font-extrabold text-slate-950 dark:text-white">Module locked</h1>
+        <h1 className="text-lg font-extrabold text-slate-950 dark:text-white">
+          {itemRes.status === 403 ? "Module locked" : "Complete previous items first"}
+        </h1>
         <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-          This module is locked - pass the previous module&apos;s final assessment first.
+          {itemRes.status === 403
+            ? "This module is locked - pass the previous module's final assessment first."
+            : "You need to finish the earlier items in this module before you can move on to this one."}
         </p>
         <Link
-          href={`/learn/${params.course_id}`}
+          href={
+            itemRes.status === 403
+              ? `/learn/${params.course_id}`
+              : frontierItem
+                ? `/learn/${params.course_id}/item/${frontierItem.id}`
+                : `/learn/${params.course_id}`
+          }
           className="mt-2 inline-flex h-10 items-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
         >
-          Back to course
+          {itemRes.status === 403 ? "Back to course" : "Continue where you left off"}
         </Link>
       </div>
     );
@@ -266,17 +292,32 @@ export default async function LearningItemPage(props: {
           ) : <div className="hidden sm:block" />}
           
           {nextItem ? (
-            <Link 
-              href={`/learn/${params.course_id}/item/${nextItem.id}`}
-              className="grid min-h-16 grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-lg bg-[#2D6A4F] px-4 py-3 text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-            >
-              <div className="min-w-0 text-right">
-                <div className="text-[0.68rem] font-extrabold uppercase tracking-wide text-white/70 dark:text-[#1B4332]/70">Next</div>
-                <div className="line-clamp-1 text-sm font-extrabold">{nextItem.title}</div>
+            item.is_completed ? (
+              <Link
+                href={`/learn/${params.course_id}/item/${nextItem.id}`}
+                className="grid min-h-16 grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-lg bg-[#2D6A4F] px-4 py-3 text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+              >
+                <div className="min-w-0 text-right">
+                  <div className="text-[0.68rem] font-extrabold uppercase tracking-wide text-white/70 dark:text-[#1B4332]/70">Next</div>
+                  <div className="line-clamp-1 text-sm font-extrabold">{nextItem.title}</div>
+                </div>
+                <ChevronRight className="h-5 w-5" />
+              </Link>
+            ) : (
+              <div
+                className="grid min-h-16 cursor-not-allowed grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-lg border border-[#dceee4] bg-slate-50 px-4 py-3 text-slate-400 dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-500"
+                aria-disabled="true"
+              >
+                <div className="min-w-0 text-right">
+                  <div className="text-[0.68rem] font-extrabold uppercase tracking-wide">Next</div>
+                  <div className="line-clamp-1 text-sm font-extrabold">
+                    Complete this item to continue
+                  </div>
+                </div>
+                <Lock className="h-5 w-5" />
               </div>
-              <ChevronRight className="h-5 w-5" />
-            </Link>
-          ) : (
+            )
+          ) : item.is_completed ? (
             <Link
               href={`/dashboard/courses`}
               className="inline-flex min-h-16 items-center justify-center gap-3 rounded-lg bg-[#2D6A4F] px-4 py-3 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
@@ -284,6 +325,14 @@ export default async function LearningItemPage(props: {
               <CheckCircle className="h-5 w-5" />
               <span>Finish Course</span>
             </Link>
+          ) : (
+            <div
+              className="inline-flex min-h-16 cursor-not-allowed items-center justify-center gap-3 rounded-lg border border-[#dceee4] bg-slate-50 px-4 py-3 text-sm font-extrabold text-slate-400 dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-500"
+              aria-disabled="true"
+            >
+              <Lock className="h-5 w-5" />
+              <span>Complete this item to finish the course</span>
+            </div>
           )}
         </div>
         </div>

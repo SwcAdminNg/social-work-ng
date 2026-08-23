@@ -180,9 +180,16 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
               )}
             </div>
             <ul className="divide-y divide-[#edf5f0] dark:divide-[#24372e]">
-              {(section.items || []).map((item) => {
+              {(() => {
+                const items = section.items || [];
+                const firstIncompleteIndex = items.findIndex((i) => !i.is_completed);
+                const frontierIndex = firstIncompleteIndex === -1 ? items.length : firstIncompleteIndex;
+
+                return items.map((item, itemIndex) => {
                 const itemUrl = `/learn/${courseId}/item/${item.id}`;
                 const isActive = pathname === itemUrl;
+                const isSequentialLocked = !isSectionLocked && itemIndex > frontierIndex;
+                const isItemBlocked = isSectionLocked || isSequentialLocked;
 
                 const itemInner = (
                   <>
@@ -193,7 +200,7 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
                           ? "border-[#2D6A4F] text-[#2D6A4F] dark:border-[#52b788] dark:text-[#52b788]"
                           : "border-[#cfe8da] text-slate-400 dark:border-[#315244] dark:text-slate-500"
                     }`}>
-                      {isSectionLocked ? (
+                      {isItemBlocked ? (
                         <Lock className="h-3 w-3" />
                       ) : item.is_completed ? (
                         <span className="flex h-3 w-3 items-center justify-center [&>svg]:h-full [&>svg]:w-full">
@@ -210,13 +217,17 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
                         {item.title}
                       </span>
                       <span className="mt-0.5 block text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        {isSectionLocked ? "Locked" : getItemMetaLabel(item)}
+                        {isSectionLocked
+                          ? "Locked"
+                          : isSequentialLocked
+                            ? "Complete previous item first"
+                            : getItemMetaLabel(item)}
                       </span>
                     </span>
                   </>
                 );
 
-                if (isSectionLocked) {
+                if (isItemBlocked) {
                   return (
                     <li key={item.id}>
                       <div
@@ -245,7 +256,8 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
                     </Link>
                   </li>
                 );
-              })}
+                });
+              })()}
             </ul>
           </section>
           );
