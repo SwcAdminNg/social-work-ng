@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
+  Award,
   BadgeCheck,
   BookOpen,
   Bookmark,
@@ -981,6 +982,15 @@ function DashboardCourseCard({
               >
                 {label}
               </Link>
+              {isComplete && !course.wishlist && (
+                <Link
+                  href={`/dashboard/certificates/${course.id}`}
+                  aria-label={`View certificate for ${course.title}`}
+                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-[#12a150] text-[#0f8a46] transition hover:bg-[#ecfff4] dark:border-[#24c66c] dark:text-[#8de5b5] dark:hover:bg-[#15945a]/15"
+                >
+                  <Award className="h-4 w-4" />
+                </Link>
+              )}
               <button
                 type="button"
                 disabled={pending}

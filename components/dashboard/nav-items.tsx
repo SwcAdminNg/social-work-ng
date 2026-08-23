@@ -58,7 +58,6 @@ export const dashboardNavGroups: NavGroup[] = [
         label: "Certificates",
         href: "/dashboard/certificates",
         icon: Award,
-        disabled: true,
       },
       {
         label: "CPD Record",
