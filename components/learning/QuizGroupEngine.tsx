@@ -85,6 +85,7 @@ interface QuizGroupEngineProps {
   dueDate?: string | null;
   isFinalAssessment?: boolean | null;
   sectionFirstItemId?: string | null;
+  isLastSection?: boolean;
   quizGroup: QuizGroupData;
 }
 
@@ -95,6 +96,7 @@ export function QuizGroupEngine({
   dueDate,
   isFinalAssessment,
   sectionFirstItemId,
+  isLastSection,
   quizGroup,
 }: QuizGroupEngineProps) {
   const router = useRouter();
@@ -289,11 +291,13 @@ export function QuizGroupEngine({
           <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
             <h2 className="text-sm font-extrabold text-amber-900 dark:text-amber-200">
-              Final assessment for this module
+              {isLastSection ? "Final exam for this course" : "Final assessment for this module"}
             </h2>
             <p className="mt-1 text-sm font-medium leading-6 text-amber-800 dark:text-amber-300">
-              You must pass this to unlock the next module. Running out of attempts without
-              passing resets this module (or the course, if this is the last one). {attemptLabel}.
+              {isLastSection
+                ? "You must pass this to complete the course. Running out of attempts without passing resets the entire course."
+                : "You must pass this to unlock the next module. Running out of attempts without passing resets this module."}{" "}
+              {attemptLabel}.
             </p>
           </div>
         </section>

@@ -52,6 +52,7 @@ export default async function LearningItemPage(props: {
   let prevItem: LearningNavItem | null = null;
   let nextItem: LearningNavItem | null = null;
   let sectionFirstItemId: string | null = null;
+  let isLastSection = false;
 
   if (curriculum?.sections) {
     const allItems = curriculum.sections.flatMap(
@@ -66,10 +67,12 @@ export default async function LearningItemPage(props: {
       nextItem = allItems[currentIndex + 1];
     }
 
-    const currentSection = curriculum.sections.find((sec: CurriculumSection) =>
+    const currentSectionIndex = curriculum.sections.findIndex((sec: CurriculumSection) =>
       (sec.items || []).some((i) => i.id === params.item_id),
     );
-    sectionFirstItemId = currentSection?.items?.[0]?.id || null;
+    sectionFirstItemId = curriculum.sections[currentSectionIndex]?.items?.[0]?.id || null;
+    isLastSection =
+      currentSectionIndex !== -1 && currentSectionIndex === curriculum.sections.length - 1;
   }
 
   if (itemRes.status === 403) {
@@ -204,6 +207,7 @@ export default async function LearningItemPage(props: {
             previousAttempt={item.previous_attempt}
             isFinalAssessment={item.is_final_assessment}
             sectionFirstItemId={sectionFirstItemId}
+            isLastSection={isLastSection}
           />
         )}
 
@@ -222,6 +226,7 @@ export default async function LearningItemPage(props: {
             attemptsUsed={item.essay_attempts_used}
             attemptsRemaining={item.essay_attempts_remaining}
             passMarkPercentage={item.essay_pass_mark_percentage}
+            isLastSection={isLastSection}
           />
         )}
 
@@ -234,6 +239,7 @@ export default async function LearningItemPage(props: {
             dueDate={item.due_date}
             isFinalAssessment={item.is_final_assessment}
             sectionFirstItemId={sectionFirstItemId}
+            isLastSection={isLastSection}
             quizGroup={item.quiz_group}
           />
         )}

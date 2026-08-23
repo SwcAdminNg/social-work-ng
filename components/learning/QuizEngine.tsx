@@ -24,6 +24,7 @@ interface QuizEngineProps {
   } | null;
   isFinalAssessment?: boolean | null;
   sectionFirstItemId?: string | null;
+  isLastSection?: boolean;
 }
 
 type QuizQuestion = {
@@ -60,6 +61,7 @@ export function QuizEngine({
   previousAttempt,
   isFinalAssessment,
   sectionFirstItemId,
+  isLastSection,
 }: QuizEngineProps) {
   const router = useRouter();
   const [currentTime] = useState(() => Date.now());
@@ -169,10 +171,13 @@ export function QuizEngine({
           <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
             <h2 className="text-sm font-extrabold text-amber-900 dark:text-amber-200">
-              Final assessment for this module
+              {isLastSection ? "Final exam for this course" : "Final assessment for this module"}
             </h2>
             <p className="mt-1 text-sm font-medium leading-6 text-amber-800 dark:text-amber-300">
-              You must pass this to unlock the next module. Running out of attempts without passing resets this module (or the course, if this is the last one) and you&apos;ll have to redo it. {attemptLabel}.
+              {isLastSection
+                ? "You must pass this to complete the course. Running out of attempts without passing resets the entire course and you'll have to redo it."
+                : "You must pass this to unlock the next module. Running out of attempts without passing resets this module and you'll have to redo it."}{" "}
+              {attemptLabel}.
             </p>
           </div>
         </section>

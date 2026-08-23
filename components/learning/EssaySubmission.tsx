@@ -31,6 +31,7 @@ type EssaySubmissionProps = {
   attemptsUsed?: number | null;
   attemptsRemaining?: number | null;
   passMarkPercentage?: number | null;
+  isLastSection?: boolean;
 };
 
 export function EssaySubmission({
@@ -47,6 +48,7 @@ export function EssaySubmission({
   attemptsUsed,
   attemptsRemaining,
   passMarkPercentage,
+  isLastSection,
 }: EssaySubmissionProps) {
   const router = useRouter();
   const mode = submissionMode === "DOCUMENT" ? "DOCUMENT" : "TEXT";
@@ -165,10 +167,12 @@ export function EssaySubmission({
           <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
             <h2 className="text-sm font-extrabold text-amber-900 dark:text-amber-200">
-              Final assessment for this module
+              {isLastSection ? "Final exam for this course" : "Final assessment for this module"}
             </h2>
             <p className="mt-1 text-sm font-medium leading-6 text-amber-800 dark:text-amber-300">
-              You must pass this to unlock the next module.
+              {isLastSection
+                ? "You must pass this to complete the course."
+                : "You must pass this to unlock the next module."}
               {typeof passMarkPercentage === "number" ? ` Pass mark: ${passMarkPercentage}%.` : ""}{" "}
               {typeof attemptsUsed === "number" ? `${attemptsUsed} graded ${attemptsUsed === 1 ? "attempt" : "attempts"} so far. ` : ""}
               {attemptsLabel}.
