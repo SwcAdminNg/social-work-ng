@@ -130,7 +130,7 @@ function buildAssessmentsEndpoint({
   page: number;
   pageSize: number;
   tab: AssessmentTab;
-  assessmentType?: "QUIZ" | "ESSAY" | null;
+  assessmentType?: "QUIZ" | "ESSAY" | "QUIZ_GROUP" | null;
   dateRange?: AssessmentDateRange | null;
 }) {
   const params = new URLSearchParams({
@@ -233,7 +233,7 @@ function getPositiveInt(value: string | string[] | undefined, fallback: number) 
 
 function normalizeAssessmentType(value?: string) {
   const upper = value?.toUpperCase();
-  return upper === "QUIZ" || upper === "ESSAY" ? upper : null;
+  return upper === "QUIZ" || upper === "ESSAY" || upper === "QUIZ_GROUP" ? upper : null;
 }
 
 function normalizeDateRange(startDate?: string, endDate?: string) {

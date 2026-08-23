@@ -10,6 +10,7 @@ import {
   ChevronRight,
   FileText,
   HelpCircle,
+  Lock,
   Menu,
   PlayCircle,
   Star,
@@ -36,6 +37,7 @@ type CurriculumSection = {
   id: string;
   title: string;
   items?: CurriculumItem[] | null;
+  is_locked?: boolean | null;
 };
 
 type Curriculum = {
@@ -152,20 +154,80 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
-        {sections.map((section, sectionIndex) => (
-          <section key={section.id} className="mb-3 overflow-hidden rounded-lg border border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]">
-            <div className="border-b border-[#e3ede7] px-3 py-2 dark:border-[#27433a]">
-              <p className="text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
-                Module {sectionIndex + 1}
-              </p>
-              <h3 className="mt-0.5 line-clamp-1 text-sm font-bold text-slate-900 dark:text-white">
-                {section.title}
-              </h3>
+        {sections.map((section, sectionIndex) => {
+          const isSectionLocked = section.is_locked === true;
+
+          return (
+          <section
+            key={section.id}
+            className={`mb-3 overflow-hidden rounded-lg border border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726] ${
+              isSectionLocked ? "opacity-60" : ""
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2 border-b border-[#e3ede7] px-3 py-2 dark:border-[#27433a]">
+              <div className="min-w-0">
+                <p className="text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
+                  Module {sectionIndex + 1}
+                </p>
+                <h3 className="mt-0.5 line-clamp-1 text-sm font-bold text-slate-900 dark:text-white">
+                  {section.title}
+                </h3>
+              </div>
+              {isSectionLocked && (
+                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-500 dark:bg-white/10 dark:text-slate-400">
+                  <Lock className="h-3.5 w-3.5" />
+                </span>
+              )}
             </div>
             <ul className="divide-y divide-[#edf5f0] dark:divide-[#24372e]">
               {(section.items || []).map((item) => {
                 const itemUrl = `/learn/${courseId}/item/${item.id}`;
                 const isActive = pathname === itemUrl;
+
+                const itemInner = (
+                  <>
+                    <span className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border ${
+                      item.is_completed
+                        ? "border-[#2D6A4F] bg-[#2D6A4F] text-white dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
+                        : isActive
+                          ? "border-[#2D6A4F] text-[#2D6A4F] dark:border-[#52b788] dark:text-[#52b788]"
+                          : "border-[#cfe8da] text-slate-400 dark:border-[#315244] dark:text-slate-500"
+                    }`}>
+                      {isSectionLocked ? (
+                        <Lock className="h-3 w-3" />
+                      ) : item.is_completed ? (
+                        <span className="flex h-3 w-3 items-center justify-center [&>svg]:h-full [&>svg]:w-full">
+                          <IconCheck />
+                        </span>
+                      ) : (
+                        getItemIcon(item)
+                      )}
+                    </span>
+                    <span className="min-w-0">
+                      <span className={`block line-clamp-2 text-sm font-bold leading-5 ${
+                        isActive ? "text-[#1B4332] dark:text-[#d8f3dc]" : ""
+                      }`}>
+                        {item.title}
+                      </span>
+                      <span className="mt-0.5 block text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        {isSectionLocked ? "Locked" : getItemMetaLabel(item)}
+                      </span>
+                    </span>
+                  </>
+                );
+
+                if (isSectionLocked) {
+                  return (
+                    <li key={item.id}>
+                      <div
+                        className="grid cursor-not-allowed grid-cols-[20px_minmax(0,1fr)] items-start gap-2 px-3 py-2.5 text-slate-500 dark:text-slate-400"
+                        aria-disabled="true"
+                      >
+                        {itemInner}
+                      </div>
+                    </li>
+                  );
+                }
 
                 return (
                   <li key={item.id}>
@@ -178,31 +240,7 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
                           : "text-slate-700 hover:bg-[#f0fbf5] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/10 dark:hover:text-[#b7e4c7]"
                       }`}
                     >
-                      <span className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border ${
-                        item.is_completed
-                          ? "border-[#2D6A4F] bg-[#2D6A4F] text-white dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
-                          : isActive
-                            ? "border-[#2D6A4F] text-[#2D6A4F] dark:border-[#52b788] dark:text-[#52b788]"
-                            : "border-[#cfe8da] text-slate-400 dark:border-[#315244] dark:text-slate-500"
-                      }`}>
-                        {item.is_completed ? (
-                          <span className="flex h-3 w-3 items-center justify-center [&>svg]:h-full [&>svg]:w-full">
-                            <IconCheck />
-                          </span>
-                        ) : (
-                          getItemIcon(item)
-                        )}
-                      </span>
-                      <span className="min-w-0">
-                        <span className={`block line-clamp-2 text-sm font-bold leading-5 ${
-                          isActive ? "text-[#1B4332] dark:text-[#d8f3dc]" : ""
-                        }`}>
-                          {item.title}
-                        </span>
-                        <span className="mt-0.5 block text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                          {getItemMetaLabel(item)}
-                        </span>
-                      </span>
+                      {itemInner}
                       <ChevronRight className={`mt-1 h-4 w-4 transition ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
                     </Link>
                   </li>
@@ -210,7 +248,8 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
               })}
             </ul>
           </section>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

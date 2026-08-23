@@ -15,6 +15,7 @@ import {
   Eye,
   FilePenLine,
   Filter,
+  Layers,
   MoreVertical,
   PlayCircle,
   RotateCcw,
@@ -47,7 +48,7 @@ export type UserAssessment = {
   title: string;
   course_id: string;
   course_title: string;
-  assessment_type: "QUIZ" | "ESSAY" | string;
+  assessment_type: "QUIZ" | "ESSAY" | "QUIZ_GROUP" | string;
   due_date: string | null;
   status: string;
   score: number | null;
@@ -123,7 +124,7 @@ export default function AssessmentsList({
   currentPage: number;
   currentTab: AssessmentTab;
   pageSize: number;
-  assessmentType: "QUIZ" | "ESSAY" | null;
+  assessmentType: "QUIZ" | "ESSAY" | "QUIZ_GROUP" | null;
   dateRange: AssessmentDateRange | null;
   error: string | null;
 }) {
@@ -323,6 +324,14 @@ export default function AssessmentsList({
                       active={assessmentType === "ESSAY"}
                       onClick={() => {
                         updateParam({ assessment_type: "ESSAY", page: "1" });
+                        setFiltersOpen(false);
+                      }}
+                    />
+                    <FilterOption
+                      label="Quiz Groups"
+                      active={assessmentType === "QUIZ_GROUP"}
+                      onClick={() => {
+                        updateParam({ assessment_type: "QUIZ_GROUP", page: "1" });
                         setFiltersOpen(false);
                       }}
                     />
@@ -703,7 +712,7 @@ function AssessmentActionButton({
 function AttemptsSummary({ assessment }: { assessment: UserAssessment }) {
   const type = assessment.assessment_type?.toUpperCase();
 
-  if (type !== "QUIZ") {
+  if (type !== "QUIZ" && type !== "QUIZ_GROUP") {
     return (
       <span className="text-sm font-semibold text-slate-400">
         Not applicable
@@ -763,7 +772,7 @@ function AssessmentIcon({ assessment }: { assessment: UserAssessment }) {
 
   let className =
     "bg-violet-100 text-[#5b2ed4] dark:bg-violet-400/15 dark:text-violet-200";
-  let Icon = type === "ESSAY" ? FilePenLine : BookOpenCheck;
+  let Icon = type === "ESSAY" ? FilePenLine : type === "QUIZ_GROUP" ? Layers : BookOpenCheck;
 
   if (completed) {
     className =
@@ -1202,7 +1211,8 @@ function getActionConfig(assessment: UserAssessment): {
 }
 
 function formatAttempts(assessment: UserAssessment) {
-  if (assessment.assessment_type?.toUpperCase() !== "QUIZ") {
+  const type = assessment.assessment_type?.toUpperCase();
+  if (type !== "QUIZ" && type !== "QUIZ_GROUP") {
     return "Not applicable";
   }
 
@@ -1239,7 +1249,13 @@ function formatAttemptsRemaining(assessment: UserAssessment) {
 function getAssessmentMetaLabel(assessment: UserAssessment) {
   const type = assessment.assessment_type?.toUpperCase();
   const typeLabel =
-    type === "ESSAY" ? "Written Assignment" : type === "QUIZ" ? "Quiz" : "Assessment";
+    type === "ESSAY"
+      ? "Written Assignment"
+      : type === "QUIZ"
+        ? "Quiz"
+        : type === "QUIZ_GROUP"
+          ? "Quiz Group"
+          : "Assessment";
   const estimate = getEstimatedMinutes(assessment);
 
   return estimate > 0 ? `${typeLabel} - ${formatMinutes(estimate)}` : typeLabel;
@@ -1248,7 +1264,7 @@ function getAssessmentMetaLabel(assessment: UserAssessment) {
 function getRulesLabel(assessment: UserAssessment) {
   const type = assessment.assessment_type?.toUpperCase();
 
-  if (type === "QUIZ") {
+  if (type === "QUIZ" || type === "QUIZ_GROUP") {
     return typeof assessment.pass_mark_percentage === "number"
       ? `${Math.round(assessment.pass_mark_percentage)}% pass`
       : "No pass mark";

@@ -3,10 +3,11 @@ import { notFound, redirect } from "next/navigation";
 import { VideoPlayer } from "@/components/learning/VideoPlayer";
 import { QuizEngine } from "@/components/learning/QuizEngine";
 import { EssaySubmission } from "@/components/learning/EssaySubmission";
+import { QuizGroupEngine } from "@/components/learning/QuizGroupEngine";
 import { IconClipboardCheck } from "@/components/dashboard/icons";
 import { MarkCompleteButton } from "@/components/learning/MarkCompleteButton";
 import Link from "next/link";
-import { CheckCircle, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { CheckCircle, ChevronLeft, ChevronRight, Download, Lock } from "lucide-react";
 
 type LearningNavItem = {
   id: string;
@@ -14,6 +15,7 @@ type LearningNavItem = {
 };
 
 type CurriculumSection = {
+  id?: string;
   items?: LearningNavItem[] | null;
 };
 
@@ -43,25 +45,51 @@ export default async function LearningItemPage(props: {
     itemRes.json().catch(() => ({})),
     curriculumRes.json().catch(() => ({}))
   ]);
-  
+
   const item = itemData?.data;
   const curriculum = currData?.data;
 
   let prevItem: LearningNavItem | null = null;
   let nextItem: LearningNavItem | null = null;
+  let sectionFirstItemId: string | null = null;
 
   if (curriculum?.sections) {
     const allItems = curriculum.sections.flatMap(
       (sec: CurriculumSection) => sec.items || [],
     );
     const currentIndex = allItems.findIndex((i: LearningNavItem) => i.id === params.item_id);
-    
+
     if (currentIndex > 0) {
       prevItem = allItems[currentIndex - 1];
     }
     if (currentIndex !== -1 && currentIndex < allItems.length - 1) {
       nextItem = allItems[currentIndex + 1];
     }
+
+    const currentSection = curriculum.sections.find((sec: CurriculumSection) =>
+      (sec.items || []).some((i) => i.id === params.item_id),
+    );
+    sectionFirstItemId = currentSection?.items?.[0]?.id || null;
+  }
+
+  if (itemRes.status === 403) {
+    return (
+      <div className="mx-auto flex h-full max-w-md flex-col items-center justify-center gap-3 p-10 text-center">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400">
+          <Lock className="h-6 w-6" />
+        </span>
+        <h1 className="text-lg font-extrabold text-slate-950 dark:text-white">Module locked</h1>
+        <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+          This module is locked - pass the previous module&apos;s final assessment first.
+        </p>
+        <Link
+          href={`/learn/${params.course_id}`}
+          className="mt-2 inline-flex h-10 items-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+        >
+          Back to course
+        </Link>
+      </div>
+    );
   }
 
   if (!item) {
@@ -78,6 +106,8 @@ export default async function LearningItemPage(props: {
   const isEssay =
     item.item_type === "ESSAY" ||
     (item.item_type === "ASSESSMENT" && item.assessment_type === "ESSAY");
+  const isQuizGroup =
+    item.item_type === "ASSESSMENT" && item.assessment_type === "QUIZ_GROUP";
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#f7fcf9] dark:bg-[#0b1220]">
@@ -172,6 +202,8 @@ export default async function LearningItemPage(props: {
             passMarkPercentage={item.pass_mark_percentage}
             dueDate={item.due_date}
             previousAttempt={item.previous_attempt}
+            isFinalAssessment={item.is_final_assessment}
+            sectionFirstItemId={sectionFirstItemId}
           />
         )}
 
@@ -185,10 +217,28 @@ export default async function LearningItemPage(props: {
             submissionMode={item.essay_submission_mode}
             dueDate={item.due_date}
             submission={item.essay_submission}
+            isFinalAssessment={item.is_final_assessment}
+            maxAttempts={item.essay_max_attempts}
+            attemptsUsed={item.essay_attempts_used}
+            attemptsRemaining={item.essay_attempts_remaining}
+            passMarkPercentage={item.essay_pass_mark_percentage}
           />
         )}
 
-        {item.item_type === "ASSESSMENT" && !isQuiz && !isEssay && (
+        {isQuizGroup && item.quiz_group && (
+          <QuizGroupEngine
+            courseId={params.course_id}
+            itemId={item.id}
+            title={item.title}
+            estimatedMinutes={estimatedMinutes}
+            dueDate={item.due_date}
+            isFinalAssessment={item.is_final_assessment}
+            sectionFirstItemId={sectionFirstItemId}
+            quizGroup={item.quiz_group}
+          />
+        )}
+
+        {item.item_type === "ASSESSMENT" && !isQuiz && !isEssay && !isQuizGroup && (
           <div className="rounded-lg border border-[#dceee4] bg-white p-5 text-center text-sm font-medium text-slate-600 shadow-sm dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-300">
             This assessment type is not available yet.
           </div>

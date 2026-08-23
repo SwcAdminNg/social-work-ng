@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, RotateCcw, Send, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, RotateCcw, Send, ShieldAlert, XCircle } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
 interface QuizEngineProps {
@@ -22,6 +22,8 @@ interface QuizEngineProps {
     answers?: Record<string, string[]> | null;
     result_visible?: boolean | null;
   } | null;
+  isFinalAssessment?: boolean | null;
+  sectionFirstItemId?: string | null;
 }
 
 type QuizQuestion = {
@@ -39,6 +41,9 @@ type QuizResult = {
   score: number | null;
   resultVisible: boolean;
   message?: string;
+  correctAnswers?: Record<string, string[]> | null;
+  sectionReset?: boolean;
+  courseReset?: boolean;
 };
 
 export function QuizEngine({
@@ -53,6 +58,8 @@ export function QuizEngine({
   passMarkPercentage,
   dueDate,
   previousAttempt,
+  isFinalAssessment,
+  sectionFirstItemId,
 }: QuizEngineProps) {
   const router = useRouter();
   const [currentTime] = useState(() => Date.now());
@@ -116,6 +123,9 @@ export function QuizEngine({
         score: data.data?.score ?? null,
         resultVisible: data.data?.result_visible !== false,
         message: data.message,
+        correctAnswers: data.data?.correct_answers ?? null,
+        sectionReset: data.data?.section_reset === true,
+        courseReset: data.data?.course_reset === true,
       });
       setAttemptsUsedThisSession((count) => count + 1);
 
@@ -137,9 +147,59 @@ export function QuizEngine({
         : `${maxAttempts} max attempts`
       : `${effectiveAttemptsRemaining} ${effectiveAttemptsRemaining === 1 ? "attempt" : "attempts"} remaining`;
 
+  const isReset = result?.sectionReset || result?.courseReset;
+  const resetHref = result?.courseReset
+    ? `/learn/${courseId}`
+    : sectionFirstItemId
+      ? `/learn/${courseId}/item/${sectionFirstItemId}`
+      : `/learn/${courseId}`;
+
   return (
     <div className="mx-auto max-w-[860px] space-y-4">
-      {result && (
+      {isFinalAssessment && (
+        <section className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/20">
+          <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <h2 className="text-sm font-extrabold text-amber-900 dark:text-amber-200">
+              Final assessment for this module
+            </h2>
+            <p className="mt-1 text-sm font-medium leading-6 text-amber-800 dark:text-amber-300">
+              You must pass this to unlock the next module. Running out of attempts without passing resets this module (or the course, if this is the last one) and you&apos;ll have to redo it. {attemptLabel}.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {isReset && result && (
+        <section className="rounded-lg border border-red-200 bg-red-50 p-4 shadow-sm dark:border-red-900/40 dark:bg-red-950/20">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-red-600 text-white">
+                <AlertTriangle className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
+                  {result.courseReset ? "Course reset" : "Module reset"}
+                </h2>
+                <p className="mt-1 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
+                  {result.message ||
+                    (result.courseReset
+                      ? "You're out of retries. The entire course has been reset."
+                      : "You're out of retries. This module has been reset.")}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push(resetHref)}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
+            >
+              {result.courseReset ? "Restart course" : "Restart module"}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {result && !isReset && (
         <section className={`rounded-lg border p-4 shadow-sm sm:p-5 ${
           result.resultVisible && result.passed
             ? "border-[#b7e4c7] bg-[#f0fbf5] dark:border-[#27433a] dark:bg-[#13231d]"
@@ -240,13 +300,27 @@ export function QuizEngine({
               <div className="mt-3 grid gap-2">
                 {q.options.map((opt) => {
                   const isSelected = (answers[q.id] || []).includes(opt.id);
+                  const correctAnswersForQuestion =
+                    result?.resultVisible && result?.correctAnswers
+                      ? result.correctAnswers[q.id] || []
+                      : null;
+                  const isCorrectOption = correctAnswersForQuestion?.includes(opt.id) ?? false;
+                  const isWronglySelected =
+                    correctAnswersForQuestion !== null && isSelected && !isCorrectOption;
+
                   return (
                     <label
                       key={opt.id}
                       className={`grid grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-md border px-3 py-2.5 transition ${
-                        isSelected
-                          ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
-                          : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
+                        correctAnswersForQuestion !== null
+                          ? isCorrectOption
+                            ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
+                            : isWronglySelected
+                              ? "border-red-300 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20"
+                              : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
+                          : isSelected
+                            ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
+                            : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
                       } ${!isFormDisabled ? "cursor-pointer hover:border-[#b7e4c7] hover:bg-[#f0fbf5] dark:hover:border-[#40916c] dark:hover:bg-[#183026]" : "opacity-90"}`}
                     >
                       <input

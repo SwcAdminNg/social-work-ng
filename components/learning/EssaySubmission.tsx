@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, FileText, Send, Upload } from "lucide-react";
+import { CheckCircle, FileText, Send, ShieldAlert, Upload, XCircle } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
 type EssaySubmissionValue = {
@@ -14,6 +14,7 @@ type EssaySubmissionValue = {
   is_published?: boolean | null;
   score?: number | null;
   feedback?: string | null;
+  passed?: boolean | null;
 };
 
 type EssaySubmissionProps = {
@@ -25,6 +26,11 @@ type EssaySubmissionProps = {
   submissionMode?: "TEXT" | "DOCUMENT" | string | null;
   dueDate?: string | null;
   submission?: EssaySubmissionValue | null;
+  isFinalAssessment?: boolean | null;
+  maxAttempts?: number | null;
+  attemptsUsed?: number | null;
+  attemptsRemaining?: number | null;
+  passMarkPercentage?: number | null;
 };
 
 export function EssaySubmission({
@@ -36,6 +42,11 @@ export function EssaySubmission({
   submissionMode,
   dueDate,
   submission,
+  isFinalAssessment,
+  maxAttempts,
+  attemptsUsed,
+  attemptsRemaining,
+  passMarkPercentage,
 }: EssaySubmissionProps) {
   const router = useRouter();
   const mode = submissionMode === "DOCUMENT" ? "DOCUMENT" : "TEXT";
@@ -140,8 +151,32 @@ export function EssaySubmission({
     }
   };
 
+  const attemptsLabel =
+    typeof attemptsRemaining === "number"
+      ? `${attemptsRemaining} ${attemptsRemaining === 1 ? "attempt" : "attempts"} remaining`
+      : maxAttempts == null
+        ? "Unlimited attempts"
+        : `${maxAttempts} max attempts`;
+
   return (
     <div className="mx-auto max-w-[860px] space-y-4">
+      {isFinalAssessment && (
+        <section className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/20">
+          <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <h2 className="text-sm font-extrabold text-amber-900 dark:text-amber-200">
+              Final assessment for this module
+            </h2>
+            <p className="mt-1 text-sm font-medium leading-6 text-amber-800 dark:text-amber-300">
+              You must pass this to unlock the next module.
+              {typeof passMarkPercentage === "number" ? ` Pass mark: ${passMarkPercentage}%.` : ""}{" "}
+              {typeof attemptsUsed === "number" ? `${attemptsUsed} graded ${attemptsUsed === 1 ? "attempt" : "attempts"} so far. ` : ""}
+              {attemptsLabel}.
+            </p>
+          </div>
+        </section>
+      )}
+
       <section className="rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
         <div className="border-b border-[#dceee4] px-4 py-3 dark:border-[#27433a] sm:px-5">
           <div className="flex flex-wrap gap-2 text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -200,9 +235,27 @@ export function EssaySubmission({
               )}
 
               {submission?.is_published && typeof submission.score === "number" && (
-                <p className="mt-3 text-base font-extrabold text-slate-950 dark:text-white">
-                  Score: {submission.score}
-                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <p className="text-base font-extrabold text-slate-950 dark:text-white">
+                    Score: {submission.score}
+                  </p>
+                  {isFinalAssessment && typeof submission.passed === "boolean" && (
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-extrabold ${
+                        submission.passed
+                          ? "bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]"
+                          : "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-300"
+                      }`}
+                    >
+                      {submission.passed ? (
+                        <CheckCircle className="h-3.5 w-3.5" />
+                      ) : (
+                        <XCircle className="h-3.5 w-3.5" />
+                      )}
+                      {submission.passed ? "Passed" : "Failed"}
+                    </span>
+                  )}
+                </div>
               )}
               {submission?.is_published && submission.feedback && (
                 <p className="mt-3 whitespace-pre-line rounded-md bg-[#f7fcf9] p-3 text-sm leading-6 text-slate-700 dark:bg-[#0f1726] dark:text-slate-200">
