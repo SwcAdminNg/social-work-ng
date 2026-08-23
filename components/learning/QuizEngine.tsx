@@ -77,6 +77,14 @@ export function QuizEngine({
   );
   const [error, setError] = useState("");
 
+  // Once the server-provided attempts data reflects a submission (after router.refresh()),
+  // drop the local session counter so we don't double-subtract the same attempt.
+  const [prevAttemptsSnapshot, setPrevAttemptsSnapshot] = useState({ attemptsUsed, attemptsRemaining });
+  if (prevAttemptsSnapshot.attemptsUsed !== attemptsUsed || prevAttemptsSnapshot.attemptsRemaining !== attemptsRemaining) {
+    setPrevAttemptsSnapshot({ attemptsUsed, attemptsRemaining });
+    setAttemptsUsedThisSession(0);
+  }
+
   const deadline = dueDate ? new Date(dueDate) : null;
   const deadlinePassed = deadline ? deadline.getTime() < currentTime : false;
   const effectiveAttemptsRemaining =

@@ -116,6 +116,23 @@ export function QuizGroupEngine({
   }, [answers]);
   const submittedRef = useRef(false);
 
+  // Once the server-provided attempts_remaining reflects a submission (after router.refresh()),
+  // drop the local session counter so we don't double-subtract the same attempt.
+  const [prevAttemptsSnapshot, setPrevAttemptsSnapshot] = useState({
+    attemptsUsed: quizGroup.attempts_used,
+    attemptsRemaining: quizGroup.attempts_remaining,
+  });
+  if (
+    prevAttemptsSnapshot.attemptsUsed !== quizGroup.attempts_used ||
+    prevAttemptsSnapshot.attemptsRemaining !== quizGroup.attempts_remaining
+  ) {
+    setPrevAttemptsSnapshot({
+      attemptsUsed: quizGroup.attempts_used,
+      attemptsRemaining: quizGroup.attempts_remaining,
+    });
+    setAttemptsUsedThisSession(0);
+  }
+
   const deadline = dueDate ? new Date(dueDate) : null;
   const deadlinePassed = deadline ? deadline.getTime() < currentTime : false;
   const effectiveAttemptsRemaining =
