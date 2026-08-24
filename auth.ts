@@ -39,8 +39,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         identifier: { label: "Identifier", type: "text" },
         password: { label: "Password", type: "password" },
         keep_logged_in: { label: "Keep Logged In", type: "text" },
+        mode: { label: "Mode", type: "text" },
+        session: { label: "Session", type: "text" },
       },
       async authorize(credentials) {
+        // Completes sign-in with tokens already issued by a finished 2FA
+        // setup/verify exchange, instead of re-authenticating with a password.
+        if (credentials?.mode === "finalize" && typeof credentials.session === "string") {
+          try {
+            const parsed = JSON.parse(credentials.session);
+            const authUser = parsed?.user;
+            const tokens = parsed?.tokens;
+
+            if (!authUser?.id || !tokens?.access_token) {
+              throw new CustomAuthError("Invalid session data");
+            }
+
+            return {
+              id: authUser.id,
+              name: `${authUser.first_name} ${authUser.last_name}`,
+              email: authUser.email,
+              image: authUser.profile_picture_url,
+              username: authUser.username,
+              accessToken: tokens.access_token,
+              refreshToken: tokens.refresh_token,
+              expiresAt: Math.floor(Date.now() / 1000) + (tokens.expires_in || 3600),
+            } satisfies LoginUser;
+          } catch (error) {
+            if (error instanceof CredentialsSignin) {
+              throw error;
+            }
+            throw new CustomAuthError("Invalid session data");
+          }
+        }
+
         if (!credentials?.identifier || !credentials?.password) {
           return null;
         }

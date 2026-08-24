@@ -7,7 +7,14 @@ import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
+import { TwoFactorSetup } from "./TwoFactorSetup";
+import { TwoFactorVerify } from "./TwoFactorVerify";
 import { IconArrowRight, IconCheck, IconLock, IconUser, IconSpinner } from "./shared/icons";
+
+type Step =
+  | { name: "credentials" }
+  | { name: "setup"; challengeToken: string }
+  | { name: "verify"; challengeToken: string; method: "EMAIL" | "TOTP" };
 
 export default function Login({ statsData }: { statsData?: any }) {
   const router = useRouter();
@@ -18,9 +25,31 @@ export default function Login({ statsData }: { statsData?: any }) {
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [step, setStep] = useState<Step>({ name: "credentials" });
+  const [finalizeError, setFinalizeError] = useState("");
 
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+
+  const finalizeSession = async (sessionData: any) => {
+    setFinalizeError("");
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        mode: "finalize",
+        session: JSON.stringify(sessionData),
+      });
+
+      if (res?.error) {
+        throw new Error("Failed to sign in. Please try again.");
+      }
+
+      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+      router.push(callbackUrl);
+    } catch (err: any) {
+      setFinalizeError(err.message || "Failed to sign in. Please try again.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,25 +66,77 @@ export default function Login({ statsData }: { statsData?: any }) {
 
     setLoading(true);
     try {
-      const res = await signIn("credentials", {
-        redirect: false,
-        identifier: email,
-        password,
-        keep_logged_in: keepLoggedIn,
+      const res = await fetch("/api/proxy/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier: email,
+          password,
+          keep_logged_in: keepLoggedIn,
+        }),
       });
 
-      if (res?.error) {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to sign in. Please check your credentials.");
+      }
+
+      const status = data.data?.status;
+      const challengeToken = data.data?.challenge?.challenge_token;
+
+      if (status === "two_factor_setup_required" && challengeToken) {
+        setStep({ name: "setup", challengeToken });
+      } else if (status === "two_factor_verification_required" && challengeToken) {
+        setStep({ name: "verify", challengeToken, method: data.data.challenge.method });
+      } else if (data.data?.user) {
+        // Reserved "success" status: login already completed without a 2FA step.
+        await finalizeSession(data.data);
+      } else {
         throw new Error("Failed to sign in. Please check your credentials.");
       }
-      
-      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-      router.push(callbackUrl);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  if (step.name === "setup") {
+    return (
+      <AuthPageShell variant="login" statsData={statsData}>
+        {finalizeError && (
+          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+            {finalizeError}
+          </div>
+        )}
+        <TwoFactorSetup
+          api={{ kind: "challenge", challengeToken: step.challengeToken }}
+          title="Set up two-factor authentication"
+          description="Your account needs 2FA before you can continue. Choose how you'd like to receive codes."
+          onBack={() => setStep({ name: "credentials" })}
+          onComplete={(sessionData) => finalizeSession(sessionData)}
+        />
+      </AuthPageShell>
+    );
+  }
+
+  if (step.name === "verify") {
+    return (
+      <AuthPageShell variant="login" statsData={statsData}>
+        {finalizeError && (
+          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+            {finalizeError}
+          </div>
+        )}
+        <TwoFactorVerify
+          challengeToken={step.challengeToken}
+          method={step.method}
+          onBack={() => setStep({ name: "credentials" })}
+          onComplete={(sessionData) => finalizeSession(sessionData)}
+        />
+      </AuthPageShell>
+    );
+  }
 
   return (
     <AuthPageShell variant="login" statsData={statsData}>

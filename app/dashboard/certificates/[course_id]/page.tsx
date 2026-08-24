@@ -48,7 +48,10 @@ export default async function CertificateDetailPage(props: {
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
             Complete every item in the course - including passing any final assessments -
-            and your certificate will be issued automatically.
+            and your certificate will be issued automatically. If this is a scheduled
+            (cohort) course, the certificate isn&apos;t issued until the course&apos;s
+            official end date, even if you finished early - it&apos;ll appear here on
+            its own once that date arrives.
           </p>
         </div>
       </div>

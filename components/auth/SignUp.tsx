@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
+import { TwoFactorSetup } from "./TwoFactorSetup";
 import {
   IconArrowRight,
   IconLock,
@@ -18,6 +20,8 @@ import {
 export default function SignUp({ statsData }: { statsData?: any }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [challengeToken, setChallengeToken] = useState<string | null>(null);
+  const [finalizeError, setFinalizeError] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -130,14 +134,56 @@ export default function SignUp({ statsData }: { statsData?: any }) {
       if (!res.ok) {
         throw new Error(data.message || "Failed to create account.");
       }
-      
-      router.push("/login");
+
+      const token = data.data?.challenge?.challenge_token;
+      if (!token) {
+        throw new Error("Failed to create account.");
+      }
+      setChallengeToken(token);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  const finalizeSession = async (sessionData: any) => {
+    setFinalizeError("");
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        mode: "finalize",
+        session: JSON.stringify(sessionData),
+      });
+
+      if (res?.error) {
+        throw new Error("Account created, but signing you in failed. Please sign in manually.");
+      }
+
+      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+      router.push(callbackUrl);
+    } catch (err: any) {
+      setFinalizeError(err.message || "Something went wrong. Please try again.");
+    }
+  };
+
+  if (challengeToken) {
+    return (
+      <AuthPageShell variant="register" statsData={statsData}>
+        {finalizeError && (
+          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+            {finalizeError}
+          </div>
+        )}
+        <TwoFactorSetup
+          api={{ kind: "challenge", challengeToken }}
+          title="Secure your new account"
+          description="Two-factor authentication is required for every account. Choose how you'd like to receive codes."
+          onComplete={(sessionData) => finalizeSession(sessionData)}
+        />
+      </AuthPageShell>
+    );
+  }
 
   return (
     <AuthPageShell variant="register" statsData={statsData}>

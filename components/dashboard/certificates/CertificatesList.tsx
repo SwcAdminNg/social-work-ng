@@ -47,7 +47,7 @@ export default function CertificatesList({
       <EmptyState
         icon={Award}
         title="No certificates yet"
-        description="Complete a course from start to finish (including passing any final assessments) and your certificate will show up here automatically."
+        description="Complete a course from start to finish (including passing any final assessments) and your certificate will show up here automatically. Scheduled/cohort courses issue theirs on the course's official end date, even if you finish early."
       />
     );
   }
