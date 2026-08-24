@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ShieldCheck, Smartphone, Mail, Copy, Check, ArrowLeft } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { ShieldCheck, Smartphone, Mail, Copy, Check, ArrowLeft, TriangleAlert } from "lucide-react";
 import { OtpInput } from "./shared/OtpInput";
 import { IconSpinner } from "./shared/icons";
 
@@ -39,12 +40,14 @@ export function TwoFactorSetup({
   api,
   onComplete,
   onBack,
+  currentMethod,
   title = "Secure your account",
   description = "Choose how you'd like to receive your sign-in codes.",
 }: {
   api: SetupApi;
   onComplete: (result: any) => void;
   onBack?: () => void;
+  currentMethod?: Method | null;
   title?: string;
   description?: string;
 }) {
@@ -59,6 +62,7 @@ export function TwoFactorSetup({
   const [totpQrDataUri, setTotpQrDataUri] = useState("");
 
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [pendingMethod, setPendingMethod] = useState<Method | null>(null);
 
   const body = (extra: Record<string, unknown> = {}) =>
     JSON.stringify(
@@ -76,6 +80,14 @@ export function TwoFactorSetup({
         return prev - 1;
       });
     }, 1000);
+  };
+
+  const selectMethod = (method: Method) => {
+    if (api.kind === "authenticated") {
+      setPendingMethod(method);
+      return;
+    }
+    choose(method);
   };
 
   const choose = async (method: Method) => {
@@ -186,9 +198,9 @@ export function TwoFactorSetup({
         <div className="flex flex-col gap-3">
           <button
             type="button"
-            disabled={loading}
-            onClick={() => choose("TOTP")}
-            className="group flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-white/10 hover:border-[#2D6A4F] dark:hover:border-[#52b788] bg-white dark:bg-white/5 text-left transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+            disabled={loading || currentMethod === "TOTP"}
+            onClick={() => selectMethod("TOTP")}
+            className="group flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-white/10 hover:border-[#2D6A4F] dark:hover:border-[#52b788] bg-white dark:bg-white/5 text-left transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-white/10"
           >
             <div className="w-10 h-10 rounded-lg bg-[#2D6A4F]/10 dark:bg-[#52b788]/10 flex items-center justify-center flex-shrink-0">
               <Smartphone className="w-5 h-5 text-[#2D6A4F] dark:text-[#52b788]" />
@@ -196,9 +208,15 @@ export function TwoFactorSetup({
             <div className="flex-1 min-w-0">
               <p className="text-[0.9rem] font-bold text-gray-900 dark:text-white">
                 Authenticator app{" "}
-                <span className="ml-1 text-[0.65rem] font-bold uppercase tracking-wide text-[#2D6A4F] dark:text-[#52b788]">
-                  Recommended
-                </span>
+                {currentMethod === "TOTP" ? (
+                  <span className="ml-1 text-[0.65rem] font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    Current method
+                  </span>
+                ) : (
+                  <span className="ml-1 text-[0.65rem] font-bold uppercase tracking-wide text-[#2D6A4F] dark:text-[#52b788]">
+                    Recommended
+                  </span>
+                )}
               </p>
               <p className="text-[0.8rem] text-gray-500 dark:text-gray-400">
                 Use Google Authenticator, Microsoft Authenticator, or similar.
@@ -209,15 +227,22 @@ export function TwoFactorSetup({
 
           <button
             type="button"
-            disabled={loading}
-            onClick={() => choose("EMAIL")}
-            className="group flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-white/10 hover:border-[#2D6A4F] dark:hover:border-[#52b788] bg-white dark:bg-white/5 text-left transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+            disabled={loading || currentMethod === "EMAIL"}
+            onClick={() => selectMethod("EMAIL")}
+            className="group flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-white/10 hover:border-[#2D6A4F] dark:hover:border-[#52b788] bg-white dark:bg-white/5 text-left transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-white/10"
           >
             <div className="w-10 h-10 rounded-lg bg-[#2D6A4F]/10 dark:bg-[#52b788]/10 flex items-center justify-center flex-shrink-0">
               <Mail className="w-5 h-5 text-[#2D6A4F] dark:text-[#52b788]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[0.9rem] font-bold text-gray-900 dark:text-white">Email code</p>
+              <p className="text-[0.9rem] font-bold text-gray-900 dark:text-white">
+                Email code
+                {currentMethod === "EMAIL" && (
+                  <span className="ml-1 text-[0.65rem] font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    Current method
+                  </span>
+                )}
+              </p>
               <p className="text-[0.8rem] text-gray-500 dark:text-gray-400">
                 Get a 6-digit code by email each time you sign in.
               </p>
@@ -334,6 +359,51 @@ export function TwoFactorSetup({
           <ArrowLeft className="w-3.5 h-3.5" /> Back
         </button>
       )}
+
+      <Dialog.Root open={!!pendingMethod} onOpenChange={(open) => !open && setPendingMethod(null)}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <Dialog.Content className="fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-sm translate-x-[-50%] translate-y-[-50%] gap-4 border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#121212] p-6 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-2xl">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                <TriangleAlert className="w-5 h-5 text-amber-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <Dialog.Title className="text-[1.05rem] font-bold text-gray-900 dark:text-white">
+                  Switch to {pendingMethod === "TOTP" ? "authenticator app" : "email code"}?
+                </Dialog.Title>
+                <Dialog.Description className="mt-1.5 text-[0.83rem] text-gray-500 dark:text-gray-400 leading-relaxed">
+                  {pendingMethod === "TOTP"
+                    ? "Your current method will stop working for sign-in. You'll need to set up an authenticator app to continue."
+                    : "Your current method will stop working for sign-in, including your saved authenticator app. You'll verify with an emailed code from now on."}
+                </Dialog.Description>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Dialog.Close asChild>
+                <button
+                  type="button"
+                  className="inline-flex h-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+                >
+                  Cancel
+                </button>
+              </Dialog.Close>
+              <button
+                type="button"
+                onClick={() => {
+                  const method = pendingMethod;
+                  setPendingMethod(null);
+                  if (method) choose(method);
+                }}
+                className="inline-flex h-10 items-center justify-center rounded-xl bg-[#2D6A4F] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#1B4332] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] shadow-sm"
+              >
+                Switch method
+              </button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }

@@ -1,116 +1,34 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, ChevronDown, CheckCircle2 } from "lucide-react";
-
-// The FAQ Data Structure
-type FAQCategory =
-  | "General"
-  | "Courses"
-  | "Mentorship"
-  | "Certification"
-  | "Pricing";
+import Link from "next/link";
+import { Search, ChevronDown, CheckCircle2, LifeBuoy } from "lucide-react";
 
 interface FAQItem {
   id: string;
-  category: FAQCategory;
+  category_id: string;
   question: string;
   answer: string;
+  order: number;
+  is_published: boolean;
 }
 
-const faqs: FAQItem[] = [
-  {
-    id: "g1",
-    category: "General",
-    question: "Who is Social Work Nigeria for?",
-    answer:
-      "Our platform is designed for aspiring social workers, current practitioners, healthcare professionals, and anyone interested in building an ethical, evidence-based career in social work within Nigeria.",
-  },
-  {
-    id: "g2",
-    category: "General",
-    question: "Are your programs recognized internationally?",
-    answer:
-      "Yes. While our content is heavily contextualised for the Nigerian landscape, our training programs align with global social work standards and best practices.",
-  },
-  {
-    id: "c1",
-    category: "Courses",
-    question: "How do I enroll in a course?",
-    answer:
-      "Simply create an account on our platform, browse the 'Courses' section, and click on 'Enroll'. You can start learning immediately after successful registration.",
-  },
-  {
-    id: "c2",
-    category: "Courses",
-    question: "Are the courses self-paced?",
-    answer:
-      "Absolutely. All our online courses are self-paced, allowing you to learn at your convenience and balance your studies with your professional commitments.",
-  },
-  {
-    id: "m1",
-    category: "Mentorship",
-    question: "How does the mentorship program work?",
-    answer:
-      "Our mentorship program pairs you with experienced social work professionals. You will have access to one-on-one sessions, career guidance, and practical insights to navigate the social work landscape in Nigeria.",
-  },
-  {
-    id: "m2",
-    category: "Mentorship",
-    question: "Is there a fee for the mentorship program?",
-    answer:
-      "We offer both free community mentorship tiers and premium one-on-one dedicated mentorship packages. Please visit the Pricing page for detailed information.",
-  },
-  {
-    id: "cert1",
-    category: "Certification",
-    question: "Will I receive a certificate upon completion?",
-    answer:
-      "Yes, upon successfully completing all modules and assessments in a course, you will receive a verifiable, CPD-accredited certificate of completion.",
-  },
-  {
-    id: "cert2",
-    category: "Certification",
-    question: "Do these courses count toward my CPD hours?",
-    answer:
-      "Yes, our certified courses count toward your Continuing Professional Development (CPD) hours, helping you maintain your professional licenses and credentials.",
-  },
-  {
-    id: "p1",
-    category: "Pricing",
-    question: "Can I cancel my subscription?",
-    answer:
-      "Yes, you can cancel your subscription at any time from your dashboard settings. You will continue to have access to your plan's benefits until the end of your current billing period.",
-  },
-  {
-    id: "p2",
-    category: "Pricing",
-    question: "What happens to my certificates if I cancel?",
-    answer:
-      "You keep all the certificates you earned while your subscription was active forever. They remain completely verifiable through our platform indefinitely.",
-  },
-  {
-    id: "p3",
-    category: "Pricing",
-    question:
-      "Are exclusive premium courses included in the standard subscription?",
-    answer:
-      "No, exclusive premium courses are not included in the standard subscription plans and must be purchased separately. However, active subscribers often receive special discounts on exclusive content.",
-  },
-];
+interface FAQCategory {
+  id: string;
+  name: string;
+  order: number;
+  items: FAQItem[];
+}
 
-const categories: ("All" | FAQCategory)[] = [
-  "All",
-  "General",
-  "Courses",
-  "Mentorship",
-  "Certification",
-  "Pricing",
-];
-
-export function FAQContent() {
+export function FAQContent({
+  categories,
+  isAuthenticated,
+}: {
+  categories: FAQCategory[];
+  isAuthenticated: boolean;
+}) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<"All" | FAQCategory>(
+  const [selectedCategory, setSelectedCategory] = useState<"All" | string>(
     "All",
   );
   const [openId, setOpenId] = useState<string | null>(null);
@@ -119,16 +37,25 @@ export function FAQContent() {
     setOpenId(openId === id ? null : id);
   };
 
+  const allItems = useMemo(
+    () =>
+      categories.flatMap((cat) =>
+        cat.items.map((item) => ({ ...item, categoryName: cat.name })),
+      ),
+    [categories],
+  );
+
   const filteredFAQs = useMemo(() => {
-    return faqs.filter((faq) => {
+    return allItems.filter((faq) => {
       const matchesCategory =
-        selectedCategory === "All" || faq.category === selectedCategory;
+        selectedCategory === "All" || faq.category_id === selectedCategory;
+      const q = searchTerm.toLowerCase();
       const matchesSearch =
-        faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
+        faq.question.toLowerCase().includes(q) ||
+        faq.answer.toLowerCase().includes(q);
       return matchesCategory && matchesSearch;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [allItems, searchTerm, selectedCategory]);
 
   return (
     <section className="py-20 px-6 bg-gray-50 dark:bg-[#0a0a0a] flex-1">
@@ -144,7 +71,6 @@ export function FAQContent() {
             type="text"
             className="block w-full pl-20 pr-6 py-5 border-0 rounded-2xl text-lg text-gray-900 dark:text-white bg-white dark:bg-gray-900 shadow-xl shadow-gray-200/50 dark:shadow-none ring-1 ring-gray-100 dark:ring-gray-800 focus:ring-2 focus:ring-[#2D6A4F] focus:outline-none focus:ring-offset-2 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-900 transition-all placeholder:text-gray-400"
             autoComplete="off"
-
             placeholder="Search for answers..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -152,24 +78,39 @@ export function FAQContent() {
         </div>
 
         {/* Categories */}
-        <div className="flex overflow-x-auto items-center md:flex-wrap md:justify-center gap-3 mb-7 mt-1 pb-4 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {categories.map((cat) => (
+        {categories.length > 0 && (
+          <div className="flex overflow-x-auto items-center md:flex-wrap md:justify-center gap-3 mb-7 mt-1 pb-4 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <button
-              key={cat}
               onClick={() => {
-                setSelectedCategory(cat);
+                setSelectedCategory("All");
                 setOpenId(null);
               }}
               className={`flex-shrink-0 whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm ${
-                selectedCategory === cat
+                selectedCategory === "All"
                   ? "bg-[#2D6A4F] text-white shadow-md shadow-[#2D6A4F]/20"
                   : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#2D6A4F] dark:hover:border-[#52b788] hover:text-[#2D6A4F] dark:hover:text-[#52b788]"
               }`}
             >
-              {cat}
+              All
             </button>
-          ))}
-        </div>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setSelectedCategory(cat.id);
+                  setOpenId(null);
+                }}
+                className={`flex-shrink-0 whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm ${
+                  selectedCategory === cat.id
+                    ? "bg-[#2D6A4F] text-white shadow-md shadow-[#2D6A4F]/20"
+                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#2D6A4F] dark:hover:border-[#52b788] hover:text-[#2D6A4F] dark:hover:text-[#52b788]"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* FAQs List */}
         <div className="space-y-4">
@@ -227,11 +168,36 @@ export function FAQContent() {
                 No answers found
               </p>
               <p className="text-gray-500 dark:text-gray-400">
-                We couldn't find any FAQs matching "{searchTerm}". Try another
-                search term.
+                {searchTerm
+                  ? `We couldn't find any FAQs matching "${searchTerm}". Try another search term, or ask us directly below.`
+                  : "We couldn't load the FAQ right now. Try again shortly, or ask us directly below."}
               </p>
             </div>
           )}
+        </div>
+
+        {/* Still need help? CTA */}
+        <div className="mt-14 rounded-3xl bg-gradient-to-br from-[#2D6A4F] to-[#1B4332] px-8 py-12 text-center shadow-xl shadow-[#2D6A4F]/20">
+          <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-5">
+            <LifeBuoy className="w-7 h-7 text-white" />
+          </div>
+          <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-3">
+            Still need help?
+          </h3>
+          <p className="text-[#d1e7dd] max-w-lg mx-auto mb-7 leading-relaxed">
+            Can't find your answer above? Open a support ticket and chat live
+            with our Support Desk team.
+          </p>
+          <Link
+            href={
+              isAuthenticated
+                ? "/dashboard/support-tickets?new=1"
+                : "/login?callbackUrl=%2Fdashboard%2Fsupport-tickets"
+            }
+            className="inline-flex items-center gap-2 bg-white text-[#1B4332] font-bold px-7 py-3.5 rounded-xl hover:bg-[#f0fdf4] transition-colors shadow-lg"
+          >
+            Contact Support
+          </Link>
         </div>
       </div>
     </section>

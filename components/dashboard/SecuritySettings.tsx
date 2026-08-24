@@ -69,6 +69,7 @@ export function SecuritySettings() {
             api={{ kind: "authenticated" }}
             title="Switch your verification method"
             description="Changes take effect immediately, without needing to sign in again."
+            currentMethod={status?.two_factor_method}
             onBack={() => setSwitching(false)}
             onComplete={(result) => handleSwitched(result)}
           />

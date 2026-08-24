@@ -110,7 +110,6 @@ export const dashboardNavGroups: NavGroup[] = [
         label: "My Support Tickets",
         href: "/dashboard/support-tickets",
         icon: TicketCheck,
-        disabled: true,
       },
     ],
   },
