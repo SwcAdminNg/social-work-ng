@@ -2,12 +2,22 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Send, Wifi, WifiOff, Loader2 } from "lucide-react";
+import {
+  Send,
+  Wifi,
+  WifiOff,
+  Loader2,
+  Paperclip,
+  X,
+  FileText,
+  Download,
+} from "lucide-react";
 import { toast } from "sonner";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import { getTicketStatusBadge, isTicketTerminal } from "./statusBadge";
 import { RatingWidget } from "./RatingWidget";
 import { getWsBaseUrl } from "@/lib/wsUrl";
+import { formatBytes } from "@/lib/formatBytes";
 
 type Ticket = {
   id: string;
@@ -24,12 +34,25 @@ type Message = {
   body: string;
   created_at: string;
   sender?: { id: string; username?: string; image?: string };
+  attachment_url?: string;
+  attachment_file_name?: string;
+  attachment_mime_type?: string;
+  attachment_file_size_bytes?: number;
+  attachment_kind?: "IMAGE" | "DOCUMENT";
+};
+
+type AttachmentFields = {
+  attachment_storage_key: string;
+  attachment_file_name: string;
+  attachment_mime_type: string;
+  attachment_file_size_bytes: number;
 };
 
 type ConnectionState = "connecting" | "open" | "closed";
 
 const PING_INTERVAL_MS = 25000;
 const RECONNECT_DELAY_MS = 3000;
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10MB client-side cap
 
 function formatTime(value: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -61,13 +84,17 @@ export default function TicketChat({
   const [messages, setMessages] = useState<Message[]>(sortMessages(initialMessages));
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [connection, setConnection] = useState<ConnectionState>("connecting");
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const closedByUserRef = useRef(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const terminal = isTicketTerminal(ticket.status);
 
@@ -145,11 +172,77 @@ export default function TicketChat({
     };
   }, [accessToken, ticketId, terminal, addMessage]);
 
-  const sendViaHttp = async (body: string) => {
+  const clearAttachment = useCallback(() => {
+    setAttachedFile(null);
+    setAttachedPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, []);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      toast.error("That file is too large — please attach something under 10MB.");
+      e.target.value = "";
+      return;
+    }
+
+    clearAttachment();
+    setAttachedFile(file);
+    if (file.type.startsWith("image/")) {
+      setAttachedPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadAttachment = async (file: File): Promise<AttachmentFields> => {
+    const uploadUrlRes = await fetch(
+      `/api/proxy/support/tickets/${ticketId}/attachments/upload-url`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          file_name: file.name,
+          content_type: file.type || "application/octet-stream",
+        }),
+      },
+    );
+    const uploadUrlData = await uploadUrlRes.json().catch(() => ({}));
+    if (!uploadUrlRes.ok) {
+      throw new Error(uploadUrlData.message || "Failed to prepare the attachment upload.");
+    }
+
+    const uploadUrl = uploadUrlData.data?.upload_url;
+    const storageKey = uploadUrlData.data?.storage_key;
+    if (!uploadUrl || !storageKey) {
+      throw new Error("The upload URL response was incomplete.");
+    }
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: file.type ? { "Content-Type": file.type } : undefined,
+      body: file,
+    });
+    if (!uploadRes.ok) {
+      throw new Error("Failed to upload the attachment.");
+    }
+
+    return {
+      attachment_storage_key: storageKey,
+      attachment_file_name: file.name,
+      attachment_mime_type: file.type || "application/octet-stream",
+      attachment_file_size_bytes: file.size,
+    };
+  };
+
+  const sendViaHttp = async (payload: Record<string, unknown>) => {
     const res = await fetch(`/api/proxy/support/tickets/${ticketId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -161,21 +254,40 @@ export default function TicketChat({
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const body = draft.trim();
-    if (!body || terminal) return;
+    if ((!body && !attachedFile) || terminal || sending || uploading) return;
 
+    const fileToUpload = attachedFile;
     setSending(true);
     setDraft("");
+    clearAttachment();
+
     try {
+      let attachmentFields: AttachmentFields | Record<string, never> = {};
+      if (fileToUpload) {
+        setUploading(true);
+        attachmentFields = await uploadAttachment(fileToUpload);
+        setUploading(false);
+      }
+
+      const payload = { type: "message", body, ...attachmentFields };
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: "message", body }));
+        wsRef.current.send(JSON.stringify(payload));
       } else {
-        await sendViaHttp(body);
+        const { type, ...httpPayload } = payload;
+        await sendViaHttp(httpPayload);
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to send message.");
       setDraft(body);
+      if (fileToUpload) {
+        setAttachedFile(fileToUpload);
+        if (fileToUpload.type.startsWith("image/")) {
+          setAttachedPreviewUrl(URL.createObjectURL(fileToUpload));
+        }
+      }
     } finally {
       setSending(false);
+      setUploading(false);
     }
   };
 
@@ -218,13 +330,16 @@ export default function TicketChat({
                     </span>
                   )}
                   <div
-                    className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
+                    className={`flex flex-col gap-2 px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                       isOwn
                         ? "bg-[#2D6A4F] text-white rounded-br-md"
                         : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-bl-md"
                     }`}
                   >
-                    {message.body}
+                    {message.body && <span>{message.body}</span>}
+                    {message.attachment_url && (
+                      <MessageAttachment message={message} isOwn={isOwn} />
+                    )}
                   </div>
                   <span className="text-[0.65rem] text-gray-400 dark:text-gray-500 mt-1 px-1">
                     {formatTime(message.created_at)}
@@ -245,36 +360,138 @@ export default function TicketChat({
       ) : (
         <form
           onSubmit={handleSend}
-          className="flex items-end gap-3 border-t border-gray-100 dark:border-gray-800 p-4"
+          className="flex flex-col gap-2 border-t border-gray-100 dark:border-gray-800 p-4"
         >
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend(e as unknown as React.FormEvent);
-              }
-            }}
-            rows={1}
-            placeholder="Type your message..."
-            className="flex-1 resize-none max-h-32 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 px-4 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] focus:border-transparent transition-all"
-          />
-          <button
-            type="submit"
-            disabled={sending || !draft.trim()}
-            className="inline-flex items-center justify-center h-11 w-11 shrink-0 rounded-xl bg-[#2D6A4F] text-white hover:bg-[#1B4332] transition-colors disabled:opacity-50 disabled:pointer-events-none shadow-sm"
-            aria-label="Send message"
-          >
-            {sending ? (
-              <IconSpinner className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </button>
+          {attachedFile && (
+            <div className="flex items-center gap-3 self-start bg-gray-100 dark:bg-gray-800 rounded-xl px-3 py-2">
+              {attachedPreviewUrl ? (
+                <img
+                  src={attachedPreviewUrl}
+                  alt={attachedFile.name}
+                  className="w-9 h-9 rounded-lg object-cover shrink-0"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-lg bg-white dark:bg-gray-900 flex items-center justify-center shrink-0 text-gray-500 dark:text-gray-400">
+                  <FileText className="w-4 h-4" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[12rem]">
+                  {attachedFile.name}
+                </p>
+                <p className="text-[0.65rem] text-gray-500 dark:text-gray-400">
+                  {formatBytes(attachedFile.size)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={clearAttachment}
+                disabled={sending || uploading}
+                className="ml-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                aria-label="Remove attachment"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-end gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={sending || uploading || !!attachedFile}
+              className="inline-flex items-center justify-center h-11 w-11 shrink-0 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:text-[#2D6A4F] hover:border-[#2D6A4F] dark:hover:text-[#52b788] dark:hover:border-[#52b788] transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              aria-label="Attach a file"
+            >
+              <Paperclip className="h-4 w-4" />
+            </button>
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(e as unknown as React.FormEvent);
+                }
+              }}
+              rows={1}
+              placeholder={uploading ? "Uploading attachment..." : "Type your message..."}
+              disabled={uploading}
+              className="flex-1 resize-none max-h-32 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 px-4 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] focus:border-transparent transition-all disabled:opacity-60"
+            />
+            <button
+              type="submit"
+              disabled={sending || uploading || (!draft.trim() && !attachedFile)}
+              className="inline-flex items-center justify-center h-11 w-11 shrink-0 rounded-xl bg-[#2D6A4F] text-white hover:bg-[#1B4332] transition-colors disabled:opacity-50 disabled:pointer-events-none shadow-sm"
+              aria-label="Send message"
+            >
+              {sending || uploading ? (
+                <IconSpinner className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </form>
       )}
     </div>
+  );
+}
+
+function MessageAttachment({ message, isOwn }: { message: Message; isOwn: boolean }) {
+  if (message.attachment_kind === "IMAGE") {
+    return (
+      <a
+        href={message.attachment_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block overflow-hidden rounded-xl"
+      >
+        <img
+          src={message.attachment_url}
+          alt={message.attachment_file_name || "Attachment"}
+          className="max-w-full max-h-64 object-cover hover:opacity-90 transition-opacity"
+        />
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={message.attachment_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${
+        isOwn
+          ? "bg-white/10 hover:bg-white/20"
+          : "bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 hover:border-[#2D6A4F]/40"
+      }`}
+    >
+      <div
+        className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+          isOwn ? "bg-white/15 text-white" : "bg-[#2D6A4F]/10 text-[#2D6A4F] dark:text-[#52b788]"
+        }`}
+      >
+        <FileText className="w-4 h-4" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold truncate max-w-[10rem]">
+          {message.attachment_file_name || "Attachment"}
+        </p>
+        {typeof message.attachment_file_size_bytes === "number" && (
+          <p className={`text-[0.65rem] ${isOwn ? "text-white/70" : "text-gray-500 dark:text-gray-400"}`}>
+            {formatBytes(message.attachment_file_size_bytes)}
+          </p>
+        )}
+      </div>
+      <Download className={`w-3.5 h-3.5 ml-auto shrink-0 ${isOwn ? "text-white/80" : "text-gray-400"}`} />
+    </a>
   );
 }
 
