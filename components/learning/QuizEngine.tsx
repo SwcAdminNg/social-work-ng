@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle, RotateCcw, Send, ShieldAlert, XCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  Send,
+  ShieldAlert,
+  XCircle,
+} from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
 interface QuizEngineProps {
@@ -150,6 +160,11 @@ export function QuizEngine({
   const answeredCount = questions.filter((q) => answers[q.id] && answers[q.id].length > 0).length;
   const hasUnanswered = answeredCount < questions.length;
   const isFormDisabled = isReviewingResult || !canSubmit;
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const currentQuestion = questions[currentQuestionIndex] || null;
+  const progressPercent = questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0;
+  const canGoPrevious = currentQuestionIndex > 0;
+  const canGoNext = currentQuestionIndex < questions.length - 1;
   const attemptLabel =
     effectiveAttemptsRemaining == null
       ? maxAttempts == null
@@ -303,55 +318,143 @@ export function QuizEngine({
           </div>
         </div>
 
-        <div className="divide-y divide-[#edf5f0] dark:divide-[#24372e]">
-          {questions.map((q, idx) => (
-            <div key={q.id} className="px-4 py-4 sm:px-5">
-              <h3 className="text-sm font-extrabold leading-6 text-slate-900 dark:text-white">
-                <span className="mr-2 text-[#2D6A4F] dark:text-[#b7e4c7]">{idx + 1}.</span>
-                {q.text}
-              </h3>
-              <div className="mt-3 grid gap-2">
-                {q.options.map((opt) => {
-                  const isSelected = (answers[q.id] || []).includes(opt.id);
-                  const correctAnswersForQuestion =
-                    result?.resultVisible && result?.correctAnswers
-                      ? result.correctAnswers[q.id] || []
-                      : null;
-                  const isCorrectOption = correctAnswersForQuestion?.includes(opt.id) ?? false;
-                  const isWronglySelected =
-                    correctAnswersForQuestion !== null && isSelected && !isCorrectOption;
+        {questions.length > 0 ? (
+          <>
+            <div className="border-b border-[#edf5f0] px-4 py-4 dark:border-[#24372e] sm:px-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
+                    Question {currentQuestionIndex + 1} of {questions.length}
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-slate-600 dark:text-slate-300">
+                    {answeredCount}/{questions.length} answered
+                  </p>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#0f1726] sm:w-52">
+                  <div
+                    className="h-full rounded-full bg-[#2D6A4F] transition-all dark:bg-[#52b788]"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {questions.map((q, idx) => {
+                  const isAnswered = (answers[q.id] || []).length > 0;
+                  const isCurrent = idx === currentQuestionIndex;
 
                   return (
-                    <label
-                      key={opt.id}
-                      className={`grid grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-md border px-3 py-2.5 transition ${
-                        correctAnswersForQuestion !== null
-                          ? isCorrectOption
-                            ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
-                            : isWronglySelected
-                              ? "border-red-300 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20"
-                              : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
-                          : isSelected
-                            ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
-                            : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
-                      } ${!isFormDisabled ? "cursor-pointer hover:border-[#b7e4c7] hover:bg-[#f0fbf5] dark:hover:border-[#40916c] dark:hover:bg-[#183026]" : "opacity-90"}`}
+                    <button
+                      key={q.id}
+                      type="button"
+                      onClick={() => setCurrentQuestionIndex(idx)}
+                      aria-label={`Go to question ${idx + 1}${isAnswered ? ", answered" : ", unanswered"}`}
+                      className={`relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border text-sm font-extrabold transition ${
+                        isAnswered
+                          ? "border-[#2D6A4F] bg-[#2D6A4F] text-white shadow-sm shadow-[#2D6A4F]/20 dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
+                          : "border-slate-200 bg-slate-100 text-slate-500 hover:border-[#b7e4c7] hover:bg-[#f0fbf5] hover:text-[#2D6A4F] dark:border-[#27433a] dark:bg-[#0f1726] dark:text-slate-400 dark:hover:border-[#40916c] dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7]"
+                      } ${
+                        isCurrent
+                          ? "ring-2 ring-[#F4A261] ring-offset-2 ring-offset-white dark:ring-[#f7c88f] dark:ring-offset-[#111525]"
+                          : ""
+                      }`}
                     >
-                      <input
-                        type={q.allow_multiple_answers ? "checkbox" : "radio"}
-                        name={q.id}
-                        checked={isSelected}
-                        disabled={isFormDisabled}
-                        onChange={() => toggleOption(q.id, opt.id, q.allow_multiple_answers === true)}
-                        className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#b7e4c7] text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-[#315244] dark:bg-[#111525] dark:text-[#52b788] ${q.allow_multiple_answers ? "rounded" : ""}`}
-                      />
-                      <span className="text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">{opt.text}</span>
-                    </label>
+                      {idx + 1}
+                      {isAnswered && (
+                        <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[#2D6A4F] shadow-sm dark:bg-[#06130d] dark:text-[#52b788]">
+                          <Check className="h-3 w-3" />
+                        </span>
+                      )}
+                    </button>
                   );
                 })}
               </div>
             </div>
-          ))}
-        </div>
+
+            {currentQuestion && (
+              <div className="px-4 py-5 sm:px-5">
+                <h3 className="text-base font-extrabold leading-7 text-slate-900 dark:text-white">
+                  <span className="mr-2 text-[#2D6A4F] dark:text-[#b7e4c7]">
+                    {currentQuestionIndex + 1}.
+                  </span>
+                  {currentQuestion.text}
+                </h3>
+                <div className="mt-4 grid gap-2">
+                  {currentQuestion.options.map((opt) => {
+                    const isSelected = (answers[currentQuestion.id] || []).includes(opt.id);
+                    const correctAnswersForQuestion =
+                      result?.resultVisible && result?.correctAnswers
+                        ? result.correctAnswers[currentQuestion.id] || []
+                        : null;
+                    const isCorrectOption = correctAnswersForQuestion?.includes(opt.id) ?? false;
+                    const isWronglySelected =
+                      correctAnswersForQuestion !== null && isSelected && !isCorrectOption;
+
+                    return (
+                      <label
+                        key={opt.id}
+                        className={`grid grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-md border px-3 py-3 transition ${
+                          correctAnswersForQuestion !== null
+                            ? isCorrectOption
+                              ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
+                              : isWronglySelected
+                                ? "border-red-300 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20"
+                                : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
+                            : isSelected
+                              ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
+                              : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
+                        } ${!isFormDisabled ? "cursor-pointer hover:border-[#b7e4c7] hover:bg-[#f0fbf5] dark:hover:border-[#40916c] dark:hover:bg-[#183026]" : "opacity-90"}`}
+                      >
+                        <input
+                          type={currentQuestion.allow_multiple_answers ? "checkbox" : "radio"}
+                          name={currentQuestion.id}
+                          checked={isSelected}
+                          disabled={isFormDisabled}
+                          onChange={() =>
+                            toggleOption(
+                              currentQuestion.id,
+                              opt.id,
+                              currentQuestion.allow_multiple_answers === true,
+                            )
+                          }
+                          className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#b7e4c7] text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-[#315244] dark:bg-[#111525] dark:text-[#52b788] ${currentQuestion.allow_multiple_answers ? "rounded" : ""}`}
+                        />
+                        <span className="text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
+                          {opt.text}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 border-t border-[#edf5f0] px-4 py-4 dark:border-[#24372e] sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <button
+                type="button"
+                onClick={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
+                disabled={!canGoPrevious}
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-[#f0fbf5] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-200 dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7] sm:w-auto"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, questions.length - 1))}
+                disabled={!canGoNext}
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-[#f7fcf9] px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#27433a] dark:bg-[#0f1726] dark:text-[#b7e4c7] dark:hover:bg-[#183026] sm:w-auto"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="px-4 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 sm:px-5">
+            No questions are available for this quiz yet.
+          </div>
+        )}
 
         {!isFormDisabled && (
           <div className="border-t border-[#dceee4] px-4 py-4 dark:border-[#27433a] sm:px-5">

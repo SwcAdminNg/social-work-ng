@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
+  Check,
   CheckCircle,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   PlayCircle,
   RotateCcw,
@@ -111,6 +114,7 @@ export function QuizGroupEngine({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [now, setNow] = useState(() => Date.now());
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const answersRef = useRef(answers);
   useEffect(() => {
@@ -249,6 +253,7 @@ export function QuizGroupEngine({
         saved_answers: data.data?.saved_answers || {},
       });
       setAnswers(data.data?.saved_answers || {});
+      setCurrentQuestionIndex(0);
       setNow(Date.now());
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to start quiz group"));
@@ -283,6 +288,25 @@ export function QuizGroupEngine({
         ? "Unlimited attempts"
         : `${quizGroup.max_attempts} max attempts`
       : `${effectiveAttemptsRemaining} ${effectiveAttemptsRemaining === 1 ? "attempt" : "attempts"} remaining`;
+
+  const attemptQuestions =
+    attempt?.sections.flatMap((sec, secIdx) =>
+      sec.questions.map((question, questionIdx) => ({
+        question,
+        sectionId: sec.section_id,
+        sectionTitle: sec.title,
+        sectionIndex: secIdx,
+        questionIndex: questionIdx,
+      })),
+    ) || [];
+  const answeredCount = attemptQuestions.filter(({ question }) => (answers[question.id] || []).length > 0).length;
+  const boundedQuestionIndex =
+    attemptQuestions.length > 0 ? Math.min(currentQuestionIndex, attemptQuestions.length - 1) : 0;
+  const currentQuestionItem = attemptQuestions[boundedQuestionIndex] || null;
+  const progressPercent =
+    attemptQuestions.length > 0 ? Math.round((answeredCount / attemptQuestions.length) * 100) : 0;
+  const canGoPrevious = boundedQuestionIndex > 0;
+  const canGoNext = boundedQuestionIndex < attemptQuestions.length - 1;
 
   return (
     <div className="mx-auto max-w-[860px] space-y-4">
@@ -503,53 +527,132 @@ export function QuizGroupEngine({
             <p className="px-4 pt-3 text-sm font-bold text-red-600 dark:text-red-400 sm:px-5">{error}</p>
           )}
 
-          <div className="divide-y divide-[#edf5f0] dark:divide-[#24372e]">
-            {attempt.sections.map((sec, secIdx) => (
-              <div key={sec.section_id} className="px-4 py-4 sm:px-5">
-                <h3 className="mb-3 text-xs font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
-                  Section {secIdx + 1}: {sec.title}
-                </h3>
-                <div className="space-y-4">
-                  {sec.questions.map((q, qIdx) => (
-                    <div key={q.id}>
-                      <h4 className="text-sm font-extrabold leading-6 text-slate-900 dark:text-white">
-                        <span className="mr-2 text-[#2D6A4F] dark:text-[#b7e4c7]">{qIdx + 1}.</span>
-                        {q.text}
-                      </h4>
-                      <div className="mt-2 grid gap-2">
-                        {q.options.map((opt) => {
-                          const isSelected = (answers[q.id] || []).includes(opt.id);
-                          return (
-                            <label
-                              key={opt.id}
-                              className={`grid cursor-pointer grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-md border px-3 py-2.5 transition hover:border-[#b7e4c7] hover:bg-[#f0fbf5] dark:hover:border-[#40916c] dark:hover:bg-[#183026] ${
-                                isSelected
-                                  ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
-                                  : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
-                              }`}
-                            >
-                              <input
-                                type={q.allow_multiple_answers ? "checkbox" : "radio"}
-                                name={q.id}
-                                checked={isSelected}
-                                onChange={() =>
-                                  toggleOption(q.id, opt.id, q.allow_multiple_answers === true)
-                                }
-                                className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#b7e4c7] text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-[#315244] dark:bg-[#111525] dark:text-[#52b788] ${q.allow_multiple_answers ? "rounded" : ""}`}
-                              />
-                              <span className="text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
-                                {opt.text}
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
+          {attemptQuestions.length > 0 ? (
+            <>
+              <div className="border-b border-[#edf5f0] px-4 py-4 dark:border-[#24372e] sm:px-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
+                      Question {boundedQuestionIndex + 1} of {attemptQuestions.length}
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-slate-600 dark:text-slate-300">
+                      {answeredCount}/{attemptQuestions.length} answered
+                    </p>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#0f1726] sm:w-52">
+                    <div
+                      className="h-full rounded-full bg-[#2D6A4F] transition-all dark:bg-[#52b788]"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {attemptQuestions.map(({ question }, idx) => {
+                    const isAnswered = (answers[question.id] || []).length > 0;
+                    const isCurrent = idx === boundedQuestionIndex;
+
+                    return (
+                      <button
+                        key={question.id}
+                        type="button"
+                        onClick={() => setCurrentQuestionIndex(idx)}
+                        aria-label={`Go to question ${idx + 1}${isAnswered ? ", answered" : ", unanswered"}`}
+                        className={`relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border text-sm font-extrabold transition ${
+                          isAnswered
+                            ? "border-[#2D6A4F] bg-[#2D6A4F] text-white shadow-sm shadow-[#2D6A4F]/20 dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
+                            : "border-slate-200 bg-slate-100 text-slate-500 hover:border-[#b7e4c7] hover:bg-[#f0fbf5] hover:text-[#2D6A4F] dark:border-[#27433a] dark:bg-[#0f1726] dark:text-slate-400 dark:hover:border-[#40916c] dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7]"
+                        } ${
+                          isCurrent
+                            ? "ring-2 ring-[#F4A261] ring-offset-2 ring-offset-white dark:ring-[#f7c88f] dark:ring-offset-[#111525]"
+                            : ""
+                        }`}
+                      >
+                        {idx + 1}
+                        {isAnswered && (
+                          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[#2D6A4F] shadow-sm dark:bg-[#06130d] dark:text-[#52b788]">
+                            <Check className="h-3 w-3" />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            ))}
-          </div>
+
+              {currentQuestionItem && (
+                <div className="px-4 py-5 sm:px-5">
+                  <p className="mb-3 text-xs font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
+                    Section {currentQuestionItem.sectionIndex + 1}: {currentQuestionItem.sectionTitle}
+                  </p>
+                  <h3 className="text-base font-extrabold leading-7 text-slate-900 dark:text-white">
+                    <span className="mr-2 text-[#2D6A4F] dark:text-[#b7e4c7]">
+                      {currentQuestionItem.questionIndex + 1}.
+                    </span>
+                    {currentQuestionItem.question.text}
+                  </h3>
+                  <div className="mt-4 grid gap-2">
+                    {currentQuestionItem.question.options.map((opt) => {
+                      const isSelected = (answers[currentQuestionItem.question.id] || []).includes(opt.id);
+
+                      return (
+                        <label
+                          key={opt.id}
+                          className={`grid cursor-pointer grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-md border px-3 py-3 transition hover:border-[#b7e4c7] hover:bg-[#f0fbf5] dark:hover:border-[#40916c] dark:hover:bg-[#183026] ${
+                            isSelected
+                              ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
+                              : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
+                          }`}
+                        >
+                          <input
+                            type={currentQuestionItem.question.allow_multiple_answers ? "checkbox" : "radio"}
+                            name={currentQuestionItem.question.id}
+                            checked={isSelected}
+                            onChange={() =>
+                              toggleOption(
+                                currentQuestionItem.question.id,
+                                opt.id,
+                                currentQuestionItem.question.allow_multiple_answers === true,
+                              )
+                            }
+                            className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#b7e4c7] text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-[#315244] dark:bg-[#111525] dark:text-[#52b788] ${currentQuestionItem.question.allow_multiple_answers ? "rounded" : ""}`}
+                          />
+                          <span className="text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
+                            {opt.text}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2 border-t border-[#edf5f0] px-4 py-4 dark:border-[#24372e] sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
+                  disabled={!canGoPrevious}
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-[#f0fbf5] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-200 dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7] sm:w-auto"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, attemptQuestions.length - 1))}
+                  disabled={!canGoNext}
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-[#f7fcf9] px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#27433a] dark:bg-[#0f1726] dark:text-[#b7e4c7] dark:hover:bg-[#183026] sm:w-auto"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="px-4 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 sm:px-5">
+              No questions are available for this quiz group yet.
+            </div>
+          )}
 
           <div className="border-t border-[#dceee4] px-4 py-4 dark:border-[#27433a] sm:px-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
