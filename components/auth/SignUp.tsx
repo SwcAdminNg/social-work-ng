@@ -16,6 +16,7 @@ import {
   IconSpinner,
   IconUser,
 } from "./shared/icons";
+import { Camera } from "lucide-react";
 
 export default function SignUp({ statsData }: { statsData?: any }) {
   const router = useRouter();
@@ -160,7 +161,9 @@ export default function SignUp({ statsData }: { statsData?: any }) {
         throw new Error("Account created, but signing you in failed. Please sign in manually.");
       }
 
-      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+      const callbackUrl =
+        searchParams.get("callbackUrl") ||
+        "/dashboard/settings?profile_photo=certificate-onboarding";
       router.push(callbackUrl);
     } catch (err: any) {
       setFinalizeError(err.message || "Something went wrong. Please try again.");
@@ -205,6 +208,15 @@ export default function SignUp({ statsData }: { statsData?: any }) {
           {error}
         </div>
       )}
+
+      <div className="mb-4 flex items-start gap-3 rounded-xl border border-[#b7e4c7] bg-[#f1fbf6] p-3 text-[#173f2d] dark:border-[#2f6f55] dark:bg-[#10261c] dark:text-[#d8f3dc]">
+        <Camera className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#2D6A4F] dark:text-[#52b788]" />
+        <p className="text-xs leading-5">
+          After signup, add a clear professional profile photo. It is required
+          before certificates can be issued and will appear on certificates
+          earned from your account.
+        </p>
+      </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">

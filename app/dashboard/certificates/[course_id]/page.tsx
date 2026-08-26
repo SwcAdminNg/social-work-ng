@@ -1,7 +1,7 @@
 import { fetchApi } from "@/lib/fetchApi";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Award, ChevronLeft, Download, ShieldCheck } from "lucide-react";
+import { Award, Camera, ChevronLeft, Download, ShieldCheck } from "lucide-react";
 import { CopyLinkButton } from "@/components/dashboard/certificates/CopyLinkButton";
 
 type Certificate = {
@@ -26,6 +26,51 @@ export default async function CertificateDetailPage(props: {
 
   if (res.status === 401) {
     redirect(`/logout?callbackUrl=/dashboard/certificates/${params.course_id}`);
+  }
+
+  const json = await res.json().catch(() => ({}));
+
+  if (res.status === 400) {
+    const settingsHref = `/dashboard/settings?profile_photo=certificate&callbackUrl=${encodeURIComponent(
+      `/dashboard/certificates/${params.course_id}`,
+    )}`;
+
+    return (
+      <div className="w-full h-full max-w-8xl mx-auto py-8">
+        <Link
+          href="/dashboard/certificates"
+          className="inline-flex items-center gap-2 text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back to certificates
+        </Link>
+
+        <div className="mt-8 flex flex-col items-center justify-center text-center gap-4 rounded-2xl bg-white dark:bg-gray-900 border border-dashed border-[#b7e4c7] dark:border-[#2f6f55] p-10 sm:p-16">
+          <div className="w-14 h-14 rounded-2xl bg-[#2D6A4F]/10 dark:bg-[#52b788]/15 text-[#2D6A4F] dark:text-[#52b788] flex items-center justify-center">
+            <Camera className="h-6 w-6" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-gray-900 dark:text-white">
+              Add a profile photo to issue this certificate
+            </h2>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-md">
+              {json?.message ||
+                "Add a profile picture to your profile before this certificate can be issued."}{" "}
+              Use a clear, professional headshot because the photo saved when
+              the certificate is issued will appear on the PDF and remain part
+              of its long-term verification record.
+            </p>
+          </div>
+          <Link
+            href={settingsHref}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] dark:bg-[#52b788] px-4 py-2.5 text-sm font-bold text-white dark:text-gray-950 transition hover:bg-[#1B4332] dark:hover:bg-[#74c69d]"
+          >
+            <Camera className="h-4 w-4" />
+            Add profile photo
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   if (res.status === 404) {
@@ -57,8 +102,6 @@ export default async function CertificateDetailPage(props: {
       </div>
     );
   }
-
-  const json = await res.json().catch(() => ({}));
 
   if (!res.ok || !json?.data) {
     return (

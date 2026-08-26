@@ -11,7 +11,7 @@ import {
   AlertCircle,
   Camera,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
@@ -28,8 +28,11 @@ type ProfileUser = {
 
 export function ProfileSettings() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { update } = useSession();
+  const profilePhotoPrompt = searchParams.has("profile_photo");
+  const photoUploadCallbackUrl = searchParams.get("callbackUrl");
 
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingUsername, setSavingUsername] = useState(false);
@@ -40,6 +43,8 @@ export function ProfileSettings() {
     string | null
   >(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoSectionRef = useRef<HTMLDivElement>(null);
+  const hasScrolledToPhotoPrompt = useRef(false);
 
   // Profile Form State
   const [firstName, setFirstName] = useState("");
@@ -76,6 +81,18 @@ export function ProfileSettings() {
       toast.error("Failed to load profile data.");
     }
   }, [isError]);
+
+  useEffect(() => {
+    if (loading || !profilePhotoPrompt || hasScrolledToPhotoPrompt.current) {
+      return;
+    }
+
+    photoSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+    hasScrolledToPhotoPrompt.current = true;
+  }, [loading, profilePhotoPrompt]);
 
   useEffect(() => {
     if (user && !hasSynced) {
@@ -260,7 +277,11 @@ export function ProfileSettings() {
       await update({ profile_picture_url: nextProfilePictureUrl });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       router.refresh();
-      toast.success("Profile picture updated successfully!");
+      toast.success("Profile photo updated successfully!");
+
+      if (photoUploadCallbackUrl?.startsWith("/")) {
+        router.push(photoUploadCallbackUrl);
+      }
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -281,6 +302,7 @@ export function ProfileSettings() {
     profilePictureUrl && profilePictureUrl !== failedProfilePictureUrl
       ? profilePictureUrl
       : null;
+  const hasProfilePicture = Boolean(profilePictureUrl);
 
   if (loading) {
     return (
@@ -411,10 +433,33 @@ export function ProfileSettings() {
 
         {/* Right Column: Username & Critical Settings */}
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#121212] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-5">
-              Profile Photo
-            </h2>
+          <div
+            ref={photoSectionRef}
+            className={`bg-white dark:bg-[#121212] border rounded-3xl p-6 md:p-8 shadow-sm transition ${
+              profilePhotoPrompt && !hasProfilePicture
+                ? "border-[#2D6A4F] ring-4 ring-[#2D6A4F]/10 dark:border-[#52b788] dark:ring-[#52b788]/10"
+                : "border-gray-200 dark:border-gray-800"
+            }`}
+          >
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Profile Photo
+                </h2>
+                <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                  Required before any course certificate can be issued.
+                </p>
+              </div>
+              <span
+                className={`rounded-md px-2 py-1 text-[0.68rem] font-extrabold uppercase ${
+                  hasProfilePicture
+                    ? "bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]"
+                    : "bg-orange-50 text-orange-700 dark:bg-orange-950/20 dark:text-orange-300"
+                }`}
+              >
+                {hasProfilePicture ? "Ready" : "Required"}
+              </span>
+            </div>
             <div className="flex items-center gap-4">
               <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#2D6A4F] text-2xl font-extrabold text-white shadow-[0_18px_34px_-24px_rgba(45,106,79,0.95)] dark:bg-[#52b788] dark:text-[#06130d]">
                 {profilePictureImageUrl ? (
@@ -434,6 +479,11 @@ export function ProfileSettings() {
                 <p className="truncate text-sm font-bold text-gray-900 dark:text-white">
                   {displayName}
                 </p>
+                <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                  Use a clear, professional headshot. The photo saved when a
+                  certificate is issued will appear on that PDF and remain part
+                  of its long-term verification record.
+                </p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -445,7 +495,11 @@ export function ProfileSettings() {
                   ) : (
                     <Camera className="w-4 h-4" />
                   )}
-                  {uploadingPicture ? "Uploading..." : "Change Photo"}
+                  {uploadingPicture
+                    ? "Uploading..."
+                    : hasProfilePicture
+                      ? "Change Photo"
+                      : "Add Photo"}
                 </button>
                 <input
                   ref={fileInputRef}
