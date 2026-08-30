@@ -4,12 +4,20 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
+type SavedCard = {
+  id: string;
+  card_type?: string | null;
+  brand?: string | null;
+  last4?: string | null;
+};
+
 interface EnrollButtonProps {
   courseId: string;
   isEnrolled: boolean;
   isFree: boolean;
   price?: number;
   hasAccess?: boolean;
+  isCompleted?: boolean;
 }
 
 export function EnrollButton({
@@ -18,23 +26,24 @@ export function EnrollButton({
   isFree,
   price,
   hasAccess,
+  isCompleted,
 }: EnrollButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [savedCards, setSavedCards] = useState<any[]>([]);
+  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
   const [selectedCardId, setSelectedCardId] = useState<string>("NEW");
   const [saveNewCard, setSaveNewCard] = useState(false);
   const [cardsLoading, setCardsLoading] = useState(false);
   const router = useRouter();
 
-  if (isEnrolled) {
+  if (isEnrolled || hasAccess || isCompleted) {
     return (
       <button
         onClick={() => router.push(`/learn/${courseId}`)}
         className="w-full py-4 px-6 rounded-2xl font-bold text-white bg-[#2D6A4F] hover:bg-[#1B4332] dark:bg-[#52b788] dark:hover:bg-[#40916c] transition-colors shadow-lg shadow-[#2D6A4F]/20"
       >
-        Go to Course
+        View Course
       </button>
     );
   }
@@ -53,7 +62,7 @@ export function EnrollButton({
             setSavedCards(data.data);
             setSelectedCardId(data.data[0].id);
           }
-        } catch (e) {
+        } catch {
           // ignore
         } finally {
           setCardsLoading(false);
@@ -133,8 +142,8 @@ export function EnrollButton({
       }
 
       router.push(`/learn/${courseId}`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to enroll.");
       setLoading(false);
     }
   };

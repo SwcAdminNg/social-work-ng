@@ -11,6 +11,7 @@ type CourseDetailActionProps = {
   price?: number | null;
   isEnrolled: boolean;
   hasAccess: boolean;
+  isCompleted?: boolean;
 };
 
 export function CourseDetailAction({
@@ -20,11 +21,12 @@ export function CourseDetailAction({
   price,
   isEnrolled,
   hasAccess,
+  isCompleted = false,
 }: CourseDetailActionProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const canViewCourse = isEnrolled || hasAccess;
+  const canViewCourse = isEnrolled || hasAccess || isCompleted;
 
   async function handleAction() {
     if (canViewCourse) {

@@ -20,6 +20,7 @@ import {
   Star,
 } from "lucide-react";
 import { fetchApi } from "@/lib/fetchApi";
+import { getCourseDurationLabel } from "@/lib/courseDuration";
 import {
   InstructorSummary,
   type CourseInstructor,
@@ -135,9 +136,12 @@ type Course = {
   is_exclusive?: boolean | null;
   average_rating?: number | null;
   total_reviews?: number | null;
+  estimated_total_minutes?: number | null;
+  estimated_duration?: string | null;
   is_enrolled?: boolean | null;
   is_bookmarked?: boolean | null;
   has_access?: boolean | null;
+  is_completed?: boolean | null;
   certificate_enabled?: boolean | null;
   sections?: CourseSection[] | null;
 };
@@ -216,13 +220,12 @@ export default async function DashboardCourseDetailPage(props: {
   const quizCount = allItems.filter(isQuizItem).length;
   const essayCount = allItems.filter(isEssayItem).length;
   const previewCount = allItems.filter((item) => item.is_preview).length;
-  const durationSeconds = allItems.reduce(
-    (total, item) => total + Number(item.video?.duration_seconds || 0),
-    0,
-  );
+  const courseDurationLabel =
+    getCourseDurationLabel(course) || formatEstimatedMinutes(allItems);
   const hasAccess = course.has_access === true;
   const isEnrolled = course.is_enrolled === true;
-  const canViewCourse = hasAccess || isEnrolled;
+  const isCompleted = course.is_completed === true;
+  const canViewCourse = hasAccess || isEnrolled || isCompleted;
   const firstUnlockedItem = canViewCourse ? allItems[0] : null;
   const lockedCount = canViewCourse
     ? 0
@@ -266,8 +269,8 @@ export default async function DashboardCourseDetailPage(props: {
             />
             <MetricCard
               icon={<Clock3 className="h-5 w-5" />}
-              label="Video Time"
-              value={formatDuration(durationSeconds)}
+              label="Course Duration"
+              value={courseDurationLabel}
             />
             <MetricCard
               icon={<Sparkles className="h-5 w-5" />}
@@ -376,6 +379,7 @@ export default async function DashboardCourseDetailPage(props: {
                 price={course.price}
                 isEnrolled={isEnrolled}
                 hasAccess={hasAccess}
+                isCompleted={isCompleted}
               />
               <CourseBookmarkButton
                 courseId={course.id}
@@ -918,6 +922,15 @@ function formatMinutes(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
   return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
+}
+
+function formatEstimatedMinutes(items: CourseItem[]) {
+  const minutes = items.reduce(
+    (total, item) => total + Number(item.estimated_minutes || 0),
+    0,
+  );
+
+  return minutes > 0 ? formatMinutes(minutes) : "Self-paced";
 }
 
 function formatBytes(bytes: number) {
