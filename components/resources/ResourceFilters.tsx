@@ -20,7 +20,7 @@ export function ResourceFilters() {
       if (search.trim()) params.set("search", search.trim());
       else params.delete("search");
       params.set("page", "1");
-      router.push(`${pathname}?${params.toString()}`);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
     }, 350);
 
     return () => window.clearTimeout(timer);
@@ -31,12 +31,12 @@ export function ResourceFilters() {
     if (category) params.set("category", category);
     else params.delete("category");
     params.set("page", "1");
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
   function clearFilters() {
     setSearch("");
-    router.push(pathname);
+    router.push(pathname, { scroll: false });
   }
 
   const hasFilters = Boolean(currentCategory || currentSearch);

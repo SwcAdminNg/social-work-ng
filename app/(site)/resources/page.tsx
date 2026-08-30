@@ -86,6 +86,7 @@ export default async function ResourcesPage(props: {
               {page > 1 ? (
                 <Link
                   href={buildPageUrl(page - 1)}
+                  scroll={false}
                   className="inline-flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -105,6 +106,7 @@ export default async function ResourcesPage(props: {
               {hasNextPage ? (
                 <Link
                   href={buildPageUrl(page + 1)}
+                  scroll={false}
                   className="inline-flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900"
                 >
                   Next
