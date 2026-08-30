@@ -42,6 +42,7 @@ export function DashboardHeader() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -67,6 +68,32 @@ export function DashboardHeader() {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchUnreadCount() {
+      try {
+        const res = await fetch("/api/proxy/community/unread-count");
+        const json = await res.json().catch(() => ({}));
+        if (!cancelled && res.ok) {
+          setUnreadCount(Number(json?.data?.total_unread) || 0);
+        }
+      } catch {
+        // Badge is additive; header should stay usable if this fails.
+      }
+    }
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    window.addEventListener("community:unread-refresh", fetchUnreadCount);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      window.removeEventListener("community:unread-refresh", fetchUnreadCount);
+    };
   }, []);
 
   return (
@@ -154,15 +181,18 @@ export function DashboardHeader() {
           </div>
         </div>
 
-        <button
+        <Link
+          href="/dashboard/community"
           aria-label="Messages"
-          className="relative hidden h-10 w-10 items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] sm:flex"
+          className="relative hidden h-10 w-10 items-center justify-center rounded-md text-slate-600 no-underline transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] sm:flex"
         >
           <MessageSquare className="h-5 w-5" strokeWidth={1.9} />
-          <span className="absolute -right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f43f5e] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:ring-[#111525]">
-            2
-          </span>
-        </button>
+          {unreadCount > 0 && (
+            <span className="absolute -right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f43f5e] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:ring-[#111525]">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </Link>
 
         <Link
           href="/contact"

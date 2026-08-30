@@ -379,6 +379,15 @@ export default function CommunityChat({
     [currentUserId],
   );
 
+  const markRead = useCallback((communityId: string) => {
+    if (!communityId) return;
+    fetch(`/api/proxy/community/${communityId}/read`, { method: "POST" })
+      .catch(() => {})
+      .finally(() => {
+        window.dispatchEvent(new Event("community:unread-refresh"));
+      });
+  }, []);
+
   const clearAttachment = useCallback(() => {
     setAttachedFile(null);
     setAttachedPreviewUrl((prev) => {
@@ -518,11 +527,20 @@ export default function CommunityChat({
       clearAttachment();
       loadMessages(activeId, 1);
       loadMembers(activeId, 1, "online");
+      markRead(activeId);
       return;
     }
 
     loadMembers(activeId, memberPage, memberMode);
-  }, [activeId, clearAttachment, loadMembers, loadMessages, memberMode, memberPage]);
+  }, [
+    activeId,
+    clearAttachment,
+    loadMembers,
+    loadMessages,
+    markRead,
+    memberMode,
+    memberPage,
+  ]);
 
   useEffect(() => {
     if (memberPage > rosterTotalPages) {
@@ -595,6 +613,9 @@ export default function CommunityChat({
           const payload = JSON.parse(event.data);
           if (payload.type === "message" && payload.data) {
             mergeMessage(payload.data as Message);
+            if (payload.data.sender_id !== currentUserId) {
+              markRead(activeId);
+            }
           } else if (payload.type === "typing" && payload.user_id !== currentUserId) {
             setTypingUsers((prev) => {
               const next = new Map(prev);
@@ -638,6 +659,7 @@ export default function CommunityChat({
     currentUserId,
     loadMembers,
     loadMessages,
+    markRead,
     mergeMessage,
   ]);
 
