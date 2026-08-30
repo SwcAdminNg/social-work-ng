@@ -2,6 +2,7 @@ import { fetchApi } from "@/lib/fetchApi";
 import { EnrollButton } from "./EnrollButton";
 import { CourseCurriculum } from "./CourseCurriculum";
 import { CourseReviews } from "@/components/courses/CourseReviews";
+import { CourseResourcesSection } from "@/components/resources/CourseResourcesSection";
 import { IconBookOpen } from "@/components/dashboard/icons";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
@@ -204,6 +205,10 @@ export default async function CourseDetailsPage(props: {
                 courseId={course.id}
                 sections={course.sections}
               />
+
+              <div className="mt-12">
+                <CourseResourcesSection courseId={course.id} />
+              </div>
 
               {/* Course Reviews */}
               <CourseReviews courseId={course.id} />
