@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { ReviewModal } from "./ReviewModal";
+import { ResourceRead, formatResourceCategory } from "@/lib/resources";
 
 type ReviewValue = {
   id: string;
@@ -60,9 +61,10 @@ type GuestInstructor = {
 interface CourseSidebarProps {
   courseId: string;
   curriculum: Curriculum;
+  resources?: ResourceRead[];
 }
 
-export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
+export function CourseSidebar({ courseId, curriculum, resources = [] }: CourseSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -277,6 +279,69 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
           </section>
           );
         })}
+
+        {resources.length > 0 && (
+          <section className="mb-3 overflow-hidden rounded-lg border border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]">
+            <div className="border-b border-[#e3ede7] px-3 py-2 dark:border-[#27433a]">
+              <p className="text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
+                Course resources
+              </p>
+              <h3 className="mt-0.5 line-clamp-1 text-sm font-bold text-slate-900 dark:text-white">
+                Templates, readings & links
+              </h3>
+            </div>
+            <ul className="divide-y divide-[#edf5f0] dark:divide-[#24372e]">
+              {resources.map((resource) => {
+                const resourceUrl = `/resources/${resource.slug || resource.id}`;
+                const isLocked = resource.can_access === false;
+
+                return (
+                  <li key={resource.id}>
+                    <Link
+                      href={resourceUrl}
+                      onClick={() => setIsOpen(false)}
+                      className="group grid grid-cols-[20px_minmax(0,1fr)_16px] items-start gap-2 px-3 py-2.5 text-slate-700 transition hover:bg-[#f0fbf5] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/10 dark:hover:text-[#b7e4c7]"
+                    >
+                      <span
+                        className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border ${
+                          isLocked
+                            ? "border-slate-300 text-slate-400 dark:border-slate-700 dark:text-slate-500"
+                            : "border-[#cfe8da] text-[#2D6A4F] dark:border-[#315244] dark:text-[#b7e4c7]"
+                        }`}
+                      >
+                        {isLocked ? (
+                          <Lock className="h-3 w-3" />
+                        ) : (
+                          getResourceIcon(resource.category)
+                        )}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block line-clamp-2 text-sm font-bold leading-5">
+                          {resource.name}
+                        </span>
+                        <span className="mt-0.5 block text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          {isLocked
+                            ? getResourceLockLabel(resource)
+                            : formatResourceCategory(resource.category)}
+                        </span>
+                      </span>
+                      <ChevronRight className="mt-1 h-4 w-4 opacity-0 transition group-hover:opacity-100" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="border-t border-[#e3ede7] p-3 dark:border-[#27433a]">
+              <Link
+                href={`/resources?course_id=${courseId}`}
+                onClick={() => setIsOpen(false)}
+                className="flex h-9 items-center justify-center rounded-md border border-[#b7e4c7] text-xs font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+              >
+                View all course resources
+              </Link>
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
@@ -353,6 +418,18 @@ function getItemIcon(item: CurriculumItem) {
   }
 
   return <BookOpen className="h-3.5 w-3.5" />;
+}
+
+function getResourceIcon(category?: string) {
+  if (category === "VIDEOS_AND_WEBINARS") return <PlayCircle className="h-3.5 w-3.5" />;
+  if (category === "USEFUL_LINKS") return <Link2 className="h-3.5 w-3.5" />;
+  return <FileText className="h-3.5 w-3.5" />;
+}
+
+function getResourceLockLabel(resource: ResourceRead) {
+  if (resource.access_reason === "LOGIN_REQUIRED") return "Log in to unlock";
+  if (resource.access_reason === "ENROLLMENT_REQUIRED") return "Enrollment required";
+  return "Locked";
 }
 
 function formatGuestInstructors(guests?: GuestInstructor[] | null) {

@@ -1,10 +1,14 @@
 import { fetchApi } from "@/lib/fetchApi";
 import { notFound, redirect } from "next/navigation";
 import { CourseSidebar } from "@/components/learning/CourseSidebar";
+import { getCourseResources } from "@/lib/resources";
 
 export default async function LearningLayout(props: { params: Promise<{ course_id: string }>, children: React.ReactNode }) {
   const params = await props.params;
-  const res = await fetchApi(`/learning/courses/${params.course_id}/curriculum`, { next: { revalidate: 0 } });
+  const [res, resourcesResult] = await Promise.all([
+    fetchApi(`/learning/courses/${params.course_id}/curriculum`, { next: { revalidate: 0 } }),
+    getCourseResources(params.course_id, { pageSize: 8 }),
+  ]);
   
   if (res.status === 401) {
     redirect(`/logout?callbackUrl=/learn/${params.course_id}`);
@@ -26,7 +30,11 @@ export default async function LearningLayout(props: { params: Promise<{ course_i
         {props.children}
       </main>
 
-      <CourseSidebar courseId={params.course_id} curriculum={curriculum} />
+      <CourseSidebar
+        courseId={params.course_id}
+        curriculum={curriculum}
+        resources={resourcesResult.ok ? resourcesResult.items : []}
+      />
     </div>
   );
 }
