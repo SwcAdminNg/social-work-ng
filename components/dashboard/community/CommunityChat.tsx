@@ -1244,10 +1244,11 @@ export default function CommunityChat({
         )}
       </div>
 
-      {/* Desktop: three-column layout */}
-      <div className="hidden min-h-[680px] grid-cols-1 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950 xl:grid xl:grid-cols-[290px_minmax(0,1fr)_270px]">
-        <aside className="border-b border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/45 xl:border-b-0 xl:border-r">
-          <div className="relative">
+      {/* Desktop: three-column layout, pinned to the viewport so only the
+          panels scroll internally instead of the whole page */}
+      <div className="hidden grid-cols-1 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950 xl:grid xl:h-[calc(100vh-280px)] xl:min-h-[520px] xl:grid-cols-[290px_minmax(0,1fr)_270px]">
+        <aside className="flex flex-col border-b border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/45 xl:min-h-0 xl:border-b-0 xl:border-r">
+          <div className="relative shrink-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               value={search}
@@ -1257,7 +1258,7 @@ export default function CommunityChat({
             />
           </div>
 
-          <div className="swcl-sidebar-scroll mt-3 space-y-1 overflow-y-auto">
+          <div className="swcl-sidebar-scroll mt-3 min-h-0 flex-1 space-y-1 overflow-y-auto">
             {filteredCommunities.map((community) => (
               <RoomButton
                 key={community.id}
@@ -1270,8 +1271,8 @@ export default function CommunityChat({
           </div>
         </aside>
 
-        <main className="flex min-h-[620px] min-w-0 flex-col bg-[#f8faf9] dark:bg-slate-950">
-          <header className="flex h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950">
+        <main className="flex min-w-0 flex-col bg-[#f8faf9] dark:bg-slate-950 xl:min-h-0">
+          <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h2 className="truncate text-base font-bold text-slate-950 dark:text-white">
@@ -1295,7 +1296,7 @@ export default function CommunityChat({
           {composerArea}
         </main>
 
-        <aside className="hidden border-l border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950 xl:block">
+        <aside className="swcl-sidebar-scroll hidden overflow-y-auto border-l border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950 xl:block xl:min-h-0">
           <MembersPanel {...membersPanelProps} />
         </aside>
       </div>
