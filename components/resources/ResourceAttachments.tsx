@@ -1,5 +1,4 @@
 import { ResourceAttachment, ResourceRead, formatDuration } from "@/lib/resources";
-import { HlsVideoPlayer } from "@/components/learning/HlsVideoPlayer";
 import { ResourceDocumentAttachment } from "@/components/resources/ResourceDocumentAttachment";
 import { ExternalLink, Link2, Lock, PlayCircle } from "lucide-react";
 import Link from "next/link";
@@ -100,11 +99,19 @@ function AttachmentCard({
           </div>
         </div>
         {isReady ? (
-          <div className="aspect-video bg-black">
-            <HlsVideoPlayer
-              url={attachment.video!.playback_url!}
-              className="h-full w-full"
-            />
+          <div className="grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                Open this recording in a focused video player.
+              </p>
+            </div>
+            <Link
+              href={`/resources/${slug}/attachments/${attachment.id}`}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+            >
+              <PlayCircle className="h-4 w-4" />
+              Watch
+            </Link>
           </div>
         ) : (
           <div className="p-6 text-sm font-medium text-slate-600 dark:text-slate-300">
