@@ -119,6 +119,14 @@ type DataResponse<T> = {
     total_pages?: number;
   };
 };
+type UnreadCountItem = {
+  community_id?: string;
+  communityId?: string;
+  id?: string;
+  unread_count?: number;
+  unreadCount?: number;
+  count?: number;
+};
 
 const PAGE_SIZE = 20;
 const MEMBER_PAGE_SIZE = 10;
@@ -196,6 +204,61 @@ function messageFingerprint(input: {
   return `${input.body || ""}|${input.reply_to_message_id || ""}|${
     input.attachment_file_name || ""
   }`;
+}
+
+function unreadBadgeLabel(count: number) {
+  return count > 99 ? "99+" : String(count);
+}
+
+function normalizeUnreadCounts(json: unknown): Record<string, number> {
+  const payload = json as {
+    data?: unknown;
+    communities?: unknown;
+    unread_counts?: unknown;
+    unreadCounts?: unknown;
+  };
+  const data = payload?.data as
+    | {
+        communities?: unknown;
+        unread_counts?: unknown;
+        unreadCounts?: unknown;
+      }
+    | unknown;
+  const source =
+    (data &&
+      typeof data === "object" &&
+      ("communities" in data || "unread_counts" in data || "unreadCounts" in data)
+      ? (data as {
+          communities?: unknown;
+          unread_counts?: unknown;
+          unreadCounts?: unknown;
+        }).communities ??
+        (data as { unread_counts?: unknown }).unread_counts ??
+        (data as { unreadCounts?: unknown }).unreadCounts
+      : data) ??
+    payload.communities ??
+    payload.unread_counts ??
+    payload.unreadCounts;
+  const next: Record<string, number> = {};
+
+  if (Array.isArray(source)) {
+    for (const item of source as UnreadCountItem[]) {
+      const communityId = item.community_id ?? item.communityId ?? item.id;
+      const count = item.unread_count ?? item.unreadCount ?? item.count;
+      if (communityId) next[communityId] = Math.max(0, Number(count) || 0);
+    }
+    return next;
+  }
+
+  if (source && typeof source === "object") {
+    for (const [communityId, count] of Object.entries(
+      source as Record<string, unknown>,
+    )) {
+      next[communityId] = Math.max(0, Number(count) || 0);
+    }
+  }
+
+  return next;
 }
 
 function CommunityTypeIcon({ type }: { type: Community["type"] }) {
@@ -395,19 +458,7 @@ export default function CommunityChat({
       const res = await fetch("/api/proxy/community/unread-count");
       const json = await res.json().catch(() => ({}));
       if (!res.ok) return;
-      const list = Array.isArray(json?.data?.communities)
-        ? (json.data.communities as Array<{
-            community_id?: string;
-            unread_count?: number;
-          }>)
-        : [];
-      const next: Record<string, number> = {};
-      for (const item of list) {
-        if (item?.community_id) {
-          next[item.community_id] = Number(item.unread_count) || 0;
-        }
-      }
-      setUnreadCounts(next);
+      setUnreadCounts(normalizeUnreadCounts(json));
     } catch {
       // Badges are additive; the room list should stay usable if this fails.
     }
@@ -1540,11 +1591,7 @@ function MobileRoomRow({
             : ""}
         </span>
       </span>
-      {!active && unread > 0 && (
-        <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-[#2D6A4F] px-1.5 text-[10px] font-extrabold leading-none text-white dark:bg-[#74c69d] dark:text-slate-950">
-          {unread > 99 ? "99+" : unread}
-        </span>
-      )}
+      <UnreadBadge count={unread} />
       <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 dark:text-slate-600" />
     </button>
   );
@@ -1590,16 +1637,26 @@ function RoomButton({
           {community.type === "COURSE" ? "Course room" : `${community.type.toLowerCase()} room`}
         </span>
       </span>
-      {active ? (
+      {unread > 0 ? (
+        <UnreadBadge count={unread} />
+      ) : active ? (
         <Check className="h-4 w-4 shrink-0 text-[#2D6A4F] dark:text-[#74c69d]" />
-      ) : (
-        unread > 0 && (
-          <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-[#2D6A4F] px-1.5 text-[10px] font-extrabold leading-none text-white dark:bg-[#74c69d] dark:text-slate-950">
-            {unread > 99 ? "99+" : unread}
-          </span>
-        )
-      )}
+      ) : null}
     </button>
+  );
+}
+
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  return (
+    <span
+      className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-[#2D6A4F] px-1.5 text-[10px] font-extrabold leading-none text-white dark:bg-[#74c69d] dark:text-slate-950"
+      aria-label={`${count} unread ${count === 1 ? "message" : "messages"}`}
+      title={`${count} unread ${count === 1 ? "message" : "messages"}`}
+    >
+      {unreadBadgeLabel(count)}
+    </span>
   );
 }
 
