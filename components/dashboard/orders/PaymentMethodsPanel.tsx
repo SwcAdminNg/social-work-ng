@@ -8,6 +8,8 @@ import {
   EyeOff,
   Loader2,
   ShieldCheck,
+  Trash2,
+  X,
   WalletCards,
 } from "lucide-react";
 import {
@@ -22,6 +24,7 @@ export default function PaymentMethodsPanel() {
   const [actionCardId, setActionCardId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [showCards, setShowCards] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<SavedCard | null>(null);
 
   async function loadCards() {
     setLoading(true);
@@ -73,15 +76,14 @@ export default function PaymentMethodsPanel() {
     }
   }
 
-  async function removeCard(cardId: string) {
-    const confirmed = window.confirm("Remove this saved card?");
-    if (!confirmed) return;
+  async function removeCard() {
+    if (!cardToDelete) return;
 
-    setActionCardId(cardId);
+    setActionCardId(cardToDelete.id);
     setError("");
 
     try {
-      const res = await fetch(`/api/proxy/payments/cards/${cardId}`, {
+      const res = await fetch(`/api/proxy/payments/cards/${cardToDelete.id}`, {
         method: "DELETE",
       });
       const data = await res.json().catch(() => ({}));
@@ -91,6 +93,7 @@ export default function PaymentMethodsPanel() {
       }
 
       await loadCards();
+      setCardToDelete(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to remove saved card.");
     } finally {
@@ -103,8 +106,9 @@ export default function PaymentMethodsPanel() {
     cards.length === 1 ? "1 saved card" : `${cards.length} saved cards`;
 
   return (
-    <section className="mb-8 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
-      <div className="border-b border-gray-100 px-5 py-5 dark:border-gray-800 sm:px-6">
+    <>
+      <section className="mb-8 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
+        <div className="border-b border-gray-100 px-5 py-5 dark:border-gray-800 sm:px-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md bg-[#2D6A4F] text-white shadow-sm dark:bg-[#52b788] dark:text-[#06130d]">
@@ -124,9 +128,9 @@ export default function PaymentMethodsPanel() {
             Tokenized by Paystack
           </div>
         </div>
-      </div>
+        </div>
 
-      <div className="p-5 sm:p-6">
+        <div className="p-5 sm:p-6">
         {loading ? (
           <div className="flex min-h-[110px] items-center justify-center">
             <Loader2 className="h-7 w-7 animate-spin text-[#2D6A4F] dark:text-[#52b788]" />
@@ -200,14 +204,105 @@ export default function PaymentMethodsPanel() {
                     disabled={actionCardId !== null}
                     actionLoading={actionCardId === card.id}
                     onSetDefault={() => setDefault(card.id)}
-                    onDelete={() => removeCard(card.id)}
+                    onDelete={() => setCardToDelete(card)}
                   />
                 ))}
               </div>
             )}
           </div>
         )}
-      </div>
-    </section>
+        </div>
+      </section>
+
+      {cardToDelete && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-card-title"
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-950"
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-5 dark:border-gray-800">
+              <div className="flex items-start gap-3">
+                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-300">
+                  <Trash2 className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3
+                    id="delete-card-title"
+                    className="text-lg font-black text-gray-950 dark:text-white"
+                  >
+                    Remove saved card?
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-gray-500 dark:text-gray-400">
+                    This card will no longer be available for one-click payments.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCardToDelete(null)}
+                disabled={actionCardId === cardToDelete.id}
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 disabled:opacity-60 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
+                aria-label="Close delete card dialog"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="grid gap-4 px-5 py-5">
+              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900/50">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-black text-gray-950 dark:text-white">
+                      {formatCardBrand(cardToDelete)} ending in ••••{" "}
+                      {cardToDelete.last4 || "----"}
+                    </p>
+                    <p className="mt-1 truncate text-xs font-medium text-gray-500 dark:text-gray-400">
+                      {cardToDelete.bank || cardToDelete.gateway || "Saved card"}
+                    </p>
+                  </div>
+                  {cardToDelete.is_default && (
+                    <span className="flex-shrink-0 rounded-md bg-[#d8f3dc] px-2 py-1 text-[0.68rem] font-black uppercase text-[#1B4332] dark:bg-[#173326] dark:text-[#b7e4c7]">
+                      Default
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {cardToDelete.is_default && cards.length > 1 && (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200">
+                  Removing your default card will automatically make another saved card the default.
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 border-t border-gray-100 px-5 py-4 dark:border-gray-800 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setCardToDelete(null)}
+                disabled={actionCardId === cardToDelete.id}
+                className="inline-flex h-11 items-center justify-center rounded-md bg-gray-100 px-4 text-sm font-extrabold text-gray-700 transition hover:bg-gray-200 disabled:opacity-60 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                Keep card
+              </button>
+              <button
+                type="button"
+                onClick={removeCard}
+                disabled={actionCardId === cardToDelete.id}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-red-600 px-4 text-sm font-extrabold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-red-500 dark:text-white dark:hover:bg-red-600"
+              >
+                {actionCardId === cardToDelete.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                {actionCardId === cardToDelete.id ? "Removing..." : "Remove card"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
