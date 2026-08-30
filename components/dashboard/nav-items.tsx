@@ -93,7 +93,7 @@ export const dashboardNavGroups: NavGroup[] = [
         icon: Radio,
         disabled: true,
       },
-      { label: "Resources", href: "/resources", icon: FileText },
+      { label: "Resources", href: "/dashboard/resources", icon: FileText },
       {
         label: "Community",
         href: "/dashboard/community",
