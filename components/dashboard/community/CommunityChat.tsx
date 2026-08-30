@@ -249,6 +249,8 @@ export default function CommunityChat({
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeIdRef = useRef(activeId);
+  const memberModeRef = useRef(memberMode);
+  const memberPageRef = useRef(memberPage);
 
   const activeCommunity = useMemo(
     () => communities.find((community) => community.id === activeId),
@@ -258,6 +260,11 @@ export default function CommunityChat({
   useEffect(() => {
     activeIdRef.current = activeId;
   }, [activeId]);
+
+  useEffect(() => {
+    memberModeRef.current = memberMode;
+    memberPageRef.current = memberPage;
+  }, [memberMode, memberPage]);
 
   const filteredCommunities = useMemo(() => {
     const normalized = search.trim().toLowerCase();
@@ -491,12 +498,13 @@ export default function CommunityChat({
     }
 
     closedByUserRef.current = false;
+    const socketToken = accessToken;
 
     function connect() {
       setConnection("connecting");
       const ws = new WebSocket(
         `${getWsBaseUrl()}/community/${activeId}/ws?token=${encodeURIComponent(
-          accessToken!,
+          socketToken,
         )}`,
       );
       wsRef.current = ws;
@@ -504,7 +512,7 @@ export default function CommunityChat({
       ws.onopen = () => {
         setConnection("open");
         loadMessages(activeId, 1);
-        loadMembers(activeId, memberPage, memberMode);
+        loadMembers(activeId, memberPageRef.current, memberModeRef.current);
         pingIntervalRef.current = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: "ping" }));
@@ -560,8 +568,6 @@ export default function CommunityChat({
     currentUserId,
     loadMembers,
     loadMessages,
-    memberMode,
-    memberPage,
     mergeMessage,
   ]);
 
