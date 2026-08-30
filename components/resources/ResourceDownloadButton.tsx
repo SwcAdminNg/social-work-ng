@@ -30,12 +30,25 @@ export function ResourceDownloadButton({
         return;
       }
 
-      if (!res.ok || !json?.download_url) {
+      const downloadUrl = json?.download_url || json?.data?.download_url;
+
+      if (!res.ok) {
         setError(json?.message || "Download is not available right now.");
         return;
       }
 
-      window.open(json.download_url, "_blank", "noopener,noreferrer");
+      if (!downloadUrl) {
+        setError("Download is not available right now.");
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.rel = "noopener noreferrer";
+      link.download = "";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } catch {
       setError("Download is not available right now.");
     } finally {
