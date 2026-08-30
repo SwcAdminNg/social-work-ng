@@ -15,7 +15,7 @@ import {
   Trophy,
   UsersRound,
 } from "lucide-react";
-import { fetchApi } from "@/lib/fetchApi";
+import { fetchApi, publicFetchApi } from "@/lib/fetchApi";
 import { getCourseDurationLabel } from "@/lib/courseDuration";
 import {
   InstructorSummary,
@@ -216,8 +216,9 @@ async function getCatalogueData(filters: Record<string, string | undefined>) {
   };
 
   try {
-    const [coursesRes, catalogsRes] = await Promise.all([
-      fetchApi(`/courses?${params.toString()}`, {
+    const courseEndpoint = `/courses?${params.toString()}`;
+    const [initialCoursesRes, catalogsRes] = await Promise.all([
+      fetchApi(courseEndpoint, {
         cache: "no-store",
       }),
       fetchApi("/courses/catalogs", {
@@ -225,15 +226,22 @@ async function getCatalogueData(filters: Record<string, string | undefined>) {
       }),
     ]);
 
+    const coursesRes = initialCoursesRes.ok
+      ? initialCoursesRes
+      : await publicFetchApi(courseEndpoint, {
+          cache: "no-store",
+        });
     const coursesJson = await coursesRes.json().catch(() => ({}));
     const catalogsJson = await catalogsRes.json().catch(() => ({}));
+    const courseItems = getCourseItems(coursesJson);
+    const courseMeta = getCourseMeta(coursesJson);
 
     return {
-      courses: Array.isArray(coursesJson?.data) ? (coursesJson.data as Course[]) : [],
+      courses: courseItems,
       catalogs: Array.isArray(catalogsJson?.data)
         ? (catalogsJson.data as Catalog[])
         : [],
-      meta: { ...fallbackMeta, ...(coursesJson?.meta ?? {}) } as Meta,
+      meta: { ...fallbackMeta, ...courseMeta } as Meta,
       error: coursesRes.ok ? null : coursesJson?.message ?? "Unable to load courses.",
     };
   } catch {
@@ -244,6 +252,37 @@ async function getCatalogueData(filters: Record<string, string | undefined>) {
       error: "Unable to load the course catalogue right now.",
     };
   }
+}
+
+function getCourseItems(json: unknown): Course[] {
+  if (!json || typeof json !== "object") return [];
+
+  const payload = json as {
+    data?: Course[] | { items?: Course[]; courses?: Course[] };
+    items?: Course[];
+    courses?: Course[];
+  };
+
+  if (Array.isArray(payload.data)) return payload.data;
+  if (payload.data && !Array.isArray(payload.data)) {
+    if (Array.isArray(payload.data.items)) return payload.data.items;
+    if (Array.isArray(payload.data.courses)) return payload.data.courses;
+  }
+  if (Array.isArray(payload.items)) return payload.items;
+  if (Array.isArray(payload.courses)) return payload.courses;
+
+  return [];
+}
+
+function getCourseMeta(json: unknown): Partial<Meta> {
+  if (!json || typeof json !== "object") return {};
+
+  const payload = json as {
+    meta?: Partial<Meta>;
+    data?: { meta?: Partial<Meta> };
+  };
+
+  return payload.meta || payload.data?.meta || {};
 }
 
 export default async function CourseCataloguePage(props: {
