@@ -239,7 +239,7 @@ export default async function DashboardCourseDetailPage(props: {
   const instructors = getCourseInstructors(course);
 
   return (
-    <div className="mx-auto flex w-full max-w-[1540px] flex-col gap-5 pb-8">
+    <div className="mx-auto flex w-full max-w-[1540px] flex-col gap-5 pb-28 xl:pb-8">
       <Link
         href="/dashboard/course-catalogue"
         className="inline-flex w-max items-center gap-2 text-sm font-bold text-[#2D6A4F] no-underline transition hover:text-[#1B4332] dark:text-[#b7e4c7] dark:hover:text-[#d8f3dc]"
@@ -372,15 +372,17 @@ export default async function DashboardCourseDetailPage(props: {
                   {accessLabel({ isEnrolled, hasAccess, isFree: course.is_free === true })}
                 </p>
               </div>
-              <CourseDetailAction
-                courseId={course.id}
-                slug={course.slug}
-                isFree={course.is_free === true}
-                price={course.price}
-                isEnrolled={isEnrolled}
-                hasAccess={hasAccess}
-                isCompleted={isCompleted}
-              />
+              <div className="hidden xl:block">
+                <CourseDetailAction
+                  courseId={course.id}
+                  slug={course.slug}
+                  isFree={course.is_free === true}
+                  price={course.price}
+                  isEnrolled={isEnrolled}
+                  hasAccess={hasAccess}
+                  isCompleted={isCompleted}
+                />
+              </div>
               <CourseBookmarkButton
                 courseId={course.id}
                 courseTitle={course.title}
@@ -443,6 +445,31 @@ export default async function DashboardCourseDetailPage(props: {
           </div>
         </aside>
       </section>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#dceee4] bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-18px_40px_-28px_rgba(15,23,42,0.45)] backdrop-blur-xl dark:border-[#27433a] dark:bg-[#111525]/95 xl:hidden">
+        <div className="mx-auto flex max-w-[1540px] items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.68rem] font-black uppercase tracking-normal text-slate-500 dark:text-slate-400">
+              Course access
+            </p>
+            <p className="truncate text-lg font-black text-slate-950 dark:text-white">
+              {formatPrice(course)}
+            </p>
+          </div>
+          <div className="w-[52%] max-w-[220px] flex-shrink-0">
+            <CourseDetailAction
+              courseId={course.id}
+              slug={course.slug}
+              isFree={course.is_free === true}
+              price={course.price}
+              isEnrolled={isEnrolled}
+              hasAccess={hasAccess}
+              isCompleted={isCompleted}
+              hideHelperText
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

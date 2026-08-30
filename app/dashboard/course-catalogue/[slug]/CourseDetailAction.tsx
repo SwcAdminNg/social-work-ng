@@ -15,6 +15,7 @@ type CourseDetailActionProps = {
   isEnrolled: boolean;
   hasAccess: boolean;
   isCompleted?: boolean;
+  hideHelperText?: boolean;
 };
 
 export function CourseDetailAction({
@@ -25,6 +26,7 @@ export function CourseDetailAction({
   isEnrolled,
   hasAccess,
   isCompleted = false,
+  hideHelperText = false,
 }: CourseDetailActionProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -158,7 +160,7 @@ export function CourseDetailAction({
         )}
         {loading ? "Processing..." : canViewCourse ? "View Course" : "Enroll"}
       </button>
-      {!canViewCourse && !isFree && typeof price === "number" && (
+      {!hideHelperText && !canViewCourse && !isFree && typeof price === "number" && (
         <p className="text-center text-xs font-medium text-slate-500 dark:text-slate-400">
           Secure checkout for paid enrollment.
         </p>

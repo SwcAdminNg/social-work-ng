@@ -193,7 +193,7 @@ export default async function CourseDetailsPage(props: {
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32 md:pb-20">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Left Column (Curriculum) */}
           <div className="flex-1 space-y-12 pt-12 lg:pt-16">
@@ -244,14 +244,16 @@ export default async function CourseDetailsPage(props: {
                   : "Join thousands of professionals already learning."}
               </p>
 
-              <EnrollButton
-                courseId={course.id}
-                isEnrolled={course.is_enrolled}
-                isFree={course.is_free}
-                price={course.price}
-                hasAccess={course.has_access}
-                isCompleted={course.is_completed}
-              />
+              <div className="hidden lg:block">
+                <EnrollButton
+                  courseId={course.id}
+                  isEnrolled={course.is_enrolled}
+                  isFree={course.is_free}
+                  price={course.price}
+                  hasAccess={course.has_access}
+                  isCompleted={course.is_completed}
+                />
+              </div>
 
               <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 space-y-4">
                 <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
@@ -270,6 +272,34 @@ export default async function CourseDetailsPage(props: {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-18px_40px_-28px_rgba(15,23,42,0.45)] backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/95 lg:hidden">
+        <div className="mx-auto flex max-w-7xl items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.68rem] font-black uppercase tracking-normal text-gray-500 dark:text-gray-400">
+              Course access
+            </p>
+            <p className="truncate text-lg font-black text-gray-950 dark:text-white">
+              {course.is_free
+                ? "Free"
+                : course.price !== undefined
+                  ? `₦${course.price.toLocaleString()}`
+                  : "Premium"}
+            </p>
+          </div>
+          <div className="w-[52%] max-w-[220px] flex-shrink-0 [&_button]:rounded-md [&_button]:px-3 [&_button]:py-3 [&_button]:text-sm">
+            <EnrollButton
+              courseId={course.id}
+              isEnrolled={course.is_enrolled}
+              isFree={course.is_free}
+              price={course.price}
+              hasAccess={course.has_access}
+              isCompleted={course.is_completed}
+              compact
+            />
           </div>
         </div>
       </div>

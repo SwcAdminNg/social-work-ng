@@ -14,6 +14,7 @@ interface EnrollButtonProps {
   price?: number;
   hasAccess?: boolean;
   isCompleted?: boolean;
+  compact?: boolean;
 }
 
 export function EnrollButton({
@@ -23,6 +24,7 @@ export function EnrollButton({
   price,
   hasAccess,
   isCompleted,
+  compact = false,
 }: EnrollButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -162,10 +164,14 @@ export function EnrollButton({
           {loading
             ? "Processing..."
             : isFree
-              ? "Enroll for Free"
+              ? compact
+                ? "Enroll free"
+                : "Enroll for Free"
               : hasAccess
                 ? "Enroll Now"
-                : `Buy for ₦${price?.toLocaleString() || "..."}`}
+                : compact
+                  ? "Enroll now"
+                  : `Buy for ₦${price?.toLocaleString() || "..."}`}
         </button>
         {error && (
           <p className="text-sm font-medium text-red-600 dark:text-red-400 text-center">
