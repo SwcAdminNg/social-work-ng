@@ -251,6 +251,7 @@ export default function CommunityChat({
   );
   const [mobileScreen, setMobileScreen] = useState<"list" | "chat">("list");
   const [mobileMembersOpen, setMobileMembersOpen] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   const wsRef = useRef<WebSocket | null>(null);
   const pendingSendsRef = useRef<Map<string, string>>(new Map());
@@ -323,15 +324,17 @@ export default function CommunityChat({
       : members;
 
   const typingLine = useMemo(() => {
-    const names = Array.from(typingUsers.entries())
-      .map(([userId]) =>
-        displayName(members.find((member) => memberId(member) === userId)),
-      )
-      .slice(0, 2);
+    const names = Array.from(typingUsers.entries()).map(([userId]) =>
+      displayName(members.find((member) => memberId(member) === userId)),
+    );
 
     if (names.length === 0) return "";
     if (names.length === 1) return `${names[0]} is typing...`;
-    return `${names.join(" and ")} are typing...`;
+    if (names.length === 2) return `${names.join(" and ")} are typing...`;
+    const [first, second, ...rest] = names;
+    return `${first}, ${second} and ${rest.length} other${
+      rest.length === 1 ? "" : "s"
+    } are typing...`;
   }, [members, typingUsers]);
 
   const visibleMessages = useMemo(
@@ -379,8 +382,44 @@ export default function CommunityChat({
     [currentUserId],
   );
 
+  const fetchUnreadCounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/proxy/community/unread-count");
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      const list = Array.isArray(json?.data?.communities)
+        ? (json.data.communities as Array<{
+            community_id?: string;
+            unread_count?: number;
+          }>)
+        : [];
+      const next: Record<string, number> = {};
+      for (const item of list) {
+        if (item?.community_id) {
+          next[item.community_id] = Number(item.unread_count) || 0;
+        }
+      }
+      setUnreadCounts(next);
+    } catch {
+      // Badges are additive; the room list should stay usable if this fails.
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUnreadCounts();
+    const interval = setInterval(fetchUnreadCounts, 30000);
+    window.addEventListener("community:unread-refresh", fetchUnreadCounts);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("community:unread-refresh", fetchUnreadCounts);
+    };
+  }, [fetchUnreadCounts]);
+
   const markRead = useCallback((communityId: string) => {
     if (!communityId) return;
+    setUnreadCounts((prev) =>
+      prev[communityId] ? { ...prev, [communityId]: 0 } : prev,
+    );
     fetch(`/api/proxy/community/${communityId}/read`, { method: "POST" })
       .catch(() => {})
       .finally(() => {
@@ -1073,6 +1112,7 @@ export default function CommunityChat({
                 key={community.id}
                 community={community}
                 active={community.id === activeId}
+                unread={unreadCounts[community.id] || 0}
                 onClick={() => {
                   setActiveId(community.id);
                   setMobileScreen("chat");
@@ -1158,6 +1198,7 @@ export default function CommunityChat({
                 key={community.id}
                 community={community}
                 active={community.id === activeId}
+                unread={unreadCounts[community.id] || 0}
                 onClick={() => setActiveId(community.id)}
               />
             ))}
@@ -1393,10 +1434,12 @@ function MembersPanel({
 function MobileRoomRow({
   community,
   active,
+  unread,
   onClick,
 }: {
   community: Community;
   active: boolean;
+  unread: number;
   onClick: () => void;
 }) {
   return (
@@ -1431,6 +1474,11 @@ function MobileRoomRow({
             : ""}
         </span>
       </span>
+      {!active && unread > 0 && (
+        <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-[#2D6A4F] px-1.5 text-[10px] font-extrabold leading-none text-white dark:bg-[#74c69d] dark:text-slate-950">
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
       <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 dark:text-slate-600" />
     </button>
   );
@@ -1439,10 +1487,12 @@ function MobileRoomRow({
 function RoomButton({
   community,
   active,
+  unread,
   onClick,
 }: {
   community: Community;
   active: boolean;
+  unread: number;
   onClick: () => void;
 }) {
   return (
@@ -1474,7 +1524,15 @@ function RoomButton({
           {community.type === "COURSE" ? "Course room" : `${community.type.toLowerCase()} room`}
         </span>
       </span>
-      {active && <Check className="h-4 w-4 text-[#2D6A4F] dark:text-[#74c69d]" />}
+      {active ? (
+        <Check className="h-4 w-4 shrink-0 text-[#2D6A4F] dark:text-[#74c69d]" />
+      ) : (
+        unread > 0 && (
+          <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-[#2D6A4F] px-1.5 text-[10px] font-extrabold leading-none text-white dark:bg-[#74c69d] dark:text-slate-950">
+            {unread > 99 ? "99+" : unread}
+          </span>
+        )
+      )}
     </button>
   );
 }
