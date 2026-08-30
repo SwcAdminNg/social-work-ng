@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import {
   BookOpen,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
@@ -252,6 +253,8 @@ export default function CommunityChat({
   const [mobileScreen, setMobileScreen] = useState<"list" | "chat">("list");
   const [mobileMembersOpen, setMobileMembersOpen] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [newMessageCount, setNewMessageCount] = useState(0);
 
   const wsRef = useRef<WebSocket | null>(null);
   const pendingSendsRef = useRef<Map<string, string>>(new Map());
@@ -262,6 +265,10 @@ export default function CommunityChat({
     null,
   );
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const isAtBottomRef = useRef(true);
+  const lastMessageIdRef = useRef<string | null>(null);
+  const scrollCommunityRef = useRef<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeIdRef = useRef(activeId);
   const memberModeRef = useRef(memberMode);
@@ -369,14 +376,15 @@ export default function CommunityChat({
               URL.revokeObjectURL(blobUrl);
               pendingBlobUrlsRef.current.delete(tempId);
             }
-            return sortMessages([
-              ...prev.filter((item) => item.id !== tempId),
-              message,
-            ]);
+            const index = prev.findIndex((item) => item.id === tempId);
+            if (index === -1) return [...prev, message];
+            const next = [...prev];
+            next[index] = message;
+            return next;
           }
         }
 
-        return sortMessages([...prev, message]);
+        return [...prev, message];
       });
     },
     [currentUserId],
@@ -596,9 +604,44 @@ export default function CommunityChat({
     return () => clearInterval(interval);
   }, [activeId, loadMembers, memberMode, memberPage]);
 
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    bottomRef.current?.scrollIntoView({ behavior, block: "end" });
+    isAtBottomRef.current = true;
+    setIsAtBottom(true);
+    setNewMessageCount(0);
+  }, []);
+
+  const handleMessagesScroll = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const atBottom = distanceFromBottom < 120;
+    isAtBottomRef.current = atBottom;
+    setIsAtBottom(atBottom);
+    if (atBottom) setNewMessageCount(0);
+  }, []);
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [activeId, messages.length, typingLine]);
+    const communityChanged = scrollCommunityRef.current !== activeId;
+    scrollCommunityRef.current = activeId;
+
+    const last = visibleMessages[visibleMessages.length - 1];
+
+    if (communityChanged) {
+      lastMessageIdRef.current = last?.id ?? null;
+      requestAnimationFrame(() => scrollToBottom("auto"));
+      return;
+    }
+
+    if (!last || last.id === lastMessageIdRef.current) return;
+    lastMessageIdRef.current = last.id;
+
+    if (last.sender_id === currentUserId || isAtBottomRef.current) {
+      scrollToBottom("smooth");
+    } else {
+      setNewMessageCount((count) => count + 1);
+    }
+  }, [visibleMessages, activeId, currentUserId, scrollToBottom]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -842,7 +885,7 @@ export default function CommunityChat({
         : null,
       status: "sending",
     };
-    setMessages((prev) => sortMessages([...prev, optimisticMessage]));
+    setMessages((prev) => [...prev, optimisticMessage]);
 
     setSending(true);
     setDraft("");
@@ -933,7 +976,12 @@ export default function CommunityChat({
   };
 
   const messagesArea = (
-    <div className="swcl-sidebar-scroll flex-1 overflow-y-auto px-3 py-4 sm:px-5">
+    <div className="relative min-h-0 flex-1">
+      <div
+        ref={messagesContainerRef}
+        onScroll={handleMessagesScroll}
+        className="swcl-sidebar-scroll h-full overflow-y-auto px-3 py-4 sm:px-5"
+      >
       {hasOlder && (
         <button
           type="button"
@@ -992,6 +1040,23 @@ export default function CommunityChat({
         </div>
       )}
       <div ref={bottomRef} />
+      </div>
+
+      {!isAtBottom && (
+        <button
+          type="button"
+          onClick={() => scrollToBottom("smooth")}
+          aria-label="Scroll to latest messages"
+          className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#2D6A4F] shadow-lg ring-1 ring-slate-200 transition hover:bg-slate-50 active:scale-95 dark:bg-slate-900 dark:text-[#74c69d] dark:ring-slate-700 sm:bottom-6 sm:right-6"
+        >
+          <ChevronDown className="h-5 w-5" />
+          {newMessageCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#2D6A4F] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:bg-[#74c69d] dark:text-slate-950 dark:ring-slate-950">
+              {newMessageCount > 99 ? "99+" : newMessageCount}
+            </span>
+          )}
+        </button>
+      )}
     </div>
   );
 
