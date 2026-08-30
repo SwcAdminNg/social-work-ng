@@ -18,6 +18,7 @@ interface Course {
   image: string;
   href: string;
   is_enrolled?: boolean;
+  is_completed?: boolean;
   has_access?: boolean;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
@@ -58,6 +59,10 @@ function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
 
 function CourseCard({ course }: { course: Course }) {
   const durationLabel = getCourseDurationLabel(course);
+  const canViewCourse =
+    course.is_enrolled === true ||
+    course.has_access === true ||
+    course.is_completed === true;
 
   return (
     <article
@@ -123,13 +128,13 @@ function CourseCard({ course }: { course: Course }) {
         <div className="flex-1" />
         <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
           <span className="text-[0.9rem] font-bold text-[#2D6A4F] dark:text-[#52b788]">
-            {course.is_enrolled ? "Enrolled" : course.price}
+            {course.is_completed ? "Completed" : canViewCourse ? "Enrolled" : course.price}
           </span>
           <Link
             href={course.href}
             className="inline-flex items-center gap-1.5 text-[0.8rem] font-semibold text-gray-700 dark:text-gray-300 hover:text-[#2D6A4F] dark:hover:text-[#52b788] no-underline transition-colors duration-150"
           >
-            {course.is_enrolled ? (
+            {canViewCourse ? (
               <svg
                 width="14"
                 height="14"
@@ -161,7 +166,7 @@ function CourseCard({ course }: { course: Course }) {
                 <rect x="9" y="9" width="6" height="6" rx="1" />
               </svg>
             )}
-            {course.is_enrolled ? "Continue Learning" : "Get Enrolled"}
+            {canViewCourse ? "View Course" : "Get Enrolled"}
           </Link>
         </div>
       </div>

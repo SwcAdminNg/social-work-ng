@@ -56,6 +56,7 @@ type Course = {
   is_enrolled?: boolean | null;
   is_bookmarked?: boolean | null;
   has_access?: boolean | null;
+  is_completed?: boolean | null;
 };
 
 type InstructorValue =
@@ -585,6 +586,8 @@ function CourseTile({ course }: { course: Course }) {
   const courseHref = `/dashboard/course-catalogue/${course.slug || course.id}`;
   const isEnrolled = course.is_enrolled === true;
   const hasAccess = course.has_access === true;
+  const isCompleted = course.is_completed === true;
+  const canViewCourse = isEnrolled || hasAccess || isCompleted;
   const rating = typeof course.average_rating === "number" ? course.average_rating : 0;
   const reviews = Number(course.total_reviews || 0);
   const outcomeCount = course.what_you_will_learn?.length ?? 0;
@@ -595,7 +598,7 @@ function CourseTile({ course }: { course: Course }) {
   return (
     <article
       className={`group flex min-h-full flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-lg dark:bg-[#111525] ${
-        isEnrolled
+        canViewCourse
           ? "border-[#2D6A4F]/55 ring-1 ring-[#2D6A4F]/20 dark:border-[#52b788]/60 dark:ring-[#52b788]/20"
           : "border-[#e3ede7] dark:border-[#27433a]"
       }`}
@@ -618,10 +621,10 @@ function CourseTile({ course }: { course: Course }) {
               </span>
             )}
           </div>
-          {(isEnrolled || hasAccess) && (
+          {canViewCourse && (
             <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-[#2D6A4F] shadow-sm dark:bg-[#111525]/95 dark:text-[#b7e4c7]">
               <Check className="h-3 w-3" strokeWidth={3} />
-              {isEnrolled ? "Enrolled" : "Access"}
+              {isCompleted ? "Completed" : isEnrolled ? "Enrolled" : "Access"}
             </span>
           )}
         </Link>
@@ -685,12 +688,12 @@ function CourseTile({ course }: { course: Course }) {
           <Link
             href={courseHref}
             className={`inline-flex h-9 items-center justify-center rounded-md border px-4 text-sm font-bold no-underline transition ${
-              isEnrolled || hasAccess
+              canViewCourse
                 ? "border-[#2D6A4F] bg-[#2D6A4F] text-white hover:bg-[#1B4332] dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
                 : "border-[#2D6A4F] text-[#2D6A4F] hover:bg-[#2D6A4F] hover:text-white dark:border-[#52b788] dark:text-[#b7e4c7] dark:hover:bg-[#52b788] dark:hover:text-[#06130d]"
             }`}
           >
-            {isEnrolled || hasAccess ? "View Course" : "Enroll"}
+            {canViewCourse ? "View Course" : "Enroll"}
           </Link>
         </div>
       </div>

@@ -30,6 +30,9 @@ type PublicCourse = {
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
   certificate_enabled?: boolean | null;
+  is_enrolled?: boolean | null;
+  has_access?: boolean | null;
+  is_completed?: boolean | null;
 };
 
 export const metadata = {
@@ -161,7 +164,9 @@ export default async function CoursesPage(props: {
                   estimated_total_minutes={course.estimated_total_minutes}
                   estimated_duration={course.estimated_duration}
                   certificate_enabled={course.certificate_enabled}
-                  is_enrolled={enrolledCourseIds.has(course.id)}
+                  is_enrolled={course.is_enrolled === true || enrolledCourseIds.has(course.id)}
+                  is_completed={course.is_completed === true}
+                  has_access={course.has_access === true}
                 />
               ))}
             </div>

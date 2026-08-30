@@ -20,6 +20,7 @@ type FeaturedCourseApi = {
   price?: number | null;
   thumbnail_url?: string | null;
   is_enrolled?: boolean | null;
+  is_completed?: boolean | null;
   has_access?: boolean | null;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
@@ -37,6 +38,7 @@ type FeaturedCourse = {
   image: string;
   href: string;
   is_enrolled?: boolean;
+  is_completed?: boolean;
   has_access?: boolean;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
@@ -74,6 +76,7 @@ export default async function Home() {
       image: c.thumbnail_url || "/images/auth/social-work.jpg",
       href: `/courses/${c.slug || c.id}`,
       is_enrolled: c.is_enrolled ?? undefined,
+      is_completed: c.is_completed ?? undefined,
       has_access: c.has_access ?? undefined,
       estimated_total_minutes: c.estimated_total_minutes,
       estimated_duration: c.estimated_duration,
