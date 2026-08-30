@@ -8,6 +8,8 @@ import { useSession } from "next-auth/react";
 import {
   BookOpen,
   Check,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
   CircleHelp,
   FileText,
@@ -38,13 +40,19 @@ export type Community = {
   member_count?: number;
 };
 
-type Member = {
-  id: string;
+type MemberProfile = {
+  id?: string;
   first_name?: string;
   last_name?: string;
   username?: string;
   profile_picture_url?: string;
   image?: string;
+};
+
+type Member = MemberProfile & {
+  user?: MemberProfile | null;
+  student?: MemberProfile | null;
+  member?: MemberProfile | null;
   is_online?: boolean;
 };
 
@@ -66,6 +74,7 @@ type Message = {
   reply_to?: {
     id: string;
     sender_id: string;
+    sender?: Member | null;
     body?: string;
     attachment_file_name?: string;
   } | null;
@@ -86,6 +95,7 @@ type AttachmentFields = {
 
 type InitialResourceShare = Pick<ResourceReference, "id" | "name" | "slug">;
 type ConnectionState = "connecting" | "open" | "closed";
+type MemberMode = "online" | "all";
 type AppSession = {
   accessToken?: string;
   user?: {
@@ -102,9 +112,18 @@ type MessageListResponse = {
 type DataResponse<T> = {
   data?: T;
   message?: string;
+  meta?: {
+    total_items?: number;
+    total_pages?: number;
+  };
 };
 
 const PAGE_SIZE = 20;
+const MEMBER_PAGE_SIZE = 10;
+const ONLINE_PREVIEW_LIMIT = 5;
+// The API caps page_size at 100 on every paginated endpoint (see PaginationParams
+// in the backend) - this fetches as large a batch as the API allows in one request.
+const ONLINE_ROSTER_FETCH_SIZE = 100;
 const PING_INTERVAL_MS = 30000;
 const RECONNECT_DELAY_MS = 2500;
 const TYPING_EXPIRE_MS = 4500;
@@ -114,10 +133,31 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function displayName(member?: Member) {
+function memberProfile(member?: Member | null): MemberProfile {
+  return member?.user || member?.student || member?.member || member || {};
+}
+
+function memberId(member?: Member | null) {
+  return memberProfile(member).id || member?.id;
+}
+
+function displayName(member?: Member | null) {
   if (!member) return "Community member";
-  const fullName = [member.first_name, member.last_name].filter(Boolean).join(" ");
-  return fullName || member.username || "Community member";
+  const profile = memberProfile(member);
+  const fullName = [profile.first_name, profile.last_name]
+    .filter(Boolean)
+    .join(" ");
+  return fullName || profile.username || "Community member";
+}
+
+function memberFirstName(member?: Member | null) {
+  const profile = memberProfile(member);
+  return profile.first_name || displayName(member);
+}
+
+function memberUsername(member?: Member | null) {
+  const profile = memberProfile(member);
+  return profile.username ? `@${profile.username}` : "";
 }
 
 function initials(name: string) {
@@ -189,6 +229,12 @@ export default function CommunityChat({
   const [page, setPage] = useState(1);
   const [sending, setSending] = useState(false);
   const [connection, setConnection] = useState<ConnectionState>("closed");
+  const [memberMode, setMemberMode] = useState<MemberMode>("online");
+  const [memberPage, setMemberPage] = useState(1);
+  const [memberTotalPages, setMemberTotalPages] = useState(1);
+  const [memberTotalItems, setMemberTotalItems] = useState(0);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [rosterExpanded, setRosterExpanded] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Map<string, number>>(
     new Map(),
   );
@@ -202,11 +248,16 @@ export default function CommunityChat({
   const closedByUserRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const activeIdRef = useRef(activeId);
 
   const activeCommunity = useMemo(
     () => communities.find((community) => community.id === activeId),
     [activeId, communities],
   );
+
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
 
   const filteredCommunities = useMemo(() => {
     const normalized = search.trim().toLowerCase();
@@ -217,14 +268,33 @@ export default function CommunityChat({
   }, [communities, search]);
 
   const onlineMembers = useMemo(
-    () => members.filter((member) => onlineIds.has(member.id) || member.is_online),
+    () =>
+      members.filter(
+        (member) =>
+          (memberId(member) ? onlineIds.has(memberId(member) as string) : false) ||
+          member.is_online,
+      ),
     [members, onlineIds],
   );
+  const compactOnlineMembers = onlineMembers.slice(0, ONLINE_PREVIEW_LIMIT);
+  const onlineTotalPages = Math.max(
+    1,
+    Math.ceil(onlineMembers.length / MEMBER_PAGE_SIZE),
+  );
+  const rosterTotalPages =
+    memberMode === "online" ? onlineTotalPages : memberTotalPages;
+  const displayedMembers =
+    memberMode === "online"
+      ? onlineMembers.slice(
+          (memberPage - 1) * MEMBER_PAGE_SIZE,
+          memberPage * MEMBER_PAGE_SIZE,
+        )
+      : members;
 
   const typingLine = useMemo(() => {
     const names = Array.from(typingUsers.entries())
       .map(([userId]) =>
-        displayName(members.find((member) => member.id === userId)),
+        displayName(members.find((member) => memberId(member) === userId)),
       )
       .slice(0, 2);
 
@@ -233,7 +303,20 @@ export default function CommunityChat({
     return `${names.join(" and ")} are typing...`;
   }, [members, typingUsers]);
 
+  const visibleMessages = useMemo(
+    () =>
+      messages.filter(
+        (message) =>
+          !message.community_id || message.community_id === activeId,
+      ),
+    [activeId, messages],
+  );
+
   const mergeMessage = useCallback((message: Message) => {
+    if (message.community_id && message.community_id !== activeIdRef.current) {
+      return;
+    }
+
     setMessages((prev) => {
       if (prev.some((item) => item.id === message.id)) return prev;
       return sortMessages([...prev, message]);
@@ -270,13 +353,19 @@ export default function CommunityChat({
         }
 
         const incoming = Array.isArray(json?.data) ? json.data : [];
+        if (activeIdRef.current !== communityId) return;
+
+        const scopedIncoming = incoming.filter(
+          (message) =>
+            !message.community_id || message.community_id === communityId,
+        );
         setHasOlder(Boolean(json?.meta?.has_next));
         setPage(nextPage);
         setMessages((prev) => {
-          if (nextPage === 1) return sortMessages(incoming);
+          if (nextPage === 1) return sortMessages(scopedIncoming);
           const ids = new Set(prev.map((message) => message.id));
           return sortMessages([
-            ...incoming.filter((message: Message) => !ids.has(message.id)),
+            ...scopedIncoming.filter((message: Message) => !ids.has(message.id)),
             ...prev,
           ]);
         });
@@ -290,30 +379,51 @@ export default function CommunityChat({
     [],
   );
 
-  const loadMembers = useCallback(async (communityId: string) => {
-    if (!communityId) return;
-    try {
-      const [membersRes, onlineRes] = await Promise.all([
-        fetch(`/api/proxy/community/${communityId}/members?page=1&page_size=40`),
-        fetch(`/api/proxy/community/${communityId}/online`),
-      ]);
-      const membersJson = (await membersRes
-        .json()
-        .catch(() => ({}))) as DataResponse<Member[]>;
-      const onlineJson = (await onlineRes.json().catch(() => ({}))) as DataResponse<{
-        online_user_ids?: string[];
-      }>;
+  const loadMembers = useCallback(
+    async (
+      communityId: string,
+      nextPage = 1,
+      mode: MemberMode = "online",
+    ) => {
+      if (!communityId) return;
+      const pageSize =
+        mode === "online" ? ONLINE_ROSTER_FETCH_SIZE : MEMBER_PAGE_SIZE;
 
-      if (membersRes.ok) {
-        setMembers(Array.isArray(membersJson?.data) ? membersJson.data : []);
+      setLoadingMembers(true);
+      try {
+        const [membersRes, onlineRes] = await Promise.all([
+          fetch(
+            `/api/proxy/community/${communityId}/members?page=${nextPage}&page_size=${pageSize}`,
+          ),
+          fetch(`/api/proxy/community/${communityId}/online`),
+        ]);
+        const membersJson = (await membersRes
+          .json()
+          .catch(() => ({}))) as DataResponse<Member[]>;
+        const onlineJson = (await onlineRes
+          .json()
+          .catch(() => ({}))) as DataResponse<{
+          online_user_ids?: string[];
+        }>;
+
+        if (activeIdRef.current !== communityId) return;
+
+        if (membersRes.ok) {
+          setMembers(Array.isArray(membersJson?.data) ? membersJson.data : []);
+          setMemberTotalPages(Math.max(1, membersJson.meta?.total_pages || 1));
+          setMemberTotalItems(membersJson.meta?.total_items || 0);
+        }
+        if (onlineRes.ok && Array.isArray(onlineJson?.data?.online_user_ids)) {
+          setOnlineIds(new Set(onlineJson.data.online_user_ids));
+        }
+      } catch {
+        // Presence is additive; chat should stay usable even if roster refresh fails.
+      } finally {
+        setLoadingMembers(false);
       }
-      if (onlineRes.ok && Array.isArray(onlineJson?.data?.online_user_ids)) {
-        setOnlineIds(new Set(onlineJson.data.online_user_ids));
-      }
-    } catch {
-      // Presence is additive; chat should stay usable even if roster refresh fails.
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!selectedCommunityId) return;
@@ -326,16 +436,35 @@ export default function CommunityChat({
     setMembers([]);
     setTypingUsers(new Map());
     setReplyTo(null);
+    setMemberMode("online");
+    setMemberPage(1);
+    setMemberTotalPages(1);
+    setMemberTotalItems(0);
+    setRosterExpanded(false);
     clearAttachment();
     loadMessages(activeId, 1);
-    loadMembers(activeId);
+    loadMembers(activeId, 1, "online");
   }, [activeId, clearAttachment, loadMembers, loadMessages]);
 
   useEffect(() => {
     if (!activeId) return;
-    const interval = setInterval(() => loadMembers(activeId), 30000);
+    loadMembers(activeId, memberPage, memberMode);
+  }, [activeId, loadMembers, memberMode, memberPage]);
+
+  useEffect(() => {
+    if (memberPage > rosterTotalPages) {
+      setMemberPage(rosterTotalPages);
+    }
+  }, [memberPage, rosterTotalPages]);
+
+  useEffect(() => {
+    if (!activeId) return;
+    const interval = setInterval(
+      () => loadMembers(activeId, memberPage, memberMode),
+      30000,
+    );
     return () => clearInterval(interval);
-  }, [activeId, loadMembers]);
+  }, [activeId, loadMembers, memberMode, memberPage]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -375,7 +504,7 @@ export default function CommunityChat({
       ws.onopen = () => {
         setConnection("open");
         loadMessages(activeId, 1);
-        loadMembers(activeId);
+        loadMembers(activeId, memberPage, memberMode);
         pingIntervalRef.current = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: "ping" }));
@@ -425,7 +554,16 @@ export default function CommunityChat({
       if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
       wsRef.current?.close();
     };
-  }, [accessToken, activeId, currentUserId, loadMembers, loadMessages, mergeMessage]);
+  }, [
+    accessToken,
+    activeId,
+    currentUserId,
+    loadMembers,
+    loadMessages,
+    memberMode,
+    memberPage,
+    mergeMessage,
+  ]);
 
   function sendTyping(isTyping: boolean) {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -644,7 +782,7 @@ export default function CommunityChat({
                 Loading conversation
               </span>
             </div>
-          ) : messages.length === 0 ? (
+          ) : visibleMessages.length === 0 ? (
             <div className="grid h-full place-items-center text-center">
               <div>
                 <Radio className="mx-auto h-10 w-10 text-[#2D6A4F] dark:text-[#74c69d]" />
@@ -659,7 +797,7 @@ export default function CommunityChat({
             </div>
           ) : (
             <div className="space-y-3">
-              {messages.map((message) => {
+              {visibleMessages.map((message) => {
                 const own = message.sender_id === currentUserId;
                 return (
                   <MessageBubble
@@ -772,27 +910,163 @@ export default function CommunityChat({
 
       <aside className="hidden border-l border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950 xl:block">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-950 dark:text-white">
-            Members
-          </h3>
+          <div>
+            <h3 className="text-sm font-bold text-slate-950 dark:text-white">
+              Members
+            </h3>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              {rosterExpanded
+                ? memberMode === "online"
+                  ? "Online members"
+                  : "Full room roster"
+                : "Online now"}
+            </p>
+          </div>
           <span className="rounded-md bg-[#d8f3dc] px-2 py-1 text-xs font-bold text-[#1B4332] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
             {onlineMembers.length} online
           </span>
         </div>
+
+        {rosterExpanded && (
+          <div className="mt-4 grid grid-cols-2 rounded-md bg-slate-100 p-1 dark:bg-slate-900">
+            <button
+              type="button"
+              onClick={() => {
+                setMemberMode("online");
+                setMemberPage(1);
+              }}
+              className={cx(
+                "h-8 rounded px-3 text-xs font-bold transition",
+                memberMode === "online"
+                  ? "bg-white text-[#2D6A4F] shadow-sm dark:bg-slate-950 dark:text-[#74c69d]"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white",
+              )}
+            >
+              Online
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMemberMode("all");
+                setMemberPage(1);
+              }}
+              className={cx(
+                "h-8 rounded px-3 text-xs font-bold transition",
+                memberMode === "all"
+                  ? "bg-white text-[#2D6A4F] shadow-sm dark:bg-slate-950 dark:text-[#74c69d]"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white",
+              )}
+            >
+              All
+            </button>
+          </div>
+        )}
+
         <div className="mt-4 space-y-2">
-          {members.slice(0, 18).map((member) => (
-            <MemberRow
-              key={member.id}
-              member={member}
-              online={onlineIds.has(member.id) || Boolean(member.is_online)}
-            />
-          ))}
-          {members.length === 0 && (
+          {loadingMembers && (
+            <div className="flex items-center gap-2 rounded-lg border border-slate-200 p-3 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Updating members
+            </div>
+          )}
+
+          {(rosterExpanded ? displayedMembers : compactOnlineMembers).map(
+            (member, index) => (
+              <MemberRow
+                key={
+                  memberId(member)
+                    ? `${memberId(member)}-${index}`
+                    : `member-${index}`
+                }
+                member={member}
+                online={
+                  (memberId(member)
+                    ? onlineIds.has(memberId(member) as string)
+                    : false) ||
+                  Boolean(member.is_online)
+                }
+              />
+            ),
+          )}
+
+          {!loadingMembers &&
+            !rosterExpanded &&
+            compactOnlineMembers.length === 0 && (
+              <p className="rounded-lg border border-dashed border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                Nobody is online right now.
+              </p>
+            )}
+
+          {!loadingMembers && rosterExpanded && displayedMembers.length === 0 && (
             <p className="rounded-lg border border-dashed border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              Member details will appear once the room roster is available.
+              {memberMode === "online"
+                ? "Nobody is online right now."
+                : "No members found for this room."}
             </p>
           )}
         </div>
+
+        {!rosterExpanded ? (
+          <button
+            type="button"
+            onClick={() => {
+              setRosterExpanded(true);
+              setMemberMode("online");
+              setMemberPage(1);
+            }}
+            className="mt-4 flex h-10 w-full items-center justify-center rounded-md border border-slate-200 text-xs font-bold text-slate-600 transition hover:border-[#2D6A4F]/50 hover:text-[#2D6A4F] dark:border-slate-700 dark:text-slate-300 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
+          >
+            View all online
+          </button>
+        ) : (
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setMemberPage((current) => Math.max(1, current - 1))}
+                disabled={memberPage <= 1}
+                className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[#2D6A4F]/50 hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-400 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
+                aria-label="Previous members page"
+                title="Previous"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                Page {memberPage} of {rosterTotalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setMemberPage((current) =>
+                    Math.min(rosterTotalPages, current + 1),
+                  )
+                }
+                disabled={memberPage >= rosterTotalPages}
+                className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[#2D6A4F]/50 hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-400 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
+                aria-label="Next members page"
+                title="Next"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setRosterExpanded(false);
+                setMemberMode("online");
+                setMemberPage(1);
+              }}
+              className="flex h-9 w-full items-center justify-center rounded-md text-xs font-bold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
+            >
+              Show online preview
+            </button>
+            {memberMode === "all" && memberTotalItems > 0 && (
+              <p className="text-center text-[0.7rem] font-medium text-slate-400">
+                {memberTotalItems} total members
+              </p>
+            )}
+          </div>
+        )}
       </aside>
     </div>
   );
@@ -884,9 +1158,14 @@ function MessageBubble({
                     : "border-[#2D6A4F] bg-slate-50 text-slate-600 dark:bg-slate-950 dark:text-slate-300",
                 )}
               >
-                {message.reply_to.body ||
-                  message.reply_to.attachment_file_name ||
-                  "Previous message"}
+                <span className="block font-bold">
+                  {displayName(message.reply_to.sender ?? undefined)}
+                </span>
+                <span className="block truncate">
+                  {message.reply_to.body ||
+                    message.reply_to.attachment_file_name ||
+                    "Previous message"}
+                </span>
               </div>
             )}
             {message.body && (
@@ -1075,6 +1354,9 @@ function MemberRow({
   member: Member;
   online: boolean;
 }) {
+  const firstName = memberFirstName(member);
+  const username = memberUsername(member);
+
   return (
     <div className="flex items-center gap-3 rounded-lg px-2 py-2">
       <div className="relative">
@@ -1088,10 +1370,12 @@ function MemberRow({
       </div>
       <div className="min-w-0">
         <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
-          {displayName(member)}
+          {firstName}
         </p>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          {online ? "Online now" : "Offline"}
+        <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+          {[username, online ? "Online now" : "Offline"]
+            .filter(Boolean)
+            .join(" • ")}
         </p>
       </div>
     </div>
@@ -1106,7 +1390,8 @@ function Avatar({
   size?: "sm" | "md";
 }) {
   const name = displayName(member);
-  const image = member?.profile_picture_url || member?.image;
+  const profile = memberProfile(member);
+  const image = profile.profile_picture_url || profile.image;
   const sizeClass = size === "sm" ? "h-7 w-7 text-[0.65rem]" : "h-9 w-9 text-xs";
 
   if (image) {
