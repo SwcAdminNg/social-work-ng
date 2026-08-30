@@ -98,7 +98,6 @@ export const dashboardNavGroups: NavGroup[] = [
         label: "Community",
         href: "/dashboard/community",
         icon: UsersRound,
-        disabled: true,
       },
     ],
   },

@@ -6,6 +6,7 @@ import ThemeToggle from "@/components/generic/ThemeToggle";
 import { auth } from "@/auth";
 import SessionMonitor from "@/components/auth/SessionMonitor";
 import QueryProvider from "@/components/generic/QueryProvider";
+import { Toaster } from "sonner";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -34,6 +35,7 @@ export default async function RootLayout({
             <SessionMonitor session={session}>
               {children}
               <ThemeToggle />
+              <Toaster richColors position="top-right" />
             </SessionMonitor>
           </QueryProvider>
         </ThemeProvider>
