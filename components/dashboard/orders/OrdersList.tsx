@@ -61,25 +61,25 @@ export default function OrdersList({
     switch (status?.toUpperCase()) {
       case "SUCCESS":
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800/50">
+          <span className="inline-flex max-w-full items-center justify-center rounded-full border border-green-200 bg-green-100 px-2.5 py-1 text-xs font-bold text-green-700 dark:border-green-800/50 dark:bg-green-900/30 dark:text-green-400">
             Successful
           </span>
         );
       case "PENDING":
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800/50">
+          <span className="inline-flex max-w-full items-center justify-center rounded-full border border-yellow-200 bg-yellow-100 px-2.5 py-1 text-xs font-bold text-yellow-700 dark:border-yellow-800/50 dark:bg-yellow-900/30 dark:text-yellow-400">
             Pending
           </span>
         );
       case "FAILED":
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/50">
+          <span className="inline-flex max-w-full items-center justify-center rounded-full border border-red-200 bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700 dark:border-red-800/50 dark:bg-red-900/30 dark:text-red-400">
             Failed
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+          <span className="inline-flex max-w-full items-center justify-center rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
             {status}
           </span>
         );
@@ -94,26 +94,32 @@ export default function OrdersList({
           {initialData.map((txn) => (
             <div
               key={txn.id}
-              className="flex flex-col gap-3 p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm"
+              className="min-w-0 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
             >
-              <div className="flex justify-between items-start">
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-gray-900 dark:text-white">
+              <div className="grid min-w-0 gap-3">
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                  <span className="min-w-0 break-words text-sm font-bold text-gray-900 dark:text-white">
                     {txn.transaction_type.replace(/_/g, " ")}
                   </span>
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">
-                    Ref: {txn.reference}
+                  <div className="flex-shrink-0">{getStatusBadge(txn.status)}</div>
+                </div>
+
+                <div className="min-w-0 rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-950/50">
+                  <span className="block text-[0.65rem] font-bold uppercase text-gray-400">
+                    Reference
+                  </span>
+                  <span className="mt-1 block break-all font-mono text-xs font-semibold text-gray-600 dark:text-gray-300">
+                    {txn.reference}
                   </span>
                 </div>
-                {getStatusBadge(txn.status)}
               </div>
 
-              <div className="flex justify-between items-end pt-3 border-t border-gray-100 dark:border-gray-800">
-                <div className="flex flex-col">
-                  <span className="text-[0.65rem] uppercase font-bold text-gray-400 tracking-wider mb-1">
+              <div className="mt-4 grid grid-cols-1 gap-3 border-t border-gray-100 pt-4 dark:border-gray-800 min-[380px]:grid-cols-2">
+                <div className="min-w-0">
+                  <span className="mb-1 block text-[0.65rem] font-bold uppercase text-gray-400">
                     Date
                   </span>
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  <span className="block text-sm font-medium leading-5 text-gray-600 dark:text-gray-300">
                     {new Intl.DateTimeFormat("en-US", {
                       month: "short",
                       day: "numeric",
@@ -124,11 +130,11 @@ export default function OrdersList({
                     }).format(new Date(txn.created_at))}
                   </span>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-[0.65rem] uppercase font-bold text-gray-400 tracking-wider mb-1">
+                <div className="min-w-0 min-[380px]:text-right">
+                  <span className="mb-1 block text-[0.65rem] font-bold uppercase text-gray-400">
                     Amount
                   </span>
-                  <span className="text-lg font-bold text-gray-900 dark:text-white">
+                  <span className="block break-words text-lg font-bold text-gray-900 dark:text-white">
                     ₦
                     {txn.amount.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
