@@ -50,6 +50,11 @@ export type ResourceAttachment = {
     file_size_bytes?: number;
     is_uploaded?: boolean;
     downloadable?: boolean;
+    file_url?: string;
+    content_url?: string;
+    url?: string;
+    view_url?: string;
+    preview_url?: string;
   };
   link?: {
     url?: string;

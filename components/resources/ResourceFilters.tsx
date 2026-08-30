@@ -67,7 +67,7 @@ export function ResourceFilters() {
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="swcl-sidebar-scroll flex gap-2 overflow-x-auto overscroll-x-contain pb-1">
         <button
           type="button"
           onClick={() => setCategory("")}

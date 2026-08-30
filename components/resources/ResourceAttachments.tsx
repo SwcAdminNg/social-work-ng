@@ -1,7 +1,7 @@
 import { ResourceAttachment, ResourceRead, formatDuration } from "@/lib/resources";
 import { HlsVideoPlayer } from "@/components/learning/HlsVideoPlayer";
-import { ResourceDownloadButton } from "@/components/resources/ResourceDownloadButton";
-import { ExternalLink, FileText, Link2, Lock, PlayCircle } from "lucide-react";
+import { ResourceDocumentAttachment } from "@/components/resources/ResourceDocumentAttachment";
+import { ExternalLink, Link2, Lock, PlayCircle } from "lucide-react";
 import Link from "next/link";
 
 type ResourceAttachmentsProps = {
@@ -156,37 +156,11 @@ function AttachmentCard({
     );
   }
 
-  const downloadable = canAccess && attachment.document?.downloadable === true;
-
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 gap-3">
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-            <FileText className="h-5 w-5" />
-          </span>
-          <div className="min-w-0">
-            <h3 className="text-base font-extrabold text-slate-950 dark:text-white">
-              {attachment.title || attachment.document?.file_name || "Document"}
-            </h3>
-            <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">
-              {[attachment.document?.file_name, formatFileSize(attachment.document?.file_size_bytes)]
-                .filter(Boolean)
-                .join(" · ") || "Document attachment"}
-            </p>
-          </div>
-        </div>
-
-        {downloadable && (
-          <ResourceDownloadButton slug={slug} attachmentId={attachment.id} />
-        )}
-      </div>
-    </article>
+    <ResourceDocumentAttachment
+      attachment={attachment}
+      slug={slug}
+      canAccess={canAccess}
+    />
   );
-}
-
-function formatFileSize(bytes?: number) {
-  if (!bytes || bytes <= 0) return null;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
