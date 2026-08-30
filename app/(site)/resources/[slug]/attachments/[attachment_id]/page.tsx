@@ -100,6 +100,7 @@ export default async function ResourceAttachmentPage(props: {
             attachmentType={attachment.attachment_type}
             title={attachment.title || resource.name}
             url={viewUrl}
+            mimeType={attachment.document?.mime_type}
           />
         ) : (
           <div className="mx-auto flex h-[calc(100dvh-120px)] max-w-2xl flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-[#111525]">
