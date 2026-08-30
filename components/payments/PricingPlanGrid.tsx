@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { SubscriptionButton } from "./SubscriptionButton";
 import { IconSpinner } from "@/components/auth/shared/icons";
+import { PaymentMethodSelector } from "@/components/payments/PaymentMethodSelector";
+import { SavedCard } from "@/components/payments/SavedCardDisplay";
 
 interface Plan {
   id: string;
@@ -17,7 +19,11 @@ interface Plan {
 interface PricingPlanGridProps {
   plans: Plan[];
   isLoggedIn: boolean;
-  currentSubscription?: any;
+  currentSubscription?: {
+    is_active?: boolean;
+    plan_id?: string;
+    pending_plan_id?: string;
+  } | null;
 }
 
 export function PricingPlanGrid({
@@ -31,7 +37,7 @@ export function PricingPlanGrid({
     name: string;
     price: number;
   } | null>(null);
-  const [savedCards, setSavedCards] = useState<any[]>([]);
+  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
   const [selectedCardId, setSelectedCardId] = useState<string>("NEW");
   const [saveNewCard, setSaveNewCard] = useState(false);
   const [cardsLoading, setCardsLoading] = useState(false);
@@ -58,7 +64,7 @@ export function PricingPlanGrid({
           setSavedCards(data.data);
           setSelectedCardId(data.data[0].id);
         }
-      } catch (e) {
+      } catch {
         // ignore
       } finally {
         setCardsLoading(false);
@@ -106,6 +112,12 @@ export function PricingPlanGrid({
             throw new Error(
               chargeData.message || "Failed to charge saved card.",
             );
+          if (chargeData.data?.status && chargeData.data.status !== "SUCCESS") {
+            throw new Error(
+              chargeData.message ||
+                "The saved card could not be charged. Please try another card.",
+            );
+          }
 
           window.location.href =
             "/payment-confirmation?reference=" +
@@ -137,8 +149,8 @@ export function PricingPlanGrid({
           throw new Error("Failed to initialize payment. Please try again.");
         }
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
       setLoading(false);
     }
   };
@@ -273,7 +285,7 @@ export function PricingPlanGrid({
       {/* Fixed Modal lifted to the root of PricingPlanGrid */}
       {showModal && selectedPlan && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm text-center">
-          <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-gray-800 transform transition-all">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-gray-100 bg-white p-5 text-left shadow-2xl transition-all dark:border-gray-800 dark:bg-gray-950 sm:p-6">
             <div className="w-16 h-16 mx-auto bg-[#52b788]/10 text-[#52b788] rounded-full flex items-center justify-center mb-6">
               <svg
                 width="32"
@@ -289,38 +301,40 @@ export function PricingPlanGrid({
                 <line x1="2" y1="10" x2="22" y2="10" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-              {hasActiveSubscription
-                ? "Confirm Plan Change"
-                : "Confirm Subscription"}
-            </h3>
-
-            <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-              {hasActiveSubscription ? (
-                <>
-                  Your plan will securely change to{" "}
-                  <span className="font-bold text-gray-900 dark:text-white">
-                    {selectedPlan.name}
-                  </span>{" "}
-                  at the end of your current billing cycle. You will be charged{" "}
-                  <span className="font-bold text-[#52b788]">
-                    ₦{selectedPlan.price.toLocaleString()}
-                  </span>{" "}
-                  upon renewal.
-                </>
-              ) : (
-                <>
-                  You are subscribing to the{" "}
-                  <span className="font-bold text-gray-900 dark:text-white">
-                    {selectedPlan.name}
-                  </span>{" "}
-                  plan. You will be charged{" "}
-                  <span className="font-bold text-[#52b788] text-xl block mt-2">
-                    ₦{selectedPlan.price.toLocaleString()}
-                  </span>
-                </>
-              )}
-            </p>
+            <div className="mb-6 text-center">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {hasActiveSubscription
+                  ? "Confirm Plan Change"
+                  : "Choose how to pay"}
+              </h3>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-600 dark:text-gray-400">
+                {hasActiveSubscription ? (
+                  <>
+                    Your plan will securely change to{" "}
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {selectedPlan.name}
+                    </span>{" "}
+                    at the end of your current billing cycle. You will be charged{" "}
+                    <span className="font-bold text-[#52b788]">
+                      ₦{selectedPlan.price.toLocaleString()}
+                    </span>{" "}
+                    upon renewal.
+                  </>
+                ) : (
+                  <>
+                    Subscribe to{" "}
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {selectedPlan.name}
+                    </span>{" "}
+                    for{" "}
+                    <span className="font-bold text-[#2D6A4F] dark:text-[#52b788]">
+                      ₦{selectedPlan.price.toLocaleString()}
+                    </span>
+                    .
+                  </>
+                )}
+              </p>
+            </div>
 
             {/* Saved Cards UI only if not changing an active subscription */}
             {!hasActiveSubscription && cardsLoading ? (
@@ -328,60 +342,15 @@ export function PricingPlanGrid({
                 <IconSpinner className="w-6 h-6 animate-spin text-[#52b788]" />
               </div>
             ) : !hasActiveSubscription ? (
-              <div className="mb-8 text-left flex flex-col gap-3">
-                {savedCards.length > 0 && (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                      Select Payment Method
-                    </p>
-                    {savedCards.map((card) => (
-                      <label
-                        key={card.id}
-                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedCardId === card.id ? "border-[#52b788] bg-[#52b788]/10" : "border-gray-200 dark:border-gray-800 hover:border-gray-300"}`}
-                      >
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          checked={selectedCardId === card.id}
-                          onChange={() => setSelectedCardId(card.id)}
-                          className="w-4 h-4 text-[#52b788]"
-                        />
-                        <span className="font-medium text-gray-900 dark:text-white capitalize">
-                          {(card.card_type || card.brand || "Card").trim()}{" "}
-                          ending in •••• {card.last4}
-                        </span>
-                      </label>
-                    ))}
-                    <label
-                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedCardId === "NEW" ? "border-[#52b788] bg-[#52b788]/10" : "border-gray-200 dark:border-gray-800 hover:border-gray-300"}`}
-                    >
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        checked={selectedCardId === "NEW"}
-                        onChange={() => setSelectedCardId("NEW")}
-                        className="w-4 h-4 text-[#52b788]"
-                      />
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        Pay with a new card
-                      </span>
-                    </label>
-                  </div>
-                )}
-
-                {selectedCardId === "NEW" && (
-                  <label className="flex items-start gap-2 cursor-pointer mt-2 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
-                    <input
-                      type="checkbox"
-                      checked={saveNewCard}
-                      onChange={(e) => setSaveNewCard(e.target.checked)}
-                      className="w-4 h-4 mt-0.5 rounded border-gray-300 text-[#52b788] focus:ring-[#52b788]"
-                    />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      Save this card for future 1-click purchases
-                    </span>
-                  </label>
-                )}
+              <div className="mb-8">
+                <PaymentMethodSelector
+                  cards={savedCards}
+                  selectedCardId={selectedCardId}
+                  saveNewCard={saveNewCard}
+                  onSelectCard={setSelectedCardId}
+                  onSaveNewCardChange={setSaveNewCard}
+                  accentClassName="text-[#52b788]"
+                />
               </div>
             ) : null}
 

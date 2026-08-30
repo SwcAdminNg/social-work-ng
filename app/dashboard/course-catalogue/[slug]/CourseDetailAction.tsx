@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
+import { PaymentMethodSelector } from "@/components/payments/PaymentMethodSelector";
+import { SavedCard } from "@/components/payments/SavedCardDisplay";
 
 type CourseDetailActionProps = {
   courseId: string;
@@ -26,6 +28,11 @@ export function CourseDetailAction({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
+  const [selectedCardId, setSelectedCardId] = useState("NEW");
+  const [saveNewCard, setSaveNewCard] = useState(false);
+  const [cardsLoading, setCardsLoading] = useState(false);
   const canViewCourse = isEnrolled || hasAccess || isCompleted;
 
   async function handleAction() {
@@ -34,8 +41,34 @@ export function CourseDetailAction({
       return;
     }
 
+    if (!isFree && !hasAccess) {
+      setShowPaymentModal(true);
+      setError("");
+      if (savedCards.length === 0) {
+        setCardsLoading(true);
+        try {
+          const res = await fetch("/api/proxy/payments/cards");
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && Array.isArray(data.data) && data.data.length > 0) {
+            setSavedCards(data.data);
+            setSelectedCardId(data.data[0].id);
+          }
+        } catch {
+          // Payment can continue with a new card if this fetch fails.
+        } finally {
+          setCardsLoading(false);
+        }
+      }
+      return;
+    }
+
+    await executeEnrollment();
+  }
+
+  async function executeEnrollment() {
     setLoading(true);
     setError("");
+    setShowPaymentModal(false);
 
     try {
       const enrollRes = await fetch(`/api/proxy/learning/courses/${courseId}/enroll`, {
@@ -59,6 +92,32 @@ export function CourseDetailAction({
         throw new Error(enrollData?.message || "Unable to enroll right now.");
       }
 
+      if (selectedCardId && selectedCardId !== "NEW") {
+        const chargeRes = await fetch("/api/proxy/payments/charge-card", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            card_id: selectedCardId,
+            transaction_type: "COURSE_PURCHASE",
+            related_id: courseId,
+          }),
+        });
+        const chargeData = await chargeRes.json().catch(() => ({}));
+
+        if (!chargeRes.ok) {
+          throw new Error(chargeData?.message || "Failed to charge saved card.");
+        }
+        if (chargeData.data?.status && chargeData.data.status !== "SUCCESS") {
+          throw new Error(
+            chargeData?.message ||
+              "The saved card could not be charged. Please try another card.",
+          );
+        }
+
+        router.push(`/learn/${courseId}`);
+        return;
+      }
+
       const paymentRes = await fetch("/api/proxy/payments/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,7 +125,7 @@ export function CourseDetailAction({
           transaction_type: "COURSE_PURCHASE",
           related_id: courseId,
           gateway: "PAYSTACK",
-          save_card: false,
+          save_card: saveNewCard,
         }),
       });
       const paymentData = await paymentRes.json().catch(() => ({}));
@@ -83,7 +142,8 @@ export function CourseDetailAction({
   }
 
   return (
-    <div className="grid gap-2">
+    <>
+      <div className="grid gap-2">
       <button
         type="button"
         onClick={handleAction}
@@ -107,6 +167,73 @@ export function CourseDetailAction({
           {error}
         </p>
       )}
-    </div>
+      </div>
+
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-gray-100 bg-white p-5 shadow-2xl dark:border-gray-800 dark:bg-gray-950 sm:p-6">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-normal text-[#2D6A4F] dark:text-[#95d5b2]">
+                  Secure checkout
+                </p>
+                <h3 className="mt-1 text-2xl font-black text-gray-900 dark:text-white">
+                  Choose how to pay
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
+                  Complete your course enrollment with a saved card or Paystack checkout.
+                </p>
+              </div>
+              {typeof price === "number" && (
+                <div className="rounded-lg bg-[#f1fbf6] px-4 py-3 dark:bg-[#10261c] sm:text-right">
+                  <p className="text-xs font-bold uppercase text-[#2D6A4F] dark:text-[#95d5b2]">
+                    Total
+                  </p>
+                  <p className="text-xl font-black text-[#173f2d] dark:text-[#d8f3dc]">
+                    ₦{price.toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {cardsLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-[#2D6A4F] dark:text-[#52b788]" />
+              </div>
+            ) : (
+              <div className="mb-6">
+                <PaymentMethodSelector
+                  cards={savedCards}
+                  selectedCardId={selectedCardId}
+                  saveNewCard={saveNewCard}
+                  onSelectCard={setSelectedCardId}
+                  onSaveNewCardChange={setSaveNewCard}
+                />
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                disabled={loading}
+                className="flex-1 rounded-md bg-gray-100 px-4 py-3 text-sm font-extrabold text-gray-700 transition hover:bg-gray-200 disabled:opacity-60 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeEnrollment}
+                disabled={loading || cardsLoading}
+                className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-4 py-3 text-sm font-extrabold text-white shadow-[0_16px_32px_-20px_rgba(45,106,79,0.95)] transition hover:bg-[#1B4332] disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+              >
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {loading ? "Processing..." : "Pay now"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

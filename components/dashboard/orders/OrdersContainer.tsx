@@ -1,5 +1,6 @@
 import { fetchApi } from "@/lib/fetchApi";
 import OrdersList from "./OrdersList";
+import PaymentMethodsPanel from "./PaymentMethodsPanel";
 
 export default async function OrdersContainer({
   searchParams,
@@ -34,18 +35,32 @@ export default async function OrdersContainer({
       transactions = json.data;
       totalItems = json.meta?.total_items || 0;
     }
-  } catch (err: any) {
-    error = err.message || "An error occurred while fetching your orders.";
+  } catch (err) {
+    error =
+      err instanceof Error
+        ? err.message
+        : "An error occurred while fetching your orders.";
   }
 
   return (
     <div className="w-full h-full max-w-8xl mx-auto py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Order History
+          Payment & Billing
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          View your course purchases and subscription payments.
+          Manage saved cards, course purchases, and subscription payments.
+        </p>
+      </div>
+
+      <PaymentMethodsPanel />
+
+      <div className="mb-4">
+        <h2 className="text-lg font-black text-gray-900 dark:text-white">
+          Order history
+        </h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Receipts and transaction updates from your account.
         </p>
       </div>
 

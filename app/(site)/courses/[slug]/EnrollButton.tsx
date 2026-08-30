@@ -3,13 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconSpinner } from "@/components/auth/shared/icons";
-
-type SavedCard = {
-  id: string;
-  card_type?: string | null;
-  brand?: string | null;
-  last4?: string | null;
-};
+import { PaymentMethodSelector } from "@/components/payments/PaymentMethodSelector";
+import { SavedCard } from "@/components/payments/SavedCardDisplay";
 
 interface EnrollButtonProps {
   courseId: string;
@@ -110,6 +105,12 @@ export function EnrollButton({
               throw new Error(
                 chargeData.message || "Failed to charge saved card.",
               );
+            if (chargeData.data?.status && chargeData.data.status !== "SUCCESS") {
+              throw new Error(
+                chargeData.message ||
+                  "The saved card could not be charged. Please try another card.",
+              );
+            }
 
             router.push(`/learn/${courseId}`);
             return;
@@ -174,90 +175,62 @@ export function EnrollButton({
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-gray-800 transform transition-all">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-              Confirm Purchase
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-              Are you sure you want to proceed? You will be charged{" "}
-              <span className="font-bold text-[#2D6A4F] text-lg">
-                ₦{price?.toLocaleString() || "..."}
-              </span>
-            </p>
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-gray-100 bg-white p-5 shadow-2xl transition-all dark:border-gray-800 dark:bg-gray-950 sm:p-6">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-normal text-[#2D6A4F] dark:text-[#95d5b2]">
+                  Secure checkout
+                </p>
+                <h3 className="mt-1 text-2xl font-black text-gray-900 dark:text-white">
+                  Choose how to pay
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
+                  Complete your course purchase for{" "}
+                  <span className="font-extrabold text-gray-900 dark:text-white">
+                    ₦{price?.toLocaleString() || "..."}
+                  </span>
+                  .
+                </p>
+              </div>
+              <div className="rounded-lg bg-[#f1fbf6] px-4 py-3 text-left dark:bg-[#10261c] sm:text-right">
+                <p className="text-xs font-bold uppercase text-[#2D6A4F] dark:text-[#95d5b2]">
+                  Total
+                </p>
+                <p className="text-xl font-black text-[#173f2d] dark:text-[#d8f3dc]">
+                  ₦{price?.toLocaleString() || "..."}
+                </p>
+              </div>
+            </div>
 
             {cardsLoading ? (
               <div className="flex justify-center my-8">
                 <IconSpinner className="w-6 h-6 animate-spin text-[#2D6A4F]" />
               </div>
             ) : (
-              <div className="mb-8 flex flex-col gap-3">
-                {savedCards.length > 0 && (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                      Select Payment Method
-                    </p>
-                    {savedCards.map((card) => (
-                      <label
-                        key={card.id}
-                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedCardId === card.id ? "border-[#2D6A4F] bg-[#2D6A4F]/5 dark:bg-[#52b788]/10" : "border-gray-200 dark:border-gray-800 hover:border-gray-300"}`}
-                      >
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          checked={selectedCardId === card.id}
-                          onChange={() => setSelectedCardId(card.id)}
-                          className="w-4 h-4 text-[#2D6A4F]"
-                        />
-                        <span className="font-medium text-gray-900 dark:text-white capitalize">
-                          {(card.card_type || card.brand || "Card").trim()}{" "}
-                          ending in •••• {card.last4}
-                        </span>
-                      </label>
-                    ))}
-                    <label
-                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedCardId === "NEW" ? "border-[#2D6A4F] bg-[#2D6A4F]/5 dark:bg-[#52b788]/10" : "border-gray-200 dark:border-gray-800 hover:border-gray-300"}`}
-                    >
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        checked={selectedCardId === "NEW"}
-                        onChange={() => setSelectedCardId("NEW")}
-                        className="w-4 h-4 text-[#2D6A4F]"
-                      />
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        Pay with a new card
-                      </span>
-                    </label>
-                  </div>
-                )}
-
-                {selectedCardId === "NEW" && (
-                  <label className="flex items-start gap-2 cursor-pointer mt-2 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
-                    <input
-                      type="checkbox"
-                      checked={saveNewCard}
-                      onChange={(e) => setSaveNewCard(e.target.checked)}
-                      className="w-4 h-4 mt-0.5 rounded border-gray-300 text-[#2D6A4F] focus:ring-[#2D6A4F]"
-                    />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      Save this card for future 1-click purchases
-                    </span>
-                  </label>
-                )}
+              <div className="mb-6">
+                <PaymentMethodSelector
+                  cards={savedCards}
+                  selectedCardId={selectedCardId}
+                  saveNewCard={saveNewCard}
+                  onSelectCard={setSelectedCardId}
+                  onSaveNewCardChange={setSaveNewCard}
+                />
               </div>
             )}
             <div className="flex gap-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                disabled={loading}
+                className="flex-1 py-3 px-4 rounded-md font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
                 onClick={executeEnrollment}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-[#2D6A4F] hover:bg-[#1B4332] transition-colors shadow-md shadow-[#2D6A4F]/20"
+                disabled={loading || cardsLoading}
+                className="flex-1 py-3 px-4 rounded-md font-bold text-white bg-[#2D6A4F] hover:bg-[#1B4332] transition-colors shadow-md shadow-[#2D6A4F]/20 disabled:opacity-60"
               >
-                Proceed
+                {loading ? "Processing..." : "Pay now"}
               </button>
             </div>
           </div>
