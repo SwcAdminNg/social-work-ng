@@ -10,6 +10,7 @@ import {
   ChevronRight,
   FileText,
   HelpCircle,
+  Link2,
   Lock,
   Menu,
   PlayCircle,
@@ -38,6 +39,7 @@ type CurriculumSection = {
   title: string;
   items?: CurriculumItem[] | null;
   is_locked?: boolean | null;
+  guest_instructors?: GuestInstructor[] | null;
 };
 
 type Curriculum = {
@@ -46,6 +48,13 @@ type Curriculum = {
   total_reviews?: number | null;
   average_rating?: number | null;
   sections?: CurriculumSection[] | null;
+};
+
+type GuestInstructor = {
+  user_id?: string | null;
+  name?: string | null;
+  profile_picture_url?: string | null;
+  is_guest?: boolean | null;
 };
 
 interface CourseSidebarProps {
@@ -156,6 +165,7 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
         {sections.map((section, sectionIndex) => {
           const isSectionLocked = section.is_locked === true;
+          const guestLabel = formatGuestInstructors(section.guest_instructors);
 
           return (
           <section
@@ -172,6 +182,11 @@ export function CourseSidebar({ courseId, curriculum }: CourseSidebarProps) {
                 <h3 className="mt-0.5 line-clamp-1 text-sm font-bold text-slate-900 dark:text-white">
                   {section.title}
                 </h3>
+                {guestLabel && (
+                  <p className="mt-1 line-clamp-1 text-[0.68rem] font-bold text-slate-500 dark:text-slate-400">
+                    {guestLabel}
+                  </p>
+                )}
               </div>
               {isSectionLocked && (
                 <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-500 dark:bg-white/10 dark:text-slate-400">
@@ -332,11 +347,21 @@ function getItemIcon(item: CurriculumItem) {
 
   if (type === "VIDEO") return <PlayCircle className="h-3.5 w-3.5" />;
   if (type === "DOCUMENT") return <FileText className="h-3.5 w-3.5" />;
+  if (type === "LINKS") return <Link2 className="h-3.5 w-3.5" />;
   if (type === "ASSESSMENT" || type === "QUIZ" || type === "ESSAY") {
     return <HelpCircle className="h-3.5 w-3.5" />;
   }
 
   return <BookOpen className="h-3.5 w-3.5" />;
+}
+
+function formatGuestInstructors(guests?: GuestInstructor[] | null) {
+  const names = (guests || [])
+    .map((guest) => guest.name?.trim())
+    .filter((name): name is string => Boolean(name));
+
+  if (names.length === 0) return null;
+  return `${names.length === 1 ? "Guest lecturer" : "Guest lecturers"}: ${names.join(", ")}`;
 }
 
 function getItemLabel(item: { item_type?: string | null; assessment_type?: string | null }) {

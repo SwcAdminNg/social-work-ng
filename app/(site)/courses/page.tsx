@@ -29,6 +29,7 @@ type PublicCourse = {
   total_reviews?: number;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
+  certificate_enabled?: boolean | null;
 };
 
 export const metadata = {
@@ -159,6 +160,7 @@ export default async function CoursesPage(props: {
                   total_reviews={course.total_reviews}
                   estimated_total_minutes={course.estimated_total_minutes}
                   estimated_duration={course.estimated_duration}
+                  certificate_enabled={course.certificate_enabled}
                   is_enrolled={enrolledCourseIds.has(course.id)}
                 />
               ))}

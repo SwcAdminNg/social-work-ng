@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock3 } from "lucide-react";
+import { Clock3, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, useCallback } from "react";
 import { getCourseDurationLabel } from "@/lib/courseDuration";
@@ -21,6 +21,7 @@ interface Course {
   has_access?: boolean;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
+  certificate_enabled?: boolean | null;
 }
 
 const levelColors: Record<Level, string> = {
@@ -110,6 +111,12 @@ function CourseCard({ course }: { course: Course }) {
             <span className="inline-flex items-center gap-1 rounded-md bg-[#e7f6ee] px-2 py-1 text-[0.72rem] font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
               <Clock3 className="h-3.5 w-3.5" />
               {durationLabel}
+            </span>
+          )}
+          {course.certificate_enabled === true && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-[#ecfff4] px-2 py-1 text-[0.72rem] font-bold text-[#0f8a46] dark:bg-[#15945a]/15 dark:text-[#8de5b5]">
+              <Trophy className="h-3.5 w-3.5" />
+              Certificate
             </span>
           )}
         </div>

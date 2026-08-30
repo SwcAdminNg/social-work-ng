@@ -23,6 +23,7 @@ type FeaturedCourseApi = {
   has_access?: boolean | null;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
+  certificate_enabled?: boolean | null;
 };
 
 type FeaturedCourse = {
@@ -39,6 +40,7 @@ type FeaturedCourse = {
   has_access?: boolean;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
+  certificate_enabled?: boolean | null;
 };
 
 export default async function Home() {
@@ -75,6 +77,7 @@ export default async function Home() {
       has_access: c.has_access ?? undefined,
       estimated_total_minutes: c.estimated_total_minutes,
       estimated_duration: c.estimated_duration,
+      certificate_enabled: c.certificate_enabled,
     }));
   }
 

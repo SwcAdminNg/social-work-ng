@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock3 } from "lucide-react";
+import { Clock3, Trophy } from "lucide-react";
 import Link from "next/link";
 import { getCourseDurationLabel } from "@/lib/courseDuration";
 
@@ -19,6 +19,7 @@ interface SiteCourseCardProps {
   total_reviews?: number;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
+  certificate_enabled?: boolean | null;
 }
 
 const levelColors: Record<string, string> = {
@@ -75,6 +76,7 @@ export function SiteCourseCard({
   total_reviews,
   estimated_total_minutes,
   estimated_duration,
+  certificate_enabled,
 }: SiteCourseCardProps) {
   const displayPrice = is_free ? "Free" : (price ? `₦${price.toLocaleString()}` : "Paid");
   const fallbackImage = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop";
@@ -151,6 +153,12 @@ export function SiteCourseCard({
             <span className="inline-flex items-center gap-1 rounded-md bg-[#e7f6ee] px-2 py-1 text-[0.72rem] font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
               <Clock3 className="h-3.5 w-3.5" />
               {durationLabel}
+            </span>
+          )}
+          {certificate_enabled === true && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-[#ecfff4] px-2 py-1 text-[0.72rem] font-bold text-[#0f8a46] dark:bg-[#15945a]/15 dark:text-[#8de5b5]">
+              <Trophy className="h-3.5 w-3.5" />
+              Certificate
             </span>
           )}
         </div>

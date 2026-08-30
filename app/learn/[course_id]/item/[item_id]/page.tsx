@@ -6,8 +6,10 @@ import { EssaySubmission } from "@/components/learning/EssaySubmission";
 import { QuizGroupEngine } from "@/components/learning/QuizGroupEngine";
 import { IconClipboardCheck } from "@/components/dashboard/icons";
 import { MarkCompleteButton } from "@/components/learning/MarkCompleteButton";
+import { DocumentDownloadButton } from "@/components/learning/DocumentDownloadButton";
+import { LinkResourcePanel } from "@/components/learning/LinkResourcePanel";
 import Link from "next/link";
-import { CheckCircle, ChevronLeft, ChevronRight, Download, Lock } from "lucide-react";
+import { CheckCircle, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 
 type LearningNavItem = {
   id: string;
@@ -192,15 +194,12 @@ export default async function LearningItemPage(props: {
                 <h2 className="line-clamp-1 text-sm font-extrabold text-slate-950 dark:text-white sm:text-base">{item.title}</h2>
               </div>
               <div className="flex flex-shrink-0 items-center gap-2">
-                <a 
-                  href={item.document_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex h-9 items-center gap-2 rounded-md border border-[#b7e4c7] px-3 text-sm font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
-                >
-                  <Download className="h-4 w-4" />
-                  Download
-                </a>
+                {item.downloadable === true && (
+                  <DocumentDownloadButton
+                    courseId={params.course_id}
+                    itemId={item.id}
+                  />
+                )}
                 <MarkCompleteButton
                   courseId={params.course_id}
                   itemId={item.id}
@@ -216,6 +215,18 @@ export default async function LearningItemPage(props: {
               />
             </div>
           </div>
+        )}
+
+        {item.item_type === "LINKS" && item.link_url && (
+          <LinkResourcePanel
+            courseId={params.course_id}
+            itemId={item.id}
+            title={item.title}
+            url={item.link_url}
+            label={item.link_label}
+            description={item.link_description}
+            isCompleted={item.is_completed}
+          />
         )}
 
         {isQuiz && item.questions && (

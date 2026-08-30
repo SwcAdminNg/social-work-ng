@@ -12,6 +12,7 @@ import {
   Search,
   Sparkles,
   Star,
+  Trophy,
   UsersRound,
 } from "lucide-react";
 import { fetchApi } from "@/lib/fetchApi";
@@ -51,6 +52,7 @@ type Course = {
   total_reviews?: number | null;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
+  certificate_enabled?: boolean | null;
   is_enrolled?: boolean | null;
   is_bookmarked?: boolean | null;
   has_access?: boolean | null;
@@ -75,6 +77,7 @@ type InstructorValue =
       profile_picture_url?: string | null;
       image_url?: string | null;
       photo_url?: string | null;
+      is_guest?: boolean | null;
     };
 
 type Catalog = {
@@ -651,6 +654,12 @@ function CourseTile({ course }: { course: Course }) {
               {durationLabel}
             </span>
           )}
+          {course.certificate_enabled === true && (
+            <span className="inline-flex items-center gap-1 text-[#0f8a46] dark:text-[#8de5b5]">
+              <Trophy className="h-3.5 w-3.5" />
+              Certificate
+            </span>
+          )}
           {outcomeCount > 0 && <span>{outcomeCount} outcomes</span>}
           {materialCount > 0 && <span>{materialCount} materials</span>}
         </div>
@@ -730,6 +739,7 @@ function normalizeInstructor(value: InstructorValue): CourseInstructor | null {
     name,
     title: value.title || value.role || value.headline,
     bio: value.bio,
+    is_guest: value.is_guest,
     avatar_url:
       value.profile_picture_url ||
       value.avatar_url ||

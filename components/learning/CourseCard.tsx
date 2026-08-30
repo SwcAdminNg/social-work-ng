@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { IconBookOpen, IconStar } from "@/components/dashboard/icons";
-import { Clock3, Star } from "lucide-react";
+import { Clock3, Star, Trophy } from "lucide-react";
 import { getCourseDurationLabel } from "@/lib/courseDuration";
 
 interface CourseCardProps {
@@ -19,6 +19,7 @@ interface CourseCardProps {
   total_reviews?: number;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
+  certificate_enabled?: boolean | null;
   href: string; // The destination when clicked
 }
 
@@ -36,6 +37,7 @@ export function CourseCard({
   total_reviews,
   estimated_total_minutes,
   estimated_duration,
+  certificate_enabled,
   href,
 }: CourseCardProps) {
   const durationLabel = getCourseDurationLabel({
@@ -89,9 +91,24 @@ export function CourseCard({
         </h3>
 
         {durationLabel && (
-          <span className="mt-3 inline-flex w-max max-w-full items-center gap-1 rounded-md bg-[#e7f6ee] px-2.5 py-1 text-xs font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-            <Clock3 className="h-3.5 w-3.5 flex-shrink-0" />
-            <span className="truncate">{durationLabel}</span>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="inline-flex w-max max-w-full items-center gap-1 rounded-md bg-[#e7f6ee] px-2.5 py-1 text-xs font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+              <Clock3 className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="truncate">{durationLabel}</span>
+            </span>
+            {certificate_enabled === true && (
+              <span className="inline-flex w-max max-w-full items-center gap-1 rounded-md bg-[#ecfff4] px-2.5 py-1 text-xs font-bold text-[#0f8a46] dark:bg-[#15945a]/15 dark:text-[#8de5b5]">
+                <Trophy className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate">Certificate</span>
+              </span>
+            )}
+          </div>
+        )}
+
+        {!durationLabel && certificate_enabled === true && (
+          <span className="mt-3 inline-flex w-max max-w-full items-center gap-1 rounded-md bg-[#ecfff4] px-2.5 py-1 text-xs font-bold text-[#0f8a46] dark:bg-[#15945a]/15 dark:text-[#8de5b5]">
+            <Trophy className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="truncate">Certificate</span>
           </span>
         )}
 

@@ -8,9 +8,11 @@ import {
   CalendarDays,
   Check,
   Clock3,
+  ExternalLink,
   FileText,
   HelpCircle,
   Layers3,
+  Link2,
   Lock,
   PlayCircle,
   ShieldCheck,
@@ -43,7 +45,7 @@ type CourseCategory =
   | "LIFESTYLE"
   | "LANGUAGE";
 
-type CourseItemType = "VIDEO" | "DOCUMENT" | "QUIZ" | "ASSESSMENT" | "ESSAY";
+type CourseItemType = "VIDEO" | "DOCUMENT" | "QUIZ" | "ASSESSMENT" | "ESSAY" | "LINKS";
 
 type CourseVideo = {
   status?: "PENDING" | "PROCESSING" | "READY" | "FAILED" | null;
@@ -85,6 +87,7 @@ type CourseItem = {
   video?: CourseVideo | null;
   document?: CourseDocument | null;
   quiz?: CourseQuiz | null;
+  link?: CourseLink | null;
 };
 
 type CourseSection = {
@@ -92,6 +95,20 @@ type CourseSection = {
   title: string;
   order_index: number;
   items?: CourseItem[] | null;
+  guest_instructors?: GuestInstructor[] | null;
+};
+
+type CourseLink = {
+  url?: string | null;
+  label?: string | null;
+  description?: string | null;
+};
+
+type GuestInstructor = {
+  user_id?: string | null;
+  name?: string | null;
+  profile_picture_url?: string | null;
+  is_guest?: boolean | null;
 };
 
 type Course = {
@@ -121,6 +138,7 @@ type Course = {
   is_enrolled?: boolean | null;
   is_bookmarked?: boolean | null;
   has_access?: boolean | null;
+  certificate_enabled?: boolean | null;
   sections?: CourseSection[] | null;
 };
 
@@ -143,6 +161,7 @@ type InstructorValue =
       profile_picture_url?: string | null;
       image_url?: string | null;
       photo_url?: string | null;
+      is_guest?: boolean | null;
     };
 
 const FALLBACK_IMAGE =
@@ -193,6 +212,7 @@ export default async function DashboardCourseDetailPage(props: {
   const documentCount = allItems.filter(
     (item) => item.item_type === "DOCUMENT",
   ).length;
+  const linkCount = allItems.filter((item) => item.item_type === "LINKS").length;
   const quizCount = allItems.filter(isQuizItem).length;
   const essayCount = allItems.filter(isEssayItem).length;
   const previewCount = allItems.filter((item) => item.is_preview).length;
@@ -272,6 +292,7 @@ export default async function DashboardCourseDetailPage(props: {
               <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
                 <span>{videoCount} videos</span>
                 <span>{documentCount} docs</span>
+                {linkCount > 0 && <span>{linkCount} links</span>}
                 <span>{quizCount} quizzes</span>
                 {essayCount > 0 && <span>{essayCount} essays</span>}
                 {lockedCount > 0 && <span>{lockedCount} locked</span>}
@@ -294,6 +315,7 @@ export default async function DashboardCourseDetailPage(props: {
                         <h3 className="truncate text-sm font-extrabold text-slate-950 dark:text-white sm:text-base">
                           {section.title}
                         </h3>
+                        <GuestLecturerLine guests={section.guest_instructors} />
                       </div>
                       <span className="flex-shrink-0 rounded-md bg-white px-2.5 py-1 text-xs font-bold text-slate-600 shadow-sm dark:bg-[#111525] dark:text-slate-300">
                         {(section.items ?? []).length} items
@@ -399,10 +421,15 @@ export default async function DashboardCourseDetailPage(props: {
             <ul className="mt-3 grid gap-2 text-sm text-slate-600 dark:text-slate-400">
               {[
                 "Full curriculum content",
-                "Video, document, and assessment access",
+                linkCount > 0
+                  ? "Video, document, link, and assessment access"
+                  : "Video, document, and assessment access",
                 "Progress tracking in the learning area",
                 "Course access from any device",
-              ].map((item) => (
+                course.certificate_enabled === true
+                  ? "Certificate on completion"
+                  : null,
+              ].filter((item): item is string => Boolean(item)).map((item) => (
                 <li key={item} className="flex gap-2">
                   <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#2D6A4F] dark:text-[#b7e4c7]" />
                   <span>{item}</span>
@@ -443,6 +470,7 @@ function CourseHero({
             <Pill>{titleCaseEnum(course.level)}</Pill>
             <Pill>{course.is_free ? "Free" : "Premium"}</Pill>
             {course.is_exclusive && <Pill>Exclusive</Pill>}
+            {course.certificate_enabled === true && <Pill tone="green">Certificate on completion</Pill>}
             {canViewCourse && <Pill tone="green">Access granted</Pill>}
           </div>
           <h1 className="max-w-4xl text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
@@ -548,6 +576,7 @@ function CurriculumItem({
   const canOpenInLearner = canViewCourse;
   const itemMeta = getItemMeta(item);
   const payloadStatus = getPayloadStatus(item, unlocked);
+  const link = item.item_type === "LINKS" ? item.link : null;
 
   return (
     <div className="flex flex-col gap-3 border-b border-[#edf5f0] px-4 py-3 last:border-b-0 dark:border-[#24372e] sm:flex-row sm:items-center sm:justify-between">
@@ -557,8 +586,13 @@ function CurriculumItem({
         </span>
         <div className="min-w-0">
           <p className="font-bold leading-5 text-slate-950 dark:text-white">
-            {item.title}
+            {link?.label || item.title}
           </p>
+          {link?.description && (
+            <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600 dark:text-slate-400">
+              {link.description}
+            </p>
+          )}
           <div className="mt-1 flex flex-wrap gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
             <span>{getItemLabel(item)}</span>
             {itemMeta.map((meta) => (
@@ -583,6 +617,17 @@ function CurriculumItem({
             <Lock className="h-3.5 w-3.5" />
             Locked
           </span>
+        )}
+        {link?.url && !canOpenInLearner && unlocked && (
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-8 items-center gap-1 rounded-md border border-[#b7e4c7] px-2.5 text-xs font-bold text-[#2D6A4F] no-underline transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Open
+          </a>
         )}
         {canOpenInLearner && (
           <Link
@@ -652,6 +697,7 @@ function Pill({
 
 function itemIcon(item: CourseItem) {
   if (item.item_type === "VIDEO") return <PlayCircle className="h-5 w-5" />;
+  if (item.item_type === "LINKS") return <Link2 className="h-5 w-5" />;
   if (isQuizItem(item) || isEssayItem(item)) return <HelpCircle className="h-5 w-5" />;
   return <FileText className="h-5 w-5" />;
 }
@@ -669,6 +715,10 @@ function getItemMeta(item: CourseItem) {
 
   if (item.document?.file_size_bytes) {
     meta.push(formatBytes(item.document.file_size_bytes));
+  }
+
+  if (item.link?.url) {
+    meta.push("External resource");
   }
 
   if (typeof item.estimated_minutes === "number" && item.estimated_minutes > 0) {
@@ -704,6 +754,10 @@ function getPayloadStatus(item: CourseItem, unlocked: boolean) {
   if (item.item_type === "DOCUMENT") {
     if (!item.document) return "Document hidden";
     return item.document.is_uploaded === false ? "Upload pending" : "Document ready";
+  }
+
+  if (item.item_type === "LINKS") {
+    return item.link?.url ? "Link ready" : "Link hidden";
   }
 
   if (isQuizItem(item)) {
@@ -780,12 +834,27 @@ function normalizeInstructor(value: InstructorValue): CourseInstructor | null {
     name,
     title: value.title || value.role || value.headline,
     bio: value.bio,
+    is_guest: value.is_guest,
     avatar_url:
       value.profile_picture_url ||
       value.avatar_url ||
       value.image_url ||
       value.photo_url,
   };
+}
+
+function GuestLecturerLine({ guests }: { guests?: GuestInstructor[] | null }) {
+  const names = (guests || [])
+    .map((guest) => guest.name?.trim())
+    .filter((name): name is string => Boolean(name));
+
+  if (names.length === 0) return null;
+
+  return (
+    <p className="mt-1 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
+      {names.length === 1 ? "Guest lecturer" : "Guest lecturers"}: {names.join(", ")}
+    </p>
+  );
 }
 
 function dedupeInstructors(instructors: CourseInstructor[]) {

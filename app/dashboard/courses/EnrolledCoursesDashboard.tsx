@@ -15,6 +15,7 @@ import {
   CirclePlay,
   EllipsisVertical,
   Search,
+  Trophy,
 } from "lucide-react";
 import { getCourseDurationLabel } from "@/lib/courseDuration";
 
@@ -69,6 +70,7 @@ export type Course = {
   access_start_date?: string | null;
   estimated_total_minutes?: number | null;
   estimated_duration?: string | null;
+  certificate_enabled?: boolean | null;
 };
 
 export type DashboardStats = {
@@ -841,6 +843,7 @@ function DashboardCourseCard({
   const isStarted = status === "IN_PROGRESS";
   const label = actionLabel(status, savedOnly, course.wishlist);
   const durationLabel = getCourseDurationLabel(course);
+  const hasCertificate = course.certificate_enabled === true;
 
   return (
     <article className="group flex min-h-[366px] flex-col overflow-hidden rounded-md border border-[#e5e3ee] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#c9c1eb] hover:shadow-lg dark:border-[#262a3d] dark:bg-[#0f1726]">
@@ -916,10 +919,24 @@ function DashboardCourseCard({
         </div>
 
         {durationLabel && (
-          <div className="mb-4 flex">
+          <div className="mb-4 flex flex-wrap gap-2">
             <span className="inline-flex max-w-full items-center gap-1 rounded-md bg-[#f0fbf5] px-2.5 py-1 text-xs font-extrabold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
               <Clock3 className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="truncate">{durationLabel}</span>
+            </span>
+            {hasCertificate && (
+              <span className="inline-flex max-w-full items-center gap-1 rounded-md bg-[#ecfff4] px-2.5 py-1 text-xs font-extrabold text-[#0f8a46] dark:bg-[#15945a]/15 dark:text-[#8de5b5]">
+                <Trophy className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate">Certificate</span>
+              </span>
+            )}
+          </div>
+        )}
+        {!durationLabel && hasCertificate && (
+          <div className="mb-4 flex">
+            <span className="inline-flex max-w-full items-center gap-1 rounded-md bg-[#ecfff4] px-2.5 py-1 text-xs font-extrabold text-[#0f8a46] dark:bg-[#15945a]/15 dark:text-[#8de5b5]">
+              <Trophy className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="truncate">Certificate</span>
             </span>
           </div>
         )}
@@ -982,7 +999,7 @@ function DashboardCourseCard({
               >
                 {label}
               </Link>
-              {isComplete && !course.wishlist && (
+              {isComplete && hasCertificate && !course.wishlist && (
                 <Link
                   href={`/dashboard/certificates/${course.id}`}
                   aria-label={`View certificate for ${course.title}`}

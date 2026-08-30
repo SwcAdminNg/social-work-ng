@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, PlayCircle, FileText, HelpCircle, X, Eye } from "lucide-react";
+import { ChevronDown, ChevronUp, PlayCircle, FileText, HelpCircle, X, Eye, ExternalLink, Link2 } from "lucide-react";
 import { HlsVideoPlayer } from "@/components/learning/HlsVideoPlayer";
 import { QuizEngine } from "@/components/learning/QuizEngine";
 
@@ -37,12 +37,25 @@ type CurriculumItem = {
     questions?: CurriculumQuizQuestion[] | null;
   } | null;
   questions?: CurriculumQuizQuestion[] | null;
+  link?: {
+    url?: string | null;
+    label?: string | null;
+    description?: string | null;
+  } | null;
 };
 
 type CurriculumSection = {
   id: string;
   title: string;
   items?: CurriculumItem[] | null;
+  guest_instructors?: GuestInstructor[] | null;
+};
+
+type GuestInstructor = {
+  user_id?: string | null;
+  name?: string | null;
+  profile_picture_url?: string | null;
+  is_guest?: boolean | null;
 };
 
 export function CourseCurriculum({ courseId, sections }: { courseId?: string; sections: CurriculumSection[] }) {
@@ -70,6 +83,8 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
         return <PlayCircle className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
       case "DOCUMENT":
         return <FileText className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
+      case "LINKS":
+        return <Link2 className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
       case "QUIZ":
       case "ASSESSMENT":
         return <HelpCircle className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
@@ -88,6 +103,7 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
         {sections.map((section, idx) => {
           const isExpanded = expandedSections[section.id] || false;
           const itemCount = section.items?.length || 0;
+          const guestLabel = formatGuestInstructors(section.guest_instructors);
 
           return (
             <div
@@ -106,6 +122,11 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                   <span className="text-sm text-gray-500 mt-1">
                     {itemCount} {itemCount === 1 ? "lectures" : "lectures"}
                   </span>
+                  {guestLabel && (
+                    <span className="mt-1 text-sm font-semibold text-[#2D6A4F] dark:text-[#b7e4c7]">
+                      {guestLabel}
+                    </span>
+                  )}
                 </div>
                 <div className="flex-shrink-0 ml-4 text-gray-500">
                   {isExpanded ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
@@ -118,25 +139,45 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                 }`}
               >
                 <ul className="overflow-hidden min-h-0 divide-y divide-gray-100 dark:divide-gray-800/50 bg-white dark:bg-gray-900">
-                  {section.items?.map((item) => (
+                  {section.items?.map((item) => {
+                    const link = getLinkPayload(item);
+
+                    return (
                     <li
                       key={item.id}
-                      className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors group"
+                      className="px-6 py-4 flex flex-col gap-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors group sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex min-w-0 items-start gap-4">
                         {getItemIcon(item.item_type)}
-                        <span className={`font-medium ${item.is_preview ? "text-[#2D6A4F] dark:text-[#52b788]" : "text-gray-700 dark:text-gray-300"}`}>
-                          {item.title}
-                        </span>
-                        {getEstimatedMinutes(item) > 0 && (
-                          <span className="hidden rounded-md bg-[#e7f6ee] px-2 py-1 text-xs font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7] sm:inline-flex">
-                            {formatMinutes(getEstimatedMinutes(item))}
+                        <div className="min-w-0">
+                          <span className={`block font-medium ${item.is_preview ? "text-[#2D6A4F] dark:text-[#52b788]" : "text-gray-700 dark:text-gray-300"}`}>
+                            {link?.label || item.title}
                           </span>
-                        )}
+                          {link?.description && (
+                            <p className="mt-1 line-clamp-2 text-sm leading-5 text-gray-500 dark:text-gray-400">
+                              {link.description}
+                            </p>
+                          )}
+                          {getEstimatedMinutes(item) > 0 && (
+                            <span className="mt-2 inline-flex rounded-md bg-[#e7f6ee] px-2 py-1 text-xs font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+                              {formatMinutes(getEstimatedMinutes(item))}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       
                       <div className="flex items-center gap-4">
-                        {item.is_preview ? (
+                        {link?.url ? (
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 rounded-md bg-[#e7f6ee] px-3 py-1.5 text-sm font-bold text-[#2D6A4F] transition-colors hover:bg-[#d8f3dc] dark:bg-[#52b788]/15 dark:text-[#b7e4c7] dark:hover:bg-[#52b788]/25"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            Open
+                          </a>
+                        ) : item.is_preview ? (
                           <button
                             onClick={() => setPreviewItem(item)}
                             className="flex items-center gap-1.5 text-sm font-bold text-[#F4A261] hover:text-[#d98b4f] transition-colors bg-orange-50 dark:bg-orange-900/20 px-3 py-1.5 rounded-full"
@@ -151,7 +192,8 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                         )}
                       </div>
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               </div>
             </div>
@@ -218,6 +260,40 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                     </div>
                   );
                 })()
+              ) : previewItem.item_type === "LINKS" ? (
+                (() => {
+                  const link = getLinkPayload(previewItem);
+                  if (link?.url) {
+                    return (
+                      <div className="w-full max-w-xl rounded-xl bg-white p-6 text-left dark:bg-gray-900">
+                        <Link2 className="mb-4 h-10 w-10 text-[#2D6A4F] dark:text-[#b7e4c7]" />
+                        <h4 className="text-xl font-extrabold text-gray-900 dark:text-white">
+                          {link.label || previewItem.title}
+                        </h4>
+                        {link.description && (
+                          <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                            {link.description}
+                          </p>
+                        )}
+                        <a
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-5 inline-flex h-10 items-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-bold text-white transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d]"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Open resource
+                        </a>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="text-center text-gray-400">
+                      <Link2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p>Link preview is not available.</p>
+                    </div>
+                  );
+                })()
               ) : isQuizItem(previewItem) ? (
                 getQuizQuestions(previewItem)?.length ? (
                   <div className="w-full bg-white dark:bg-gray-50 rounded-xl max-h-[75vh] overflow-y-auto p-4 md:p-6">
@@ -265,6 +341,20 @@ function getItemLabel(item: CurriculumItem) {
   }
 
   return item?.item_type;
+}
+
+function getLinkPayload(item: CurriculumItem) {
+  if (item.item_type !== "LINKS") return null;
+  return item.link || null;
+}
+
+function formatGuestInstructors(guests?: GuestInstructor[] | null) {
+  const names = (guests || [])
+    .map((guest) => guest.name?.trim())
+    .filter((name): name is string => Boolean(name));
+
+  if (names.length === 0) return null;
+  return `${names.length === 1 ? "Guest lecturer" : "Guest lecturers"}: ${names.join(", ")}`;
 }
 
 function getEstimatedMinutes(item: CurriculumItem) {

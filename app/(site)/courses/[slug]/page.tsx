@@ -6,7 +6,7 @@ import { IconBookOpen } from "@/components/dashboard/icons";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft, Star, Trophy } from "lucide-react";
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;
@@ -149,6 +149,12 @@ export default async function CourseDetailsPage(props: {
                   {course.category.replace("_", " ")}
                 </span>
               )}
+              {course.certificate_enabled === true && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-extrabold tracking-wider bg-[#52b788] text-[#06130d] rounded-lg shadow-lg">
+                  <Trophy className="h-3.5 w-3.5" />
+                  CERTIFICATE ON COMPLETION
+                </span>
+              )}
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-4 leading-[1.1] drop-shadow-2xl">
               {course.title}
@@ -250,10 +256,12 @@ export default async function CourseDetailsPage(props: {
                   <span className="w-2 h-2 rounded-full bg-[#2D6A4F]" /> Access
                   on mobile and TV
                 </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                  <span className="w-2 h-2 rounded-full bg-[#2D6A4F]" />{" "}
-                  Certificate of completion
-                </div>
+                {course.certificate_enabled === true && (
+                  <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                    <span className="w-2 h-2 rounded-full bg-[#2D6A4F]" />{" "}
+                    Certificate of completion
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -9,6 +9,7 @@ export type CourseInstructor = {
   title?: string | null;
   bio?: string | null;
   avatar_url?: string | null;
+  is_guest?: boolean | null;
 };
 
 type InstructorSummaryProps = {
@@ -50,6 +51,17 @@ export function InstructorSummary({
         )}
       </span>
       <span className="min-w-0 truncate">{firstInstructor.name}</span>
+      {firstInstructor.is_guest && (
+        <span
+          className={`inline-flex h-6 flex-shrink-0 items-center rounded-md px-2 text-xs font-extrabold ${
+            isHero
+              ? "bg-white/15 text-white"
+              : "bg-[#fef3c7] text-[#92400e] dark:bg-amber-400/15 dark:text-amber-200"
+          }`}
+        >
+          Guest
+        </span>
+      )}
       {extraCount > 0 && (
         <Dialog.Root>
           <Dialog.Trigger asChild>
@@ -112,6 +124,11 @@ export function InstructorSummary({
                       {instructor.title && (
                         <p className="mt-0.5 text-sm font-semibold text-[#2D6A4F] dark:text-[#b7e4c7]">
                           {instructor.title}
+                        </p>
+                      )}
+                      {instructor.is_guest && (
+                        <p className="mt-1 text-xs font-extrabold uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                          Guest lecturer
                         </p>
                       )}
                       {instructor.bio && (
