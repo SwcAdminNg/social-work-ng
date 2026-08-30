@@ -284,8 +284,8 @@ export function PricingPlanGrid({
         })}
       {/* Fixed Modal lifted to the root of PricingPlanGrid */}
       {showModal && selectedPlan && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm text-center">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-gray-100 bg-white p-5 text-left shadow-2xl transition-all dark:border-gray-800 dark:bg-gray-950 sm:p-6">
+        <div className="fixed inset-0 z-[10000] flex items-end justify-center bg-black/65 p-0 text-center backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="max-h-[94vh] w-full overflow-y-auto rounded-t-2xl border border-gray-100 bg-white p-4 text-left shadow-2xl transition-all dark:border-gray-800 dark:bg-gray-950 sm:max-w-xl sm:rounded-2xl sm:p-6">
             <div className="w-16 h-16 mx-auto bg-[#52b788]/10 text-[#52b788] rounded-full flex items-center justify-center mb-6">
               <svg
                 width="32"
