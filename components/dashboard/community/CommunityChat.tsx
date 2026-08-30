@@ -245,12 +245,12 @@ export default function CommunityChat({
   const typingFalseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  const closedByUserRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeIdRef = useRef(activeId);
   const memberModeRef = useRef(memberMode);
   const memberPageRef = useRef(memberPage);
+  const lastMemberLoadRef = useRef({ key: "", at: 0 });
 
   const activeCommunity = useMemo(
     () => communities.find((community) => community.id === activeId),
@@ -393,6 +393,16 @@ export default function CommunityChat({
       mode: MemberMode = "online",
     ) => {
       if (!communityId) return;
+      const loadKey = `${communityId}:${nextPage}:${mode}`;
+      const now = Date.now();
+      if (
+        lastMemberLoadRef.current.key === loadKey &&
+        now - lastMemberLoadRef.current.at < 1000
+      ) {
+        return;
+      }
+      lastMemberLoadRef.current = { key: loadKey, at: now };
+
       const pageSize =
         mode === "online" ? ONLINE_ROSTER_FETCH_SIZE : MEMBER_PAGE_SIZE;
 
@@ -437,26 +447,31 @@ export default function CommunityChat({
     setActiveId(selectedCommunityId);
   }, [selectedCommunityId]);
 
-  useEffect(() => {
-    if (!activeId) return;
-    setMessages([]);
-    setMembers([]);
-    setTypingUsers(new Map());
-    setReplyTo(null);
-    setMemberMode("online");
-    setMemberPage(1);
-    setMemberTotalPages(1);
-    setMemberTotalItems(0);
-    setRosterExpanded(false);
-    clearAttachment();
-    loadMessages(activeId, 1);
-    loadMembers(activeId, 1, "online");
-  }, [activeId, clearAttachment, loadMembers, loadMessages]);
+  const memberStateCommunityRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!activeId) return;
+    const communityChanged = memberStateCommunityRef.current !== activeId;
+
+    if (communityChanged) {
+      memberStateCommunityRef.current = activeId;
+      setMessages([]);
+      setMembers([]);
+      setTypingUsers(new Map());
+      setReplyTo(null);
+      setMemberMode("online");
+      setMemberPage(1);
+      setMemberTotalPages(1);
+      setMemberTotalItems(0);
+      setRosterExpanded(false);
+      clearAttachment();
+      loadMessages(activeId, 1);
+      loadMembers(activeId, 1, "online");
+      return;
+    }
+
     loadMembers(activeId, memberPage, memberMode);
-  }, [activeId, loadMembers, memberMode, memberPage]);
+  }, [activeId, clearAttachment, loadMembers, loadMessages, memberMode, memberPage]);
 
   useEffect(() => {
     if (memberPage > rosterTotalPages) {
@@ -497,8 +512,9 @@ export default function CommunityChat({
       return;
     }
 
-    closedByUserRef.current = false;
     const socketToken = accessToken;
+    let hasOpenedOnce = false;
+    let closedByThisEffect = false;
 
     function connect() {
       setConnection("connecting");
@@ -511,8 +527,11 @@ export default function CommunityChat({
 
       ws.onopen = () => {
         setConnection("open");
-        loadMessages(activeId, 1);
-        loadMembers(activeId, memberPageRef.current, memberModeRef.current);
+        if (hasOpenedOnce) {
+          loadMessages(activeId, 1);
+          loadMembers(activeId, memberPageRef.current, memberModeRef.current);
+        }
+        hasOpenedOnce = true;
         pingIntervalRef.current = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: "ping" }));
@@ -546,7 +565,7 @@ export default function CommunityChat({
       ws.onclose = (event) => {
         setConnection("closed");
         if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
-        if (!closedByUserRef.current && event.code !== 4401 && event.code !== 4403 && event.code !== 4404) {
+        if (!closedByThisEffect && event.code !== 4401 && event.code !== 4403 && event.code !== 4404) {
           reconnectTimeoutRef.current = setTimeout(connect, RECONNECT_DELAY_MS);
         }
       };
@@ -557,7 +576,7 @@ export default function CommunityChat({
     connect();
 
     return () => {
-      closedByUserRef.current = true;
+      closedByThisEffect = true;
       if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
       if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
       wsRef.current?.close();
