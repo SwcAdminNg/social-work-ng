@@ -1,4 +1,4 @@
-import { fetchApi } from "@/lib/fetchApi";
+import { fetchApi, publicFetchApi } from "@/lib/fetchApi";
 import { SiteCourseCard } from "@/components/courses/SiteCourseCard";
 import { CourseFilters } from "@/components/courses/CourseFilters";
 import Link from "next/link";
@@ -59,14 +59,18 @@ export default async function CoursesPage(props: {
   if (is_free === 'true') url += `&is_free=true`;
   else if (is_free === 'false') url += `&is_free=false`;
 
-  const [res, catalogsRes] = await Promise.all([
+  const [initialRes, catalogsRes] = await Promise.all([
     fetchApi(url, { next: { revalidate: 60 } }),
     fetchApi("/courses/catalogs", { next: { revalidate: 3600 } }),
   ]);
 
+  const res = initialRes.ok
+    ? initialRes
+    : await publicFetchApi(url, { next: { revalidate: 60 } });
   const data = await res.json().catch(() => ({}));
-  const items = Array.isArray(data?.data) ? data.data : data?.data?.items || [];
-  const hasNextPage = Boolean(data?.meta?.has_next ?? items.length === 12);
+  const items = getCourseItems(data);
+  const meta = getCourseMeta(data);
+  const hasNextPage = Boolean(meta.has_next ?? items.length === 12);
 
   let catalogs = [];
   if (catalogsRes.ok) {
@@ -216,4 +220,35 @@ export default async function CoursesPage(props: {
       </div>
     </div>
   );
+}
+
+function getCourseItems(json: unknown): PublicCourse[] {
+  if (!json || typeof json !== "object") return [];
+
+  const payload = json as {
+    data?: PublicCourse[] | { items?: PublicCourse[]; courses?: PublicCourse[] };
+    items?: PublicCourse[];
+    courses?: PublicCourse[];
+  };
+
+  if (Array.isArray(payload.data)) return payload.data;
+  if (payload.data && !Array.isArray(payload.data)) {
+    if (Array.isArray(payload.data.items)) return payload.data.items;
+    if (Array.isArray(payload.data.courses)) return payload.data.courses;
+  }
+  if (Array.isArray(payload.items)) return payload.items;
+  if (Array.isArray(payload.courses)) return payload.courses;
+
+  return [];
+}
+
+function getCourseMeta(json: unknown) {
+  if (!json || typeof json !== "object") return {};
+
+  const payload = json as {
+    meta?: { has_next?: boolean };
+    data?: { meta?: { has_next?: boolean } };
+  };
+
+  return payload.meta || payload.data?.meta || {};
 }

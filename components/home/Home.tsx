@@ -1,4 +1,4 @@
-import { fetchApi } from "@/lib/fetchApi";
+import { fetchApi, publicFetchApi } from "@/lib/fetchApi";
 import CourseCategories from "./CourseCategories";
 import CTABanner from "./CTABanner";
 import FeaturedCourses from "./FeaturedCourses";
@@ -46,18 +46,19 @@ type FeaturedCourse = {
 };
 
 export default async function Home() {
-  const [featuredRes, catalogsRes, statsRes] = await Promise.all([
+  const [initialFeaturedRes, catalogsRes, statsRes] = await Promise.all([
     fetchApi("/courses/featured?limit=6", { cache: "no-store" }),
     fetchApi("/courses/catalogs", { next: { revalidate: 3600 } }),
     fetchApi("/home/stats", { next: { revalidate: 3600 } }),
   ]);
 
+  const featuredRes = initialFeaturedRes.ok
+    ? initialFeaturedRes
+    : await publicFetchApi("/courses/featured?limit=6", { cache: "no-store" });
   let featuredCourses: FeaturedCourse[] = [];
   if (featuredRes.ok) {
     const data = await featuredRes.json().catch(() => ({}));
-    const rawCourses = Array.isArray(data?.data)
-      ? (data.data as FeaturedCourseApi[])
-      : [];
+    const rawCourses = getFeaturedCourseItems(data);
 
     featuredCourses = rawCourses.map((c) => ({
       id: c.id,
@@ -106,6 +107,29 @@ export default async function Home() {
       <CTABanner statsData={stats} />
     </main>
   );
+}
+
+function getFeaturedCourseItems(json: unknown): FeaturedCourseApi[] {
+  if (!json || typeof json !== "object") return [];
+
+  const payload = json as {
+    data?: FeaturedCourseApi[] | {
+      items?: FeaturedCourseApi[];
+      courses?: FeaturedCourseApi[];
+    };
+    items?: FeaturedCourseApi[];
+    courses?: FeaturedCourseApi[];
+  };
+
+  if (Array.isArray(payload.data)) return payload.data;
+  if (payload.data && !Array.isArray(payload.data)) {
+    if (Array.isArray(payload.data.items)) return payload.data.items;
+    if (Array.isArray(payload.data.courses)) return payload.data.courses;
+  }
+  if (Array.isArray(payload.items)) return payload.items;
+  if (Array.isArray(payload.courses)) return payload.courses;
+
+  return [];
 }
 
 function toFeaturedLevel(value?: string | null): FeaturedLevel {
