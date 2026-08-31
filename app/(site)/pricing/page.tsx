@@ -81,9 +81,9 @@ export default async function PricingPage() {
         </h2>
         <div className="space-y-8 text-left mt-10">
           <div>
-            <h4 className="font-bold text-lg text-gray-900 dark:text-white">
+            <h3 className="font-bold text-lg text-gray-900 dark:text-white">
               Can I cancel my subscription?
-            </h4>
+            </h3>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Yes, you can cancel your subscription at any time from your
               dashboard settings. You will continue to have access until the end
@@ -91,18 +91,18 @@ export default async function PricingPage() {
             </p>
           </div>
           <div>
-            <h4 className="font-bold text-lg text-gray-900 dark:text-white">
+            <h3 className="font-bold text-lg text-gray-900 dark:text-white">
               What happens to my certificates if I cancel?
-            </h4>
+            </h3>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               You keep all the certificates you earned while your subscription
               was active forever. They remain verifiable through our platform.
             </p>
           </div>
           <div>
-            <h4 className="font-bold text-lg text-gray-900 dark:text-white">
+            <h3 className="font-bold text-lg text-gray-900 dark:text-white">
               Are exclusive courses included?
-            </h4>
+            </h3>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Exclusive premium courses are not included in standard
               subscription plans and must be purchased separately. However,

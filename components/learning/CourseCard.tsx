@@ -53,9 +53,9 @@ export function CourseCard({
       {/* Thumbnail Area */}
       <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
         {thumbnail_url ? (
-          <img 
-            src={thumbnail_url} 
-            alt={title} 
+          <img
+            src={thumbnail_url}
+            alt={title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
@@ -117,9 +117,9 @@ export function CourseCard({
           <div className="flex items-center gap-1.5 mt-2">
             <div className="flex items-center gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Star 
-                  key={i} 
-                  className={`w-3.5 h-3.5 ${i < (average_rating || 0) ? "fill-yellow-400 text-yellow-400" : "fill-transparent text-gray-300 dark:text-gray-600"}`} 
+                <Star
+                  key={i}
+                  className={`w-3.5 h-3.5 ${i < (average_rating || 0) ? "fill-yellow-400 text-yellow-400" : "fill-transparent text-gray-300 dark:text-gray-600"}`}
                 />
               ))}
             </div>
@@ -139,9 +139,16 @@ export function CourseCard({
               <span>Progress</span>
               <span>{progress_percent}%</span>
             </div>
-            <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-[#2D6A4F] dark:bg-[#52b788] rounded-full transition-all duration-1000 ease-out" 
+            <div
+              role="progressbar"
+              aria-valuenow={progress_percent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Course progress"
+              className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden"
+            >
+              <div
+                className="h-full bg-[#2D6A4F] dark:bg-[#52b788] rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${progress_percent}%` }}
               />
             </div>

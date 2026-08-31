@@ -147,6 +147,7 @@ export function DashboardHeader() {
           </button>
 
           <div
+            hidden={!notifOpen}
             className={`absolute right-0 mt-2 w-80 z-50 max-w-[calc(100vw-2rem)] origin-top-right rounded-lg border border-[#e5e3ee] bg-white shadow-xl transition-all duration-150 dark:border-[#262a3d] dark:bg-[#111525] ${
               notifOpen
                 ? "pointer-events-auto scale-100 opacity-100"
@@ -237,6 +238,7 @@ export function DashboardHeader() {
           </button>
 
           <div
+            hidden={!profileOpen}
             className={`absolute right-0 mt-2 w-64 z-50 origin-top-right rounded-lg border border-[#e5e3ee] bg-white shadow-xl transition-all duration-150 dark:border-[#262a3d] dark:bg-[#111525] ${
               profileOpen
                 ? "pointer-events-auto scale-100 opacity-100"

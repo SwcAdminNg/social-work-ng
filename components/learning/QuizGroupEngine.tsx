@@ -121,6 +121,11 @@ export function QuizGroupEngine({
     answersRef.current = answers;
   }, [answers]);
   const submittedRef = useRef(false);
+  const timeWarningsAnnouncedRef = useRef<{ oneMinute: boolean; tenSeconds: boolean }>({
+    oneMinute: false,
+    tenSeconds: false,
+  });
+  const [timeWarning, setTimeWarning] = useState("");
 
   // Once the server-provided attempts_remaining reflects a submission (after router.refresh()),
   // drop the local session counter so we don't double-subtract the same attempt.
@@ -157,6 +162,18 @@ export function QuizGroupEngine({
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, [attempt, expiresAtMs]);
+
+  // Announce accessible warnings at the 60s and 10s marks before auto-submit.
+  useEffect(() => {
+    if (remainingMs == null) return;
+    if (remainingMs <= 10000 && !timeWarningsAnnouncedRef.current.tenSeconds) {
+      timeWarningsAnnouncedRef.current.tenSeconds = true;
+      setTimeWarning("10 seconds remaining. This quiz attempt will be submitted automatically.");
+    } else if (remainingMs <= 60000 && !timeWarningsAnnouncedRef.current.oneMinute) {
+      timeWarningsAnnouncedRef.current.oneMinute = true;
+      setTimeWarning("1 minute remaining in this quiz attempt.");
+    }
+  }, [remainingMs]);
 
   const handleSubmit = async (auto = false) => {
     if (!attempt || submittedRef.current) return;
@@ -244,6 +261,8 @@ export function QuizGroupEngine({
       if (!res.ok) throw new Error(data.message || "Failed to start quiz group");
 
       submittedRef.current = false;
+      timeWarningsAnnouncedRef.current = { oneMinute: false, tenSeconds: false };
+      setTimeWarning("");
       setResult(null);
       setAttempt({
         attempt_id: data.data?.attempt_id,
@@ -358,6 +377,8 @@ export function QuizGroupEngine({
 
       {result && !isReset && !attempt && (
         <section
+          role="status"
+          aria-live="polite"
           className={`rounded-lg border p-4 shadow-sm sm:p-5 ${
             result.result_visible && result.passed
               ? "border-[#b7e4c7] bg-[#f0fbf5] dark:border-[#27433a] dark:bg-[#13231d]"
@@ -484,7 +505,11 @@ export function QuizGroupEngine({
           </div>
 
           <div className="border-t border-[#dceee4] px-4 py-4 dark:border-[#27433a] sm:px-5">
-            {error && <p className="mb-3 text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
+            {error && (
+              <p role="alert" aria-live="assertive" className="mb-3 text-sm font-bold text-red-600 dark:text-red-400">
+                {error}
+              </p>
+            )}
             {canStart ? (
               <button
                 onClick={handleStart}
@@ -523,8 +548,14 @@ export function QuizGroupEngine({
             )}
           </div>
 
+          <div role="alert" aria-live="assertive" className="sr-only">
+            {timeWarning}
+          </div>
+
           {error && (
-            <p className="px-4 pt-3 text-sm font-bold text-red-600 dark:text-red-400 sm:px-5">{error}</p>
+            <p role="alert" aria-live="assertive" className="px-4 pt-3 text-sm font-bold text-red-600 dark:text-red-400 sm:px-5">
+              {error}
+            </p>
           )}
 
           {attemptQuestions.length > 0 ? (
@@ -539,7 +570,14 @@ export function QuizGroupEngine({
                       {answeredCount}/{attemptQuestions.length} answered
                     </p>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#0f1726] sm:w-52">
+                  <div
+                    role="progressbar"
+                    aria-valuenow={progressPercent}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label="Quiz progress"
+                    className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#0f1726] sm:w-52"
+                  >
                     <div
                       className="h-full rounded-full bg-[#2D6A4F] transition-all dark:bg-[#52b788]"
                       style={{ width: `${progressPercent}%` }}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { MessageSquarePlus, TicketX, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { getTicketStatusBadge } from "./statusBadge";
@@ -154,9 +155,12 @@ export default function SupportTicketsList({
                   className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors duration-150 cursor-pointer"
                 >
                   <td className="px-6 py-5">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">
+                    <Link
+                      href={`/dashboard/support-tickets/${ticket.id}`}
+                      className="text-sm font-bold text-gray-900 dark:text-white rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2"
+                    >
                       {ticket.subject}
-                    </span>
+                    </Link>
                   </td>
                   <td className="px-6 py-5 whitespace-nowrap">
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-300">

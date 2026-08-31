@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { IconSpinner } from "@/components/auth/shared/icons";
-import { 
-  IconBookOpen, 
-  IconClipboardCheck, 
-  IconStar, 
-  IconReceipt 
+import {
+  IconBookOpen,
+  IconClipboardCheck,
+  IconStar,
+  IconReceipt
 } from "@/components/dashboard/icons";
 import { CheckCircle2, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -61,23 +61,23 @@ export function ActivityFeed() {
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) return "Just now";
-    
+
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
-    
+
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays === 1) return "Yesterday";
     if (diffInDays < 7) return `${diffInDays} days ago`;
-    
+
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
   const getActivityDetails = (item: ActivityItem) => {
     const meta = item.metadata_json || {};
-    
+
     switch (item.activity_type) {
       case "COURSE_ENROLLED":
         return {
@@ -92,12 +92,12 @@ export function ActivityFeed() {
       case "QUIZ_COMPLETED":
         return {
           icon: <IconClipboardCheck />,
-          color: meta.passed 
+          color: meta.passed
             ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
             : "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400",
           text: (
             <span>
-              Completed {meta.item_title ? <span className="font-bold">{meta.item_title}</span> : "a quiz"} 
+              Completed {meta.item_title ? <span className="font-bold">{meta.item_title}</span> : "a quiz"}
               {meta.course_title ? ` in ${meta.course_title}` : ""} with a score of <span className="font-bold">{meta.score || 0}%</span>
             </span>
           ),
@@ -202,7 +202,7 @@ export function ActivityFeed() {
             {activities.map((item, i) => {
               const details = getActivityDetails(item);
               const isLast = i === activities.length - 1;
-              
+
               return (
                 <li
                   key={item.id}
@@ -216,7 +216,7 @@ export function ActivityFeed() {
                         {details.icon}
                       </div>
                     </div>
-                    
+
                     <div className="flex-1 min-w-0 pt-0.5">
                       <p className="text-sm font-medium text-gray-900 dark:text-white leading-snug">
                         {details.text}
@@ -230,11 +230,15 @@ export function ActivityFeed() {
               );
             })}
           </ul>
-          
+
           {(page > 1 || page < totalPages) && (
             <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/30 flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                Page {page} of {totalPages}
+              <span
+                aria-live="polite"
+                role="status"
+                className="text-xs font-medium text-gray-500 dark:text-gray-400"
+              >
+                {isFetching ? "Loading activity..." : `Page ${page} of ${totalPages}`}
               </span>
               <div className="flex items-center gap-2">
                 <button

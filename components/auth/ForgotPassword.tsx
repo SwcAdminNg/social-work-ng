@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
@@ -11,14 +11,24 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const emailRef = useRef<HTMLInputElement>(null);
+  const sentHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (sent) sentHeadingRef.current?.focus();
+  }, [sent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setEmailError("");
 
-    if (!email) return emailRef.current?.focus();
+    if (!email) {
+      setEmailError("Please enter your email address.");
+      return emailRef.current?.focus();
+    }
 
     setLoading(true);
     try {
@@ -32,7 +42,7 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
       if (!res.ok) {
         throw new Error(data.message || "Failed to send reset link.");
       }
-      
+
       setSent(true);
     } catch (err: any) {
       setError(err.message);
@@ -48,7 +58,11 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
           <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">
             Check your inbox
           </p>
-          <h1 className="text-[1.75rem] sm:text-[2rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-2">
+          <h1
+            ref={sentHeadingRef}
+            tabIndex={-1}
+            className="text-[1.75rem] sm:text-[2rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-2 outline-none"
+          >
             Reset link sent
           </h1>
           <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
@@ -100,7 +114,7 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
           {error}
         </div>
       )}
@@ -113,10 +127,14 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
           label="Email address"
           type="email"
           value={email}
-          onChange={setEmail}
+          onChange={(v) => {
+            setEmail(v);
+            if (emailError) setEmailError("");
+          }}
           icon={<IconMail />}
           autoComplete="email"
           required
+          error={emailError}
         />
 
         {/* Submit button */}

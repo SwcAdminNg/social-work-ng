@@ -129,7 +129,7 @@ export function NewTicketModal({
           </form>
 
           <Dialog.Close asChild>
-            <button className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:pointer-events-none text-gray-500 dark:text-gray-400">
+            <button className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:pointer-events-none text-gray-500 dark:text-gray-400">
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
             </button>

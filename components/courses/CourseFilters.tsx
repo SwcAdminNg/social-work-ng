@@ -157,6 +157,7 @@ export function CourseFilters({ catalogs = [] }: { catalogs?: Catalog[] }) {
 
               <button
                 onClick={handleToggleFilters}
+                aria-label="Close filters"
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full transition-colors"
               >
                 <svg

@@ -1040,6 +1040,9 @@ export default function CommunityChat({
       <div
         ref={messagesContainerRef}
         onScroll={handleMessagesScroll}
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
         className="swcl-sidebar-scroll h-full overflow-y-auto px-3 py-4 sm:px-5"
       >
       {hasOlder && (
@@ -1173,7 +1176,7 @@ export default function CommunityChat({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={sending || Boolean(attachedFile)}
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[#2D6A4F] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-400 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[#2D6A4F] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:border-slate-700 dark:text-slate-400 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
           aria-label="Attach file"
           title="Attach file"
         >
@@ -1196,7 +1199,7 @@ export default function CommunityChat({
         <button
           type="submit"
           disabled={sending || (!draft.trim() && !attachedFile && !resourceShare)}
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-[#2D6A4F] text-white shadow-sm transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#74c69d] dark:text-slate-950 dark:hover:bg-[#95d5b2]"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-[#2D6A4F] text-white shadow-sm transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2 dark:bg-[#74c69d] dark:text-slate-950 dark:hover:bg-[#95d5b2]"
           aria-label="Send message"
           title="Send message"
         >
@@ -1738,7 +1741,7 @@ function MessageBubble({
             <button
               type="button"
               onClick={onReply}
-              className="hidden h-8 w-8 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-[#2D6A4F] group-hover:grid dark:hover:bg-slate-800 dark:hover:text-[#74c69d]"
+              className="hidden h-8 w-8 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-[#2D6A4F] group-hover:grid group-focus-within:grid focus:grid focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:hover:bg-slate-800 dark:hover:text-[#74c69d]"
               aria-label="Reply to message"
               title="Reply"
             >
@@ -1749,7 +1752,7 @@ function MessageBubble({
             <button
               type="button"
               onClick={onReply}
-              className="hidden h-8 w-8 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-[#2D6A4F] group-hover:grid dark:hover:bg-slate-800 dark:hover:text-[#74c69d]"
+              className="hidden h-8 w-8 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-[#2D6A4F] group-hover:grid group-focus-within:grid focus:grid focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:hover:bg-slate-800 dark:hover:text-[#74c69d]"
               aria-label="Reply to message"
               title="Reply"
             >

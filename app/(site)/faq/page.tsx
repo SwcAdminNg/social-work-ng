@@ -27,9 +27,9 @@ export default async function FAQPage() {
   }
 
   return (
-    <main className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
       <FAQHero />
       <FAQContent categories={categories} isAuthenticated={!!session} />
-    </main>
+    </div>
   );
 }

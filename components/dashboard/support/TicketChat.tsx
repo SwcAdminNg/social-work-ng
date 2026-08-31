@@ -310,7 +310,12 @@ export default function TicketChat({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-4 bg-gray-50/50 dark:bg-gray-950/30">
+      <div
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-4 bg-gray-50/50 dark:bg-gray-950/30"
+      >
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center text-sm text-gray-400 dark:text-gray-500">
             No messages yet — say hello!
@@ -406,7 +411,7 @@ export default function TicketChat({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={sending || uploading || !!attachedFile}
-              className="inline-flex items-center justify-center h-11 w-11 shrink-0 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:text-[#2D6A4F] hover:border-[#2D6A4F] dark:hover:text-[#52b788] dark:hover:border-[#52b788] transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              className="inline-flex items-center justify-center h-11 w-11 shrink-0 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:text-[#2D6A4F] hover:border-[#2D6A4F] dark:hover:text-[#52b788] dark:hover:border-[#52b788] transition-colors disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F]"
               aria-label="Attach a file"
             >
               <Paperclip className="h-4 w-4" />
@@ -428,7 +433,7 @@ export default function TicketChat({
             <button
               type="submit"
               disabled={sending || uploading || (!draft.trim() && !attachedFile)}
-              className="inline-flex items-center justify-center h-11 w-11 shrink-0 rounded-xl bg-[#2D6A4F] text-white hover:bg-[#1B4332] transition-colors disabled:opacity-50 disabled:pointer-events-none shadow-sm"
+              className="inline-flex items-center justify-center h-11 w-11 shrink-0 rounded-xl bg-[#2D6A4F] text-white hover:bg-[#1B4332] transition-colors disabled:opacity-50 disabled:pointer-events-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2"
               aria-label="Send message"
             >
               {sending || uploading ? (

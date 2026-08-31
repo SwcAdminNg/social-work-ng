@@ -34,6 +34,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [checkingUsername, setCheckingUsername] = useState(false);
@@ -99,17 +100,38 @@ export default function SignUp({ statsData }: { statsData?: any }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
 
-    if (!firstName) return firstNameRef.current?.focus();
-    if (!lastName) return lastNameRef.current?.focus();
-    if (!username) return usernameRef.current?.focus();
-    if (!email) return emailRef.current?.focus();
+    if (!firstName) {
+      setFieldErrors({ firstName: "Please enter your first name." });
+      return firstNameRef.current?.focus();
+    }
+    if (!lastName) {
+      setFieldErrors({ lastName: "Please enter your last name." });
+      return lastNameRef.current?.focus();
+    }
+    if (!username) {
+      setFieldErrors({ username: "Please choose a username." });
+      return usernameRef.current?.focus();
+    }
+    if (!email) {
+      setFieldErrors({ email: "Please enter your email address." });
+      return emailRef.current?.focus();
+    }
     // phone is optional
-    if (!password) return passwordRef.current?.focus();
-    if (!confirmPassword) return confirmPasswordRef.current?.focus();
+    if (!password) {
+      setFieldErrors({ password: "Please enter a password." });
+      return passwordRef.current?.focus();
+    }
+    if (!confirmPassword) {
+      setFieldErrors({ confirmPassword: "Please confirm your password." });
+      return confirmPasswordRef.current?.focus();
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
+      setFieldErrors({ confirmPassword: "Passwords do not match." });
+      confirmPasswordRef.current?.focus();
       return;
     }
 
@@ -174,7 +196,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
     return (
       <AuthPageShell variant="register" statsData={statsData}>
         {finalizeError && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+          <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
             {finalizeError}
           </div>
         )}
@@ -204,7 +226,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
           {error}
         </div>
       )}
@@ -228,10 +250,14 @@ export default function SignUp({ statsData }: { statsData?: any }) {
             label="First name"
             type="text"
             value={firstName}
-            onChange={setFirstName}
+            onChange={(v) => {
+              setFirstName(v);
+              if (fieldErrors.firstName) setFieldErrors((prev) => ({ ...prev, firstName: "" }));
+            }}
             icon={<IconUser />}
             autoComplete="given-name"
             required
+            error={fieldErrors.firstName}
           />
           <FloatingInput
             ref={lastNameRef}
@@ -239,10 +265,14 @@ export default function SignUp({ statsData }: { statsData?: any }) {
             label="Last name"
             type="text"
             value={lastName}
-            onChange={setLastName}
+            onChange={(v) => {
+              setLastName(v);
+              if (fieldErrors.lastName) setFieldErrors((prev) => ({ ...prev, lastName: "" }));
+            }}
             icon={<IconUser />}
             autoComplete="family-name"
             required
+            error={fieldErrors.lastName}
           />
         </div>
 
@@ -254,10 +284,14 @@ export default function SignUp({ statsData }: { statsData?: any }) {
             label="Username"
             type="text"
             value={username}
-            onChange={setUsername}
+            onChange={(v) => {
+              setUsername(v);
+              if (fieldErrors.username) setFieldErrors((prev) => ({ ...prev, username: "" }));
+            }}
             icon={<IconUser />}
             autoComplete="username"
             required
+            error={fieldErrors.username}
             suffix={
               checkingUsername ? (
                 <IconSpinner className="w-5 h-5 text-gray-400 animate-spin" />
@@ -268,6 +302,13 @@ export default function SignUp({ statsData }: { statsData?: any }) {
               ) : null
             }
           />
+          <span className="sr-only" aria-live="polite">
+            {usernameAvailable === true
+              ? "Username is available"
+              : usernameAvailable === false
+                ? "Username is already taken"
+                : ""}
+          </span>
           {suggestions.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2 items-center text-[0.8rem]">
               <span className="text-gray-500 dark:text-gray-400">Suggestions:</span>
@@ -295,10 +336,14 @@ export default function SignUp({ statsData }: { statsData?: any }) {
           label="Email address"
           type="email"
           value={email}
-          onChange={setEmail}
+          onChange={(v) => {
+            setEmail(v);
+            if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: "" }));
+          }}
           icon={<IconMail />}
           autoComplete="email"
           required
+          error={fieldErrors.email}
         />
 
         {/* Phone (optional) */}
@@ -320,10 +365,14 @@ export default function SignUp({ statsData }: { statsData?: any }) {
           label="Password"
           type={showPassword ? "text" : "password"}
           value={password}
-          onChange={setPassword}
+          onChange={(v) => {
+            setPassword(v);
+            if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: "" }));
+          }}
           icon={<IconLock />}
           autoComplete="new-password"
           required
+          error={fieldErrors.password}
           suffix={
             <PasswordToggle
               visible={showPassword}
@@ -339,10 +388,14 @@ export default function SignUp({ statsData }: { statsData?: any }) {
           label="Confirm password"
           type={showConfirmPassword ? "text" : "password"}
           value={confirmPassword}
-          onChange={setConfirmPassword}
+          onChange={(v) => {
+            setConfirmPassword(v);
+            if (fieldErrors.confirmPassword) setFieldErrors((prev) => ({ ...prev, confirmPassword: "" }));
+          }}
           icon={<IconLock />}
           autoComplete="new-password"
           required
+          error={fieldErrors.confirmPassword}
           suffix={
             <PasswordToggle
               visible={showConfirmPassword}
@@ -382,7 +435,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
       {/* Divider */}
       <div className="flex items-center gap-3 my-6" aria-hidden="true">
         <div className="flex-1 h-px bg-gray-200 dark:bg-white/8" />
-        <span className="text-[0.75rem] text-gray-400 dark:text-gray-600 font-medium">
+        <span className="text-[0.75rem] text-gray-500 dark:text-gray-600 font-medium">
           or
         </span>
         <div className="flex-1 h-px bg-gray-200 dark:bg-white/8" />
@@ -400,7 +453,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
       </p>
 
       {/* Footer note */}
-      <p className="mt-10 text-center text-[0.72rem] text-gray-400 dark:text-gray-600 leading-relaxed">
+      <p className="mt-10 text-center text-[0.72rem] text-gray-500 dark:text-gray-600 leading-relaxed">
         By creating an account, you agree to our{" "}
         <Link
           href="/terms-of-service"

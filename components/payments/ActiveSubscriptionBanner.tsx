@@ -32,29 +32,29 @@ export function ActiveSubscriptionBanner({ subscription, allPlans }: ActiveSubsc
   const [successMsg, setSuccessMsg] = useState("");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [autoRenew, setAutoRenew] = useState(subscription.auto_renew);
-  
-  const pendingPlan = subscription.pending_plan_id 
-    ? allPlans.find(p => p.id === subscription.pending_plan_id) 
+
+  const pendingPlan = subscription.pending_plan_id
+    ? allPlans.find(p => p.id === subscription.pending_plan_id)
     : null;
 
   const handleCancel = async () => {
     setShowCancelModal(false);
-    
+
     setLoading(true);
     setError("");
     setSuccessMsg("");
-    
+
     try {
       const res = await fetch(`/api/proxy/payments/subscriptions/cancel`, {
         method: "POST",
       });
-      
+
       const data = await res.json().catch(() => ({}));
-      
+
       if (!res.ok) {
         throw new Error(data.message || "Failed to cancel subscription. Please try again.");
       }
-      
+
       setAutoRenew(false);
       setSuccessMsg(data.message || "Subscription cancelled successfully.");
     } catch (err: any) {
@@ -64,8 +64,8 @@ export function ActiveSubscriptionBanner({ subscription, allPlans }: ActiveSubsc
     }
   };
 
-  const endDate = new Date(subscription.end_date).toLocaleDateString("en-US", { 
-    year: 'numeric', month: 'long', day: 'numeric' 
+  const endDate = new Date(subscription.end_date).toLocaleDateString("en-US", {
+    year: 'numeric', month: 'long', day: 'numeric'
   });
 
   return (
@@ -84,10 +84,10 @@ export function ActiveSubscriptionBanner({ subscription, allPlans }: ActiveSubsc
               </span>
             )}
           </div>
-          
+
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {autoRenew 
-              ? `Your plan will automatically renew on ${endDate}.` 
+            {autoRenew
+              ? `Your plan will automatically renew on ${endDate}.`
               : `You have access until ${endDate}. Your plan will not auto-renew.`}
           </p>
 
@@ -99,8 +99,16 @@ export function ActiveSubscriptionBanner({ subscription, allPlans }: ActiveSubsc
             </div>
           )}
 
-          {error && <p className="mt-3 text-sm font-medium text-red-600 dark:text-red-400">{error}</p>}
-          {successMsg && <p className="mt-3 text-sm font-medium text-green-600 dark:text-green-400">{successMsg}</p>}
+          {error && (
+            <p role="alert" aria-live="assertive" className="mt-3 text-sm font-medium text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
+          {successMsg && (
+            <p role="status" aria-live="polite" className="mt-3 text-sm font-medium text-green-600 dark:text-green-400">
+              {successMsg}
+            </p>
+          )}
         </div>
 
         {autoRenew && (
@@ -145,7 +153,7 @@ export function ActiveSubscriptionBanner({ subscription, allPlans }: ActiveSubsc
             </div>
             <Dialog.Close asChild>
               <button
-                className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white dark:ring-offset-gray-950 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 text-gray-500 dark:text-gray-400"
+                className="absolute right-4 top-4 rounded-sm p-2 opacity-70 ring-offset-white dark:ring-offset-gray-950 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 text-gray-500 dark:text-gray-400"
               >
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close</span>

@@ -148,7 +148,14 @@ export function CourseSidebar({ courseId, curriculum, resources = [] }: CourseSi
           <span>{completedCount}/{allItems.length || 0} complete</span>
           <span>{totalEstimatedMinutes > 0 ? `${formatMinutes(totalEstimatedMinutes)} total` : `${progress}%`}</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-[#e3ede7] dark:bg-[#24372e]">
+        <div
+          role="progressbar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Curriculum progress"
+          className="h-1.5 overflow-hidden rounded-full bg-[#e3ede7] dark:bg-[#24372e]"
+        >
           <div
             className="h-full bg-[#2D6A4F] transition-all duration-500 dark:bg-[#52b788]"
             style={{ width: `${progress}%` }}
@@ -379,7 +386,14 @@ export function CourseSidebar({ courseId, curriculum, resources = [] }: CourseSi
             <span className="block truncate text-sm font-extrabold text-slate-950 dark:text-white">
               {activeItem?.title || curriculum.course_title || "Course outline"}
             </span>
-            <span className="mt-1 block h-1 overflow-hidden rounded-full bg-[#e3ede7] dark:bg-[#24372e]">
+            <span
+              role="progressbar"
+              aria-valuenow={progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Course progress"
+              className="mt-1 block h-1 overflow-hidden rounded-full bg-[#e3ede7] dark:bg-[#24372e]"
+            >
               <span
                 className="block h-full bg-[#2D6A4F] dark:bg-[#52b788]"
                 style={{ width: `${progress}%` }}

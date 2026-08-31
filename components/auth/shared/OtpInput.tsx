@@ -83,7 +83,11 @@ export function OtpInput({
   };
 
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div
+      role="group"
+      aria-label="Verification code"
+      className="flex items-center justify-between gap-2"
+    >
       {digits.map((digit, i) => (
         <input
           key={i}
@@ -94,6 +98,7 @@ export function OtpInput({
           inputMode="numeric"
           autoComplete={i === 0 ? "one-time-code" : "off"}
           maxLength={1}
+          aria-label={`Verification code digit ${i + 1} of ${length}`}
           value={digit}
           disabled={disabled}
           onChange={(e) => handleChange(i, e.target.value)}

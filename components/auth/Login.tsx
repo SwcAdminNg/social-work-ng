@@ -25,6 +25,8 @@ export default function Login({ statsData }: { statsData?: any }) {
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [step, setStep] = useState<Step>({ name: "credentials" });
   const [finalizeError, setFinalizeError] = useState("");
 
@@ -54,12 +56,16 @@ export default function Login({ statsData }: { statsData?: any }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setEmailError("");
+    setPasswordError("");
 
     if (!email) {
+      setEmailError("Please enter your email or username.");
       emailRef.current?.focus();
       return;
     }
     if (!password) {
+      setPasswordError("Please enter your password.");
       passwordRef.current?.focus();
       return;
     }
@@ -105,7 +111,7 @@ export default function Login({ statsData }: { statsData?: any }) {
     return (
       <AuthPageShell variant="login" statsData={statsData}>
         {finalizeError && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+          <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
             {finalizeError}
           </div>
         )}
@@ -124,7 +130,7 @@ export default function Login({ statsData }: { statsData?: any }) {
     return (
       <AuthPageShell variant="login" statsData={statsData}>
         {finalizeError && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+          <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
             {finalizeError}
           </div>
         )}
@@ -154,7 +160,7 @@ export default function Login({ statsData }: { statsData?: any }) {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
           {error}
         </div>
       )}
@@ -168,10 +174,14 @@ export default function Login({ statsData }: { statsData?: any }) {
           label="Email or username"
           type="text"
           value={email}
-          onChange={setEmail}
+          onChange={(v) => {
+            setEmail(v);
+            if (emailError) setEmailError("");
+          }}
           icon={<IconUser />}
           autoComplete="username"
           required
+          error={emailError}
         />
 
         {/* Password */}
@@ -181,10 +191,14 @@ export default function Login({ statsData }: { statsData?: any }) {
           label="Password"
           type={showPassword ? "text" : "password"}
           value={password}
-          onChange={setPassword}
+          onChange={(v) => {
+            setPassword(v);
+            if (passwordError) setPasswordError("");
+          }}
           icon={<IconLock />}
           autoComplete="current-password"
           required
+          error={passwordError}
           suffix={
             <PasswordToggle
               visible={showPassword}
@@ -196,23 +210,29 @@ export default function Login({ statsData }: { statsData?: any }) {
         {/* Keep me logged in + Forgot password */}
         <div className="flex items-center justify-between pt-0.5">
           {/* Custom checkbox */}
-          <label className="flex items-center gap-2.5 cursor-pointer group select-none">
+          <label className="flex items-center gap-2 cursor-pointer group select-none">
             <button
               type="button"
               role="checkbox"
               aria-checked={keepLoggedIn}
+              aria-label="Keep me logged in"
               onClick={() => setKeepLoggedIn((v) => !v)}
-              className={`
-                w-[18px] h-[18px] flex-shrink-0 rounded-[5px] border-2 flex items-center justify-center
-                transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] focus-visible:ring-offset-1
-                ${
-                  keepLoggedIn
-                    ? "bg-[#2D6A4F] border-[#2D6A4F] dark:bg-[#2D6A4F] dark:border-[#2D6A4F]"
-                    : "bg-white dark:bg-white/5 border-gray-300 dark:border-white/20 group-hover:border-[#2D6A4F] dark:group-hover:border-[#52b788]"
-                }
-              `}
+              className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] focus-visible:ring-offset-1"
             >
-              {keepLoggedIn && <IconCheck />}
+              <span
+                aria-hidden="true"
+                className={`
+                  w-[18px] h-[18px] rounded-[5px] border-2 flex items-center justify-center
+                  transition-all duration-150
+                  ${
+                    keepLoggedIn
+                      ? "bg-[#2D6A4F] border-[#2D6A4F] dark:bg-[#2D6A4F] dark:border-[#2D6A4F]"
+                      : "bg-white dark:bg-white/5 border-gray-300 dark:border-white/20 group-hover:border-[#2D6A4F] dark:group-hover:border-[#52b788]"
+                  }
+                `}
+              >
+                {keepLoggedIn && <IconCheck />}
+              </span>
             </button>
             <span className="text-[0.83rem] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors duration-150">
               Keep me logged in
@@ -258,7 +278,7 @@ export default function Login({ statsData }: { statsData?: any }) {
       {/* Divider */}
       <div className="flex items-center gap-3 my-6" aria-hidden="true">
         <div className="flex-1 h-px bg-gray-200 dark:bg-white/8" />
-        <span className="text-[0.75rem] text-gray-400 dark:text-gray-600 font-medium">
+        <span className="text-[0.75rem] text-gray-500 dark:text-gray-600 font-medium">
           or
         </span>
         <div className="flex-1 h-px bg-gray-200 dark:bg-white/8" />
@@ -276,7 +296,7 @@ export default function Login({ statsData }: { statsData?: any }) {
       </p>
 
       {/* Footer note */}
-      <p className="mt-10 text-center text-[0.72rem] text-gray-400 dark:text-gray-600 leading-relaxed">
+      <p className="mt-10 text-center text-[0.72rem] text-gray-500 dark:text-gray-600 leading-relaxed">
         By signing in, you agree to our{" "}
         <Link
           href="/terms-of-service"

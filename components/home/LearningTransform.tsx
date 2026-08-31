@@ -109,6 +109,7 @@ export default function LearningTransform() {
               return (
                 <div key={item.id}>
                   <button
+                    id={`${item.id}-btn`}
                     onClick={() => toggle(item.id)}
                     aria-expanded={isOpen}
                     aria-controls={`${item.id}-body`}

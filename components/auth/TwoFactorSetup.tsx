@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ShieldCheck, Smartphone, Mail, Copy, Check, ArrowLeft, TriangleAlert } from "lucide-react";
 import { OtpInput } from "./shared/OtpInput";
@@ -63,6 +63,12 @@ export function TwoFactorSetup({
 
   const [resendCooldown, setResendCooldown] = useState(0);
   const [pendingMethod, setPendingMethod] = useState<Method | null>(null);
+
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
 
   const body = (extra: Record<string, unknown> = {}) =>
     JSON.stringify(
@@ -176,7 +182,11 @@ export function TwoFactorSetup({
         <div className="w-11 h-11 rounded-xl bg-[#2D6A4F]/10 dark:bg-[#52b788]/10 flex items-center justify-center mb-4">
           <ShieldCheck className="w-5 h-5 text-[#2D6A4F] dark:text-[#52b788]" />
         </div>
-        <h1 className="text-[1.5rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-2">
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="text-[1.5rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-2 outline-none"
+        >
           {step === "choice" ? title : "Enter verification code"}
         </h1>
         <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
@@ -189,7 +199,7 @@ export function TwoFactorSetup({
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
           {error}
         </div>
       )}

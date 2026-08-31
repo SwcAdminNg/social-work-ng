@@ -97,6 +97,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
+          aria-controls="mobile-menu-panel"
           className="lg:hidden ml-auto flex flex-col justify-center gap-[5px] w-10 h-10 bg-transparent hover:bg-white/60 dark:hover:bg-gray-800/60 border-0 cursor-pointer p-1 rounded-full transition-colors"
         >
           <span
@@ -113,12 +114,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
       {/* Mobile Menu */}
       <div
+        id="mobile-menu-panel"
         className={`lg:hidden absolute top-[84px] left-0 right-0 h-[calc(100dvh-84px)] overflow-y-auto transition-all duration-300 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 flex flex-col ${
           menuOpen
             ? "opacity-100 translate-y-0"
             : "opacity-0 -translate-y-4 pointer-events-none"
         }`}
         aria-hidden={!menuOpen}
+        inert={!menuOpen ? true : undefined}
       >
         <ul className="list-none m-0 px-6 py-6 flex flex-col gap-2">
           {[

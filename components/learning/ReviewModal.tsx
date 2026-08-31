@@ -55,7 +55,7 @@ export function ReviewModal({
 
     setSubmitting(true);
     try {
-      const url = isEditing 
+      const url = isEditing
         ? `/api/proxy/courses/reviews/${existingReview.id}`
         : `/api/proxy/courses/${courseId}/reviews`;
       const method = isEditing ? "PUT" : "POST";
@@ -106,7 +106,7 @@ export function ReviewModal({
               Your feedback helps us improve and helps other students choose the right course.
             </Dialog.Description>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6 pt-4">
             <div className="flex flex-col items-center justify-center space-y-4">
               <StarRating rating={rating} onRatingChange={setRating} size={40} />
@@ -155,7 +155,7 @@ export function ReviewModal({
           <Dialog.Close asChild>
             <button
               onClick={handleDismiss}
-              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white dark:ring-offset-gray-950 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 data-[state=open]:text-gray-500 text-gray-500 dark:text-gray-400"
+              className="absolute right-4 top-4 rounded-sm p-2 opacity-70 ring-offset-white dark:ring-offset-gray-950 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 data-[state=open]:text-gray-500 text-gray-500 dark:text-gray-400"
             >
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>

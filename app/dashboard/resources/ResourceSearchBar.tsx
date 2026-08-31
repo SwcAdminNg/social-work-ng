@@ -53,7 +53,7 @@ export function ResourceSearchBar({ initialSearch }: { initialSearch: string }) 
           type="button"
           onClick={() => setValue("")}
           aria-label="Clear search"
-          className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          className="absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:hover:bg-slate-800 dark:hover:text-slate-200"
         >
           <X className="h-3.5 w-3.5" />
         </button>

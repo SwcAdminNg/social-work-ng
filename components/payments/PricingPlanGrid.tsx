@@ -5,6 +5,8 @@ import { SubscriptionButton } from "./SubscriptionButton";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import { PaymentMethodSelector } from "@/components/payments/PaymentMethodSelector";
 import { SavedCard } from "@/components/payments/SavedCardDisplay";
+import * as Dialog from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
 
 interface Plan {
   id: string;
@@ -282,109 +284,134 @@ export function PricingPlanGrid({
             </div>
           );
         })}
-      {/* Fixed Modal lifted to the root of PricingPlanGrid */}
-      {showModal && selectedPlan && (
-        <div className="fixed inset-0 z-[10000] flex items-end justify-center bg-black/65 p-0 text-center backdrop-blur-sm sm:items-center sm:p-4">
-          <div className="max-h-[94vh] w-full overflow-y-auto rounded-t-2xl border border-gray-100 bg-white p-4 text-left shadow-2xl transition-all dark:border-gray-800 dark:bg-gray-950 sm:max-w-xl sm:rounded-2xl sm:p-6">
-            <div className="w-16 h-16 mx-auto bg-[#52b788]/10 text-[#52b788] rounded-full flex items-center justify-center mb-6">
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="2" y="5" width="20" height="14" rx="2" />
-                <line x1="2" y1="10" x2="22" y2="10" />
-              </svg>
-            </div>
-            <div className="mb-6 text-center">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {hasActiveSubscription
-                  ? "Confirm Plan Change"
-                  : "Choose how to pay"}
-              </h3>
-              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-600 dark:text-gray-400">
-                {hasActiveSubscription ? (
-                  <>
-                    Your plan will securely change to{" "}
-                    <span className="font-bold text-gray-900 dark:text-white">
-                      {selectedPlan.name}
-                    </span>{" "}
-                    at the end of your current billing cycle. You will be charged{" "}
-                    <span className="font-bold text-[#52b788]">
-                      ₦{selectedPlan.price.toLocaleString()}
-                    </span>{" "}
-                    upon renewal.
-                  </>
-                ) : (
-                  <>
-                    Subscribe to{" "}
-                    <span className="font-bold text-gray-900 dark:text-white">
-                      {selectedPlan.name}
-                    </span>{" "}
-                    for{" "}
-                    <span className="font-bold text-[#2D6A4F] dark:text-[#52b788]">
-                      ₦{selectedPlan.price.toLocaleString()}
-                    </span>
-                    .
-                  </>
-                )}
-              </p>
-            </div>
+      {/* Checkout / plan-change confirmation dialog, lifted to the root of PricingPlanGrid */}
+      <Dialog.Root
+        open={showModal && !!selectedPlan}
+        onOpenChange={(open) => {
+          setShowModal(open);
+          if (!open) setError("");
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[10000] bg-black/65 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <Dialog.Content className="fixed left-[50%] top-[50%] z-[10000] max-h-[94vh] w-full max-w-xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 dark:border-gray-800 dark:bg-gray-950 sm:p-6">
+            {selectedPlan && (
+              <>
+                <div className="w-16 h-16 mx-auto bg-[#52b788]/10 text-[#52b788] rounded-full flex items-center justify-center mb-6">
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                  </svg>
+                </div>
+                <div className="mb-6 text-center">
+                  <Dialog.Title className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {hasActiveSubscription
+                      ? "Confirm Plan Change"
+                      : "Choose how to pay"}
+                  </Dialog.Title>
+                  <Dialog.Description className="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-600 dark:text-gray-400">
+                    {hasActiveSubscription ? (
+                      <>
+                        Your plan will securely change to{" "}
+                        <span className="font-bold text-gray-900 dark:text-white">
+                          {selectedPlan.name}
+                        </span>{" "}
+                        at the end of your current billing cycle. You will be charged{" "}
+                        <span className="font-bold text-[#52b788]">
+                          ₦{selectedPlan.price.toLocaleString()}
+                        </span>{" "}
+                        upon renewal.
+                      </>
+                    ) : (
+                      <>
+                        Subscribe to{" "}
+                        <span className="font-bold text-gray-900 dark:text-white">
+                          {selectedPlan.name}
+                        </span>{" "}
+                        for{" "}
+                        <span className="font-bold text-[#2D6A4F] dark:text-[#52b788]">
+                          ₦{selectedPlan.price.toLocaleString()}
+                        </span>
+                        .
+                      </>
+                    )}
+                  </Dialog.Description>
+                </div>
 
-            {/* Saved Cards UI only if not changing an active subscription */}
-            {!hasActiveSubscription && cardsLoading ? (
-              <div className="flex justify-center my-8">
-                <IconSpinner className="w-6 h-6 animate-spin text-[#52b788]" />
-              </div>
-            ) : !hasActiveSubscription ? (
-              <div className="mb-8">
-                <PaymentMethodSelector
-                  cards={savedCards}
-                  selectedCardId={selectedCardId}
-                  saveNewCard={saveNewCard}
-                  onSelectCard={setSelectedCardId}
-                  onSaveNewCardChange={setSaveNewCard}
-                  accentClassName="text-[#52b788]"
-                />
-              </div>
-            ) : null}
-
-            {error && (
-              <p className="text-sm font-medium text-red-600 dark:text-red-400 mb-4 text-center">
-                {error}
-              </p>
-            )}
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setError("");
-                }}
-                disabled={loading}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={executeSubscription}
-                disabled={loading}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-[#52b788] hover:bg-[#40916c] transition-colors shadow-md shadow-[#52b788]/20 flex items-center justify-center disabled:opacity-70"
-              >
-                {loading ? (
-                  <IconSpinner className="w-5 h-5 animate-spin mr-2" />
+                {/* Saved Cards UI only if not changing an active subscription */}
+                {!hasActiveSubscription && cardsLoading ? (
+                  <div className="flex justify-center my-8">
+                    <IconSpinner className="w-6 h-6 animate-spin text-[#52b788]" />
+                  </div>
+                ) : !hasActiveSubscription ? (
+                  <div className="mb-8">
+                    <PaymentMethodSelector
+                      cards={savedCards}
+                      selectedCardId={selectedCardId}
+                      saveNewCard={saveNewCard}
+                      onSelectCard={setSelectedCardId}
+                      onSaveNewCardChange={setSaveNewCard}
+                      accentClassName="text-[#52b788]"
+                    />
+                  </div>
                 ) : null}
-                Proceed
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
+                {error && (
+                  <p
+                    role="alert"
+                    aria-live="assertive"
+                    className="text-sm font-medium text-red-600 dark:text-red-400 mb-4 text-center"
+                  >
+                    {error}
+                  </p>
+                )}
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      setError("");
+                    }}
+                    disabled={loading}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={executeSubscription}
+                    disabled={loading}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-[#52b788] hover:bg-[#40916c] transition-colors shadow-md shadow-[#52b788]/20 flex items-center justify-center disabled:opacity-70"
+                  >
+                    {loading ? (
+                      <IconSpinner className="w-5 h-5 animate-spin mr-2" />
+                    ) : null}
+                    Proceed
+                  </button>
+                </div>
+
+                <Dialog.Close asChild>
+                  <button
+                    onClick={() => setError("")}
+                    className="absolute right-4 top-4 rounded-sm p-2 opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:ring-offset-gray-950 text-gray-500 dark:text-gray-400"
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                  </button>
+                </Dialog.Close>
+              </>
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }

@@ -43,7 +43,7 @@ export function PrivacyContent() {
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                 <ShieldCheck className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Privacy Policy</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Privacy Policy</h2>
             </div>
             <div className="space-y-4 text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
               <p>We respect your privacy and are committed to protecting your data. This Privacy Policy outlines how we collect, use, disclose, and safeguard your information when you visit our website or utilise our services.</p>
@@ -58,7 +58,7 @@ export function PrivacyContent() {
               <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-500">
                 <ScrollText className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Terms of Use</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Terms of Use</h2>
             </div>
             <p className="text-gray-700 dark:text-gray-300 font-medium mb-6">By accessing our website and e-learning platform, you agree to comply with the following terms of use:</p>
             <ul className="space-y-3 list-none pl-0">
@@ -75,7 +75,7 @@ export function PrivacyContent() {
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <HeartHandshake className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Safeguarding Statement</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Safeguarding Statement</h2>
             </div>
             <p className="text-gray-700 dark:text-gray-300 font-medium mb-6 leading-relaxed">
               Social Work Consultancy Ltd is dedicated to safeguarding and promoting the welfare of all learners and beneficiaries of our training and consultancy services. We acknowledge our responsibility to prevent abuse, uphold the rights of children and vulnerable adults, and foster safe, inclusive learning environments.
@@ -96,7 +96,7 @@ export function PrivacyContent() {
                 <div className="w-12 h-12 rounded-2xl bg-white/10 dark:bg-white/5 flex items-center justify-center text-white">
                   <Mail className="w-6 h-6" />
                 </div>
-                <h3 className="text-2xl font-bold text-white">Contact Us</h3>
+                <h2 className="text-2xl font-bold text-white">Contact Us</h2>
               </div>
               <p className="text-green-50 dark:text-gray-300 font-medium leading-relaxed mb-6">
                 For inquiries regarding privacy, data usage, or protection, please reach out to our support team. We take your data seriously and will respond promptly.

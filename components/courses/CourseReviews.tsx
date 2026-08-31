@@ -69,7 +69,7 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
 
   const handleDelete = async () => {
     if (!reviewToDelete) return;
-    
+
     const idToDelete = reviewToDelete;
     setDeletingId(idToDelete);
     setReviewToDelete(null); // Close the modal immediately
@@ -117,14 +117,14 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
       <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8 tracking-tight">
         Student Reviews
       </h2>
-      
+
       <div className="space-y-6">
         {reviews.map((review) => {
           const isMine = userReview?.id === review.id;
-          
+
           return (
-            <div 
-              key={review.id} 
+            <div
+              key={review.id}
               className={`p-6 rounded-2xl border ${isMine ? 'border-[#2D6A4F]/30 bg-[#2D6A4F]/5' : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50'} shadow-sm transition-all`}
             >
               <div className="flex justify-between items-start mb-4">
@@ -140,9 +140,9 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
                     <div className="flex items-center gap-2 mt-1">
                       <div className="flex items-center gap-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <Star 
-                            key={i} 
-                            className={`w-3.5 h-3.5 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "fill-transparent text-gray-300 dark:text-gray-700"}`} 
+                          <Star
+                            key={i}
+                            className={`w-3.5 h-3.5 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "fill-transparent text-gray-300 dark:text-gray-700"}`}
                           />
                         ))}
                       </div>
@@ -165,17 +165,17 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
                       </button>
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Portal>
-                      <DropdownMenu.Content 
-                        align="end" 
+                      <DropdownMenu.Content
+                        align="end"
                         className="min-w-[160px] bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 p-1 z-50 animate-in fade-in zoom-in-95"
                       >
-                        <DropdownMenu.Item 
+                        <DropdownMenu.Item
                           onSelect={() => setIsReviewModalOpen(true)}
                           className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer outline-none"
                         >
                           <Pencil className="w-4 h-4" /> Edit Review
                         </DropdownMenu.Item>
-                        <DropdownMenu.Item 
+                        <DropdownMenu.Item
                           onSelect={() => setReviewToDelete(review.id)}
                           disabled={deletingId === review.id}
                           className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer outline-none focus:bg-red-50 dark:focus:bg-red-950/30 focus:text-red-700"
@@ -184,7 +184,7 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
                             <IconSpinner className="w-4 h-4 animate-spin" />
                           ) : (
                             <Trash2 className="w-4 h-4" />
-                          )} 
+                          )}
                           Delete Review
                         </DropdownMenu.Item>
                       </DropdownMenu.Content>
@@ -192,7 +192,7 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
                   </DropdownMenu.Root>
                 )}
               </div>
-              
+
               {review.review_text && (
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-[0.95rem]">
                   {review.review_text}
@@ -304,7 +304,7 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
             </div>
             <Dialog.Close asChild>
               <button
-                className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white dark:ring-offset-gray-950 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 text-gray-500 dark:text-gray-400"
+                className="absolute right-4 top-4 rounded-sm p-2 opacity-70 ring-offset-white dark:ring-offset-gray-950 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 text-gray-500 dark:text-gray-400"
               >
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close</span>

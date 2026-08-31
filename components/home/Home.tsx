@@ -98,14 +98,14 @@ export default async function Home() {
   }
 
   return (
-    <main>
+    <>
       <Hero />
       <WhyChooseUs />
       <CourseCategories catalogs={catalogs} />
       <LearningTransform />
       <FeaturedCourses initialCourses={featuredCourses} />
       <CTABanner statsData={stats} />
-    </main>
+    </>
   );
 }
 

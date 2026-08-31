@@ -12,6 +12,7 @@ export const FloatingInput = forwardRef<HTMLInputElement, {
   suffix?: React.ReactNode;
   autoComplete?: string;
   required?: boolean;
+  error?: string;
 }>(({
   id,
   label,
@@ -22,6 +23,7 @@ export const FloatingInput = forwardRef<HTMLInputElement, {
   suffix,
   autoComplete,
   required,
+  error,
 }, ref) => {
   const [focused, setFocused] = useState(false);
   const lifted = focused || value.length > 0;
@@ -47,6 +49,8 @@ export const FloatingInput = forwardRef<HTMLInputElement, {
         value={value}
         autoComplete={autoComplete}
         required={required}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${id}-error` : undefined}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onChange={(e) => onChange(e.target.value)}
@@ -58,7 +62,9 @@ export const FloatingInput = forwardRef<HTMLInputElement, {
           outline-none transition-all duration-150
           placeholder-transparent
           ${
-            focused
+            error
+              ? "border-red-500 dark:border-red-400 shadow-[0_0_0_3px_rgba(239,68,68,0.12)]"
+              : focused
               ? "border-[#2D6A4F] dark:border-[#52b788] shadow-[0_0_0_3px_rgba(45,106,79,0.12)] dark:shadow-[0_0_0_3px_rgba(82,183,136,0.12)]"
               : "border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20"
           }
@@ -73,7 +79,7 @@ export const FloatingInput = forwardRef<HTMLInputElement, {
           ${
             lifted
               ? "top-[9px] text-[0.65rem] font-semibold tracking-wide text-[#2D6A4F] dark:text-[#52b788]"
-              : "top-1/2 -translate-y-1/2 text-[0.88rem] text-gray-400 dark:text-gray-500"
+              : "top-1/2 -translate-y-1/2 text-[0.88rem] text-gray-500 dark:text-gray-500"
           }
         `}
       >
@@ -85,6 +91,17 @@ export const FloatingInput = forwardRef<HTMLInputElement, {
         <span className="absolute right-3.5 top-1/2 -translate-y-1/2">
           {suffix}
         </span>
+      )}
+
+      {/* Inline error */}
+      {error && (
+        <p
+          id={`${id}-error`}
+          role="alert"
+          className="mt-1 text-xs text-red-600 dark:text-red-400"
+        >
+          {error}
+        </p>
       )}
     </div>
   );

@@ -201,7 +201,7 @@ export function EssaySubmission({
         </div>
 
         <div className="px-4 py-4 sm:px-5">
-          <h2 className="text-lg font-extrabold leading-7 text-slate-950 dark:text-white">
+          <h2 id="essay-question" className="text-lg font-extrabold leading-7 text-slate-950 dark:text-white">
             {essayQuestion || "Essay Assignment"}
           </h2>
           {essayDescription && (
@@ -303,6 +303,8 @@ export function EssaySubmission({
         <div className="px-4 py-4 sm:px-5">
           {mode === "TEXT" ? (
             <textarea
+              id="essay-response"
+              aria-labelledby="essay-question"
               value={contentText}
               onChange={(event) => setContentText(event.target.value)}
               disabled={!canSubmit || submitting}
@@ -332,8 +334,16 @@ export function EssaySubmission({
             </label>
           )}
 
-          {error && <p className="mt-3 text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
-          {success && <p className="mt-3 text-sm font-bold text-[#2D6A4F] dark:text-[#52b788]">{success}</p>}
+          {error && (
+            <p role="alert" aria-live="assertive" className="mt-3 text-sm font-bold text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
+          {success && (
+            <p role="status" aria-live="polite" className="mt-3 text-sm font-bold text-[#2D6A4F] dark:text-[#52b788]">
+              {success}
+            </p>
+          )}
           {!canSubmit && (
             <p className="mt-3 text-sm font-bold text-slate-600 dark:text-slate-300">
               {deadlinePassed

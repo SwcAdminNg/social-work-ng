@@ -89,11 +89,14 @@ export function ResourcesList() {
                   </span>
                 </div>
                 
-                <button className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-900 text-[#2D6A4F] dark:text-[#52b788] group-hover:bg-[#2D6A4F] group-hover:text-white transition-colors duration-300">
+                <button
+                  aria-label={resource.type === "Video" ? `Watch ${resource.title}` : `Download ${resource.title}`}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-900 text-[#2D6A4F] dark:text-[#52b788] group-hover:bg-[#2D6A4F] group-hover:text-white transition-colors duration-300"
+                >
                   {resource.type === "Video" ? (
-                    <ExternalLink className="w-5 h-5" />
+                    <ExternalLink aria-hidden="true" className="w-5 h-5" />
                   ) : (
-                    <Download className="w-5 h-5" />
+                    <Download aria-hidden="true" className="w-5 h-5" />
                   )}
                 </button>
               </div>

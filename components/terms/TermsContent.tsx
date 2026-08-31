@@ -51,7 +51,7 @@ export function TermsContent() {
               <div className="w-12 h-12 rounded-2xl bg-[#2D6A4F]/10 dark:bg-[#2D6A4F]/20 flex items-center justify-center text-[#2D6A4F] dark:text-[#52b788]">
                 <UserCheck className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">5.1 Eligibility</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">5.1 Eligibility</h2>
             </div>
             <ul className="space-y-3 list-none pl-0">
               <ListItem>The platform is open to individuals aged 18 and above.</ListItem>
@@ -66,7 +66,7 @@ export function TermsContent() {
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                 <Shield className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">5.2 Account Responsibilities</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">5.2 Account Responsibilities</h2>
             </div>
             <ul className="space-y-3 list-none pl-0">
               <ListItem>Each user is responsible for maintaining the confidentiality of their login credentials.</ListItem>
@@ -82,7 +82,7 @@ export function TermsContent() {
               <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-500">
                 <BookOpen className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">5.3 Acceptable Use</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">5.3 Acceptable Use</h2>
             </div>
             <ul className="space-y-3 list-none pl-0">
               <ListItem>Users must engage with the platform in a respectful, professional, and ethical manner at all times.</ListItem>
@@ -97,7 +97,7 @@ export function TermsContent() {
               <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
                 <Scale className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">5.4 Intellectual Property</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">5.4 Intellectual Property</h2>
             </div>
             <ul className="space-y-3 list-none pl-0">
               <ListItem>All course materials and content hosted on the SWCL platform are the intellectual property of Social Work Consultancy Ltd, unless otherwise stated in the Lecturer Agreement.</ListItem>
@@ -111,7 +111,7 @@ export function TermsContent() {
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <CreditCard className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">5.5 Payment and Refund Policy</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">5.5 Payment and Refund Policy</h2>
             </div>
             <p className="text-gray-700 dark:text-gray-300 font-medium mb-6">
               Course fees are non-refundable once access to course content has been granted, except as set out in the SWCL Refund Policy.
@@ -140,7 +140,7 @@ export function TermsContent() {
               <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
                 <Activity className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">5.6 Platform Availability</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">5.6 Platform Availability</h2>
             </div>
             <ul className="space-y-3 list-none pl-0">
               <ListItem>SWCL will endeavour to maintain platform availability at all times but cannot guarantee uninterrupted access due to scheduled maintenance or technical issues.</ListItem>
@@ -153,7 +153,7 @@ export function TermsContent() {
               <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-600 dark:text-rose-400">
                 <XOctagon className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">5.7 Termination of Access</h3>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">5.7 Termination of Access</h2>
             </div>
             <ul className="space-y-3 list-none pl-0">
               <ListItem>SWCL may suspend or terminate a user’s account without prior notice if the user is found to be in breach of these Terms of Service.</ListItem>

@@ -133,7 +133,7 @@ export function ContactForm() {
             
             <div className="space-y-6">
               {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl text-sm font-bold border border-red-200 dark:border-red-800/30">
+                <div role="alert" className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl text-sm font-bold border border-red-200 dark:border-red-800/30">
                   {error}
                 </div>
               )}
@@ -213,7 +213,7 @@ export function ContactForm() {
               </div>
 
               {success && (
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-xl text-sm font-bold border border-green-200 dark:border-green-800/30">
+                <div role="status" className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-xl text-sm font-bold border border-green-200 dark:border-green-800/30">
                   Thank you! Your message has been sent successfully. Our team will get back to you shortly.
                 </div>
               )}

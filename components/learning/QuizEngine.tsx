@@ -228,7 +228,10 @@ export function QuizEngine({
       )}
 
       {result && !isReset && (
-        <section className={`rounded-lg border p-4 shadow-sm sm:p-5 ${
+        <section
+          role="status"
+          aria-live="polite"
+          className={`rounded-lg border p-4 shadow-sm sm:p-5 ${
           result.resultVisible && result.passed
             ? "border-[#b7e4c7] bg-[#f0fbf5] dark:border-[#27433a] dark:bg-[#13231d]"
             : result.resultVisible && result.passed === false
@@ -330,7 +333,14 @@ export function QuizEngine({
                     {answeredCount}/{questions.length} answered
                   </p>
                 </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#0f1726] sm:w-52">
+                <div
+                  role="progressbar"
+                  aria-valuenow={progressPercent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Quiz progress"
+                  className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#0f1726] sm:w-52"
+                >
                   <div
                     className="h-full rounded-full bg-[#2D6A4F] transition-all dark:bg-[#52b788]"
                     style={{ width: `${progressPercent}%` }}
@@ -458,7 +468,11 @@ export function QuizEngine({
 
         {!isFormDisabled && (
           <div className="border-t border-[#dceee4] px-4 py-4 dark:border-[#27433a] sm:px-5">
-            {error && <p className="mb-3 text-sm font-bold text-red-600 dark:text-red-400">{error}</p>}
+            {error && (
+              <p role="alert" aria-live="assertive" className="mb-3 text-sm font-bold text-red-600 dark:text-red-400">
+                {error}
+              </p>
+            )}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                 {hasUnanswered ? "Unanswered questions will be scored as 0." : "All questions have a selected answer."}

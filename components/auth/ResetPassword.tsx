@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, Suspense } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
@@ -16,22 +16,39 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmPasswordRef = useRef<HTMLInputElement>(null);
+  const doneHeadingRef = useRef<HTMLHeadingElement>(null);
 
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
 
+  useEffect(() => {
+    if (done) doneHeadingRef.current?.focus();
+  }, [done]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
 
-    if (!password) return passwordRef.current?.focus();
-    if (!confirmPassword) return confirmPasswordRef.current?.focus();
+    if (!password) {
+      setPasswordError("Please enter a new password.");
+      return passwordRef.current?.focus();
+    }
+    if (!confirmPassword) {
+      setConfirmPasswordError("Please confirm your new password.");
+      return confirmPasswordRef.current?.focus();
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
+      setConfirmPasswordError("Passwords do not match.");
+      confirmPasswordRef.current?.focus();
       return;
     }
 
@@ -56,7 +73,7 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
       if (!res.ok) {
         throw new Error(data.message || "Failed to reset password.");
       }
-      
+
       setDone(true);
     } catch (err: any) {
       setError(err.message);
@@ -72,7 +89,11 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
           <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">
             All set
           </p>
-          <h1 className="text-[1.75rem] sm:text-[2rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-2">
+          <h1
+            ref={doneHeadingRef}
+            tabIndex={-1}
+            className="text-[1.75rem] sm:text-[2rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-2 outline-none"
+          >
             Password reset
           </h1>
           <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
@@ -114,7 +135,7 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
           {error}
         </div>
       )}
@@ -127,10 +148,14 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
           label="New password"
           type={showPassword ? "text" : "password"}
           value={password}
-          onChange={setPassword}
+          onChange={(v) => {
+            setPassword(v);
+            if (passwordError) setPasswordError("");
+          }}
           icon={<IconLock />}
           autoComplete="new-password"
           required
+          error={passwordError}
           suffix={
             <PasswordToggle
               visible={showPassword}
@@ -145,10 +170,14 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
           label="Confirm new password"
           type={showConfirmPassword ? "text" : "password"}
           value={confirmPassword}
-          onChange={setConfirmPassword}
+          onChange={(v) => {
+            setConfirmPassword(v);
+            if (confirmPasswordError) setConfirmPasswordError("");
+          }}
           icon={<IconLock />}
           autoComplete="new-password"
           required
+          error={confirmPasswordError}
           suffix={
             <PasswordToggle
               visible={showConfirmPassword}
