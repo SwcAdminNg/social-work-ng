@@ -22,6 +22,7 @@ import {
   Radio,
   Search,
   Send,
+  ShieldCheck,
   UsersRound,
   Wifi,
   WifiOff,
@@ -48,6 +49,7 @@ type MemberProfile = {
   username?: string;
   profile_picture_url?: string;
   image?: string;
+  user_type?: "ADMIN" | "INSTRUCTOR" | "USER" | string;
 };
 
 type Member = MemberProfile & {
@@ -168,6 +170,13 @@ function memberFirstName(member?: Member | null) {
 function memberUsername(member?: Member | null) {
   const profile = memberProfile(member);
   return profile.username ? `@${profile.username}` : "";
+}
+
+function staffRoleLabel(member?: Member | null) {
+  const userType = memberProfile(member).user_type;
+  if (userType === "ADMIN") return "Admin";
+  if (userType === "INSTRUCTOR") return "Instructor";
+  return null;
 }
 
 function initials(name: string) {
@@ -1670,6 +1679,7 @@ function MessageBubble({
   onReply: () => void;
 }) {
   const name = displayName(message.sender);
+  const staffLabel = staffRoleLabel(message.sender);
 
   return (
     <div className={cx("group flex", own ? "justify-end" : "justify-start")}>
@@ -1680,8 +1690,9 @@ function MessageBubble({
         )}
       >
         {!own && (
-          <span className="px-1 text-xs font-bold text-slate-500 dark:text-slate-400">
+          <span className="flex items-center gap-1.5 px-1 text-xs font-bold text-slate-500 dark:text-slate-400">
             {name}
+            {staffLabel && <StaffBadge label={staffLabel} />}
           </span>
         )}
         <div className="flex items-end gap-2">
@@ -1907,6 +1918,7 @@ function MemberRow({
 }) {
   const firstName = memberFirstName(member);
   const username = memberUsername(member);
+  const staffLabel = staffRoleLabel(member);
 
   return (
     <div className="flex items-center gap-3 rounded-lg px-2 py-2">
@@ -1920,8 +1932,9 @@ function MemberRow({
         />
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
+        <p className="flex items-center gap-1.5 truncate text-sm font-bold text-slate-900 dark:text-white">
           {firstName}
+          {staffLabel && <StaffBadge label={staffLabel} />}
         </p>
         <p className="truncate text-xs text-slate-500 dark:text-slate-400">
           {[username, online ? "Online now" : "Offline"]
@@ -1930,6 +1943,18 @@ function MemberRow({
         </p>
       </div>
     </div>
+  );
+}
+
+function StaffBadge({ label }: { label: string }) {
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-[0.62rem] font-extrabold uppercase tracking-wide text-blue-700 dark:bg-blue-400/15 dark:text-blue-300"
+      title={label}
+    >
+      <ShieldCheck className="h-3 w-3" />
+      {label}
+    </span>
   );
 }
 
