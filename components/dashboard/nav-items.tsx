@@ -17,6 +17,7 @@ import {
   Radio,
   Route,
   Settings,
+  ShoppingCart,
   TicketCheck,
   UsersRound,
 } from "lucide-react";
@@ -81,6 +82,7 @@ export const dashboardNavGroups: NavGroup[] = [
         href: "/dashboard/course-catalogue",
         icon: LibraryBig,
       },
+      { label: "Cart", href: "/dashboard/cart", icon: ShoppingCart },
       {
         label: "Learning Pathways",
         href: "/dashboard/learning-pathways",

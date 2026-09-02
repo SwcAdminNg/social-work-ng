@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, ShoppingCart, Tag, X } from "lucide-react";
+import { toast } from "sonner";
 import { PaymentMethodSelector } from "@/components/payments/PaymentMethodSelector";
 import { SavedCard } from "@/components/payments/SavedCardDisplay";
 
@@ -16,6 +17,14 @@ type CourseDetailActionProps = {
   hasAccess: boolean;
   isCompleted?: boolean;
   hideHelperText?: boolean;
+};
+
+type CouponPreview = {
+  valid: boolean;
+  code: string;
+  subtotal_amount: number;
+  discount_amount: number;
+  total_amount: number;
 };
 
 export function CourseDetailAction({
@@ -36,7 +45,16 @@ export function CourseDetailAction({
   const [selectedCardId, setSelectedCardId] = useState("NEW");
   const [saveNewCard, setSaveNewCard] = useState(false);
   const [cardsLoading, setCardsLoading] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState<CouponPreview | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
   const canViewCourse = isEnrolled || hasAccess || isCompleted;
+  const appliedCouponCode = coupon?.code || "";
+  const checkoutTotal = coupon?.total_amount ?? price;
+  const checkoutTotalLabel =
+    typeof checkoutTotal === "number" ? `₦${checkoutTotal.toLocaleString()}` : "Premium";
 
   async function handleAction() {
     if (canViewCourse) {
@@ -47,6 +65,7 @@ export function CourseDetailAction({
     if (!isFree && !hasAccess) {
       setShowPaymentModal(true);
       setError("");
+      setCouponError("");
       if (savedCards.length === 0) {
         setCardsLoading(true);
         try {
@@ -66,6 +85,74 @@ export function CourseDetailAction({
     }
 
     await executeEnrollment();
+  }
+
+  async function addToCart() {
+    setCartLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/proxy/cart/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ course_id: courseId }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 401) {
+        router.push(
+          `/login?callbackUrl=${encodeURIComponent(`/dashboard/course-catalogue/${slug}`)}`,
+        );
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Unable to add this course to cart.");
+      }
+
+      toast.success("Course added to cart");
+      router.refresh();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unable to add this course to cart.";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setCartLoading(false);
+    }
+  }
+
+  async function applyCoupon() {
+    const code = couponCode.trim();
+    if (!code) {
+      setCoupon(null);
+      setCouponError("Enter a coupon code first.");
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError("");
+    try {
+      const res = await fetch("/api/proxy/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, course_ids: [courseId] }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data?.data?.valid) {
+        throw new Error(data?.message || "Coupon could not be applied.");
+      }
+
+      setCoupon(data.data);
+      setCouponCode(data.data.code || code);
+    } catch (err) {
+      setCoupon(null);
+      setCouponError(
+        err instanceof Error ? err.message : "Coupon could not be applied.",
+      );
+    } finally {
+      setCouponLoading(false);
+    }
   }
 
   async function executeEnrollment() {
@@ -95,7 +182,7 @@ export function CourseDetailAction({
         throw new Error(enrollData?.message || "Unable to enroll right now.");
       }
 
-      if (selectedCardId && selectedCardId !== "NEW") {
+      if (selectedCardId && selectedCardId !== "NEW" && !appliedCouponCode) {
         const chargeRes = await fetch("/api/proxy/payments/charge-card", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -129,6 +216,7 @@ export function CourseDetailAction({
           related_id: courseId,
           gateway: "PAYSTACK",
           save_card: saveNewCard,
+          coupon_code: appliedCouponCode || undefined,
         }),
       });
       const paymentData = await paymentRes.json().catch(() => ({}));
@@ -160,6 +248,21 @@ export function CourseDetailAction({
         )}
         {loading ? "Processing..." : canViewCourse ? "View Course" : "Enroll"}
       </button>
+      {!canViewCourse && !isFree && (
+        <button
+          type="button"
+          onClick={addToCart}
+          disabled={loading || cartLoading}
+          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-white px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-70 dark:border-[#315244] dark:bg-[#13231d] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+        >
+          {cartLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ShoppingCart className="h-4 w-4" />
+          )}
+          {cartLoading ? "Adding..." : "Add to cart"}
+        </button>
+      )}
       {!hideHelperText && !canViewCourse && !isFree && typeof price === "number" && (
         <p className="text-center text-xs font-medium text-slate-500 dark:text-slate-400">
           Secure checkout for paid enrollment.
@@ -195,9 +298,57 @@ export function CourseDetailAction({
                     Total
                   </p>
                   <p className="text-xl font-black text-[#173f2d] dark:text-[#d8f3dc]">
-                    ₦{price.toLocaleString()}
+                    {checkoutTotalLabel}
                   </p>
                 </div>
+              )}
+            </div>
+
+            <div className="mb-5 rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-3 dark:border-[#27433a] dark:bg-[#13231d]">
+              <div className="flex gap-2">
+                <input
+                  value={couponCode}
+                  onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
+                  placeholder="Coupon code"
+                  className="h-10 min-w-0 flex-1 rounded-md border border-[#dceee4] bg-white px-3 text-sm font-bold text-gray-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#27433a] dark:bg-gray-950 dark:text-white dark:focus:border-[#52b788]"
+                />
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  disabled={couponLoading}
+                  className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-[#2D6A4F] text-white transition hover:bg-[#1B4332] disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+                  aria-label="Apply coupon"
+                >
+                  {couponLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Tag className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              {coupon && (
+                <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                  <span className="font-bold text-[#0f8a46] dark:text-[#8de5b5]">
+                    {coupon.code} saves ₦{coupon.discount_amount.toLocaleString()}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCoupon(null);
+                      setCouponCode("");
+                      setCouponError("");
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Remove
+                  </button>
+                </div>
+              )}
+              {couponError && (
+                <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-100">
+                  {couponError}
+                </p>
               )}
             </div>
 
