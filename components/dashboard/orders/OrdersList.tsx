@@ -3,6 +3,7 @@
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { IconReceipt } from "@/components/dashboard/icons";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ReceiptDownloadButton } from "./ReceiptDownloadButton";
 
 type Transaction = {
   id: string;
@@ -142,6 +143,11 @@ export default function OrdersList({
                   </span>
                 </div>
               </div>
+              {canDownloadReceipt(txn) && (
+                <div className="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
+                  <ReceiptDownloadButton reference={txn.reference} />
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -162,6 +168,9 @@ export default function OrdersList({
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Status
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Receipt
                 </th>
               </tr>
             </thead>
@@ -203,6 +212,15 @@ export default function OrdersList({
                   </td>
                   <td className="px-6 py-5 whitespace-nowrap">
                     {getStatusBadge(txn.status)}
+                  </td>
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    {canDownloadReceipt(txn) ? (
+                      <ReceiptDownloadButton reference={txn.reference} />
+                    ) : (
+                      <span className="text-xs font-semibold text-gray-400 dark:text-gray-500">
+                        Not available
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -248,5 +266,12 @@ export default function OrdersList({
         </div>
       )}
     </div>
+  );
+}
+
+function canDownloadReceipt(txn: Transaction) {
+  return (
+    txn.transaction_type?.toUpperCase() === "COURSE_PURCHASE" &&
+    txn.status?.toUpperCase() === "SUCCESS"
   );
 }
