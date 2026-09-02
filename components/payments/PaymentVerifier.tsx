@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import Link from "next/link";
+import { ReceiptDownloadButton } from "@/components/dashboard/orders/ReceiptDownloadButton";
 
 export default function PaymentVerifier() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const reference = searchParams.get("reference");
 
   const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
   const [errorMessage, setErrorMessage] = useState("");
   const hasVerified = useRef(false);
 
-  const verifyPayment = async () => {
+  const verifyPayment = useCallback(async () => {
     if (!reference) {
       setStatus("error");
       setErrorMessage("No payment reference found in the URL.");
@@ -33,19 +33,21 @@ export default function PaymentVerifier() {
       }
 
       setStatus("success");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Payment verification failed:", err);
       setStatus("error");
-      setErrorMessage(err.message);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to verify payment.",
+      );
     }
-  };
+  }, [reference]);
 
   useEffect(() => {
     if (reference && !hasVerified.current) {
       hasVerified.current = true;
       verifyPayment();
     }
-  }, [reference]);
+  }, [reference, verifyPayment]);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-4">
@@ -71,6 +73,11 @@ export default function PaymentVerifier() {
             <p className="text-gray-500 dark:text-gray-400 mb-8">
               Your transaction was verified successfully. You now have access to your purchase.
             </p>
+            {reference && (
+              <div className="mb-4 w-full">
+                <ReceiptDownloadButton reference={reference} />
+              </div>
+            )}
             <Link
               href="/dashboard/courses"
               className="w-full py-4 px-6 rounded-2xl font-bold text-white bg-[#2D6A4F] hover:bg-[#1B4332] transition-colors shadow-lg shadow-[#2D6A4F]/20"

@@ -13,6 +13,8 @@ type Transaction = {
   status: string;
   transaction_type: string;
   created_at: string;
+  subtotal_amount?: number | null;
+  discount_amount?: number | null;
 };
 
 export default function OrdersList({
@@ -100,7 +102,7 @@ export default function OrdersList({
               <div className="grid min-w-0 gap-3">
                 <div className="flex min-w-0 items-start justify-between gap-3">
                   <span className="min-w-0 break-words text-sm font-bold text-gray-900 dark:text-white">
-                    {txn.transaction_type.replace(/_/g, " ")}
+                    {formatTransactionType(txn.transaction_type)}
                   </span>
                   <div className="flex-shrink-0">{getStatusBadge(txn.status)}</div>
                 </div>
@@ -141,6 +143,11 @@ export default function OrdersList({
                       minimumFractionDigits: 2,
                     })}
                   </span>
+                  {hasDiscount(txn) && (
+                    <span className="mt-1 block text-xs font-semibold text-[#0f8a46] dark:text-[#8de5b5]">
+                      Saved ₦{Number(txn.discount_amount).toLocaleString()}
+                    </span>
+                  )}
                 </div>
               </div>
               {canDownloadReceipt(txn) && (
@@ -183,7 +190,7 @@ export default function OrdersList({
                   <td className="px-6 py-5 whitespace-nowrap">
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-gray-900 dark:text-white">
-                        {txn.transaction_type.replace(/_/g, " ")}
+                        {formatTransactionType(txn.transaction_type)}
                       </span>
                       <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">
                         Ref: {txn.reference}
@@ -209,6 +216,11 @@ export default function OrdersList({
                         minimumFractionDigits: 2,
                       })}
                     </span>
+                    {hasDiscount(txn) && (
+                      <span className="ml-2 text-xs font-bold text-[#0f8a46] dark:text-[#8de5b5]">
+                        -₦{Number(txn.discount_amount).toLocaleString()}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-5 whitespace-nowrap">
                     {getStatusBadge(txn.status)}
@@ -270,8 +282,19 @@ export default function OrdersList({
 }
 
 function canDownloadReceipt(txn: Transaction) {
+  const type = txn.transaction_type?.toUpperCase();
   return (
-    txn.transaction_type?.toUpperCase() === "COURSE_PURCHASE" &&
+    (type === "COURSE_PURCHASE" || type === "CART_PURCHASE") &&
     txn.status?.toUpperCase() === "SUCCESS"
   );
+}
+
+function formatTransactionType(type: string) {
+  if (type?.toUpperCase() === "CART_PURCHASE") return "Cart purchase";
+  if (type?.toUpperCase() === "COURSE_PURCHASE") return "Course purchase";
+  return type?.replace(/_/g, " ") || "Transaction";
+}
+
+function hasDiscount(txn: Transaction) {
+  return Number(txn.discount_amount || 0) > 0;
 }
