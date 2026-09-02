@@ -37,15 +37,19 @@ export default async function ResourceAttachmentPage(props: {
 
   const attachment = resource.attachments?.find((item) => item.id === attachment_id);
   if (!attachment) notFound();
+  const downloadable =
+    attachment.attachment_type === "DOCUMENT" &&
+    attachment.document?.downloadable === true;
 
   let viewUrl: string | null = null;
   let viewError: string | null = null;
 
   if (attachment.attachment_type === "DOCUMENT") {
-    const directUrl = getDocumentUrl(attachment);
-    if (directUrl) {
-      viewUrl = directUrl;
-    } else {
+    viewUrl = downloadable
+      ? getDocumentUrl(attachment)
+      : `/api/proxy/resources/${slug}/attachments/${attachment_id}/view?stream=1`;
+
+    if (!viewUrl) {
       const res = await fetchApi(`/resources/${slug}/attachments/${attachment_id}/view`, {
         cache: "no-store",
       });
@@ -88,7 +92,7 @@ export default async function ResourceAttachmentPage(props: {
           </div>
 
           {attachment.attachment_type === "DOCUMENT" &&
-            attachment.document?.downloadable === true && (
+            downloadable && (
               <ResourceDownloadButton slug={slug} attachmentId={attachment.id} />
             )}
         </div>
@@ -101,6 +105,7 @@ export default async function ResourceAttachmentPage(props: {
             title={attachment.title || resource.name}
             url={viewUrl}
             mimeType={attachment.document?.mime_type}
+            downloadable={downloadable}
           />
         ) : (
           <div className="mx-auto flex h-[calc(100dvh-120px)] max-w-2xl flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-[#111525]">

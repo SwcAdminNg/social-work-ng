@@ -209,8 +209,11 @@ export default async function LearningItemPage(props: {
               </div>
             </div>
             <div className="w-full flex-1 bg-slate-100 dark:bg-[#0b1220]">
-              <iframe 
-                src={item.document_url.toLowerCase().endsWith('.pdf') ? item.document_url : `https://docs.google.com/viewer?url=${encodeURIComponent(item.document_url)}&embedded=true`} 
+              <iframe
+                src={getDocumentViewerUrl(params.course_id, item.id, item.document_url)}
+                title={item.title}
+                sandbox="allow-scripts"
+                referrerPolicy="no-referrer"
                 className="w-full h-full border-0"
               />
             </div>
@@ -372,4 +375,14 @@ function formatMinutes(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
   return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
+}
+
+function getDocumentViewerUrl(courseId: string, itemId: string, documentUrl: string) {
+  const proxiedUrl = `/api/proxy/courses/${courseId}/items/${itemId}/view`;
+
+  if (documentUrl.toLowerCase().split("?")[0]?.endsWith(".pdf")) {
+    return `${proxiedUrl}#toolbar=0&navpanes=0&scrollbar=0`;
+  }
+
+  return proxiedUrl;
 }

@@ -8,6 +8,7 @@ type ResourceAttachmentViewerProps = {
   title: string;
   url: string;
   mimeType?: string | null;
+  downloadable?: boolean;
 };
 
 export function ResourceAttachmentViewer({
@@ -15,6 +16,7 @@ export function ResourceAttachmentViewer({
   title,
   url,
   mimeType,
+  downloadable = false,
 }: ResourceAttachmentViewerProps) {
   if (attachmentType === "VIDEO") {
     return (
@@ -33,18 +35,22 @@ export function ResourceAttachmentViewer({
             No inline preview for this file type
           </h2>
           <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
-            Open it in a new tab, or use the download button above to save a copy.
+            {downloadable
+              ? "Open it in a new tab, or use the download button above to save a copy."
+              : "This file is view-only. Downloads and external opening are disabled."}
           </p>
         </div>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-        >
-          <ExternalLink className="h-4 w-4" />
-          Open document
-        </a>
+        {downloadable && (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Open document
+          </a>
+        )}
       </div>
     );
   }
@@ -54,6 +60,8 @@ export function ResourceAttachmentViewer({
       <iframe
         src={appendPdfViewerOptions(url)}
         title={title}
+        sandbox="allow-scripts"
+        referrerPolicy="no-referrer"
         className="h-full w-full border-0 bg-white"
       />
     </div>
