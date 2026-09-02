@@ -212,7 +212,7 @@ export default async function LearningItemPage(props: {
               <iframe
                 src={getDocumentViewerUrl(params.course_id, item.id, item.document_url)}
                 title={item.title}
-                sandbox="allow-scripts"
+                sandbox="allow-same-origin allow-scripts"
                 referrerPolicy="no-referrer"
                 className="w-full h-full border-0"
               />
