@@ -60,7 +60,6 @@ export function ResourceAttachmentViewer({
       <iframe
         src={appendPdfViewerOptions(url)}
         title={title}
-        sandbox="allow-same-origin allow-scripts"
         referrerPolicy="no-referrer"
         className="h-full w-full border-0 bg-white"
       />
