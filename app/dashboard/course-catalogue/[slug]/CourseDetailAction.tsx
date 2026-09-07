@@ -7,6 +7,7 @@ import { ArrowRight, Loader2, ShoppingCart, Tag, X } from "lucide-react";
 import { toast } from "sonner";
 import { PaymentMethodSelector } from "@/components/payments/PaymentMethodSelector";
 import { SavedCard } from "@/components/payments/SavedCardDisplay";
+import { estimateTotalWithTax, formatNaira } from "@/lib/paymentTax";
 
 type CourseDetailActionProps = {
   courseId: string;
@@ -52,9 +53,11 @@ export function CourseDetailAction({
   const [couponError, setCouponError] = useState("");
   const canViewCourse = isEnrolled || hasAccess || isCompleted;
   const appliedCouponCode = coupon?.code || "";
-  const checkoutTotal = coupon?.total_amount ?? price;
+  const discountAmount = coupon?.discount_amount ?? 0;
+  const checkoutEstimate =
+    typeof price === "number" ? estimateTotalWithTax(price, discountAmount) : null;
   const checkoutTotalLabel =
-    typeof checkoutTotal === "number" ? `₦${checkoutTotal.toLocaleString()}` : "Premium";
+    checkoutEstimate ? formatNaira(checkoutEstimate.totalWithTax) : "Premium";
 
   async function handleAction() {
     if (canViewCourse) {
@@ -305,6 +308,27 @@ export function CourseDetailAction({
             </div>
 
             <div className="mb-5 rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-3 dark:border-[#27433a] dark:bg-[#13231d]">
+              {checkoutEstimate && (
+                <dl className="mb-4 grid gap-2 border-b border-[#dceee4] pb-4 text-sm dark:border-[#27433a]">
+                  <CheckoutRow label="Subtotal" value={formatNaira(price || 0)} />
+                  {discountAmount > 0 && (
+                    <CheckoutRow
+                      label={`Coupon ${appliedCouponCode}`}
+                      value={`-${formatNaira(discountAmount)}`}
+                      tone="discount"
+                    />
+                  )}
+                  <CheckoutRow
+                    label="VAT (7.5%)"
+                    value={formatNaira(checkoutEstimate.taxAmount)}
+                  />
+                  <CheckoutRow
+                    label="Total"
+                    value={formatNaira(checkoutEstimate.totalWithTax)}
+                    strong
+                  />
+                </dl>
+              )}
               <div className="flex gap-2">
                 <input
                   value={couponCode}
@@ -329,7 +353,7 @@ export function CourseDetailAction({
               {coupon && (
                 <div className="mt-3 flex items-center justify-between gap-3 text-sm">
                   <span className="font-bold text-[#0f8a46] dark:text-[#8de5b5]">
-                    {coupon.code} saves ₦{coupon.discount_amount.toLocaleString()}
+                    {coupon.code} saves {formatNaira(coupon.discount_amount)}
                   </span>
                   <button
                     type="button"
@@ -392,5 +416,42 @@ export function CourseDetailAction({
           document.body,
         )}
     </>
+  );
+}
+
+function CheckoutRow({
+  label,
+  value,
+  strong = false,
+  tone,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+  tone?: "discount";
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <dt
+        className={
+          strong
+            ? "font-black text-gray-950 dark:text-white"
+            : "font-semibold text-gray-500 dark:text-gray-400"
+        }
+      >
+        {label}
+      </dt>
+      <dd
+        className={
+          strong
+            ? "text-base font-black text-gray-950 dark:text-white"
+            : tone === "discount"
+              ? "font-extrabold text-[#0f8a46] dark:text-[#8de5b5]"
+              : "font-extrabold text-gray-900 dark:text-white"
+        }
+      >
+        {value}
+      </dd>
+    </div>
   );
 }

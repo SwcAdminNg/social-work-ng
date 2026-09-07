@@ -11,6 +11,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { estimateTotalWithTax, formatNaira } from "@/lib/paymentTax";
 
 export type CartItem = {
   course_id: string;
@@ -60,8 +61,11 @@ export default function CartContainer({
   const [saveCard, setSaveCard] = useState(false);
 
   const hasItems = cart.items.length > 0;
-  const totalAmount = coupon?.total_amount ?? cart.subtotal_amount;
   const discountAmount = coupon?.discount_amount ?? 0;
+  const paymentEstimate = estimateTotalWithTax(
+    cart.subtotal_amount,
+    discountAmount,
+  );
   const appliedCouponCode = coupon?.code || "";
 
   const sortedItems = useMemo(
@@ -236,7 +240,7 @@ export default function CartContainer({
                       </Link>
                     </h2>
                     <p className="mt-1 text-sm font-bold text-[#2D6A4F] dark:text-[#b7e4c7]">
-                      {formatCurrency(item.price)}
+                      {formatNaira(item.price)}
                     </p>
                     {item.added_at && (
                       <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
@@ -274,18 +278,22 @@ export default function CartContainer({
               </div>
 
               <dl className="grid gap-3 text-sm">
-                <SummaryRow label="Subtotal" value={formatCurrency(cart.subtotal_amount)} />
+                <SummaryRow label="Subtotal" value={formatNaira(cart.subtotal_amount)} />
                 {discountAmount > 0 && (
                   <SummaryRow
                     label={`Coupon ${appliedCouponCode}`}
-                    value={`-${formatCurrency(discountAmount)}`}
+                    value={`-${formatNaira(discountAmount)}`}
                     tone="discount"
                   />
                 )}
+                <SummaryRow
+                  label="VAT (7.5%)"
+                  value={formatNaira(paymentEstimate.taxAmount)}
+                />
                 <div className="border-t border-[#e6f2eb] pt-3 dark:border-[#27433a]">
                   <SummaryRow
                     label="Total"
-                    value={formatCurrency(totalAmount)}
+                    value={formatNaira(paymentEstimate.totalWithTax)}
                     strong
                   />
                 </div>
@@ -447,14 +455,6 @@ function normalizeCart(value: unknown): CartRead {
     subtotal_amount:
       typeof data.subtotal_amount === "number" ? data.subtotal_amount : 0,
   };
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  }).format(Number(value || 0));
 }
 
 function formatDate(value: string) {

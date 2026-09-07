@@ -7,6 +7,7 @@ import { PaymentMethodSelector } from "@/components/payments/PaymentMethodSelect
 import { SavedCard } from "@/components/payments/SavedCardDisplay";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
+import { estimateTotalWithTax, formatNaira } from "@/lib/paymentTax";
 
 interface Plan {
   id: string;
@@ -48,6 +49,9 @@ export function PricingPlanGrid({
 
   const hasActiveSubscription =
     !!currentSubscription && currentSubscription.is_active;
+  const selectedPlanEstimate = selectedPlan
+    ? estimateTotalWithTax(selectedPlan.price)
+    : null;
 
   const handleSubscribeClick = async (
     planId: string,
@@ -327,7 +331,9 @@ export function PricingPlanGrid({
                         </span>{" "}
                         at the end of your current billing cycle. You will be charged{" "}
                         <span className="font-bold text-[#52b788]">
-                          ₦{selectedPlan.price.toLocaleString()}
+                          {formatNaira(
+                            selectedPlanEstimate?.totalWithTax ?? selectedPlan.price,
+                          )}
                         </span>{" "}
                         upon renewal.
                       </>
@@ -339,13 +345,33 @@ export function PricingPlanGrid({
                         </span>{" "}
                         for{" "}
                         <span className="font-bold text-[#2D6A4F] dark:text-[#52b788]">
-                          ₦{selectedPlan.price.toLocaleString()}
+                          {formatNaira(
+                            selectedPlanEstimate?.totalWithTax ?? selectedPlan.price,
+                          )}
                         </span>
                         .
                       </>
                     )}
                   </Dialog.Description>
                 </div>
+
+                {selectedPlanEstimate && (
+                  <dl className="mb-6 grid gap-2 rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm dark:border-gray-800 dark:bg-gray-900/70">
+                    <PaymentSummaryRow
+                      label="Subtotal"
+                      value={formatNaira(selectedPlan.price)}
+                    />
+                    <PaymentSummaryRow
+                      label="VAT (7.5%)"
+                      value={formatNaira(selectedPlanEstimate.taxAmount)}
+                    />
+                    <PaymentSummaryRow
+                      label="Total"
+                      value={formatNaira(selectedPlanEstimate.totalWithTax)}
+                      strong
+                    />
+                  </dl>
+                )}
 
                 {/* Saved Cards UI only if not changing an active subscription */}
                 {!hasActiveSubscription && cardsLoading ? (
@@ -412,6 +438,39 @@ export function PricingPlanGrid({
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+    </div>
+  );
+}
+
+function PaymentSummaryRow({
+  label,
+  value,
+  strong = false,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <dt
+        className={
+          strong
+            ? "font-black text-gray-950 dark:text-white"
+            : "font-semibold text-gray-500 dark:text-gray-400"
+        }
+      >
+        {label}
+      </dt>
+      <dd
+        className={
+          strong
+            ? "text-base font-black text-gray-950 dark:text-white"
+            : "font-extrabold text-gray-900 dark:text-white"
+        }
+      >
+        {value}
+      </dd>
     </div>
   );
 }

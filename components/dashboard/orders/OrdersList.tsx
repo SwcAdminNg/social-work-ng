@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/dashboard/EmptyState";
 import { IconReceipt } from "@/components/dashboard/icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReceiptDownloadButton } from "./ReceiptDownloadButton";
+import { formatNaira } from "@/lib/paymentTax";
 
 type Transaction = {
   id: string;
@@ -15,6 +16,8 @@ type Transaction = {
   created_at: string;
   subtotal_amount?: number | null;
   discount_amount?: number | null;
+  tax_rate?: number | null;
+  tax_amount?: number | null;
 };
 
 export default function OrdersList({
@@ -138,14 +141,16 @@ export default function OrdersList({
                     Amount
                   </span>
                   <span className="block break-words text-lg font-bold text-gray-900 dark:text-white">
-                    ₦
-                    {txn.amount.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                    })}
+                    {formatNaira(txn.amount, 2)}
                   </span>
                   {hasDiscount(txn) && (
                     <span className="mt-1 block text-xs font-semibold text-[#0f8a46] dark:text-[#8de5b5]">
-                      Saved ₦{Number(txn.discount_amount).toLocaleString()}
+                      Saved {formatNaira(Number(txn.discount_amount))}
+                    </span>
+                  )}
+                  {hasTax(txn) && (
+                    <span className="mt-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
+                      VAT {formatNaira(Number(txn.tax_amount))}
                     </span>
                   )}
                 </div>
@@ -211,14 +216,16 @@ export default function OrdersList({
                   </td>
                   <td className="px-6 py-5 whitespace-nowrap">
                     <span className="text-sm font-bold text-gray-900 dark:text-white">
-                      ₦
-                      {txn.amount.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                      })}
+                      {formatNaira(txn.amount, 2)}
                     </span>
                     {hasDiscount(txn) && (
                       <span className="ml-2 text-xs font-bold text-[#0f8a46] dark:text-[#8de5b5]">
-                        -₦{Number(txn.discount_amount).toLocaleString()}
+                        -{formatNaira(Number(txn.discount_amount))}
+                      </span>
+                    )}
+                    {hasTax(txn) && (
+                      <span className="ml-2 text-xs font-bold text-gray-500 dark:text-gray-400">
+                        VAT {formatNaira(Number(txn.tax_amount))}
                       </span>
                     )}
                   </td>
@@ -297,4 +304,8 @@ function formatTransactionType(type: string) {
 
 function hasDiscount(txn: Transaction) {
   return Number(txn.discount_amount || 0) > 0;
+}
+
+function hasTax(txn: Transaction) {
+  return Number(txn.tax_amount || 0) > 0;
 }
