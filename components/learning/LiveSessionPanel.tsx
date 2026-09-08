@@ -2,7 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertCircle, CalendarDays, Clock3, UserRound, Video } from "lucide-react";
+import {
+  AlertCircle,
+  CalendarCheck,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  ExternalLink,
+  Headphones,
+  RefreshCw,
+  UserRound,
+  Video,
+} from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import { rememberLiveSessionReturn } from "./LiveSessionReturnHandler";
 import { MarkCompleteButton } from "./MarkCompleteButton";
@@ -33,9 +44,12 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const scheduledAt = formatDateTime(item.live_session_scheduled_start_at);
+  const scheduledDate = formatDatePart(item.live_session_scheduled_start_at);
+  const scheduledTime = formatTimePart(item.live_session_scheduled_start_at);
   const duration = item.live_session_duration_minutes;
   const isEnded = item.live_session_status === "ENDED";
   const isCancelled = item.live_session_status === "CANCELLED";
+  const countdown = formatCountdown(item.live_session_scheduled_start_at, now);
   const recordingReady =
     isEnded &&
     item.live_session_recording_status === "READY" &&
@@ -67,36 +81,56 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
 
   return (
     <section className="overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
-      <div className="border-b border-[#dceee4] bg-[#fbfefd] px-4 py-4 dark:border-[#27433a] dark:bg-[#0f1726] sm:px-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="bg-slate-950 px-4 py-5 text-white sm:px-5 lg:px-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
-            <p className="text-xs font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
-              Live session
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <StatusBadge item={item} />
+              {item.is_completed && (
+                <span className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[#52b788] px-2.5 text-xs font-extrabold text-[#06130d]">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Complete
+                </span>
+              )}
+            </div>
+            <p className="text-xs font-extrabold uppercase tracking-wide text-[#b7e4c7]">
+              Live classroom
             </p>
-            <h2 className="mt-1 text-lg font-extrabold text-slate-950 dark:text-white">
+            <h2 className="mt-2 max-w-3xl text-2xl font-extrabold leading-tight text-white sm:text-3xl">
               {item.title || "Live session"}
             </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+              {getHeroDescription(item)}
+            </p>
           </div>
-          <MarkCompleteButton
-            courseId={courseId}
-            itemId={item.id}
-            isCompleted={item.is_completed === true}
-            className="h-10"
-          />
+
+          <div className="flex flex-col gap-2 rounded-lg border border-white/10 bg-white/8 p-4 lg:w-[260px]">
+            <p className="text-xs font-extrabold uppercase tracking-wide text-slate-300">
+              {item.live_session_can_join ? "Join window" : "Session starts"}
+            </p>
+            <p className="text-2xl font-extrabold text-white">
+              {item.live_session_can_join ? "Open now" : countdown || "Pending"}
+            </p>
+            {scheduledAt && (
+              <p className="text-sm font-semibold text-slate-300">
+                {scheduledAt}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-4 p-4 sm:p-5">
-        <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-4 p-4 sm:p-5 lg:p-6">
+        <div className="grid gap-3 md:grid-cols-3">
           <InfoTile
             icon={<CalendarDays className="h-5 w-5" />}
-            label="Date and time"
-            value={scheduledAt || "To be announced"}
+            label="Date"
+            value={scheduledDate || "To be announced"}
           />
           <InfoTile
             icon={<Clock3 className="h-5 w-5" />}
-            label="Duration"
-            value={duration ? `${duration} min` : "Planned session"}
+            label="Time and duration"
+            value={[scheduledTime, duration ? `${duration} min` : null].filter(Boolean).join(" - ") || "Planned session"}
           />
           <InfoTile
             icon={<UserRound className="h-5 w-5" />}
@@ -105,8 +139,8 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
           />
         </div>
 
-        <div className="rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-4 dark:border-[#27433a] dark:bg-[#13231d]">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-4 dark:border-[#27433a] dark:bg-[#13231d] sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <p className="text-sm font-extrabold text-slate-950 dark:text-white">
                 {getStatusHeadline(item)}
@@ -147,23 +181,23 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
                   }
                 }}
                 disabled={joining}
-                className="inline-flex h-11 flex-shrink-0 items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+                className="inline-flex h-12 flex-shrink-0 items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-5 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-wait disabled:opacity-80 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
               >
                 {joining ? (
                   <IconSpinner className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Video className="h-4 w-4" />
+                  <ExternalLink className="h-4 w-4" />
                 )}
-                {joining ? "Joining..." : "Join now"}
+                {joining ? "Opening Daily..." : "Join on Daily"}
               </button>
             ) : !isEnded && !isCancelled ? (
               <button
                 type="button"
                 disabled
-                className="inline-flex h-11 flex-shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md bg-slate-100 px-4 text-sm font-extrabold text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                className="inline-flex h-12 flex-shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md bg-slate-100 px-5 text-sm font-extrabold text-slate-500 dark:bg-slate-800 dark:text-slate-400"
               >
                 <Clock3 className="h-4 w-4" />
-                {formatCountdown(item.live_session_scheduled_start_at, now) || "Not open yet"}
+                {countdown || "Not open yet"}
               </button>
             ) : null}
           </div>
@@ -174,8 +208,61 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
             </p>
           )}
         </div>
+
+        {!isEnded && !isCancelled && (
+          <div className="grid gap-3 md:grid-cols-3">
+            <PreparationItem
+              icon={<Video className="h-4 w-4" />}
+              title="Daily opens separately"
+              text="Your secure link opens Daily in this browser tab."
+            />
+            <PreparationItem
+              icon={<Headphones className="h-4 w-4" />}
+              title="Check your setup"
+              text="Use a working microphone, camera, and a stable connection."
+            />
+            <PreparationItem
+              icon={<RefreshCw className="h-4 w-4" />}
+              title="Page refreshes itself"
+              text="Keep this page open and the join state will update."
+            />
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3 border-t border-[#dceee4] pt-4 dark:border-[#27433a] sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+            {getCompletionHint(item)}
+          </p>
+          <MarkCompleteButton
+            courseId={courseId}
+            itemId={item.id}
+            isCompleted={item.is_completed === true}
+            className="h-10"
+          />
+        </div>
       </div>
     </section>
+  );
+}
+
+function StatusBadge({ item }: { item: LiveSessionItem }) {
+  const label = item.live_session_can_join
+    ? "Open now"
+    : item.live_session_status === "ENDED"
+      ? "Ended"
+      : item.live_session_status === "CANCELLED"
+        ? "Cancelled"
+        : "Scheduled";
+
+  return (
+    <span className="inline-flex h-8 items-center gap-1.5 rounded-md bg-white/10 px-2.5 text-xs font-extrabold uppercase tracking-wide text-white">
+      {item.live_session_can_join ? (
+        <Video className="h-3.5 w-3.5 text-[#52b788]" />
+      ) : (
+        <CalendarCheck className="h-3.5 w-3.5 text-[#b7e4c7]" />
+      )}
+      {label}
+    </span>
   );
 }
 
@@ -203,6 +290,46 @@ function InfoTile({
   );
 }
 
+function PreparationItem({
+  icon,
+  title,
+  text,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="rounded-lg border border-[#dceee4] bg-white p-4 dark:border-[#27433a] dark:bg-[#111525]">
+      <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+        {icon}
+      </div>
+      <p className="text-sm font-extrabold text-slate-950 dark:text-white">
+        {title}
+      </p>
+      <p className="mt-1 text-sm leading-5 text-slate-600 dark:text-slate-400">
+        {text}
+      </p>
+    </div>
+  );
+}
+
+function getHeroDescription(item: LiveSessionItem) {
+  if (item.live_session_status === "ENDED") {
+    if (item.live_session_recording_status === "READY") {
+      return "The session has ended and the recording is ready to watch.";
+    }
+    return "The session has ended. The recording will appear here when processing is complete.";
+  }
+  if (item.live_session_status === "CANCELLED") {
+    return "This scheduled classroom session is no longer available.";
+  }
+  if (item.live_session_can_join) {
+    return "The live room is open. Join now and Daily will handle the video classroom experience.";
+  }
+  return "Review the schedule, keep this page open if you are waiting, and join when the backend opens the room.";
+}
+
 function getStatusHeadline(item: LiveSessionItem) {
   if (item.live_session_status === "ENDED") {
     return item.live_session_recording_status === "READY"
@@ -223,9 +350,17 @@ function getStatusDescription(item: LiveSessionItem) {
     return "This live session is no longer accepting joins.";
   }
   if (item.live_session_can_join) {
-    return "Join opens in a secure Daily video room using your course access.";
+    return "We will create a fresh secure Daily link when you click Join.";
   }
   return "The join button becomes available when the backend opens the session window.";
+}
+
+function getCompletionHint(item: LiveSessionItem) {
+  if (item.is_completed) return "This live session is marked complete.";
+  if (item.live_session_status === "ENDED") {
+    return "Mark this complete after attending or watching the recording.";
+  }
+  return "After attending the live session, come back here to mark it complete.";
 }
 
 function formatGuest(item: LiveSessionItem) {
@@ -243,6 +378,31 @@ function formatDateTime(value?: string | null) {
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
     timeStyle: "short",
+  }).format(date);
+}
+
+function formatDatePart(value?: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatTimePart(value?: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
   }).format(date);
 }
 

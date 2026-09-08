@@ -15,6 +15,7 @@ import { CheckCircle, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 type LearningNavItem = {
   id: string;
   title: string;
+  item_type?: string | null;
   is_completed?: boolean | null;
 };
 
@@ -59,12 +60,14 @@ export default async function LearningItemPage(props: {
   let isLastSection = false;
   let isSequentiallyLocked = false;
   let frontierItem: LearningNavItem | null = null;
+  let currentNavItem: LearningNavItem | null = null;
 
   if (curriculum?.sections) {
     const allItems = curriculum.sections.flatMap(
       (sec: CurriculumSection) => sec.items || [],
     );
     const currentIndex = allItems.findIndex((i: LearningNavItem) => i.id === params.item_id);
+    currentNavItem = currentIndex >= 0 ? allItems[currentIndex] : null;
 
     if (currentIndex > 0) {
       prevItem = allItems[currentIndex - 1];
@@ -89,7 +92,9 @@ export default async function LearningItemPage(props: {
     const frontierIndex =
       firstIncompleteIndex === -1 ? currentSectionItems.length : firstIncompleteIndex;
     isSequentiallyLocked =
-      currentItemIndexInSection !== -1 && currentItemIndexInSection > frontierIndex;
+      currentNavItem?.item_type !== "LIVE_SESSION" &&
+      currentItemIndexInSection !== -1 &&
+      currentItemIndexInSection > frontierIndex;
     frontierItem =
       frontierIndex < currentSectionItems.length ? currentSectionItems[frontierIndex] : null;
   }

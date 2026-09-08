@@ -75,7 +75,9 @@ export function CourseSidebar({ courseId, curriculum, resources = [] }: CourseSi
   const progress = Math.min(Math.max(Number(curriculum.progress_percent || 0), 0), 100);
   const sections = curriculum.sections || [];
   const allItems = sections.flatMap((section) => section.items || []);
-  const activeItem = allItems.find((item) => pathname === `/learn/${courseId}/item/${item.id}`);
+  const activeItem = allItems.find((item) =>
+    pathname.startsWith(`/learn/${courseId}/item/${item.id}`),
+  );
   const completedCount = allItems.filter((item) => item.is_completed).length;
   const totalEstimatedMinutes = allItems.reduce(
     (total, item) => total + getEstimatedMinutes(item),
@@ -212,8 +214,9 @@ export function CourseSidebar({ courseId, curriculum, resources = [] }: CourseSi
 
                 return items.map((item, itemIndex) => {
                 const itemUrl = `/learn/${courseId}/item/${item.id}`;
-                const isActive = pathname === itemUrl;
-                const isSequentialLocked = !isSectionLocked && itemIndex > frontierIndex;
+                const isActive = pathname.startsWith(itemUrl);
+                const isLiveSession = item.item_type === "LIVE_SESSION";
+                const isSequentialLocked = !isSectionLocked && !isLiveSession && itemIndex > frontierIndex;
                 const isItemBlocked = isSectionLocked || isSequentialLocked;
 
                 const itemInner = (
@@ -246,7 +249,9 @@ export function CourseSidebar({ courseId, curriculum, resources = [] }: CourseSi
                           ? "Locked"
                           : isSequentialLocked
                             ? "Complete previous item first"
-                            : getItemMetaLabel(item)}
+                            : isLiveSession
+                              ? getLiveSessionMetaLabel(item)
+                              : getItemMetaLabel(item)}
                       </span>
                     </span>
                   </>
@@ -470,6 +475,11 @@ function getItemMetaLabel(item: CurriculumItem) {
   return estimate > 0
     ? `${getItemLabel(item)} - ${formatMinutes(estimate)}`
     : getItemLabel(item);
+}
+
+function getLiveSessionMetaLabel(item: CurriculumItem) {
+  const estimate = getEstimatedMinutes(item);
+  return estimate > 0 ? `Live session - ${formatMinutes(estimate)}` : "Live session";
 }
 
 function getEstimatedMinutes(item: { estimated_minutes?: number | null }) {
