@@ -8,12 +8,12 @@ import {
   Bell,
   BookOpen,
   CheckCircle2,
+  ClipboardCheck,
   Clock3,
   LifeBuoy,
   MessageSquare,
   PlayCircle,
   ShoppingCart,
-  Sparkles,
   TrendingUp,
 } from "lucide-react";
 
@@ -134,14 +134,6 @@ function formatDateTime(value?: string | null) {
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
-}
-
-function formatCurrency(value?: number | null) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  }).format(asNumber(value));
 }
 
 function normalizeOverview(input: unknown): DashboardOverview {
@@ -512,52 +504,54 @@ export default async function DashboardPage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-base font-extrabold text-gray-950 dark:text-white">
-                  Subscription
+                  Quick assessments
                 </h2>
                 <p className="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                  Billing status and plan access
+                  Quizzes, essays, and results
                 </p>
               </div>
-              <Sparkles className="h-5 w-5 text-[#2D6A4F] dark:text-[#74c69d]" />
+              <ClipboardCheck className="h-5 w-5 text-[#2D6A4F] dark:text-[#74c69d]" />
             </div>
 
-            {overview.subscription?.plan ? (
-              <div className="mt-4">
-                <p className="text-lg font-extrabold text-gray-950 dark:text-white">
-                  {overview.subscription.plan.name || "Active plan"}
-                </p>
-                <p className="mt-1 text-sm font-bold text-[#2D6A4F] dark:text-[#74c69d]">
-                  {formatCurrency(overview.subscription.plan.price)}
-                </p>
-                <p className="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">
-                  {overview.subscription.auto_renew
-                    ? `Auto-renews ${formatDateTime(overview.subscription.end_date)}`
-                    : `Access through ${formatDateTime(overview.subscription.end_date)}`}
-                </p>
-                <Link
-                  href="/dashboard/pricing"
-                  className="mt-4 inline-flex rounded-lg border border-gray-200 px-3 py-2 text-xs font-extrabold text-gray-700 no-underline transition hover:border-[#2D6A4F]/40 hover:text-[#2D6A4F] dark:border-gray-800 dark:text-gray-300 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
-                >
-                  Manage plan
-                </Link>
-              </div>
-            ) : (
-              <div className="mt-4">
-                <p className="text-sm font-bold text-gray-900 dark:text-white">
-                  You are on the free tier
-                </p>
-                <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
-                  Upgrade when you are ready for deeper course access and
-                  subscription benefits.
-                </p>
-                <Link
-                  href="/dashboard/pricing"
-                  className="mt-4 inline-flex rounded-lg bg-[#2D6A4F] px-3 py-2 text-xs font-extrabold text-white no-underline transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d]"
-                >
-                  View plans
-                </Link>
-              </div>
-            )}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <Link
+                href="/dashboard/assessments?tab=completed"
+                className="rounded-lg border border-gray-200 bg-gray-50 p-3 no-underline transition hover:border-[#2D6A4F]/40 dark:border-gray-800 dark:bg-gray-950/40 dark:hover:border-[#74c69d]"
+              >
+                <span className="block text-2xl font-extrabold text-gray-950 dark:text-white">
+                  {stats.quizzes_attempted}
+                </span>
+                <span className="mt-1 block text-xs font-bold text-gray-500 dark:text-gray-400">
+                  Attempted
+                </span>
+              </Link>
+              <Link
+                href="/dashboard/assessments?tab=results"
+                className="rounded-lg border border-gray-200 bg-gray-50 p-3 no-underline transition hover:border-[#2D6A4F]/40 dark:border-gray-800 dark:bg-gray-950/40 dark:hover:border-[#74c69d]"
+              >
+                <span className="block text-2xl font-extrabold text-gray-950 dark:text-white">
+                  {stats.completion_rate.toFixed(0)}%
+                </span>
+                <span className="mt-1 block text-xs font-bold text-gray-500 dark:text-gray-400">
+                  Progress
+                </span>
+              </Link>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                href="/dashboard/assessments?tab=upcoming"
+                className="inline-flex h-9 items-center rounded-lg bg-[#2D6A4F] px-3 text-xs font-extrabold text-white no-underline transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d]"
+              >
+                Start assessment
+              </Link>
+              <Link
+                href="/dashboard/assessments?tab=results"
+                className="inline-flex h-9 items-center rounded-lg border border-gray-200 px-3 text-xs font-extrabold text-gray-700 no-underline transition hover:border-[#2D6A4F]/40 hover:text-[#2D6A4F] dark:border-gray-800 dark:text-gray-300 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
+              >
+                View results
+              </Link>
+            </div>
           </section>
 
           <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
