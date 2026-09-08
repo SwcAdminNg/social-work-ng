@@ -30,6 +30,7 @@ export default async function LearningLiveSessionPage(props: {
       courseSlug={params.course_id}
       itemId={params.item_id}
       backHref={`/learn/${params.course_id}/item/${params.item_id}`}
+      scheduledStartAt={item.live_session_scheduled_start_at}
     />
   );
 }

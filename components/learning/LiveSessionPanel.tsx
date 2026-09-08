@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CalendarDays, Clock3, UserRound, Video } from "lucide-react";
+import { AlertCircle, CalendarDays, Clock3, UserRound, Video } from "lucide-react";
+import { IconSpinner } from "@/components/auth/shared/icons";
 import { MarkCompleteButton } from "./MarkCompleteButton";
 import { VideoPlayer } from "./VideoPlayer";
 
@@ -29,6 +29,8 @@ type LiveSessionPanelProps = {
 export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
   const router = useRouter();
   const [now, setNow] = useState(() => Date.now());
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
   const scheduledAt = formatDateTime(item.live_session_scheduled_start_at);
   const duration = item.live_session_duration_minutes;
   const isEnded = item.live_session_status === "ENDED";
@@ -113,17 +115,45 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
               </p>
             </div>
             {item.live_session_can_join ? (
-              <Link
-                href={`/api/proxy/courses/items/${item.id}/live-session/join`}
-                onClick={(event) => {
-                  event.preventDefault();
-                  router.push(`/learn/${courseId}/item/${item.id}/live-session`);
+              <button
+                type="button"
+                onClick={async () => {
+                  setJoining(true);
+                  setJoinError(null);
+
+                  try {
+                    const res = await fetch(`/api/proxy/courses/items/${item.id}/live-session/join`, {
+                      method: "POST",
+                    });
+                    const json = await res.json().catch(() => ({}));
+
+                    if (!res.ok) {
+                      setJoinError(json?.message || "This live session is not available right now.");
+                      return;
+                    }
+
+                    if (json?.data?.join_url) {
+                      window.location.assign(json.data.join_url);
+                      return;
+                    }
+
+                    setJoinError("The live session join link was not returned.");
+                  } catch {
+                    setJoinError("We could not reach the live session service.");
+                  } finally {
+                    setJoining(false);
+                  }
                 }}
+                disabled={joining}
                 className="inline-flex h-11 flex-shrink-0 items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
               >
-                <Video className="h-4 w-4" />
-                Join now
-              </Link>
+                {joining ? (
+                  <IconSpinner className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Video className="h-4 w-4" />
+                )}
+                {joining ? "Joining..." : "Join now"}
+              </button>
             ) : !isEnded && !isCancelled ? (
               <button
                 type="button"
@@ -135,6 +165,12 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
               </button>
             ) : null}
           </div>
+          {joinError && (
+            <p className="mt-3 flex items-start gap-2 text-sm font-semibold text-red-700 dark:text-red-300">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>{joinError}</span>
+            </p>
+          )}
         </div>
       </div>
     </section>

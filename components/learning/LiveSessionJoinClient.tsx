@@ -4,11 +4,9 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { AlertCircle, ArrowLeft, Video } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
-import { DailyCallFrame } from "./DailyCallFrame";
 
 type JoinData = {
-  room_url: string;
-  token: string;
+  join_url: string;
   is_owner?: boolean | null;
   expires_at?: string | null;
 };
@@ -17,14 +15,15 @@ type LiveSessionJoinClientProps = {
   itemId: string;
   courseSlug: string;
   backHref?: string;
+  scheduledStartAt?: string | null;
 };
 
 export function LiveSessionJoinClient({
   itemId,
   courseSlug,
   backHref = `/courses/${courseSlug}`,
+  scheduledStartAt,
 }: LiveSessionJoinClientProps) {
-  const [joinData, setJoinData] = useState<JoinData | null>(null);
   const [error, setError] = useState<{ status?: number; message: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,14 +42,18 @@ export function LiveSessionJoinClient({
           status: res.status,
           message: json?.message || "This live session is not available right now.",
         });
-        setJoinData(null);
         return;
       }
 
-      setJoinData(json?.data || null);
+      const data = json?.data as JoinData | undefined;
+      if (data?.join_url) {
+        window.location.assign(data.join_url);
+        return;
+      }
+
+      setError({ message: "The live session join link was not returned." });
     } catch {
       setError({ message: "We could not reach the live session service." });
-      setJoinData(null);
     } finally {
       setLoading(false);
     }
@@ -63,31 +66,6 @@ export function LiveSessionJoinClient({
 
     return () => window.clearTimeout(timer);
   }, [join]);
-
-  if (joinData?.room_url && joinData.token) {
-    return (
-      <div className="flex h-[100dvh] flex-col bg-[#0b1220] p-3 text-white sm:p-4">
-        <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-xs font-extrabold uppercase tracking-wide text-[#b7e4c7]">
-              Live session
-            </p>
-            <h1 className="text-lg font-extrabold">Joining classroom</h1>
-          </div>
-          <Link
-            href={backHref}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-white/15 px-3 text-sm font-extrabold text-white transition hover:bg-white/10"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to course
-          </Link>
-        </div>
-        <div className="min-h-0 flex-1">
-          <DailyCallFrame roomUrl={joinData.room_url} token={joinData.token} />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-[70dvh] items-center justify-center bg-[#f7fcf9] px-4 py-12 dark:bg-[#0b1220]">
@@ -103,16 +81,21 @@ export function LiveSessionJoinClient({
         </span>
         <h1 className="text-lg font-extrabold text-slate-950 dark:text-white">
           {loading
-            ? "Preparing your live session"
+            ? "Redirecting to Daily"
             : error?.status === 403
               ? "You do not have access"
               : "Live session unavailable"}
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
           {loading
-            ? "We are creating fresh join credentials for this call."
+            ? "We are creating a fresh secure join link for this live session."
             : error?.message || "Please try again in a moment."}
         </p>
+        {!loading && error?.status === 400 && scheduledStartAt && (
+          <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+            Scheduled for {formatDateTime(scheduledStartAt)}
+          </p>
+        )}
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
           {!loading && error?.status !== 403 && (
             <button
@@ -127,10 +110,22 @@ export function LiveSessionJoinClient({
             href={backHref}
             className="inline-flex h-10 items-center justify-center rounded-md border border-[#b7e4c7] px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
           >
+            <ArrowLeft className="mr-2 h-4 w-4" />
             View course
           </Link>
         </div>
       </div>
     </div>
   );
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
