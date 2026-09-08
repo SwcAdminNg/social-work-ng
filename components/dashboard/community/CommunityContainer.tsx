@@ -14,6 +14,8 @@ export default async function CommunityContainer({
   const selectedCommunityId =
     typeof resolvedParams.community === "string"
       ? resolvedParams.community
+      : typeof resolvedParams.community_id === "string"
+        ? resolvedParams.community_id
       : undefined;
   const resourceReferenceId =
     typeof resolvedParams.resource_reference_id === "string"
