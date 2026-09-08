@@ -93,7 +93,6 @@ export const dashboardNavGroups: NavGroup[] = [
         label: "Live Sessions",
         href: "/dashboard/live-sessions",
         icon: Radio,
-        disabled: true,
       },
       { label: "Resources", href: "/dashboard/resources", icon: FileText },
       {

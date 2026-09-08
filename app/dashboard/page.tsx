@@ -7,7 +7,6 @@ import {
   Award,
   Bell,
   BookOpen,
-  CalendarDays,
   CheckCircle2,
   Clock3,
   LifeBuoy,
@@ -222,7 +221,7 @@ export default async function DashboardPage() {
     {
       label: "In progress",
       value: stats.in_process_courses,
-      href: "/dashboard/courses?tab=IN_PROGRESS",
+      href: "/dashboard/courses?status=IN_PROGRESS",
       icon: PlayCircle,
       color: "text-blue-700",
       bg: "bg-blue-50",
@@ -230,7 +229,7 @@ export default async function DashboardPage() {
     {
       label: "Completed",
       value: stats.completed_courses,
-      href: "/dashboard/courses?tab=COMPLETED",
+      href: "/dashboard/courses?status=COMPLETED",
       icon: CheckCircle2,
       color: "text-emerald-700",
       bg: "bg-emerald-50",
@@ -450,7 +449,12 @@ export default async function DashboardPage() {
                 Soonest scheduled sessions
               </p>
             </div>
-            <CalendarDays className="h-5 w-5 text-[#2D6A4F] dark:text-[#74c69d]" />
+            <Link
+              href="/dashboard/live-sessions"
+              className="text-xs font-extrabold text-[#2D6A4F] no-underline dark:text-[#74c69d]"
+            >
+              View all
+            </Link>
           </div>
 
           {overview.upcoming_live_sessions.length === 0 ? (
