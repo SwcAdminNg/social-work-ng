@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { AlertCircle, ArrowLeft, Video } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
+import { rememberLiveSessionReturn } from "./LiveSessionReturnHandler";
 
 type JoinData = {
   join_url: string;
@@ -47,6 +48,7 @@ export function LiveSessionJoinClient({
 
       const data = json?.data as JoinData | undefined;
       if (data?.join_url) {
+        rememberLiveSessionReturn(backHref);
         window.location.assign(data.join_url);
         return;
       }
@@ -57,7 +59,7 @@ export function LiveSessionJoinClient({
     } finally {
       setLoading(false);
     }
-  }, [itemId]);
+  }, [backHref, itemId]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
