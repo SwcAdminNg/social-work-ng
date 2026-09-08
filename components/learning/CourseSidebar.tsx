@@ -7,6 +7,7 @@ import { IconChevronsLeft } from "@/components/dashboard/icons";
 import { IconCheck } from "@/components/auth/shared/icons";
 import {
   BookOpen,
+  CalendarDays,
   ChevronRight,
   FileText,
   HelpCircle,
@@ -427,6 +428,7 @@ function getItemIcon(item: CurriculumItem) {
   if (type === "VIDEO") return <PlayCircle className="h-3.5 w-3.5" />;
   if (type === "DOCUMENT") return <FileText className="h-3.5 w-3.5" />;
   if (type === "LINKS") return <Link2 className="h-3.5 w-3.5" />;
+  if (type === "LIVE_SESSION") return <CalendarDays className="h-3.5 w-3.5" />;
   if (type === "ASSESSMENT" || type === "QUIZ" || type === "ESSAY") {
     return <HelpCircle className="h-3.5 w-3.5" />;
   }

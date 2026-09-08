@@ -46,7 +46,14 @@ type CourseCategory =
   | "LIFESTYLE"
   | "LANGUAGE";
 
-type CourseItemType = "VIDEO" | "DOCUMENT" | "QUIZ" | "ASSESSMENT" | "ESSAY" | "LINKS";
+type CourseItemType =
+  | "VIDEO"
+  | "DOCUMENT"
+  | "QUIZ"
+  | "ASSESSMENT"
+  | "ESSAY"
+  | "LINKS"
+  | "LIVE_SESSION";
 
 type CourseVideo = {
   status?: "PENDING" | "PROCESSING" | "READY" | "FAILED" | null;
@@ -89,6 +96,17 @@ type CourseItem = {
   document?: CourseDocument | null;
   quiz?: CourseQuiz | null;
   link?: CourseLink | null;
+  live_session?: CourseLiveSession | null;
+};
+
+type CourseLiveSession = {
+  scheduled_start_at?: string | null;
+  duration_minutes?: number | null;
+  guest_name?: string | null;
+  guest_title?: string | null;
+  status?: string | null;
+  recording_status?: string | null;
+  recording_playback_url?: string | null;
 };
 
 type CourseSection = {
@@ -217,6 +235,7 @@ export default async function DashboardCourseDetailPage(props: {
     (item) => item.item_type === "DOCUMENT",
   ).length;
   const linkCount = allItems.filter((item) => item.item_type === "LINKS").length;
+  const liveSessionCount = allItems.filter((item) => item.item_type === "LIVE_SESSION").length;
   const quizCount = allItems.filter(isQuizItem).length;
   const essayCount = allItems.filter(isEssayItem).length;
   const previewCount = allItems.filter((item) => item.is_preview).length;
@@ -296,6 +315,7 @@ export default async function DashboardCourseDetailPage(props: {
                 <span>{videoCount} videos</span>
                 <span>{documentCount} docs</span>
                 {linkCount > 0 && <span>{linkCount} links</span>}
+                {liveSessionCount > 0 && <span>{liveSessionCount} live</span>}
                 <span>{quizCount} quizzes</span>
                 {essayCount > 0 && <span>{essayCount} essays</span>}
                 {lockedCount > 0 && <span>{lockedCount} locked</span>}
@@ -428,7 +448,7 @@ export default async function DashboardCourseDetailPage(props: {
               {[
                 "Full curriculum content",
                 linkCount > 0
-                  ? "Video, document, link, and assessment access"
+                  ? "Video, document, link, live session, and assessment access"
                   : "Video, document, and assessment access",
                 "Progress tracking in the learning area",
                 "Course access from any device",
@@ -729,6 +749,7 @@ function Pill({
 function itemIcon(item: CourseItem) {
   if (item.item_type === "VIDEO") return <PlayCircle className="h-5 w-5" />;
   if (item.item_type === "LINKS") return <Link2 className="h-5 w-5" />;
+  if (item.item_type === "LIVE_SESSION") return <CalendarDays className="h-5 w-5" />;
   if (isQuizItem(item) || isEssayItem(item)) return <HelpCircle className="h-5 w-5" />;
   return <FileText className="h-5 w-5" />;
 }
@@ -750,6 +771,15 @@ function getItemMeta(item: CourseItem) {
 
   if (item.link?.url) {
     meta.push("External resource");
+  }
+
+  if (item.live_session?.scheduled_start_at) {
+    meta.push(formatDateTime(item.live_session.scheduled_start_at));
+  }
+
+  const guest = formatLiveSessionGuest(item.live_session);
+  if (guest) {
+    meta.push(guest);
   }
 
   if (typeof item.estimated_minutes === "number" && item.estimated_minutes > 0) {
@@ -789,6 +819,15 @@ function getPayloadStatus(item: CourseItem, unlocked: boolean) {
 
   if (item.item_type === "LINKS") {
     return item.link?.url ? "Link ready" : "Link hidden";
+  }
+
+  if (item.item_type === "LIVE_SESSION") {
+    if (item.live_session?.status === "ENDED" && item.live_session.recording_status === "READY") {
+      return "Recording ready";
+    }
+    if (item.live_session?.status === "ENDED") return "Recording processing";
+    if (item.live_session?.status === "CANCELLED") return "Cancelled";
+    return item.live_session?.scheduled_start_at ? "Scheduled" : "Schedule hidden";
   }
 
   if (isQuizItem(item)) {
@@ -980,4 +1019,24 @@ function formatDate(value?: string | null) {
     day: "numeric",
     year: "numeric",
   }).format(date);
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function formatLiveSessionGuest(session?: CourseLiveSession | null) {
+  const name = session?.guest_name?.trim();
+  const title = session?.guest_title?.trim();
+  if (!name) return "";
+  return title ? `${name}, ${title}` : name;
 }

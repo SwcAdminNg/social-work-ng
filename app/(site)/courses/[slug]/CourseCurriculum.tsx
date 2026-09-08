@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, PlayCircle, FileText, HelpCircle, X, Eye, ExternalLink, Link2 } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, PlayCircle, FileText, HelpCircle, X, Eye, ExternalLink, Link2 } from "lucide-react";
 import { HlsVideoPlayer } from "@/components/learning/HlsVideoPlayer";
 import { QuizEngine } from "@/components/learning/QuizEngine";
 
@@ -41,6 +41,15 @@ type CurriculumItem = {
     url?: string | null;
     label?: string | null;
     description?: string | null;
+  } | null;
+  live_session?: {
+    scheduled_start_at?: string | null;
+    duration_minutes?: number | null;
+    guest_name?: string | null;
+    guest_title?: string | null;
+    status?: string | null;
+    recording_status?: string | null;
+    recording_playback_url?: string | null;
   } | null;
 };
 
@@ -85,6 +94,8 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
         return <FileText className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
       case "LINKS":
         return <Link2 className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
+      case "LIVE_SESSION":
+        return <CalendarDays className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
       case "QUIZ":
       case "ASSESSMENT":
         return <HelpCircle className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
@@ -141,6 +152,7 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                 <ul className="overflow-hidden min-h-0 divide-y divide-gray-100 dark:divide-gray-800/50 bg-white dark:bg-gray-900">
                   {section.items?.map((item) => {
                     const link = getLinkPayload(item);
+                    const liveSessionMeta = getLiveSessionMeta(item);
 
                     return (
                     <li
@@ -158,7 +170,12 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                               {link.description}
                             </p>
                           )}
-                          {getEstimatedMinutes(item) > 0 && (
+                          {liveSessionMeta && (
+                            <p className="mt-1 line-clamp-2 text-sm leading-5 text-gray-500 dark:text-gray-400">
+                              {liveSessionMeta}
+                            </p>
+                          )}
+                          {getEstimatedMinutes(item) > 0 && item.item_type !== "LIVE_SESSION" && (
                             <span className="mt-2 inline-flex rounded-md bg-[#e7f6ee] px-2 py-1 text-xs font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
                               {formatMinutes(getEstimatedMinutes(item))}
                             </span>
@@ -177,6 +194,11 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                             <ExternalLink className="w-4 h-4" />
                             Open
                           </a>
+                        ) : item.item_type === "LIVE_SESSION" ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-md bg-[#e7f6ee] px-3 py-1.5 text-sm font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+                            <CalendarDays className="h-4 w-4" />
+                            {getLiveSessionStatusLabel(item)}
+                          </span>
                         ) : item.is_preview ? (
                           <button
                             onClick={() => setPreviewItem(item)}
@@ -348,6 +370,27 @@ function getLinkPayload(item: CurriculumItem) {
   return item.link || null;
 }
 
+function getLiveSessionMeta(item: CurriculumItem) {
+  if (item.item_type !== "LIVE_SESSION") return null;
+
+  const pieces = [
+    formatDateTime(item.live_session?.scheduled_start_at),
+    formatGuest(item.live_session?.guest_name, item.live_session?.guest_title),
+  ].filter(Boolean);
+
+  return pieces.join(" - ") || null;
+}
+
+function getLiveSessionStatusLabel(item: CurriculumItem) {
+  const status = item.live_session?.status;
+  if (status === "ENDED" && item.live_session?.recording_status === "READY") {
+    return "Recording ready";
+  }
+  if (status === "ENDED") return "Ended";
+  if (status === "CANCELLED") return "Cancelled";
+  return "Scheduled";
+}
+
 function formatGuestInstructors(guests?: GuestInstructor[] | null) {
   const names = (guests || [])
     .map((guest) => guest.name?.trim())
@@ -369,4 +412,22 @@ function formatMinutes(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
   return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function formatGuest(name?: string | null, title?: string | null) {
+  const guestName = name?.trim();
+  const guestTitle = title?.trim();
+  if (!guestName) return null;
+  return guestTitle ? `${guestName}, ${guestTitle}` : guestName;
 }

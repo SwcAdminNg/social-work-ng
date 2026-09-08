@@ -8,6 +8,7 @@ import { IconClipboardCheck } from "@/components/dashboard/icons";
 import { MarkCompleteButton } from "@/components/learning/MarkCompleteButton";
 import { DocumentDownloadButton } from "@/components/learning/DocumentDownloadButton";
 import { LinkResourcePanel } from "@/components/learning/LinkResourcePanel";
+import { LiveSessionPanel } from "@/components/learning/LiveSessionPanel";
 import Link from "next/link";
 import { CheckCircle, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 
@@ -228,6 +229,13 @@ export default async function LearningItemPage(props: {
             label={item.link_label}
             description={item.link_description}
             isCompleted={item.is_completed}
+          />
+        )}
+
+        {item.item_type === "LIVE_SESSION" && (
+          <LiveSessionPanel
+            courseId={params.course_id}
+            item={item}
           />
         )}
 
