@@ -43,6 +43,9 @@ type AppSession = {
 };
 
 type ConnectionState = "connecting" | "open" | "closed";
+type DashboardOverviewCountEvent = CustomEvent<{
+  unread_notifications_count?: number;
+}>;
 
 const PAGE_SIZE = 10;
 const RECONNECT_BASE_DELAY_MS = 2000;
@@ -206,6 +209,22 @@ export function NotificationCenter() {
     const timeout = setTimeout(fetchUnreadCount, 0);
     return () => clearTimeout(timeout);
   }, [fetchUnreadCount]);
+
+  useEffect(() => {
+    function handleOverviewCounts(event: Event) {
+      const detail = (event as DashboardOverviewCountEvent).detail;
+      if (typeof detail?.unread_notifications_count === "number") {
+        setUnreadCount(Math.max(0, detail.unread_notifications_count));
+      }
+    }
+
+    window.addEventListener("dashboard:overview-counts", handleOverviewCounts);
+    return () =>
+      window.removeEventListener(
+        "dashboard:overview-counts",
+        handleOverviewCounts,
+      );
+  }, []);
 
   useEffect(() => {
     if (!open || items.length > 0) return;

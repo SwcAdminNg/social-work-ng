@@ -10,10 +10,21 @@ import {
   CircleHelp,
   MessageSquare,
   Search,
+  ShoppingCart,
 } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 import { IconMenu } from "./icons";
 import { NotificationCenter } from "./notifications/NotificationCenter";
+
+type DashboardOverviewCountEvent = CustomEvent<{
+  unread_community_messages_count?: number;
+  cart_item_count?: number;
+  open_support_tickets_count?: number;
+}>;
+
+function badgeLabel(count: number) {
+  return count > 99 ? "99+" : String(count);
+}
 
 export function DashboardHeader() {
   const { data: session } = useSession();
@@ -21,6 +32,8 @@ export function DashboardHeader() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [cartItemCount, setCartItemCount] = useState(0);
+  const [openSupportTicketsCount, setOpenSupportTicketsCount] = useState(0);
   const profileRef = useRef<HTMLDivElement>(null);
 
   const searchParams = useSearchParams();
@@ -70,6 +83,30 @@ export function DashboardHeader() {
     };
   }, []);
 
+  useEffect(() => {
+    function handleOverviewCounts(event: Event) {
+      const detail = (event as DashboardOverviewCountEvent).detail;
+      if (typeof detail?.unread_community_messages_count === "number") {
+        setUnreadCount(Math.max(0, detail.unread_community_messages_count));
+      }
+      if (typeof detail?.cart_item_count === "number") {
+        setCartItemCount(Math.max(0, detail.cart_item_count));
+      }
+      if (typeof detail?.open_support_tickets_count === "number") {
+        setOpenSupportTicketsCount(
+          Math.max(0, detail.open_support_tickets_count),
+        );
+      }
+    }
+
+    window.addEventListener("dashboard:overview-counts", handleOverviewCounts);
+    return () =>
+      window.removeEventListener(
+        "dashboard:overview-counts",
+        handleOverviewCounts,
+      );
+  }, []);
+
   return (
     <header className="sticky top-0 z-30 flex h-[72px] flex-shrink-0 items-center justify-between gap-3 border-b border-[#e5e3ee] bg-white/90 px-4 backdrop-blur-xl dark:border-[#262a3d] dark:bg-[#111525]/90 sm:px-6">
       <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
@@ -117,17 +154,35 @@ export function DashboardHeader() {
           <MessageSquare className="h-5 w-5" strokeWidth={1.9} />
           {unreadCount > 0 && (
             <span className="absolute -right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f43f5e] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:ring-[#111525]">
-              {unreadCount > 99 ? "99+" : unreadCount}
+              {badgeLabel(unreadCount)}
             </span>
           )}
         </Link>
 
         <Link
-          href="/contact"
-          aria-label="Help centre"
-          className="hidden h-10 w-10 items-center justify-center rounded-md text-slate-600 no-underline transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] md:flex"
+          href="/dashboard/cart"
+          aria-label="Cart"
+          className="relative hidden h-10 w-10 items-center justify-center rounded-md text-slate-600 no-underline transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] sm:flex"
+        >
+          <ShoppingCart className="h-5 w-5" strokeWidth={1.9} />
+          {cartItemCount > 0 && (
+            <span className="absolute -right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f43f5e] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:ring-[#111525]">
+              {badgeLabel(cartItemCount)}
+            </span>
+          )}
+        </Link>
+
+        <Link
+          href="/dashboard/support-tickets"
+          aria-label="Support tickets"
+          className="relative hidden h-10 w-10 items-center justify-center rounded-md text-slate-600 no-underline transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] md:flex"
         >
           <CircleHelp className="h-5 w-5" strokeWidth={1.9} />
+          {openSupportTicketsCount > 0 && (
+            <span className="absolute -right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f43f5e] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:ring-[#111525]">
+              {badgeLabel(openSupportTicketsCount)}
+            </span>
+          )}
         </Link>
 
         <div className="relative ml-1 sm:ml-2" ref={profileRef}>

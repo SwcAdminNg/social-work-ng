@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import {
   IconBookOpen,
@@ -11,18 +11,54 @@ import {
 import { CheckCircle2, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
-interface ActivityItem {
+export type ActivityItem = {
   id: string;
   user_id: string;
   activity_type: string;
-  metadata_json: any;
+  metadata_json?: Record<string, unknown> | null;
   created_at: string;
+};
+
+type ActivityResponse = {
+  data?: ActivityItem[];
+  items?: ActivityItem[];
+  message?: string;
+  meta?: {
+    page?: number;
+    page_size?: number;
+    total_pages?: number;
+    has_next?: boolean;
+  };
+  total_pages?: number;
+};
+
+type ActivityFeedProps = {
+  initialActivities?: ActivityItem[];
+  initialMeta?: ActivityResponse["meta"];
+};
+
+function metaString(meta: Record<string, unknown>, key: string) {
+  const value = meta[key];
+  return typeof value === "string" ? value : "";
 }
 
-export function ActivityFeed() {
+function metaNumber(meta: Record<string, unknown>, key: string) {
+  const value = meta[key];
+  const numeric = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function metaBoolean(meta: Record<string, unknown>, key: string) {
+  return meta[key] === true;
+}
+
+export function ActivityFeed({
+  initialActivities = [],
+  initialMeta,
+}: ActivityFeedProps) {
   const [page, setPage] = useState(1);
 
-  const fetchActivities = async (pageNumber: number) => {
+  const fetchActivities = async (pageNumber: number): Promise<ActivityResponse> => {
     const res = await fetch(`/api/proxy/users/me/dashboard/activity?page=${pageNumber}&page_size=5`);
     const data = await res.json();
     if (!res.ok) {
@@ -35,6 +71,13 @@ export function ActivityFeed() {
     queryKey: ['dashboard-activities', page],
     queryFn: () => fetchActivities(page),
     placeholderData: keepPreviousData,
+    initialData:
+      page === 1 && initialActivities.length > 0
+        ? {
+            data: initialActivities,
+            meta: initialMeta,
+          }
+        : undefined,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -85,7 +128,7 @@ export function ActivityFeed() {
           color: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
           text: (
             <span>
-              Enrolled in <span className="font-bold">{meta.course_title || "a new course"}</span>
+              Enrolled in <span className="font-bold">{metaString(meta, "course_title") || "a new course"}</span>
             </span>
           ),
         };
@@ -97,8 +140,44 @@ export function ActivityFeed() {
             : "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400",
           text: (
             <span>
-              Completed {meta.item_title ? <span className="font-bold">{meta.item_title}</span> : "a quiz"}
-              {meta.course_title ? ` in ${meta.course_title}` : ""} with a score of <span className="font-bold">{meta.score || 0}%</span>
+              Completed {metaString(meta, "item_title") ? <span className="font-bold">{metaString(meta, "item_title")}</span> : "a quiz"}
+              {metaString(meta, "course_title") ? ` in ${metaString(meta, "course_title")}` : ""} with a score of <span className="font-bold">{metaNumber(meta, "score")}%</span>
+            </span>
+          ),
+        };
+      case "QUIZ_GROUP_COMPLETED":
+        return {
+          icon: <IconClipboardCheck />,
+          color: metaBoolean(meta, "passed")
+            ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+            : "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400",
+          text: (
+            <span>
+              Completed <span className="font-bold">{metaString(meta, "quiz_group_title") || metaString(meta, "item_title") || "a quiz group"}</span>
+              {metaString(meta, "course_title") ? ` in ${metaString(meta, "course_title")}` : ""}
+            </span>
+          ),
+        };
+      case "ESSAY_SUBMITTED":
+        return {
+          icon: <IconClipboardCheck />,
+          color: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
+          text: (
+            <span>
+              Submitted <span className="font-bold">{metaString(meta, "item_title") || "an essay"}</span>
+              {metaString(meta, "course_title") ? ` in ${metaString(meta, "course_title")}` : ""}
+            </span>
+          ),
+        };
+      case "ESSAY_GRADED":
+        return {
+          icon: <CheckCircle2 className="w-4 h-4" />,
+          color: "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400",
+          text: (
+            <span>
+              Essay graded
+              {metaString(meta, "course_title") ? ` in ${metaString(meta, "course_title")}` : ""}
+              {metaNumber(meta, "score") ? <> with <span className="font-bold">{metaNumber(meta, "score")}%</span></> : null}
             </span>
           ),
         };
@@ -108,7 +187,7 @@ export function ActivityFeed() {
           color: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400",
           text: (
             <span>
-              Left a <span className="font-bold">{meta.rating} star</span> review for <span className="font-bold">{meta.course_title || "a course"}</span>
+              Left a <span className="font-bold">{metaNumber(meta, "rating")} star</span> review for <span className="font-bold">{metaString(meta, "course_title") || "a course"}</span>
             </span>
           ),
         };
@@ -118,7 +197,7 @@ export function ActivityFeed() {
           color: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400",
           text: (
             <span>
-              Updated your <span className="font-bold">{meta.rating} star</span> review for <span className="font-bold">{meta.course_title || "a course"}</span>
+              Updated your <span className="font-bold">{metaNumber(meta, "rating")} star</span> review for <span className="font-bold">{metaString(meta, "course_title") || "a course"}</span>
             </span>
           ),
         };
@@ -128,20 +207,20 @@ export function ActivityFeed() {
           color: "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400",
           text: (
             <span>
-              Deleted your review for <span className="font-bold">{meta.course_title || "a course"}</span>
+              Deleted your review for <span className="font-bold">{metaString(meta, "course_title") || "a course"}</span>
             </span>
           ),
         };
       case "PAYMENT_SUCCESSFUL":
-        const purchaseName = meta.course_title || meta.plan_name || "a purchase";
+        const purchaseName = metaString(meta, "course_title") || metaString(meta, "plan_name") || "a purchase";
         return {
           icon: <IconReceipt />,
           color: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
           text: (
             <span>
               Payment successful for <span className="font-bold">{purchaseName}</span>
-              {meta.amount && (
-                <span className="font-bold"> (₦{meta.amount.toLocaleString()})</span>
+              {metaNumber(meta, "amount") > 0 && (
+                <span className="font-bold"> (NGN {metaNumber(meta, "amount").toLocaleString()})</span>
               )}
             </span>
           ),
