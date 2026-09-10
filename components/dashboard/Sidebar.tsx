@@ -38,12 +38,14 @@ export function Sidebar() {
           <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
         </span>
         <span className={`min-w-0 truncate ${compact}`}>{item.label}</span>
-        {item.href.startsWith("/") && !item.href.startsWith("/dashboard") && !item.disabled && (
-          <ExternalLink
-            className={`ml-auto h-3.5 w-3.5 opacity-45 ${compact}`}
-            aria-hidden="true"
-          />
-        )}
+        {item.href.startsWith("/") &&
+          !item.href.startsWith("/dashboard") &&
+          !item.disabled && (
+            <ExternalLink
+              className={`ml-auto h-3.5 w-3.5 opacity-45 ${compact}`}
+              aria-hidden="true"
+            />
+          )}
       </>
     );
 
@@ -110,7 +112,9 @@ export function Sidebar() {
                 height={96}
                 priority
                 className={`h-24 w-[220px] max-w-none object-contain object-left scale-125 origin-left ${
-                  collapsed ? "lg:w-[220px] scale-100 lg:scale-125 origin-center lg:origin-left" : ""
+                  collapsed
+                    ? "lg:w-[220px] scale-100 lg:scale-125 origin-center lg:origin-left"
+                    : ""
                 }`}
               />
             </div>

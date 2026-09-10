@@ -29,9 +29,7 @@ export type NavGroup = {
 
 export const dashboardNavGroups: NavGroup[] = [
   {
-    items: [
-      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    ],
+    items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }],
   },
   {
     label: "My Learning",
@@ -74,7 +72,7 @@ export const dashboardNavGroups: NavGroup[] = [
   {
     label: "Support",
     items: [
-      { label: "Help Centre", href: "/contact", icon: CircleHelp },
+      { label: "Help Centre", href: "/faq", icon: CircleHelp },
       {
         label: "My Support Tickets",
         href: "/dashboard/support-tickets",
@@ -85,7 +83,11 @@ export const dashboardNavGroups: NavGroup[] = [
   {
     label: "Account",
     items: [
-      { label: "Profile Settings", href: "/dashboard/settings", icon: Settings },
+      {
+        label: "Profile Settings",
+        href: "/dashboard/settings",
+        icon: Settings,
+      },
       {
         label: "Payment & Billing",
         href: "/dashboard/orders",
