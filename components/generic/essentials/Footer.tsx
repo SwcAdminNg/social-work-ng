@@ -50,7 +50,6 @@ const platformLinks = [
   { label: "Our Courses", href: "/courses" },
   { label: "Mentorship", href: "/mentorship" },
   { label: "Resources", href: "/resources" },
-  { label: "Pricing", href: "/pricing" },
 ];
 
 const companyLinks = [

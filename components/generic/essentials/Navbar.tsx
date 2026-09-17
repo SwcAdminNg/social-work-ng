@@ -39,7 +39,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             { name: "Our Courses", href: "/courses" },
             { name: "Mentorship", href: "/mentorship" },
             { name: "About Us", href: "/about-us" },
-            { name: "Pricing", href: "/pricing" },
             { name: "Resources", href: "/resources" },
             { name: "Contact Us", href: "/contact" },
           ].map((item) => {
@@ -126,7 +125,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         <ul className="list-none m-0 px-6 py-6 flex flex-col gap-2">
           {[
             { name: "About Us", href: "/about-us" },
-            { name: "Pricing", href: "/pricing" },
             { name: "Our Courses", href: "/courses" },
             { name: "Mentorship", href: "/mentorship" },
             { name: "Resources", href: "/resources" },
