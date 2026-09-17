@@ -2,7 +2,15 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Search, ChevronDown, CheckCircle2, LifeBuoy } from "lucide-react";
+import {
+  Search,
+  ChevronDown,
+  CheckCircle2,
+  LifeBuoy,
+  Tag,
+} from "lucide-react";
+
+type FAQAudience = "STUDENT" | "INSTRUCTOR" | "BOTH";
 
 interface FAQItem {
   id: string;
@@ -11,6 +19,10 @@ interface FAQItem {
   answer: string;
   order: number;
   is_published: boolean;
+  audience?: FAQAudience;
+  keywords?: string[];
+  escalation_route?: string;
+  related_article_ids?: string[];
 }
 
 interface FAQCategory {
@@ -31,6 +43,9 @@ export function FAQContent({
   const [selectedCategory, setSelectedCategory] = useState<"All" | string>(
     "All",
   );
+  const [selectedAudience, setSelectedAudience] = useState<"ALL" | FAQAudience>(
+    "ALL",
+  );
   const [openId, setOpenId] = useState<string | null>(null);
 
   const toggleFAQ = (id: string) => {
@@ -45,17 +60,44 @@ export function FAQContent({
     [categories],
   );
 
+  const articleById = useMemo(() => {
+    return new Map(allItems.map((item) => [item.id, item]));
+  }, [allItems]);
+
   const filteredFAQs = useMemo(() => {
     return allItems.filter((faq) => {
       const matchesCategory =
         selectedCategory === "All" || faq.category_id === selectedCategory;
+      const matchesAudience =
+        selectedAudience === "ALL" ||
+        faq.audience === selectedAudience ||
+        faq.audience === "BOTH";
       const q = searchTerm.toLowerCase();
       const matchesSearch =
         faq.question.toLowerCase().includes(q) ||
-        faq.answer.toLowerCase().includes(q);
-      return matchesCategory && matchesSearch;
+        faq.answer.toLowerCase().includes(q) ||
+        (faq.keywords || []).some((keyword) =>
+          keyword.toLowerCase().includes(q),
+        );
+      return matchesCategory && matchesAudience && matchesSearch;
     });
-  }, [allItems, searchTerm, selectedCategory]);
+  }, [allItems, searchTerm, selectedAudience, selectedCategory]);
+
+  const buildSupportHref = (escalationRoute?: string) => {
+    const params = new URLSearchParams({ new: "1" });
+    if (escalationRoute) {
+      params.set("subject", escalationRoute);
+      params.set(
+        "message",
+        `I read the FAQ article for "${escalationRoute}" but still need help.`,
+      );
+    }
+
+    const supportPath = `/dashboard/support-tickets?${params.toString()}`;
+    return isAuthenticated
+      ? supportPath
+      : `/login?callbackUrl=${encodeURIComponent(supportPath)}`;
+  };
 
   return (
     <section className="py-20 px-6 bg-gray-50 dark:bg-[#0a0a0a] flex-1">
@@ -83,36 +125,60 @@ export function FAQContent({
 
         {/* Categories */}
         {categories.length > 0 && (
-          <div className="flex overflow-x-auto items-center md:flex-wrap md:justify-center gap-3 mb-7 mt-1 pb-4 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <button
-              onClick={() => {
-                setSelectedCategory("All");
-                setOpenId(null);
-              }}
-              className={`flex-shrink-0 whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm ${
-                selectedCategory === "All"
-                  ? "bg-[#2D6A4F] text-white shadow-md shadow-[#2D6A4F]/20"
-                  : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#2D6A4F] dark:hover:border-[#52b788] hover:text-[#2D6A4F] dark:hover:text-[#52b788]"
-              }`}
-            >
-              All
-            </button>
-            {categories.map((cat) => (
+          <div className="mb-7 mt-1 space-y-4">
+            <div className="flex overflow-x-auto items-center md:flex-wrap md:justify-center gap-3 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {[
+                ["ALL", "Everyone"],
+                ["STUDENT", "Students"],
+                ["INSTRUCTOR", "Instructors"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  onClick={() => {
+                    setSelectedAudience(value as "ALL" | FAQAudience);
+                    setOpenId(null);
+                  }}
+                  className={`flex-shrink-0 whitespace-nowrap px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all duration-200 shadow-sm ${
+                    selectedAudience === value
+                      ? "bg-[#1B4332] text-white shadow-md shadow-[#1B4332]/20"
+                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#2D6A4F] dark:hover:border-[#52b788] hover:text-[#2D6A4F] dark:hover:text-[#52b788]"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex overflow-x-auto items-center md:flex-wrap md:justify-center gap-3 pb-4 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               <button
-                key={cat.id}
                 onClick={() => {
-                  setSelectedCategory(cat.id);
+                  setSelectedCategory("All");
                   setOpenId(null);
                 }}
                 className={`flex-shrink-0 whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm ${
-                  selectedCategory === cat.id
+                  selectedCategory === "All"
                     ? "bg-[#2D6A4F] text-white shadow-md shadow-[#2D6A4F]/20"
                     : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#2D6A4F] dark:hover:border-[#52b788] hover:text-[#2D6A4F] dark:hover:text-[#52b788]"
                 }`}
               >
-                {cat.name}
+                All
               </button>
-            ))}
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setSelectedCategory(cat.id);
+                    setOpenId(null);
+                  }}
+                  className={`flex-shrink-0 whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm ${
+                    selectedCategory === cat.id
+                      ? "bg-[#2D6A4F] text-white shadow-md shadow-[#2D6A4F]/20"
+                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#2D6A4F] dark:hover:border-[#52b788] hover:text-[#2D6A4F] dark:hover:text-[#52b788]"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -124,6 +190,7 @@ export function FAQContent({
               return (
                 <div
                   key={faq.id}
+                  id={`faq-${faq.id}`}
                   className={`bg-white dark:bg-gray-900 rounded-2xl border transition-all duration-300 overflow-hidden ${
                     isOpen
                       ? "border-[#2D6A4F]/50 dark:border-[#52b788]/50 shadow-md"
@@ -162,7 +229,68 @@ export function FAQContent({
                         <div className="flex-shrink-0 mt-1">
                           <CheckCircle2 className="w-5 h-5 text-[#2D6A4F]/60 dark:text-[#52b788]/60" />
                         </div>
-                        <p>{faq.answer}</p>
+                        <div className="min-w-0 flex-1 space-y-4">
+                          <p>{faq.answer}</p>
+
+                          {faq.keywords && faq.keywords.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {faq.keywords.slice(0, 6).map((keyword) => (
+                                <span
+                                  key={keyword}
+                                  className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1 text-xs font-semibold text-gray-600 dark:text-gray-300"
+                                >
+                                  <Tag className="h-3 w-3" />
+                                  {keyword}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+
+                          {faq.related_article_ids &&
+                          faq.related_article_ids.length > 0 ? (
+                            <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4">
+                              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Related help
+                              </p>
+                              <div className="flex flex-col gap-2">
+                                {faq.related_article_ids.map((relatedId) => {
+                                  const related = articleById.get(relatedId);
+                                  if (!related) return null;
+
+                                  return (
+                                    <button
+                                      key={relatedId}
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedCategory("All");
+                                        setSelectedAudience("ALL");
+                                        setOpenId(relatedId);
+                                        document
+                                          .getElementById(`faq-${relatedId}`)
+                                          ?.scrollIntoView({
+                                            behavior: "smooth",
+                                            block: "center",
+                                          });
+                                      }}
+                                      className="text-left text-sm font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:underline"
+                                    >
+                                      {related.question}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {faq.escalation_route ? (
+                            <Link
+                              href={buildSupportHref(faq.escalation_route)}
+                              className="inline-flex items-center gap-2 rounded-xl border border-[#2D6A4F]/20 bg-[#2D6A4F]/5 px-4 py-2 text-sm font-bold text-[#1B4332] transition-colors hover:bg-[#2D6A4F]/10 dark:border-[#52b788]/20 dark:bg-[#52b788]/10 dark:text-[#b7e4c7]"
+                            >
+                              Still stuck? Contact Support
+                            </Link>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -192,14 +320,14 @@ export function FAQContent({
             Still need help?
           </h3>
           <p className="text-[#d1e7dd] max-w-lg mx-auto mb-7 leading-relaxed">
-            Can't find your answer above? Open a support ticket and chat live
+            Can&apos;t find your answer above? Open a support ticket and chat live
             with our Support Desk team.
           </p>
           <Link
             href={
               isAuthenticated
                 ? "/dashboard/support-tickets?new=1"
-                : "/login?callbackUrl=%2Fdashboard%2Fsupport-tickets"
+                : "/login?callbackUrl=%2Fdashboard%2Fsupport-tickets%3Fnew%3D1"
             }
             className="inline-flex items-center gap-2 bg-white text-[#1B4332] font-bold px-7 py-3.5 rounded-xl hover:bg-[#f0fdf4] transition-colors shadow-lg"
           >

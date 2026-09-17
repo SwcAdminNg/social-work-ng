@@ -10,14 +10,26 @@ import { toast } from "sonner";
 export function NewTicketModal({
   isOpen,
   onOpenChange,
+  initialSubject = "",
+  initialMessage = "",
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  initialSubject?: string;
+  initialMessage?: string;
 }) {
   const router = useRouter();
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
+  const [subject, setSubject] = useState(initialSubject);
+  const [message, setMessage] = useState(initialMessage);
   const [submitting, setSubmitting] = useState(false);
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setSubject(initialSubject);
+      setMessage(initialMessage);
+    }
+    onOpenChange(open);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,23 +53,27 @@ export function NewTicketModal({
 
       toast.success("Ticket opened — our team has been notified.");
       onOpenChange(false);
-      setSubject("");
-      setMessage("");
+      setSubject(initialSubject);
+      setMessage(initialMessage);
       const ticketId = data?.data?.id;
       if (ticketId) {
         router.push(`/dashboard/support-tickets/${ticketId}`);
       } else {
         router.refresh();
       }
-    } catch (err: any) {
-      toast.error(err.message || "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#121212] p-6 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-2xl">
@@ -66,7 +82,7 @@ export function NewTicketModal({
               Open a support ticket
             </Dialog.Title>
             <Dialog.Description className="text-sm text-gray-500 dark:text-gray-400">
-              Tell us what's going on and our Support Desk team will jump in — usually within minutes.
+              Tell us what&apos;s going on and our Support Desk team will jump in — usually within minutes.
             </Dialog.Description>
           </div>
 

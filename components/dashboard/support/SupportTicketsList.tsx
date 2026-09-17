@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { MessageSquarePlus, TicketX, ChevronRight } from "lucide-react";
@@ -34,6 +34,8 @@ export default function SupportTicketsList({
   limit,
   error,
   openNewTicketOnLoad,
+  initialSubject,
+  initialMessage,
 }: {
   initialData: Ticket[];
   totalItems: number;
@@ -41,14 +43,12 @@ export default function SupportTicketsList({
   limit: number;
   error: string | null;
   openNewTicketOnLoad?: boolean;
+  initialSubject?: string;
+  initialMessage?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [modalOpen, setModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (openNewTicketOnLoad) setModalOpen(true);
-  }, [openNewTicketOnLoad]);
+  const [modalOpen, setModalOpen] = useState(Boolean(openNewTicketOnLoad));
 
   const NewTicketButton = (
     <button
@@ -66,7 +66,13 @@ export default function SupportTicketsList({
         <div className="p-6 rounded-2xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400">
           <p className="font-semibold text-sm">{error}</p>
         </div>
-        <NewTicketModal isOpen={modalOpen} onOpenChange={setModalOpen} />
+        <NewTicketModal
+          key={`${initialSubject || ""}:${initialMessage || ""}`}
+          isOpen={modalOpen}
+          onOpenChange={setModalOpen}
+          initialSubject={initialSubject}
+          initialMessage={initialMessage}
+        />
       </>
     );
   }
@@ -82,7 +88,13 @@ export default function SupportTicketsList({
           />
           {NewTicketButton}
         </div>
-        <NewTicketModal isOpen={modalOpen} onOpenChange={setModalOpen} />
+        <NewTicketModal
+          key={`${initialSubject || ""}:${initialMessage || ""}`}
+          isOpen={modalOpen}
+          onOpenChange={setModalOpen}
+          initialSubject={initialSubject}
+          initialMessage={initialMessage}
+        />
       </>
     );
   }
@@ -217,7 +229,13 @@ export default function SupportTicketsList({
         </div>
       )}
 
-      <NewTicketModal isOpen={modalOpen} onOpenChange={setModalOpen} />
+      <NewTicketModal
+        key={`${initialSubject || ""}:${initialMessage || ""}`}
+        isOpen={modalOpen}
+        onOpenChange={setModalOpen}
+        initialSubject={initialSubject}
+        initialMessage={initialMessage}
+      />
     </div>
   );
 }

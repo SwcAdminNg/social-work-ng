@@ -13,6 +13,10 @@ export default async function SupportTicketsContainer({
       : 1;
   const limit = 20;
   const openNewTicket = resolvedParams.new === "1";
+  const initialSubject =
+    typeof resolvedParams.subject === "string" ? resolvedParams.subject : "";
+  const initialMessage =
+    typeof resolvedParams.message === "string" ? resolvedParams.message : "";
 
   let tickets = [];
   let totalItems = 0;
@@ -33,9 +37,11 @@ export default async function SupportTicketsContainer({
       tickets = json.data;
       totalItems = json.meta?.total_items || 0;
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     error =
-      err.message || "An error occurred while fetching your support tickets.";
+      err instanceof Error
+        ? err.message
+        : "An error occurred while fetching your support tickets.";
   }
 
   return (
@@ -58,6 +64,8 @@ export default async function SupportTicketsContainer({
         limit={limit}
         error={error}
         openNewTicketOnLoad={openNewTicket}
+        initialSubject={initialSubject}
+        initialMessage={initialMessage}
       />
     </div>
   );
