@@ -15,7 +15,6 @@ import {
   Video,
 } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
-import { rememberLiveSessionReturn } from "./LiveSessionReturnHandler";
 import { MarkCompleteButton } from "./MarkCompleteButton";
 import { VideoPlayer } from "./VideoPlayer";
 
@@ -176,9 +175,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
                     }
 
                     if (json?.data?.join_url) {
-                      rememberLiveSessionReturn(`/learn/${courseId}/item/${item.id}`);
                       if (meetingWindow) {
-                        rememberLiveSessionReturn(`/learn/${courseId}/item/${item.id}`, meetingWindow);
                         meetingWindow.opener = null;
                         meetingWindow.location.assign(json.data.join_url);
                       } else {

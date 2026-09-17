@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { AlertCircle, ArrowLeft, Video } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
-import { rememberLiveSessionReturn } from "./LiveSessionReturnHandler";
 
 type JoinData = {
   join_url: string;
@@ -25,6 +25,7 @@ export function LiveSessionJoinClient({
   backHref = `/courses/${courseSlug}`,
   scheduledStartAt,
 }: LiveSessionJoinClientProps) {
+  const pathname = usePathname();
   const [error, setError] = useState<{ status?: number; message: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,6 +39,11 @@ export function LiveSessionJoinClient({
       });
       const json = await res.json().catch(() => ({}));
 
+      if (res.status === 401) {
+        window.location.assign(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+        return;
+      }
+
       if (!res.ok) {
         setError({
           status: res.status,
@@ -48,7 +54,6 @@ export function LiveSessionJoinClient({
 
       const data = json?.data as JoinData | undefined;
       if (data?.join_url) {
-        rememberLiveSessionReturn(backHref);
         window.location.assign(data.join_url);
         return;
       }
@@ -59,7 +64,7 @@ export function LiveSessionJoinClient({
     } finally {
       setLoading(false);
     }
-  }, [backHref, itemId]);
+  }, [itemId, pathname]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -94,9 +99,10 @@ export function LiveSessionJoinClient({
             : error?.message || "Please try again in a moment."}
         </p>
         {!loading && error?.status === 400 && scheduledStartAt && (
-          <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
-            Scheduled for {formatDateTime(scheduledStartAt)}
-          </p>
+          <div className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+            Scheduled for {formatDateTime(scheduledStartAt)}. Come back closer
+            to the start time.
+          </div>
         )}
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
           {!loading && error?.status !== 403 && (

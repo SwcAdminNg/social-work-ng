@@ -49,7 +49,6 @@ type CurriculumItem = {
     guest_title?: string | null;
     status?: string | null;
     recording_status?: string | null;
-    recording_playback_url?: string | null;
   } | null;
 };
 

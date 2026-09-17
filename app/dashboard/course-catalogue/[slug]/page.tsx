@@ -106,7 +106,6 @@ type CourseLiveSession = {
   guest_title?: string | null;
   status?: string | null;
   recording_status?: string | null;
-  recording_playback_url?: string | null;
 };
 
 type CourseSection = {

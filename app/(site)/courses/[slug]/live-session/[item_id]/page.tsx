@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { fetchApi } from "@/lib/fetchApi";
 import { LiveSessionJoinClient } from "@/components/learning/LiveSessionJoinClient";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 type CourseItem = {
   id?: string | null;
@@ -29,7 +29,16 @@ export default async function CourseLiveSessionPage(props: {
   const courseRes = await fetchApi(`/courses/${params.slug}`, {
     cache: "no-store",
   });
-  const courseJson = await courseRes.json().catch(() => ({}));
+  if (courseRes.status === 401) {
+    redirect(
+      `/logout?callbackUrl=${encodeURIComponent(`/courses/${params.slug}/live-session/${params.item_id}`)}`,
+    );
+  }
+  if (courseRes.status === 404) {
+    notFound();
+  }
+
+  const courseJson = courseRes.ok ? await courseRes.json().catch(() => ({})) : {};
   const sections = (courseJson?.data?.sections || []) as CourseSection[];
   const scheduledStartAt = sections
     .flatMap((section) => section.items || [])
