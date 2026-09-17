@@ -155,6 +155,13 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
                 onClick={async () => {
                   setJoining(true);
                   setJoinError(null);
+                  const meetingWindow = window.open("", "_blank");
+
+                  if (meetingWindow) {
+                    meetingWindow.document.title = "Opening live session";
+                    meetingWindow.document.body.innerHTML =
+                      '<div style="font-family: system-ui, sans-serif; min-height: 100vh; display: grid; place-items: center; color: #0f172a;"><div><strong>Opening live session...</strong><p style="color: #475569;">Please wait while we create your secure Daily link.</p></div></div>';
+                  }
 
                   try {
                     const res = await fetch(`/api/proxy/courses/items/${item.id}/live-session/join`, {
@@ -163,18 +170,27 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
                     const json = await res.json().catch(() => ({}));
 
                     if (!res.ok) {
+                      meetingWindow?.close();
                       setJoinError(json?.message || "This live session is not available right now.");
                       return;
                     }
 
                     if (json?.data?.join_url) {
                       rememberLiveSessionReturn(`/learn/${courseId}/item/${item.id}`);
-                      window.location.assign(json.data.join_url);
+                      if (meetingWindow) {
+                        rememberLiveSessionReturn(`/learn/${courseId}/item/${item.id}`, meetingWindow);
+                        meetingWindow.opener = null;
+                        meetingWindow.location.assign(json.data.join_url);
+                      } else {
+                        setJoinError("Your browser blocked the new tab. Please allow pop-ups and try again.");
+                      }
                       return;
                     }
 
+                    meetingWindow?.close();
                     setJoinError("The live session join link was not returned.");
                   } catch {
+                    meetingWindow?.close();
                     setJoinError("We could not reach the live session service.");
                   } finally {
                     setJoining(false);
@@ -188,7 +204,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
                 ) : (
                   <ExternalLink className="h-4 w-4" />
                 )}
-                {joining ? "Opening Daily..." : "Join on Daily"}
+                {joining ? "Opening Daily..." : "Join in new tab"}
               </button>
             ) : !isEnded && !isCancelled ? (
               <button
@@ -214,7 +230,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
             <PreparationItem
               icon={<Video className="h-4 w-4" />}
               title="Daily opens separately"
-              text="Your secure link opens Daily in this browser tab."
+              text="Your secure link opens Daily in a new browser tab."
             />
             <PreparationItem
               icon={<Headphones className="h-4 w-4" />}

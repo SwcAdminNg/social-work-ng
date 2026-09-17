@@ -5,9 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const LIVE_SESSION_RETURN_KEY = "live_session_return_href";
 
-export function rememberLiveSessionReturn(href: string) {
+export function rememberLiveSessionReturn(href: string, targetWindow: Window = window) {
   try {
-    window.sessionStorage.setItem(LIVE_SESSION_RETURN_KEY, href);
+    targetWindow.sessionStorage.setItem(LIVE_SESSION_RETURN_KEY, href);
   } catch {
     // Best-effort only; joining the call should not depend on storage access.
   }
