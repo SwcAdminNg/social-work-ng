@@ -3,13 +3,11 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  BookOpen,
-  CheckCircle2,
   ChevronDown,
-  LifeBuoy,
   Search,
+  MessageCircleQuestion,
+  ArrowRight,
   Sparkles,
-  Tag,
 } from "lucide-react";
 
 type FAQAudience = "STUDENT" | "INSTRUCTOR" | "BOTH";
@@ -40,15 +38,10 @@ type FAQItemWithCategory = FAQItem & { categoryName: string };
 const AUDIENCE_OPTIONS: Array<{
   value: AudienceFilter;
   label: string;
-  hint: string;
 }> = [
-  { value: "ALL", label: "Everyone", hint: "All help articles" },
-  { value: "STUDENT", label: "Students", hint: "Learning and account help" },
-  {
-    value: "INSTRUCTOR",
-    label: "Instructors",
-    hint: "Teaching and cohort help",
-  },
+  { value: "ALL", label: "Everyone" },
+  { value: "STUDENT", label: "Students" },
+  { value: "INSTRUCTOR", label: "Instructors" },
 ];
 
 function matchesAudience(item: FAQItem, audience: AudienceFilter) {
@@ -76,7 +69,6 @@ function displayCategoryName(name: string, audience: AudienceFilter) {
   if (audience === "ALL") {
     return name.replace(/\s*\(Both\)\s*$/i, "");
   }
-
   return cleanCategoryName(name);
 }
 
@@ -89,19 +81,18 @@ export function FAQContent({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<"All" | string>(
-    "All",
+    "All"
   );
   const [selectedAudience, setSelectedAudience] =
     useState<AudienceFilter>("ALL");
   const [openId, setOpenId] = useState<string | null>(null);
-  const [searchFocused, setSearchFocused] = useState(false);
 
   const allItems = useMemo(
     () =>
       categories.flatMap((cat) =>
-        cat.items.map((item) => ({ ...item, categoryName: cat.name })),
+        cat.items.map((item) => ({ ...item, categoryName: cat.name }))
       ),
-    [categories],
+    [categories]
   );
 
   const visibleCategories = useMemo(() => {
@@ -109,7 +100,7 @@ export function FAQContent({
       .map((category) => ({
         ...category,
         items: category.items.filter((item) =>
-          matchesAudience(item, selectedAudience),
+          matchesAudience(item, selectedAudience)
         ),
       }))
       .filter((category) => category.items.length > 0);
@@ -118,9 +109,9 @@ export function FAQContent({
   const visibleItems = useMemo(
     () =>
       visibleCategories.flatMap((cat) =>
-        cat.items.map((item) => ({ ...item, categoryName: cat.name })),
+        cat.items.map((item) => ({ ...item, categoryName: cat.name }))
       ),
-    [visibleCategories],
+    [visibleCategories]
   );
 
   const articleById = useMemo(() => {
@@ -143,38 +134,6 @@ export function FAQContent({
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, searchTerm, visibleItems]);
-
-  const suggestions = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    if (!query) return [];
-
-    return visibleItems
-      .filter((faq) => searchableText(faq).includes(query))
-      .slice(0, 6);
-  }, [searchTerm, visibleItems]);
-
-  const popularKeywords = useMemo(() => {
-    const seen = new Set<string>();
-    const keywords: string[] = [];
-
-    for (const item of visibleItems) {
-      for (const keyword of item.keywords || []) {
-        const normalized = keyword.trim();
-        const key = normalized.toLowerCase();
-        if (!normalized || seen.has(key)) continue;
-
-        seen.add(key);
-        keywords.push(normalized);
-        if (keywords.length === 8) return keywords;
-      }
-    }
-
-    return keywords;
-  }, [visibleItems]);
-
-  const activeAudienceLabel =
-    AUDIENCE_OPTIONS.find((option) => option.value === selectedAudience)
-      ?.label || "Everyone";
 
   const toggleFAQ = (id: string) => {
     setOpenId(openId === id ? null : id);
@@ -204,10 +163,9 @@ export function FAQContent({
       params.set("subject", escalationRoute);
       params.set(
         "message",
-        `I read the FAQ article for "${escalationRoute}" but still need help.`,
+        `I read the FAQ article for "${escalationRoute}" but still need help.`
       );
     }
-
     const supportPath = `/dashboard/support-tickets?${params.toString()}`;
     return isAuthenticated
       ? supportPath
@@ -215,370 +173,255 @@ export function FAQContent({
   };
 
   return (
-    <section className="flex-1 bg-gray-50 px-4 pb-20 pt-0 dark:bg-[#0a0a0a] sm:px-6">
-      <div className="mx-auto max-w-5xl">
-        <div className="relative z-30 -mt-24 rounded-3xl border border-white/80 bg-white/95 p-4 shadow-2xl shadow-gray-200/70 backdrop-blur dark:border-gray-800 dark:bg-gray-900/95 dark:shadow-none sm:p-6">
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-[#2D6A4F] dark:text-[#52b788]">
-                  Help Centre
-                </p>
-                <h2 className="mt-1 text-2xl font-extrabold text-gray-950 dark:text-white">
-                  Find the right answer faster
-                </h2>
-              </div>
-              <div className="rounded-2xl bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                {filteredFAQs.length} result{filteredFAQs.length === 1 ? "" : "s"} in{" "}
-                {activeAudienceLabel}
-              </div>
-            </div>
+    <section className="flex-1 bg-white dark:bg-[#0a0a0a]">
+      {/* Search Bar - Overlapping the Hero */}
+      <div className="relative z-30 -mt-10 max-w-3xl mx-auto px-4 sm:px-6">
+        <div className="relative flex items-center w-full h-16 rounded-2xl bg-white shadow-xl shadow-gray-200/50 border border-gray-100 dark:bg-gray-900 dark:border-gray-800 dark:shadow-none overflow-hidden focus-within:ring-2 focus-within:ring-[#2D6A4F] transition-all">
+          <Search className="h-6 w-6 text-gray-400 ml-6 shrink-0" />
+          <input
+            type="text"
+            className="flex-1 bg-transparent border-none outline-none pl-4 pr-6 text-gray-900 dark:text-white placeholder-gray-400 text-lg w-full"
+            placeholder="Search for answers..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
 
-            <div className="grid gap-3 rounded-2xl bg-gray-100 p-1 dark:bg-gray-800 sm:grid-cols-3">
-              {AUDIENCE_OPTIONS.map((option) => (
+      {/* Main Content Area */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-24">
+        
+        {/* Audience Toggle */}
+        <div className="flex justify-center mb-16">
+          <div className="inline-flex rounded-full bg-gray-100 dark:bg-gray-900 p-1.5 overflow-x-auto max-w-full">
+            {AUDIENCE_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => updateAudience(option.value)}
+                className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
+                  selectedAudience === option.value
+                    ? "bg-white text-[#2D6A4F] shadow-sm dark:bg-gray-800 dark:text-[#52b788]"
+                    : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-12 lg:grid-cols-[250px_1fr] items-start">
+          
+          {/* Categories Navigation */}
+          <aside className="lg:sticky lg:top-24">
+            <h3 className="hidden lg:block text-xs font-bold uppercase tracking-wider text-gray-400 mb-6">
+              Categories
+            </h3>
+            
+            {/* Mobile: Horizontal scrollable pills */}
+            <div className="flex overflow-x-auto pb-4 lg:hidden -mx-4 px-4 space-x-2 scrollbar-hide">
+              <button
+                onClick={() => {
+                  setSelectedCategory("All");
+                  setOpenId(null);
+                }}
+                className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors border ${
+                  activeCategory === "All"
+                    ? "bg-[#2D6A4F] border-[#2D6A4F] text-white"
+                    : "bg-white border-gray-200 text-gray-600 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"
+                }`}
+              >
+                All Topics
+              </button>
+              {visibleCategories.map((category) => (
                 <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => updateAudience(option.value)}
-                  className={`rounded-xl px-4 py-3 text-left transition-all ${
-                    selectedAudience === option.value
-                      ? "bg-white text-[#1B4332] shadow-sm ring-1 ring-gray-200 dark:bg-gray-950 dark:text-[#b7e4c7] dark:ring-gray-700"
-                      : "text-gray-600 hover:bg-white/70 dark:text-gray-300 dark:hover:bg-gray-900/60"
+                  key={category.id}
+                  onClick={() => {
+                    setSelectedCategory(category.id);
+                    setOpenId(null);
+                  }}
+                  className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors border ${
+                    activeCategory === category.id
+                      ? "bg-[#2D6A4F] border-[#2D6A4F] text-white"
+                      : "bg-white border-gray-200 text-gray-600 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"
                   }`}
                 >
-                  <span className="block text-sm font-extrabold">
-                    {option.label}
-                  </span>
-                  <span className="mt-1 block text-xs font-medium opacity-75">
-                    {option.hint}
-                  </span>
+                  {displayCategoryName(category.name, selectedAudience)}
                 </button>
               ))}
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <label htmlFor="faq-search" className="sr-only">
-                  Search FAQs
-                </label>
-                <input
-                  id="faq-search"
-                  type="text"
-                  className="block h-14 w-full rounded-2xl border border-gray-200 bg-white pl-12 pr-4 text-base font-semibold text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:focus:border-[#52b788] dark:focus:ring-[#52b788]/10"
-                  autoComplete="off"
-                  placeholder="Search login, certificate, payment, assessment..."
-                  value={searchTerm}
-                  onBlur={() => {
-                    window.setTimeout(() => setSearchFocused(false), 120);
-                  }}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  onFocus={() => setSearchFocused(true)}
-                />
-
-                {searchFocused && suggestions.length > 0 ? (
-                  <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-40 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl shadow-gray-200/70 dark:border-gray-800 dark:bg-gray-950 dark:shadow-none">
-                    <div className="border-b border-gray-100 px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                      Suggested answers
-                    </div>
-                    {suggestions.map((suggestion) => (
-                      <button
-                        key={suggestion.id}
-                        type="button"
-                        onClick={() => {
-                          setSearchTerm(suggestion.question);
-                          setSelectedCategory("All");
-                          setOpenId(suggestion.id);
-                          window.requestAnimationFrame(() => {
-                            document
-                              .getElementById(`faq-${suggestion.id}`)
-                              ?.scrollIntoView({
-                                behavior: "smooth",
-                                block: "center",
-                              });
-                          });
-                        }}
-                        className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-900"
-                      >
-                        <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#2D6A4F] dark:text-[#52b788]" />
-                        <span className="min-w-0">
-                          <span className="block text-sm font-bold text-gray-900 dark:text-white">
-                            {suggestion.question}
-                          </span>
-                          <span className="mt-1 block truncate text-xs font-medium text-gray-500 dark:text-gray-400">
-                            {displayCategoryName(
-                              suggestion.categoryName,
-                              selectedAudience,
-                            )}
-                          </span>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="faq-topic"
-                  className="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                >
-                  Topic
-                </label>
-                <select
-                  id="faq-topic"
-                  value={activeCategory}
-                  onChange={(event) => {
-                    setSelectedCategory(event.target.value);
+            {/* Desktop: Vertical list with active left-border indicator */}
+            <div className="hidden lg:flex flex-col space-y-2 border-l border-gray-100 dark:border-gray-800">
+              <button
+                onClick={() => {
+                  setSelectedCategory("All");
+                  setOpenId(null);
+                }}
+                className={`relative pl-5 py-2 text-sm font-medium text-left transition-colors ${
+                  activeCategory === "All"
+                    ? "text-[#2D6A4F] dark:text-[#52b788]"
+                    : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                {activeCategory === "All" && (
+                  <span className="absolute left-[-1px] top-0 bottom-0 w-0.5 bg-[#2D6A4F] dark:bg-[#52b788] rounded-r-full" />
+                )}
+                All Topics
+              </button>
+              {visibleCategories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => {
+                    setSelectedCategory(category.id);
                     setOpenId(null);
                   }}
-                  className="h-14 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-900 outline-none transition-all focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:focus:border-[#52b788] dark:focus:ring-[#52b788]/10"
-                >
-                  <option value="All">All topics</option>
-                  {visibleCategories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {displayCategoryName(category.name, selectedAudience)} (
-                      {category.items.length})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {popularKeywords.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="mr-1 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  <Tag className="h-3.5 w-3.5" />
-                  Popular
-                </span>
-                {popularKeywords.map((keyword) => (
-                  <button
-                    key={keyword}
-                    type="button"
-                    onClick={() => {
-                      setSearchTerm(keyword);
-                      setOpenId(null);
-                    }}
-                    className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 transition-colors hover:border-[#2D6A4F] hover:text-[#2D6A4F] dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:hover:border-[#52b788] dark:hover:text-[#52b788]"
-                  >
-                    {keyword}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="mt-10 grid gap-6 lg:grid-cols-[220px_1fr]">
-          <aside className="hidden lg:block">
-            <div className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-              <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                <BookOpen className="h-4 w-4" />
-                Topics
-              </p>
-              <div className="space-y-1">
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory("All")}
-                  className={`w-full rounded-xl px-3 py-2 text-left text-sm font-bold transition-colors ${
-                    activeCategory === "All"
-                      ? "bg-[#2D6A4F] text-white"
-                      : "text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                  className={`relative pl-5 py-2 text-sm font-medium text-left transition-colors ${
+                    activeCategory === category.id
+                      ? "text-[#2D6A4F] dark:text-[#52b788]"
+                      : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
                   }`}
                 >
-                  All topics
+                  {activeCategory === category.id && (
+                    <span className="absolute left-[-1px] top-0 bottom-0 w-0.5 bg-[#2D6A4F] dark:bg-[#52b788] rounded-r-full" />
+                  )}
+                  {displayCategoryName(category.name, selectedAudience)}
                 </button>
-                {visibleCategories.map((category) => (
-                  <button
-                    key={category.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCategory(category.id);
-                      setOpenId(null);
-                    }}
-                    className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold transition-colors ${
-                      activeCategory === category.id
-                        ? "bg-[#2D6A4F] text-white"
-                        : "text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
-                    }`}
-                  >
-                    <span className="line-clamp-2">
-                      {displayCategoryName(category.name, selectedAudience)}
-                    </span>
-                    <span className="text-xs opacity-70">
-                      {category.items.length}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              ))}
             </div>
           </aside>
 
-          <div className="space-y-4">
+          {/* FAQs List */}
+          <div className="min-w-0">
             {filteredFAQs.length > 0 ? (
-              filteredFAQs.map((faq) => {
-                const isOpen = openId === faq.id;
-                return (
-                  <article
-                    key={faq.id}
-                    id={`faq-${faq.id}`}
-                    className={`overflow-hidden rounded-2xl border bg-white transition-all duration-300 dark:bg-gray-900 ${
-                      isOpen
-                        ? "border-[#2D6A4F]/50 shadow-lg shadow-[#2D6A4F]/10 dark:border-[#52b788]/50 dark:shadow-none"
-                        : "border-gray-200 hover:border-gray-300 dark:border-gray-800 dark:hover:border-gray-700"
-                    }`}
-                  >
-                    <button
-                      onClick={() => toggleFAQ(faq.id)}
-                      aria-expanded={isOpen}
-                      aria-controls={`faq-${faq.id}-answer`}
-                      className="flex w-full items-start justify-between gap-4 px-5 py-5 text-left focus:outline-none focus-visible:bg-gray-50 dark:focus-visible:bg-gray-800/50 sm:px-6"
+              <div className="flex flex-col border-t border-gray-200 dark:border-gray-800">
+                {filteredFAQs.map((faq) => {
+                  const isOpen = openId === faq.id;
+                  return (
+                    <article
+                      key={faq.id}
+                      id={`faq-${faq.id}`}
+                      className="border-b border-gray-200 dark:border-gray-800 last:border-b-0"
                     >
-                      <span className="min-w-0">
+                      <button
+                        onClick={() => toggleFAQ(faq.id)}
+                        className="flex w-full items-center justify-between py-6 text-left group focus:outline-none"
+                      >
                         <span
-                          className={`block text-base font-extrabold transition-colors sm:text-lg ${
+                          className={`text-lg font-semibold transition-colors pr-8 ${
                             isOpen
                               ? "text-[#2D6A4F] dark:text-[#52b788]"
-                              : "text-gray-950 dark:text-gray-100"
+                              : "text-gray-900 dark:text-gray-100 group-hover:text-[#2D6A4F] dark:group-hover:text-[#52b788]"
                           }`}
                         >
                           {faq.question}
                         </span>
-                        <span className="mt-2 inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                          {displayCategoryName(
-                            faq.categoryName,
-                            selectedAudience,
-                          )}
-                        </span>
-                      </span>
-                      <span
-                        className={`mt-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition-transform duration-300 ${
-                          isOpen
-                            ? "rotate-180 bg-[#2D6A4F]/10 dark:bg-[#52b788]/10"
-                            : "bg-gray-100 dark:bg-gray-800"
-                        }`}
-                      >
                         <ChevronDown
-                          className={`h-5 w-5 ${
-                            isOpen
-                              ? "text-[#2D6A4F] dark:text-[#52b788]"
-                              : "text-gray-500"
+                          className={`flex-shrink-0 h-5 w-5 text-gray-400 transition-transform duration-300 ${
+                            isOpen ? "rotate-180 text-[#2D6A4F] dark:text-[#52b788]" : ""
                           }`}
                         />
-                      </span>
-                    </button>
-                    <div
-                      id={`faq-${faq.id}-answer`}
-                      className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
-                        isOpen
-                          ? "grid-rows-[1fr] opacity-100"
-                          : "grid-rows-[0fr] opacity-0"
-                      }`}
-                    >
-                      <div className="min-h-0 overflow-hidden">
-                        <div className="flex gap-4 border-t border-gray-100 px-5 pb-6 pt-5 leading-relaxed text-gray-600 dark:border-gray-800/50 dark:text-gray-400 sm:px-6">
-                          <div className="mt-1 flex-shrink-0">
-                            <CheckCircle2 className="h-5 w-5 text-[#2D6A4F]/60 dark:text-[#52b788]/60" />
-                          </div>
-                          <div className="min-w-0 flex-1 space-y-4">
+                      </button>
+                      <div
+                        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                          isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                        }`}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="pb-8 pr-4 sm:pr-12 text-base text-gray-600 dark:text-gray-400 leading-relaxed space-y-4">
                             <p>{faq.answer}</p>
-
-                            {faq.keywords && faq.keywords.length > 0 ? (
-                              <div className="flex flex-wrap gap-2">
-                                {faq.keywords.slice(0, 6).map((keyword) => (
-                                  <button
-                                    key={keyword}
-                                    type="button"
-                                    onClick={() => setSearchTerm(keyword)}
-                                    className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 transition-colors hover:text-[#2D6A4F] dark:bg-gray-800 dark:text-gray-300 dark:hover:text-[#52b788]"
-                                  >
-                                    <Tag className="h-3 w-3" />
-                                    {keyword}
-                                  </button>
-                                ))}
-                              </div>
-                            ) : null}
-
-                            {faq.related_article_ids &&
-                            faq.related_article_ids.length > 0 ? (
-                              <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-800/50">
-                                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                  Related help
-                                </p>
-                                <div className="flex flex-col gap-2">
+                            
+                            {/* Related Articles */}
+                            {faq.related_article_ids && faq.related_article_ids.length > 0 ? (
+                              <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800/50">
+                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-3">
+                                  <Sparkles className="h-4 w-4 text-[#2D6A4F] dark:text-[#52b788]" />
+                                  Related Articles
+                                </h4>
+                                <ul className="space-y-2">
                                   {faq.related_article_ids.map((relatedId) => {
                                     const related = articleById.get(relatedId);
                                     if (!related) return null;
-
                                     return (
-                                      <button
-                                        key={relatedId}
-                                        type="button"
-                                        onClick={() => openArticle(relatedId)}
-                                        className="text-left text-sm font-semibold text-[#2D6A4F] hover:underline dark:text-[#52b788]"
-                                      >
-                                        {related.question}
-                                      </button>
+                                      <li key={relatedId}>
+                                        <button
+                                          onClick={() => openArticle(relatedId)}
+                                          className="text-sm text-[#2D6A4F] dark:text-[#52b788] hover:underline text-left"
+                                        >
+                                          {related.question}
+                                        </button>
+                                      </li>
                                     );
                                   })}
-                                </div>
+                                </ul>
                               </div>
                             ) : null}
 
+                            {/* Escalation Route */}
                             {faq.escalation_route ? (
-                              <Link
-                                href={buildSupportHref(faq.escalation_route)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-[#2D6A4F]/20 bg-[#2D6A4F]/5 px-4 py-2 text-sm font-bold text-[#1B4332] transition-colors hover:bg-[#2D6A4F]/10 dark:border-[#52b788]/20 dark:bg-[#52b788]/10 dark:text-[#b7e4c7]"
-                              >
-                                Still stuck? Contact Support
-                              </Link>
+                              <div className="mt-4 pt-4">
+                                <Link
+                                  href={buildSupportHref(faq.escalation_route)}
+                                  className="text-sm font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:underline"
+                                >
+                                  Still stuck? Contact Support &rarr;
+                                </Link>
+                              </div>
                             ) : null}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
-                );
-              })
+                    </article>
+                  );
+                })}
+              </div>
             ) : (
-              <div className="rounded-3xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center dark:border-gray-700 dark:bg-gray-900">
-                <p className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
+              <div className="text-center py-20 px-6 rounded-3xl bg-gray-50 dark:bg-gray-900/50">
+                <Search className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   No answers found
-                </p>
-                <p className="mx-auto max-w-xl text-gray-500 dark:text-gray-400">
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                   {searchTerm
-                    ? `We couldn't find any FAQs matching "${searchTerm}". Try another search term, switch topics, or ask us directly below.`
-                    : "We couldn't load the FAQ right now. Try again shortly, or ask us directly below."}
+                    ? `We couldn't find any FAQs matching "${searchTerm}". Try adjusting your search term or category.`
+                    : "We couldn't load the FAQs right now. Try again shortly."}
                 </p>
+                {searchTerm && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm("");
+                      setSelectedCategory("All");
+                    }}
+                    className="mt-6 text-[#2D6A4F] dark:text-[#52b788] font-semibold hover:underline"
+                  >
+                    Clear search
+                  </button>
+                )}
               </div>
             )}
-
-            <div className="mt-14 rounded-3xl bg-gradient-to-br from-[#2D6A4F] to-[#1B4332] px-8 py-12 text-center shadow-xl shadow-[#2D6A4F]/20">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
-                <LifeBuoy className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="mb-3 text-2xl font-extrabold text-white md:text-3xl">
-                Still need help?
-              </h3>
-              <p className="mx-auto mb-7 max-w-lg leading-relaxed text-[#d1e7dd]">
-                Can&apos;t find your answer above? Open a support ticket and chat live
-                with our Support Desk team.
-              </p>
-              <Link
-                href={
-                  isAuthenticated
-                    ? "/dashboard/support-tickets?new=1"
-                    : "/login?callbackUrl=%2Fdashboard%2Fsupport-tickets%3Fnew%3D1"
-                }
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 font-bold text-[#1B4332] shadow-lg transition-colors hover:bg-[#f0fdf4]"
-              >
-                Contact Support
-              </Link>
-            </div>
           </div>
         </div>
+
+        {/* Contact Support Banner */}
+        <div className="mt-24 rounded-3xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-8 sm:p-12 text-center max-w-4xl mx-auto flex flex-col items-center">
+          <div className="h-16 w-16 bg-[#2D6A4F]/10 text-[#2D6A4F] dark:bg-[#52b788]/10 dark:text-[#52b788] rounded-full flex items-center justify-center mb-6">
+            <MessageCircleQuestion className="h-8 w-8" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Still have questions?
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
+            Can&apos;t find the answer you&apos;re looking for? Open a support ticket and our team will get back to you shortly.
+          </p>
+          <Link
+            href={isAuthenticated ? "/dashboard/support-tickets?new=1" : "/login?callbackUrl=%2Fdashboard%2Fsupport-tickets%3Fnew%3D1"}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#2D6A4F] px-8 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#1B4332] hover:shadow-lg dark:hover:bg-[#40916c]"
+          >
+            Contact Support
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
       </div>
     </section>
   );
