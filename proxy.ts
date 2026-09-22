@@ -12,6 +12,7 @@ const authRoutes = [
 // Routes that require authentication
 const protectedRoutes = [
   "/dashboard",
+  "/learn",
 ];
 
 export default auth((req) => {
