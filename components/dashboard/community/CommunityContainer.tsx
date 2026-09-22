@@ -53,14 +53,14 @@ export default async function CommunityContainer({
       <div className="flex flex-col gap-2 px-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#2D6A4F] dark:text-[#74c69d]">
-            Student Community
+            Community
           </p>
           <h1 className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">
             Course conversations
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-            Talk with classmates and instructors, share resources, and keep up
-            with the platform-wide General and Help rooms.
+            Talk with your learning groups, share resources, and keep up with
+            the rooms available to your account.
           </p>
         </div>
       </div>

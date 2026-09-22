@@ -23,6 +23,7 @@ import {
   Search,
   Send,
   ShieldCheck,
+  UserCog,
   UsersRound,
   Wifi,
   WifiOff,
@@ -34,7 +35,14 @@ import { getWsBaseUrl } from "@/lib/wsUrl";
 
 export type Community = {
   id: string;
-  type: "GENERAL" | "HELP" | "COURSE" | "CUSTOM" | string;
+  type:
+    | "GENERAL"
+    | "INSTRUCTOR_GENERAL"
+    | "ADMIN_GENERAL"
+    | "HELP"
+    | "COURSE"
+    | "CUSTOM"
+    | string;
   name: string;
   course_id?: string;
   is_active?: boolean;
@@ -272,9 +280,25 @@ function normalizeUnreadCounts(json: unknown): Record<string, number> {
 
 function CommunityTypeIcon({ type }: { type: Community["type"] }) {
   if (type === "GENERAL") return <Hash className="h-4 w-4" />;
+  if (type === "INSTRUCTOR_GENERAL") return <UsersRound className="h-4 w-4" />;
+  if (type === "ADMIN_GENERAL") return <UserCog className="h-4 w-4" />;
   if (type === "HELP") return <CircleHelp className="h-4 w-4" />;
   if (type === "COURSE") return <BookOpen className="h-4 w-4" />;
   return <UsersRound className="h-4 w-4" />;
+}
+
+function communityTypeLabel(type: Community["type"]) {
+  if (type === "GENERAL") return "General room";
+  if (type === "INSTRUCTOR_GENERAL") return "Instructor room";
+  if (type === "ADMIN_GENERAL") return "Admin room";
+  if (type === "HELP") return "Help room";
+  if (type === "COURSE") return "Course room";
+  if (type === "CUSTOM") return "Custom room";
+  return `${type.toLowerCase().replaceAll("_", " ")} room`;
+}
+
+function communityTypeBadge(type: Community["type"]) {
+  return communityTypeLabel(type).replace(/\s+room$/, "");
 }
 
 export default function CommunityChat({
@@ -1011,7 +1035,7 @@ export default function CommunityChat({
             No communities yet
           </h2>
           <p className="mt-2 max-w-md text-sm text-slate-500 dark:text-slate-400">
-            Your General and Help rooms will appear here once your account has
+            Rooms available to your account will appear here once you have
             Community access.
           </p>
         </div>
@@ -1343,7 +1367,7 @@ export default function CommunityChat({
                 </h2>
                 {activeCommunity?.type && (
                   <span className="rounded-md bg-amber-100 px-2 py-1 text-[0.68rem] font-bold uppercase tracking-[0.05em] text-amber-800 dark:bg-amber-400/15 dark:text-amber-200">
-                    {activeCommunity.type.toLowerCase()}
+                    {communityTypeBadge(activeCommunity.type)}
                   </span>
                 )}
               </div>
@@ -1597,7 +1621,7 @@ function MobileRoomRow({
           {community.name}
         </span>
         <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
-          {community.type === "COURSE" ? "Course room" : `${community.type.toLowerCase()} room`}
+          {communityTypeLabel(community.type)}
           {typeof community.member_count === "number"
             ? ` • ${community.member_count} members`
             : ""}
@@ -1646,7 +1670,7 @@ function RoomButton({
           {community.name}
         </span>
         <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
-          {community.type === "COURSE" ? "Course room" : `${community.type.toLowerCase()} room`}
+          {communityTypeLabel(community.type)}
         </span>
       </span>
       {unread > 0 ? (
