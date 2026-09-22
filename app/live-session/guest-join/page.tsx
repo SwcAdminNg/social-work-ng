@@ -96,7 +96,7 @@ export default async function GuestLiveSessionJoinPage({
 
 function GuestJoinError({ message }: { message: string }) {
   return (
-    <div className="flex min-h-[70dvh] items-center justify-center bg-[#f7fcf9] px-4 py-12 dark:bg-[#0b1220]">
+    <div className="flex min-h-dvh items-center justify-center bg-[#f7fcf9] px-4 py-12 dark:bg-[#0b1220]">
       <div className="w-full max-w-md rounded-lg border border-[#dceee4] bg-white p-6 text-center shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
         <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-200">
           <AlertCircle className="h-6 w-6" />
