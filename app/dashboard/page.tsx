@@ -7,6 +7,7 @@ import {
   Award,
   Bell,
   BookOpen,
+  CreditCard,
   CheckCircle2,
   ClipboardCheck,
   Clock3,
@@ -240,7 +241,7 @@ export default async function DashboardPage() {
     {
       label: "Notifications",
       value: overview.unread_notifications_count,
-      href: "#notifications",
+      href: "/dashboard/notifications",
       icon: Bell,
     },
     {
@@ -552,6 +553,55 @@ export default async function DashboardPage() {
                 View results
               </Link>
             </div>
+          </section>
+
+          <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-extrabold text-gray-950 dark:text-white">
+                  Subscription
+                </h2>
+                <p className="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                  Billing and access
+                </p>
+              </div>
+              <CreditCard className="h-5 w-5 text-[#2D6A4F] dark:text-[#74c69d]" />
+            </div>
+
+            {overview.subscription ? (
+              <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-950/40">
+                <p className="text-sm font-extrabold text-gray-950 dark:text-white">
+                  {overview.subscription.plan?.name || "Active plan"}
+                </p>
+                <p className="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                  {overview.subscription.is_active ? "Active" : "Inactive"}
+                  {overview.subscription.end_date
+                    ? ` until ${formatDateTime(overview.subscription.end_date)}`
+                    : ""}
+                </p>
+                <p className="mt-2 text-xs font-bold text-gray-500 dark:text-gray-400">
+                  {overview.subscription.auto_renew
+                    ? "Auto-renewal is on"
+                    : "Auto-renewal is off"}
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-950/40">
+                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                  Free access
+                </p>
+                <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                  Upgrade when you want broader catalogue access and billing tools.
+                </p>
+              </div>
+            )}
+
+            <Link
+              href="/dashboard/pricing"
+              className="mt-4 inline-flex h-9 items-center rounded-lg bg-[#2D6A4F] px-3 text-xs font-extrabold text-white no-underline transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d]"
+            >
+              Manage plan
+            </Link>
           </section>
 
           <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">

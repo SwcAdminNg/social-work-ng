@@ -13,30 +13,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { getWsBaseUrl } from "@/lib/wsUrl";
-
-type NotificationItem = {
-  id: string;
-  created_at: string;
-  type: string;
-  title: string;
-  body?: string | null;
-  link?: string | null;
-  metadata_json?: Record<string, unknown> | null;
-  is_read: boolean;
-  read_at?: string | null;
-};
-
-type NotificationListResponse = {
-  data?: NotificationItem[];
-  message?: string;
-  meta?: {
-    page?: number;
-    page_size?: number;
-    total_items?: number;
-    total_pages?: number;
-    has_next?: boolean;
-  };
-};
+import type { NotificationItem, NotificationListResponse } from "./types";
+import {
+  formatNotificationTime,
+  getSafeNotificationPath,
+  mergeNewest,
+  normalizeNotification,
+  unreadBadgeLabel,
+} from "./utils";
 
 type AppSession = {
   accessToken?: string;
@@ -50,62 +34,6 @@ type DashboardOverviewCountEvent = CustomEvent<{
 const PAGE_SIZE = 10;
 const RECONNECT_BASE_DELAY_MS = 2000;
 const RECONNECT_MAX_DELAY_MS = 30000;
-
-function unreadBadgeLabel(count: number) {
-  return count > 99 ? "99+" : String(count);
-}
-
-function formatNotificationTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const diffMs = Date.now() - date.getTime();
-  const minute = 60 * 1000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-
-  if (diffMs < minute) return "Just now";
-  if (diffMs < hour) return `${Math.floor(diffMs / minute)}m ago`;
-  if (diffMs < day) return `${Math.floor(diffMs / hour)}h ago`;
-  if (diffMs < 7 * day) return `${Math.floor(diffMs / day)}d ago`;
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-  }).format(date);
-}
-
-function normalizeNotification(input: unknown): NotificationItem | null {
-  const item = input as Partial<NotificationItem> | null;
-  if (!item?.id || !item.title || !item.created_at || !item.type) return null;
-
-  return {
-    id: item.id,
-    created_at: item.created_at,
-    type: item.type,
-    title: item.title,
-    body: item.body ?? null,
-    link: item.link ?? null,
-    metadata_json: item.metadata_json ?? null,
-    is_read: Boolean(item.is_read),
-    read_at: item.read_at ?? null,
-  };
-}
-
-function mergeNewest(
-  current: NotificationItem[],
-  incoming: NotificationItem[],
-) {
-  const byId = new Map<string, NotificationItem>();
-  for (const item of [...incoming, ...current]) {
-    byId.set(item.id, item);
-  }
-
-  return Array.from(byId.values()).sort(
-    (a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-  );
-}
 
 export function NotificationCenter() {
   const router = useRouter();
@@ -289,9 +217,13 @@ export function NotificationCenter() {
 
           setItems((current) => mergeNewest(current, [notification]));
           setUnreadCount((count) => count + 1);
+          window.dispatchEvent(
+            new CustomEvent("notifications:new", { detail: notification }),
+          );
+          const safePath = getSafeNotificationPath(notification.link);
           toast(notification.title, {
             description: notification.body || undefined,
-            action: notification.link
+            action: safePath
               ? {
                   label: "Open",
                   onClick: () => {
@@ -352,6 +284,11 @@ export function NotificationCenter() {
         setItems((current) =>
           current.map((item) => (item.id === updated.id ? updated : item)),
         );
+        window.dispatchEvent(
+          new CustomEvent("dashboard:overview-counts", {
+            detail: { unread_notifications_count: Math.max(0, previousUnread - 1) },
+          }),
+        );
         return updated;
       }
     } catch (error) {
@@ -374,8 +311,9 @@ export function NotificationCenter() {
   const markReadAndOpen = useCallback(async (notification: NotificationItem) => {
     const updated = await markRead(notification);
     setOpen(false);
-    if (updated.link) {
-      router.push(updated.link);
+    const safePath = getSafeNotificationPath(updated.link);
+    if (safePath) {
+      router.push(safePath);
     }
   }, [markRead, router]);
 
@@ -405,6 +343,11 @@ export function NotificationCenter() {
       if (!res.ok) {
         throw new Error(json.message || "Failed to mark notifications as read.");
       }
+      window.dispatchEvent(
+        new CustomEvent("dashboard:overview-counts", {
+          detail: { unread_notifications_count: 0 },
+        }),
+      );
     } catch (error) {
       setItems(previousItems);
       setUnreadCount(previousUnread);
@@ -548,6 +491,19 @@ export function NotificationCenter() {
               Load more
             </button>
           )}
+        </div>
+
+        <div className="border-t border-[#eceaf4] p-2 dark:border-[#262a3d]">
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              router.push("/dashboard/notifications");
+            }}
+            className="flex h-10 w-full items-center justify-center rounded-md text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f7fcf9] dark:text-[#b7e4c7] dark:hover:bg-[#52b788]/12"
+          >
+            Open notification inbox
+          </button>
         </div>
       </div>
     </div>

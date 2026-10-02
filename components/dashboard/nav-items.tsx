@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Award,
+  Bell,
   BookOpen,
   CircleHelp,
   ClipboardCheck,
@@ -30,6 +31,9 @@ export type NavGroup = {
 export const dashboardNavGroups: NavGroup[] = [
   {
     items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }],
+  },
+  {
+    items: [{ label: "Notifications", href: "/dashboard/notifications", icon: Bell }],
   },
   {
     label: "My Learning",

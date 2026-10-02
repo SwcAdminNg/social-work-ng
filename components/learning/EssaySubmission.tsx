@@ -12,6 +12,7 @@ type EssaySubmissionValue = {
   submitted_at?: string | null;
   is_graded?: boolean | null;
   is_published?: boolean | null;
+  result_status?: string | null;
   score?: number | null;
   feedback?: string | null;
   passed?: boolean | null;
@@ -64,8 +65,17 @@ export function EssaySubmission({
   const deadlinePassed = deadline ? deadline.getTime() < currentTime : false;
   const isGraded = submission?.is_graded === true;
   const hasSubmission = Boolean(submission?.submitted_at);
-  const isAwaitingModeratedResult = Boolean(isFinalAssessment && hasSubmission && !isGraded);
-  const canSubmit = !isGraded && !deadlinePassed && !isAwaitingModeratedResult && !markingLockedMessage;
+  const resultStatus = submission?.result_status?.toUpperCase();
+  const isBeingMarked = hasSubmission && isMarkInProgressStatus(resultStatus);
+  const isAwaitingModeratedResult = Boolean(
+    hasSubmission && !isGraded && (isFinalAssessment || isBeingMarked),
+  );
+  const canSubmit =
+    !isGraded &&
+    !deadlinePassed &&
+    !isAwaitingModeratedResult &&
+    !isBeingMarked &&
+    !markingLockedMessage;
   const awaitingResultMessage =
     "Submitted - awaiting result. Your essay is being checked and your result will appear here once it is released.";
 
@@ -283,7 +293,7 @@ export function EssaySubmission({
               )}
               {!isGraded && (
                 <p className="mt-3 text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {isAwaitingModeratedResult
+                  {isAwaitingModeratedResult || isBeingMarked
                     ? awaitingResultMessage
                     : "You can resubmit until marking begins or the deadline passes."}
                 </p>
@@ -360,7 +370,7 @@ export function EssaySubmission({
             <p className="mt-3 text-sm font-bold text-slate-600 dark:text-slate-300">
               {markingLockedMessage
                 ? markingLockedMessage
-                : isAwaitingModeratedResult
+                : isAwaitingModeratedResult || isBeingMarked
                   ? "Submitted - awaiting result. Editing is paused while your essay is being checked."
                   : deadlinePassed
                 ? "The deadline for this essay has passed."
@@ -393,6 +403,20 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 function isBeingMarkedMessage(message: string) {
   return message.toLowerCase().includes("being marked");
+}
+
+function isMarkInProgressStatus(status?: string) {
+  return Boolean(
+    status &&
+      [
+        "DRAFT_MARK",
+        "AWAITING_MODERATION",
+        "MODERATED",
+        "APPROVED",
+        "RETURNED_TO_MARKER",
+        "UNDER_APPEAL",
+      ].includes(status),
+  );
 }
 
 function formatMinutes(minutes: number) {

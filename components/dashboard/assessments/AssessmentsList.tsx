@@ -60,6 +60,7 @@ export type UserAssessment = {
   pass_mark_percentage?: number | null;
   is_graded?: boolean | null;
   is_published?: boolean | null;
+  result_status?: string | null;
 };
 
 const TABS: { id: AssessmentTab; label: string }[] = [
@@ -1319,7 +1320,8 @@ function isEssayAwaitingResult(assessment: UserAssessment) {
   return (
     assessment.assessment_type?.toUpperCase() === "ESSAY" &&
     assessment.status?.toUpperCase() === "SUBMITTED" &&
-    assessment.is_graded !== true
+    assessment.is_graded !== true &&
+    assessment.is_published !== true
   );
 }
 
