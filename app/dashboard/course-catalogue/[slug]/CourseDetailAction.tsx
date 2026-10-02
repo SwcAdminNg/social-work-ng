@@ -176,9 +176,13 @@ export function CourseDetailAction({
         return;
       }
 
-      if (enrollRes.ok || isFree) {
+      if (enrollRes.ok) {
         router.push(`/learn/${courseId}`);
         return;
+      }
+
+      if (enrollRes.status === 404) {
+        throw new Error("This course is no longer available for enrollment.");
       }
 
       if (enrollRes.status !== 402) {

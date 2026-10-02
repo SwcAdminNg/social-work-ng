@@ -199,6 +199,10 @@ export function EnrollButton({
           }
         }
 
+        if (res.status === 404) {
+          throw new Error("This course is no longer available for enrollment.");
+        }
+
         throw new Error(data.message || "Failed to enroll. Please try again.");
       }
 

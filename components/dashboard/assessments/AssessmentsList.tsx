@@ -1141,6 +1141,14 @@ function Legend({ color, label }: { color: string; label: string }) {
 
 function getStatusDisplay(assessment: UserAssessment) {
   const status = assessment.status?.toUpperCase();
+  if (isEssayAwaitingResult(assessment)) {
+    return {
+      label: "Awaiting Result",
+      className:
+        "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-400/10 dark:text-amber-200 dark:border-amber-400/20",
+    };
+  }
+
   return (
     STATUS_STYLES[status] || {
       label: status ? toTitleCase(status) : "Unknown",
@@ -1195,7 +1203,7 @@ function getActionConfig(assessment: UserAssessment): {
 
   if (status === "SUBMITTED") {
     return {
-      label: "Continue",
+      label: isEssayAwaitingResult(assessment) ? "View Status" : "Continue",
       icon: FilePenLine,
       className:
         "bg-amber-50 text-amber-700 ring-amber-200 hover:bg-amber-100 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-400/25 dark:hover:bg-amber-400/15 focus-visible:ring-amber-500",
@@ -1273,7 +1281,7 @@ function getRulesLabel(assessment: UserAssessment) {
   if (type === "ESSAY") {
     if (assessment.is_published) return "Grade published";
     if (assessment.is_graded) return "Graded";
-    return "Instructor review";
+    return "Awaiting result";
   }
 
   return "-";
@@ -1301,7 +1309,18 @@ function getFeedbackPreview(assessment: UserAssessment) {
   if (status === "PASSED" || status === "GRADED") {
     return "Your result is available. Open the assessment to review the details.";
   }
-  return "Submitted and awaiting instructor review.";
+  if (isEssayAwaitingResult(assessment)) {
+    return "Submitted - awaiting result. Your essay is being checked before the result is released.";
+  }
+  return "Submitted and awaiting review.";
+}
+
+function isEssayAwaitingResult(assessment: UserAssessment) {
+  return (
+    assessment.assessment_type?.toUpperCase() === "ESSAY" &&
+    assessment.status?.toUpperCase() === "SUBMITTED" &&
+    assessment.is_graded !== true
+  );
 }
 
 function formatDueDate(value: string) {

@@ -48,6 +48,12 @@ function metaNumber(meta: Record<string, unknown>, key: string) {
   return Number.isFinite(numeric) ? numeric : 0;
 }
 
+function hasMetaNumber(meta: Record<string, unknown>, key: string) {
+  const value = meta[key];
+  const numeric = typeof value === "number" ? value : Number(value);
+  return value !== null && value !== undefined && value !== "" && Number.isFinite(numeric);
+}
+
 function metaBoolean(meta: Record<string, unknown>, key: string) {
   return meta[key] === true;
 }
@@ -175,9 +181,9 @@ export function ActivityFeed({
           color: "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400",
           text: (
             <span>
-              Essay graded
+              Result released for <span className="font-bold">{metaString(meta, "item_title") || "an essay"}</span>
               {metaString(meta, "course_title") ? ` in ${metaString(meta, "course_title")}` : ""}
-              {metaNumber(meta, "score") ? <> with <span className="font-bold">{metaNumber(meta, "score")}%</span></> : null}
+              {hasMetaNumber(meta, "score") ? <> with <span className="font-bold">{metaNumber(meta, "score")}%</span></> : null}
             </span>
           ),
         };

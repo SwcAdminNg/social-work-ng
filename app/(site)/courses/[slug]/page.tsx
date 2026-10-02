@@ -150,6 +150,11 @@ export default async function CourseDetailsPage(props: {
                   {course.category.replace("_", " ")}
                 </span>
               )}
+              {course.current_version_label && (
+                <span className="px-3 py-1.5 text-xs font-extrabold tracking-wider bg-white/10 text-white rounded-lg border border-white/20 backdrop-blur-md">
+                  Version {course.current_version_label}
+                </span>
+              )}
               {course.certificate_enabled === true && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-extrabold tracking-wider bg-[#52b788] text-[#06130d] rounded-lg shadow-lg">
                   <Trophy className="h-3.5 w-3.5" />
@@ -268,6 +273,12 @@ export default async function CourseDetailsPage(props: {
                   <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                     <span className="w-2 h-2 rounded-full bg-[#2D6A4F]" />{" "}
                     Certificate of completion
+                  </div>
+                )}
+                {course.current_version_label && (
+                  <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                    <span className="w-2 h-2 rounded-full bg-[#2D6A4F]" />{" "}
+                    Version {course.current_version_label}
                   </div>
                 )}
               </div>

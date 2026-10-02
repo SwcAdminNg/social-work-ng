@@ -58,17 +58,22 @@ export function EssaySubmission({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [markingLockedMessage, setMarkingLockedMessage] = useState("");
 
   const deadline = dueDate ? new Date(dueDate) : null;
   const deadlinePassed = deadline ? deadline.getTime() < currentTime : false;
   const isGraded = submission?.is_graded === true;
-  const canSubmit = !isGraded && !deadlinePassed;
   const hasSubmission = Boolean(submission?.submitted_at);
+  const isAwaitingModeratedResult = Boolean(isFinalAssessment && hasSubmission && !isGraded);
+  const canSubmit = !isGraded && !deadlinePassed && !isAwaitingModeratedResult && !markingLockedMessage;
+  const awaitingResultMessage =
+    "Submitted - awaiting result. Your essay is being checked and your result will appear here once it is released.";
 
   const handleTextSubmit = async () => {
     setSubmitting(true);
     setError("");
     setSuccess("");
+    setMarkingLockedMessage("");
 
     try {
       const res = await fetch(`/api/proxy/learning/courses/${courseId}/items/${itemId}/essay/submit-text`, {
@@ -83,7 +88,9 @@ export function EssaySubmission({
       setSuccess(data.message || "Essay submitted successfully");
       router.refresh();
     } catch (err: unknown) {
-      setError(getErrorMessage(err, "Failed to submit essay"));
+      const message = getErrorMessage(err, "Failed to submit essay");
+      if (isBeingMarkedMessage(message)) setMarkingLockedMessage(message);
+      setError(message);
     } finally {
       setSubmitting(false);
     }
@@ -98,6 +105,7 @@ export function EssaySubmission({
     setSubmitting(true);
     setError("");
     setSuccess("");
+    setMarkingLockedMessage("");
 
     try {
       const uploadUrlRes = await fetch(`/api/proxy/learning/courses/${courseId}/items/${itemId}/essay/upload-url`, {
@@ -147,7 +155,9 @@ export function EssaySubmission({
       setSuccess(submitData.message || "Document submitted successfully");
       router.refresh();
     } catch (err: unknown) {
-      setError(getErrorMessage(err, "Failed to submit document"));
+      const message = getErrorMessage(err, "Failed to submit document");
+      if (isBeingMarkedMessage(message)) setMarkingLockedMessage(message);
+      setError(message);
     } finally {
       setSubmitting(false);
     }
@@ -224,7 +234,7 @@ export function EssaySubmission({
                   ? "Grade published"
                   : isGraded
                     ? "Instructor review complete"
-                    : "Submitted, awaiting review"}
+                    : "Submitted - awaiting result"}
               </h3>
               {submission?.submitted_at && (
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -273,7 +283,9 @@ export function EssaySubmission({
               )}
               {!isGraded && (
                 <p className="mt-3 text-sm font-medium text-gray-600 dark:text-gray-300">
-                  You can resubmit until this essay is graded or the deadline passes.
+                  {isAwaitingModeratedResult
+                    ? awaitingResultMessage
+                    : "You can resubmit until marking begins or the deadline passes."}
                 </p>
               )}
 
@@ -346,7 +358,11 @@ export function EssaySubmission({
           )}
           {!canSubmit && (
             <p className="mt-3 text-sm font-bold text-slate-600 dark:text-slate-300">
-              {deadlinePassed
+              {markingLockedMessage
+                ? markingLockedMessage
+                : isAwaitingModeratedResult
+                  ? "Submitted - awaiting result. Editing is paused while your essay is being checked."
+                  : deadlinePassed
                 ? "The deadline for this essay has passed."
                 : "This essay has been graded and can no longer be resubmitted."}
             </p>
@@ -355,7 +371,7 @@ export function EssaySubmission({
 
         <div className="flex flex-col gap-3 border-t border-[#dceee4] px-4 py-4 dark:border-[#27433a] sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-            {canSubmit ? "Submissions can be updated until grading begins." : "Submission is locked."}
+            {canSubmit ? "Submissions can be updated until marking begins." : "Submission is locked."}
           </p>
           <button
             onClick={mode === "TEXT" ? handleTextSubmit : handleDocumentSubmit}
@@ -373,6 +389,10 @@ export function EssaySubmission({
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
+}
+
+function isBeingMarkedMessage(message: string) {
+  return message.toLowerCase().includes("being marked");
 }
 
 function formatMinutes(minutes: number) {

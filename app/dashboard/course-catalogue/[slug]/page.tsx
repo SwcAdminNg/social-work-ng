@@ -160,6 +160,8 @@ type Course = {
   has_access?: boolean | null;
   is_completed?: boolean | null;
   certificate_enabled?: boolean | null;
+  current_version_label?: string | null;
+  governance_status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" | string | null;
   sections?: CourseSection[] | null;
 };
 
@@ -433,6 +435,9 @@ export default async function DashboardCourseDetailPage(props: {
               {course.updated_at && (
                 <SnapshotRow label="Last updated" value={formatDate(course.updated_at)} />
               )}
+              {course.current_version_label && (
+                <SnapshotRow label="Version" value={course.current_version_label} />
+              )}
               {!course.updated_at && course.created_at && (
                 <SnapshotRow label="Created" value={formatDate(course.created_at)} />
               )}
@@ -519,6 +524,7 @@ function CourseHero({
             <Pill>{titleCaseEnum(course.category)}</Pill>
             <Pill>{titleCaseEnum(course.level)}</Pill>
             <Pill>{course.is_free ? "Free" : "Premium"}</Pill>
+            {course.current_version_label && <Pill>Version {course.current_version_label}</Pill>}
             {course.is_exclusive && <Pill>Exclusive</Pill>}
             {course.certificate_enabled === true && <Pill tone="green">Certificate on completion</Pill>}
             {canViewCourse && <Pill tone="green">Access granted</Pill>}
