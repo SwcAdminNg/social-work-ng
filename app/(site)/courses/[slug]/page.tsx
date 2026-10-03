@@ -273,6 +273,9 @@ export default async function CourseDetailsPage(props: {
                   <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                     <span className="w-2 h-2 rounded-full bg-[#2D6A4F]" />{" "}
                     Certificate of completion
+                    {typeof course.certificate_pass_mark_percentage === "number" &&
+                      course.certificate_pass_mark_percentage > 0 &&
+                      ` (${course.certificate_pass_mark_percentage}% overall score to pass)`}
                   </div>
                 )}
                 {course.current_version_label && (

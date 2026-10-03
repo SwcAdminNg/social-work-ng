@@ -160,6 +160,7 @@ type Course = {
   has_access?: boolean | null;
   is_completed?: boolean | null;
   certificate_enabled?: boolean | null;
+  certificate_pass_mark_percentage?: number | null;
   current_version_label?: string | null;
   governance_status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" | string | null;
   sections?: CourseSection[] | null;
@@ -457,7 +458,7 @@ export default async function DashboardCourseDetailPage(props: {
                 "Progress tracking in the learning area",
                 "Course access from any device",
                 course.certificate_enabled === true
-                  ? "Certificate on completion"
+                  ? `Certificate on completion${certificatePassMarkSuffix(course)}`
                   : null,
               ].filter((item): item is string => Boolean(item)).map((item) => (
                 <li key={item} className="flex gap-2">
@@ -1044,4 +1045,11 @@ function formatLiveSessionGuest(session?: CourseLiveSession | null) {
   const title = session?.guest_title?.trim();
   if (!name) return "";
   return title ? `${name}, ${title}` : name;
+}
+
+function certificatePassMarkSuffix(course: { certificate_pass_mark_percentage?: number | null }) {
+  const passMark = course.certificate_pass_mark_percentage;
+  return typeof passMark === "number" && passMark > 0
+    ? ` (${passMark}% overall score to pass)`
+    : "";
 }
