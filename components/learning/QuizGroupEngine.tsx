@@ -330,10 +330,10 @@ export function QuizGroupEngine({
   return (
     <div className="mx-auto max-w-[860px] space-y-4">
       {isFinalAssessment && (
-        <section className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/20">
+        <section className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-amber-900/40 dark:bg-amber-950/20">
           <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
-            <h2 className="text-sm font-extrabold text-amber-900 dark:text-amber-200">
+            <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
               {isLastSection ? "Final exam for this course" : "Final assessment for this module"}
             </h2>
             <p className="mt-1 text-sm font-medium leading-6 text-amber-800 dark:text-amber-300">
@@ -347,14 +347,14 @@ export function QuizGroupEngine({
       )}
 
       {isReset && result && (
-        <section className="rounded-lg border border-red-200 bg-red-50 p-4 shadow-sm dark:border-red-900/40 dark:bg-red-950/20">
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-red-900/40 dark:bg-red-950/20">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3">
-              <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-red-600 text-white">
+              <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-red-600 text-white">
                 <AlertTriangle className="h-5 w-5" />
               </span>
               <div>
-                <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
+                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
                   {result.course_reset ? "Course reset" : "Module reset"}
                 </h2>
                 <p className="mt-1 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
@@ -367,7 +367,7 @@ export function QuizGroupEngine({
             </div>
             <button
               onClick={() => router.push(resetHref)}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
             >
               {result.course_reset ? "Restart course" : "Restart module"}
             </button>
@@ -379,9 +379,9 @@ export function QuizGroupEngine({
         <section
           role="status"
           aria-live="polite"
-          className={`rounded-lg border p-4 shadow-sm sm:p-5 ${
+          className={`rounded-2xl border p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] sm:p-5 ${
             result.result_visible && result.passed
-              ? "border-[#b7e4c7] bg-[#f0fbf5] dark:border-[#27433a] dark:bg-[#13231d]"
+              ? "border-[#2D6A4F]/25 bg-[#f0fbf5] dark:border-white/10 dark:bg-[#13231d]"
               : result.result_visible && result.passed === false
                 ? "border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20"
                 : "border-blue-200 bg-blue-50 dark:border-blue-900/40 dark:bg-blue-950/20"
@@ -390,7 +390,7 @@ export function QuizGroupEngine({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3">
               <span
-                className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md ${
+                className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
                   result.result_visible && result.passed
                     ? "bg-[#2D6A4F] text-white dark:bg-[#52b788] dark:text-[#06130d]"
                     : result.result_visible && result.passed === false
@@ -405,7 +405,7 @@ export function QuizGroupEngine({
                 )}
               </span>
               <div>
-                <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
+                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
                   {result.result_visible
                     ? result.passed
                       ? "Quiz group passed"
@@ -415,7 +415,7 @@ export function QuizGroupEngine({
                 <p className="mt-1 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
                   {result.result_visible && typeof result.score === "number" ? (
                     <>
-                      Score: <span className="font-extrabold text-slate-950 dark:text-white">{result.score}%</span>
+                      Score: <span className="font-semibold text-slate-950 dark:text-white">{result.score}%</span>
                     </>
                   ) : (
                     "Your submission was recorded. Results are not available for this quiz group."
@@ -433,7 +433,7 @@ export function QuizGroupEngine({
               <button
                 onClick={handleStart}
                 disabled={starting}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-white px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#27433a] dark:bg-[#111525] dark:text-[#b7e4c7] dark:hover:bg-[#183026] sm:w-auto"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#2D6A4F]/25 bg-white px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-[#14171f] dark:text-[#b7e4c7] dark:hover:bg-white/[0.06] sm:w-auto"
               >
                 {starting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
                 {result.passed ? "Retake" : "Try Again"}
@@ -446,7 +446,7 @@ export function QuizGroupEngine({
               {result.sections.map((sec) => (
                 <div
                   key={sec.section_id}
-                  className="flex items-center justify-between rounded-md bg-white/60 px-3 py-2 text-sm font-bold text-slate-700 dark:bg-white/5 dark:text-slate-200"
+                  className="flex items-center justify-between rounded-xl bg-white/60 px-3 py-2 text-sm font-bold text-slate-700 dark:bg-white/5 dark:text-slate-200"
                 >
                   <span>{sec.title}</span>
                   <span>
@@ -460,31 +460,31 @@ export function QuizGroupEngine({
       )}
 
       {!attempt && !result && (
-        <section className="rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
-          <div className="border-b border-[#dceee4] px-4 py-3 dark:border-[#27433a] sm:px-5">
-            <h2 className="text-base font-extrabold text-slate-950 dark:text-white">Quiz Group</h2>
-            <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+        <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
+          <div className="border-b border-black/[0.06] px-4 py-3 dark:border-white/10 sm:px-5">
+            <h2 className="text-base font-semibold text-slate-950 dark:text-white">Quiz Group</h2>
+            <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
                 {quizGroup.sections.length} sections
               </span>
               {typeof quizGroup.pass_mark_percentage === "number" && (
-                <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+                <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
                   {quizGroup.pass_mark_percentage}% pass mark
                 </span>
               )}
               {typeof estimatedMinutes === "number" && estimatedMinutes > 0 && (
-                <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+                <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
                   {formatMinutes(estimatedMinutes)}
                 </span>
               )}
               {quizGroup.time_limit_seconds ? (
-                <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+                <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
                   {formatSeconds(quizGroup.time_limit_seconds)} time limit
                 </span>
               ) : null}
-              <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">{attemptLabel}</span>
+              <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">{attemptLabel}</span>
               {deadline && (
-                <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+                <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
                   Due {deadline.toLocaleDateString()}
                 </span>
               )}
@@ -497,14 +497,14 @@ export function QuizGroupEngine({
                 <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
                   {idx + 1}. {sec.title}
                 </span>
-                <span className="text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   {sec.question_count ?? "?"} questions
                 </span>
               </div>
             ))}
           </div>
 
-          <div className="border-t border-[#dceee4] px-4 py-4 dark:border-[#27433a] sm:px-5">
+          <div className="border-t border-black/[0.06] px-4 py-4 dark:border-white/10 sm:px-5">
             {error && (
               <p role="alert" aria-live="assertive" className="mb-3 text-sm font-bold text-red-600 dark:text-red-400">
                 {error}
@@ -514,7 +514,7 @@ export function QuizGroupEngine({
               <button
                 onClick={handleStart}
                 disabled={starting}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-5 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
               >
                 {starting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
                 {starting ? "Starting..." : "Start"}
@@ -531,12 +531,12 @@ export function QuizGroupEngine({
       )}
 
       {attempt && (
-        <section className="rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#dceee4] bg-white/95 px-4 py-3 backdrop-blur dark:border-[#27433a] dark:bg-[#111525]/95 sm:px-5">
-            <h2 className="text-base font-extrabold text-slate-950 dark:text-white">Quiz Group</h2>
+        <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/[0.06] bg-white/95 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#14171f]/95 sm:px-5">
+            <h2 className="text-base font-semibold text-slate-950 dark:text-white">Quiz Group</h2>
             {remainingMs != null && (
               <span
-                className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-extrabold ${
+                className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-sm font-semibold ${
                   remainingMs < 60000
                     ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
                     : "bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]"
@@ -560,10 +560,10 @@ export function QuizGroupEngine({
 
           {attemptQuestions.length > 0 ? (
             <>
-              <div className="border-b border-[#edf5f0] px-4 py-4 dark:border-[#24372e] sm:px-5">
+              <div className="border-b border-black/[0.05] px-4 py-4 dark:border-white/10 sm:px-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
+                    <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
                       Question {boundedQuestionIndex + 1} of {attemptQuestions.length}
                     </p>
                     <p className="mt-1 text-sm font-bold text-slate-600 dark:text-slate-300">
@@ -576,7 +576,7 @@ export function QuizGroupEngine({
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-label="Quiz progress"
-                    className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#0f1726] sm:w-52"
+                    className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#0f1218] sm:w-52"
                   >
                     <div
                       className="h-full rounded-full bg-[#2D6A4F] transition-all dark:bg-[#52b788]"
@@ -596,10 +596,10 @@ export function QuizGroupEngine({
                         type="button"
                         onClick={() => setCurrentQuestionIndex(idx)}
                         aria-label={`Go to question ${idx + 1}${isAnswered ? ", answered" : ", unanswered"}`}
-                        className={`relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border text-sm font-extrabold transition ${
+                        className={`relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border text-sm font-semibold transition ${
                           isAnswered
-                            ? "border-[#2D6A4F] bg-[#2D6A4F] text-white shadow-sm shadow-[#2D6A4F]/20 dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
-                            : "border-slate-200 bg-slate-100 text-slate-500 hover:border-[#b7e4c7] hover:bg-[#f0fbf5] hover:text-[#2D6A4F] dark:border-[#27433a] dark:bg-[#0f1726] dark:text-slate-400 dark:hover:border-[#40916c] dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7]"
+                            ? "border-[#2D6A4F] bg-[#2D6A4F] text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
+                            : "border-slate-200 bg-slate-100 text-slate-500 hover:border-[#2D6A4F]/25 hover:bg-black/[0.04] hover:text-[#2D6A4F] dark:border-white/10 dark:bg-[#0f1218] dark:text-slate-400 dark:hover:border-[#40916c] dark:hover:bg-white/[0.06] dark:hover:text-[#b7e4c7]"
                         } ${
                           isCurrent
                             ? "ring-2 ring-[#F4A261] ring-offset-2 ring-offset-white dark:ring-[#f7c88f] dark:ring-offset-[#111525]"
@@ -608,7 +608,7 @@ export function QuizGroupEngine({
                       >
                         {idx + 1}
                         {isAnswered && (
-                          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[#2D6A4F] shadow-sm dark:bg-[#06130d] dark:text-[#52b788]">
+                          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[#2D6A4F] shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:bg-[#06130d] dark:text-[#52b788]">
                             <Check className="h-3 w-3" />
                           </span>
                         )}
@@ -620,10 +620,10 @@ export function QuizGroupEngine({
 
               {currentQuestionItem && (
                 <div className="px-4 py-5 sm:px-5">
-                  <p className="mb-3 text-xs font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
                     Section {currentQuestionItem.sectionIndex + 1}: {currentQuestionItem.sectionTitle}
                   </p>
-                  <h3 className="text-base font-extrabold leading-7 text-slate-900 dark:text-white">
+                  <h3 className="text-base font-semibold leading-7 text-slate-900 dark:text-white">
                     <span className="mr-2 text-[#2D6A4F] dark:text-[#b7e4c7]">
                       {currentQuestionItem.questionIndex + 1}.
                     </span>
@@ -636,10 +636,10 @@ export function QuizGroupEngine({
                       return (
                         <label
                           key={opt.id}
-                          className={`grid cursor-pointer grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-md border px-3 py-3 transition hover:border-[#b7e4c7] hover:bg-[#f0fbf5] dark:hover:border-[#40916c] dark:hover:bg-[#183026] ${
+                          className={`grid cursor-pointer grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-xl border px-3 py-3 transition hover:border-[#2D6A4F]/25 hover:bg-black/[0.04] dark:hover:border-[#40916c] dark:hover:bg-white/[0.06] ${
                             isSelected
                               ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
-                              : "border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
+                              : "border-black/[0.06] bg-[#fbfbfd] dark:border-white/10 dark:bg-[#0f1218]"
                           }`}
                         >
                           <input
@@ -653,7 +653,7 @@ export function QuizGroupEngine({
                                 currentQuestionItem.question.allow_multiple_answers === true,
                               )
                             }
-                            className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#b7e4c7] text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-[#315244] dark:bg-[#111525] dark:text-[#52b788] ${currentQuestionItem.question.allow_multiple_answers ? "rounded" : ""}`}
+                            className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#2D6A4F]/25 text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-white/15 dark:bg-[#14171f] dark:text-[#52b788] ${currentQuestionItem.question.allow_multiple_answers ? "rounded" : ""}`}
                           />
                           <span className="text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
                             {opt.text}
@@ -665,12 +665,12 @@ export function QuizGroupEngine({
                 </div>
               )}
 
-              <div className="flex flex-col gap-2 border-t border-[#edf5f0] px-4 py-4 dark:border-[#24372e] sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="flex flex-col gap-2 border-t border-black/[0.05] px-4 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                 <button
                   type="button"
                   onClick={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
                   disabled={!canGoPrevious}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-[#f0fbf5] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-200 dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7] sm:w-auto"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-black/[0.06] bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-black/[0.04] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#14171f] dark:text-slate-200 dark:hover:bg-white/[0.06] dark:hover:text-[#b7e4c7] sm:w-auto"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Previous
@@ -679,7 +679,7 @@ export function QuizGroupEngine({
                   type="button"
                   onClick={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, attemptQuestions.length - 1))}
                   disabled={!canGoNext}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-[#f7fcf9] px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#27433a] dark:bg-[#0f1726] dark:text-[#b7e4c7] dark:hover:bg-[#183026] sm:w-auto"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#2D6A4F]/25 bg-[#f5f5f7] px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#0f1218] dark:text-[#b7e4c7] dark:hover:bg-white/[0.06] sm:w-auto"
                 >
                   Next
                   <ChevronRight className="h-4 w-4" />
@@ -692,7 +692,7 @@ export function QuizGroupEngine({
             </div>
           )}
 
-          <div className="border-t border-[#dceee4] px-4 py-4 dark:border-[#27433a] sm:px-5">
+          <div className="border-t border-black/[0.06] px-4 py-4 dark:border-white/10 sm:px-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                 Your progress is saved automatically. Unanswered questions will be scored as 0.
@@ -700,7 +700,7 @@ export function QuizGroupEngine({
               <button
                 onClick={() => handleSubmit(false)}
                 disabled={submitting}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-5 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
               >
                 {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 {submitting ? "Submitting..." : "Submit"}

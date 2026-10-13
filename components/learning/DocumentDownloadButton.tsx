@@ -49,7 +49,7 @@ export function DocumentDownloadButton({
         type="button"
         onClick={handleDownload}
         disabled={isLoading}
-        className="inline-flex h-9 items-center gap-2 rounded-md border border-[#b7e4c7] px-3 text-sm font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-wait disabled:opacity-70 dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+        className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#2D6A4F]/25 px-3 text-sm font-bold text-[#2D6A4F] transition hover:bg-black/[0.04] disabled:cursor-wait disabled:opacity-70 dark:border-white/10 dark:text-[#b7e4c7] dark:hover:bg-white/[0.06]"
       >
         <Download className="h-4 w-4" />
         {isLoading ? "Preparing..." : "Download"}

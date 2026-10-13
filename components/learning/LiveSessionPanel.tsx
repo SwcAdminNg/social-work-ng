@@ -67,7 +67,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
 
   if (recordingReady && item.live_session_recording_url) {
     return (
-      <div className="overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+      <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
         <VideoPlayer
           url={item.live_session_recording_url}
           courseId={courseId}
@@ -79,23 +79,23 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
   }
 
   return (
-    <section className="overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+    <section className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
       <div className="bg-slate-950 px-4 py-5 text-white sm:px-5 lg:px-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <StatusBadge item={item} />
               {item.is_completed && (
-                <span className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[#52b788] px-2.5 text-xs font-extrabold text-[#06130d]">
+                <span className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#52b788] px-2.5 text-xs font-semibold text-[#06130d]">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   Complete
                 </span>
               )}
             </div>
-            <p className="text-xs font-extrabold uppercase tracking-wide text-[#b7e4c7]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#b7e4c7]">
               Live classroom
             </p>
-            <h2 className="mt-2 max-w-3xl text-2xl font-extrabold leading-tight text-white sm:text-3xl">
+            <h2 className="mt-2 max-w-3xl text-2xl font-semibold leading-tight text-white sm:text-3xl">
               {item.title || "Live session"}
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
@@ -103,11 +103,11 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 rounded-lg border border-white/10 bg-white/8 p-4 lg:w-[260px]">
-            <p className="text-xs font-extrabold uppercase tracking-wide text-slate-300">
+          <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/8 p-4 lg:w-[260px]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-300">
               {item.live_session_can_join ? "Join window" : "Session starts"}
             </p>
-            <p className="text-2xl font-extrabold text-white">
+            <p className="text-2xl font-semibold text-white">
               {item.live_session_can_join ? "Open now" : countdown || "Pending"}
             </p>
             {scheduledAt && (
@@ -138,10 +138,10 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
           />
         </div>
 
-        <div className="rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-4 dark:border-[#27433a] dark:bg-[#13231d] sm:p-5">
+        <div className="rounded-2xl border border-black/[0.06] bg-[#f5f5f7] p-4 dark:border-white/10 dark:bg-[#13231d] sm:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-extrabold text-slate-950 dark:text-white">
+              <p className="text-sm font-semibold text-slate-950 dark:text-white">
                 {getStatusHeadline(item)}
               </p>
               <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
@@ -194,7 +194,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
                   }
                 }}
                 disabled={joining}
-                className="inline-flex h-12 flex-shrink-0 items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-5 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-wait disabled:opacity-80 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+                className="inline-flex h-12 flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-wait disabled:opacity-80 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
               >
                 {joining ? (
                   <IconSpinner className="h-4 w-4 animate-spin" />
@@ -207,7 +207,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
               <button
                 type="button"
                 disabled
-                className="inline-flex h-12 flex-shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-md bg-slate-100 px-5 text-sm font-extrabold text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                className="inline-flex h-12 flex-shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-100 px-5 text-sm font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400"
               >
                 <Clock3 className="h-4 w-4" />
                 {countdown || "Not open yet"}
@@ -242,7 +242,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
           </div>
         )}
 
-        <div className="flex flex-col gap-3 border-t border-[#dceee4] pt-4 dark:border-[#27433a] sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-black/[0.06] pt-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
             {getCompletionHint(item)}
           </p>
@@ -268,7 +268,7 @@ function StatusBadge({ item }: { item: LiveSessionItem }) {
         : "Scheduled";
 
   return (
-    <span className="inline-flex h-8 items-center gap-1.5 rounded-md bg-white/10 px-2.5 text-xs font-extrabold uppercase tracking-wide text-white">
+    <span className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-xs font-semibold uppercase tracking-wide text-white">
       {item.live_session_can_join ? (
         <Video className="h-3.5 w-3.5 text-[#52b788]" />
       ) : (
@@ -289,14 +289,14 @@ function InfoTile({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-[#dceee4] bg-white p-4 dark:border-[#27433a] dark:bg-[#111525]">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+    <div className="rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-[#14171f]">
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
         {icon}
       </div>
       <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {label}
       </p>
-      <p className="mt-1 text-sm font-extrabold leading-5 text-slate-950 dark:text-white">
+      <p className="mt-1 text-sm font-semibold leading-5 text-slate-950 dark:text-white">
         {value}
       </p>
     </div>
@@ -313,11 +313,11 @@ function PreparationItem({
   text: string;
 }) {
   return (
-    <div className="rounded-lg border border-[#dceee4] bg-white p-4 dark:border-[#27433a] dark:bg-[#111525]">
-      <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+    <div className="rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-[#14171f]">
+      <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
         {icon}
       </div>
-      <p className="text-sm font-extrabold text-slate-950 dark:text-white">
+      <p className="text-sm font-semibold text-slate-950 dark:text-white">
         {title}
       </p>
       <p className="mt-1 text-sm leading-5 text-slate-600 dark:text-slate-400">

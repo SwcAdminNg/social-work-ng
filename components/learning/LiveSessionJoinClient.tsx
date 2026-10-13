@@ -75,9 +75,9 @@ export function LiveSessionJoinClient({
   }, [join]);
 
   return (
-    <div className="flex min-h-[70dvh] items-center justify-center bg-[#f7fcf9] px-4 py-12 dark:bg-[#0b1220]">
-      <div className="w-full max-w-md rounded-lg border border-[#dceee4] bg-white p-6 text-center shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
-        <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+    <div className="flex min-h-[70dvh] items-center justify-center bg-[#f5f5f7] px-4 py-12 dark:bg-[#0a0c11]">
+      <div className="w-full max-w-md rounded-2xl border border-black/[0.06] bg-white p-6 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
+        <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
           {loading ? (
             <IconSpinner className="h-6 w-6 animate-spin" />
           ) : error?.status === 403 ? (
@@ -86,7 +86,7 @@ export function LiveSessionJoinClient({
             <Video className="h-6 w-6" />
           )}
         </span>
-        <h1 className="text-lg font-extrabold text-slate-950 dark:text-white">
+        <h1 className="text-lg font-semibold text-slate-950 dark:text-white">
           {loading
             ? "Redirecting to Daily"
             : error?.status === 403
@@ -99,7 +99,7 @@ export function LiveSessionJoinClient({
             : error?.message || "Please try again in a moment."}
         </p>
         {!loading && error?.status === 400 && scheduledStartAt && (
-          <div className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+          <div className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
             Scheduled for {formatDateTime(scheduledStartAt)}. Come back closer
             to the start time.
           </div>
@@ -109,14 +109,14 @@ export function LiveSessionJoinClient({
             <button
               type="button"
               onClick={join}
-              className="inline-flex h-10 items-center justify-center rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-[#2D6A4F] px-4 text-sm font-semibold text-white transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
             >
               Try again
             </button>
           )}
           <Link
             href={backHref}
-            className="inline-flex h-10 items-center justify-center rounded-md border border-[#b7e4c7] px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[#2D6A4F]/25 px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-black/[0.04] dark:border-white/10 dark:text-[#b7e4c7] dark:hover:bg-white/[0.06]"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             View course

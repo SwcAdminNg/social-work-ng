@@ -142,7 +142,7 @@ export function ReviewModal({
               <button
                 type="submit"
                 disabled={submitting || rating === 0}
-                className="inline-flex h-10 items-center justify-center rounded-xl bg-[#2D6A4F] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1B4332] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] disabled:pointer-events-none disabled:opacity-50 shadow-sm"
+                className="inline-flex h-10 items-center justify-center rounded-xl bg-[#2D6A4F] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1B4332] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] disabled:pointer-events-none disabled:opacity-50 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)]"
               >
                 {submitting ? (
                   <IconSpinner className="mr-2 h-4 w-4 animate-spin" />

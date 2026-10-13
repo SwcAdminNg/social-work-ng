@@ -183,10 +183,10 @@ export function EssaySubmission({
   return (
     <div className="mx-auto max-w-[860px] space-y-4">
       {isFinalAssessment && (
-        <section className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/20">
+        <section className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-amber-900/40 dark:bg-amber-950/20">
           <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
-            <h2 className="text-sm font-extrabold text-amber-900 dark:text-amber-200">
+            <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
               {isLastSection ? "Final exam for this course" : "Final assessment for this module"}
             </h2>
             <p className="mt-1 text-sm font-medium leading-6 text-amber-800 dark:text-amber-300">
@@ -201,19 +201,19 @@ export function EssaySubmission({
         </section>
       )}
 
-      <section className="rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
-        <div className="border-b border-[#dceee4] px-4 py-3 dark:border-[#27433a] sm:px-5">
-          <div className="flex flex-wrap gap-2 text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+      <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
+        <div className="border-b border-black/[0.06] px-4 py-3 dark:border-white/10 sm:px-5">
+          <div className="flex flex-wrap gap-2 text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
               {mode === "DOCUMENT" ? "Document upload" : "Text response"}
             </span>
             {deadline && (
-              <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+              <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
                 Due {deadline.toLocaleDateString()}
               </span>
             )}
             {typeof estimatedMinutes === "number" && estimatedMinutes > 0 && (
-              <span className="rounded-md bg-[#f7fcf9] px-2 py-1 dark:bg-[#0f1726]">
+              <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
                 {formatMinutes(estimatedMinutes)}
               </span>
             )}
@@ -221,7 +221,7 @@ export function EssaySubmission({
         </div>
 
         <div className="px-4 py-4 sm:px-5">
-          <h2 id="essay-question" className="text-lg font-extrabold leading-7 text-slate-950 dark:text-white">
+          <h2 id="essay-question" className="text-lg font-semibold leading-7 text-slate-950 dark:text-white">
             {essayQuestion || "Essay Assignment"}
           </h2>
           {essayDescription && (
@@ -233,13 +233,13 @@ export function EssaySubmission({
       </section>
 
       {hasSubmission && (
-        <section className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525] sm:p-5">
+        <section className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f] sm:p-5">
           <div className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+            <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
               <CheckCircle className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-extrabold text-slate-950 dark:text-white">
+              <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
                 {submission?.is_published
                   ? "Grade published"
                   : isGraded
@@ -260,12 +260,12 @@ export function EssaySubmission({
 
               {submission?.is_published && typeof submission.score === "number" && (
                 <div className="mt-3 flex items-center gap-2">
-                  <p className="text-base font-extrabold text-slate-950 dark:text-white">
+                  <p className="text-base font-semibold text-slate-950 dark:text-white">
                     Score: {submission.score}
                   </p>
                   {isFinalAssessment && typeof submission.passed === "boolean" && (
                     <span
-                      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-extrabold ${
+                      className={`inline-flex items-center gap-1 rounded-xl px-2 py-0.5 text-xs font-semibold ${
                         submission.passed
                           ? "bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]"
                           : "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-300"
@@ -282,7 +282,7 @@ export function EssaySubmission({
                 </div>
               )}
               {submission?.is_published && submission.feedback && (
-                <p className="mt-3 whitespace-pre-line rounded-md bg-[#f7fcf9] p-3 text-sm leading-6 text-slate-700 dark:bg-[#0f1726] dark:text-slate-200">
+                <p className="mt-3 whitespace-pre-line rounded-xl bg-[#f5f5f7] p-3 text-sm leading-6 text-slate-700 dark:bg-[#0f1218] dark:text-slate-200">
                   {submission.feedback}
                 </p>
               )}
@@ -304,7 +304,7 @@ export function EssaySubmission({
                   href={submission.document_download_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-[#b7e4c7] px-3 text-sm font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+                  className="mt-4 inline-flex h-9 items-center gap-2 rounded-lg border border-[#2D6A4F]/25 px-3 text-sm font-bold text-[#2D6A4F] transition hover:bg-black/[0.04] dark:border-white/10 dark:text-[#b7e4c7] dark:hover:bg-white/[0.06]"
                 >
                   <FileText className="h-4 w-4" />
                   {submission.document_file_name || "Download submission"}
@@ -315,9 +315,9 @@ export function EssaySubmission({
         </section>
       )}
 
-      <section className="rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
-        <div className="border-b border-[#dceee4] px-4 py-3 dark:border-[#27433a] sm:px-5">
-          <h3 className="text-base font-extrabold text-slate-950 dark:text-white">
+      <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
+        <div className="border-b border-black/[0.06] px-4 py-3 dark:border-white/10 sm:px-5">
+          <h3 className="text-base font-semibold text-slate-950 dark:text-white">
             {hasSubmission ? "Resubmit Essay" : "Submit Essay"}
           </h3>
         </div>
@@ -331,17 +331,17 @@ export function EssaySubmission({
               onChange={(event) => setContentText(event.target.value)}
               disabled={!canSubmit || submitting}
               rows={10}
-              className="min-h-[260px] w-full resize-y rounded-md border border-[#dceee4] bg-[#fbfefd] p-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 dark:border-[#27433a] dark:bg-[#0f1726] dark:text-white dark:focus:border-[#52b788] dark:focus:ring-[#52b788]/10 dark:disabled:bg-[#111525]"
+              className="min-h-[260px] w-full resize-y rounded-xl border border-black/[0.06] bg-[#fbfbfd] p-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 dark:border-white/10 dark:bg-[#0f1218] dark:text-white dark:focus:border-[#52b788] dark:focus:ring-[#52b788]/10 dark:disabled:bg-[#111525]"
               placeholder="Write your response here..."
             />
           ) : (
-            <label className={`flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-5 text-center transition ${
+            <label className={`flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 text-center transition ${
               canSubmit
-                ? "border-[#b7e4c7] bg-[#f7fcf9] hover:bg-[#eef8f2] dark:border-[#27433a] dark:bg-[#13231d] dark:hover:bg-[#183026]"
-                : "cursor-not-allowed border-slate-200 bg-slate-50 dark:border-[#27433a] dark:bg-[#0f1726]"
+                ? "border-[#2D6A4F]/25 bg-[#f5f5f7] hover:bg-[#eef8f2] dark:border-white/10 dark:bg-[#13231d] dark:hover:bg-white/[0.06]"
+                : "cursor-not-allowed border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-[#0f1218]"
             }`}>
               <Upload className="mb-3 h-7 w-7 text-[#2D6A4F] dark:text-[#52b788]" />
-              <span className="font-extrabold text-slate-950 dark:text-white">
+              <span className="font-semibold text-slate-950 dark:text-white">
                 {file ? file.name : "Choose essay document"}
               </span>
               <span className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -379,14 +379,14 @@ export function EssaySubmission({
           )}
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-[#dceee4] px-4 py-4 dark:border-[#27433a] sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="flex flex-col gap-3 border-t border-black/[0.06] px-4 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
             {canSubmit ? "Submissions can be updated until marking begins." : "Submission is locked."}
           </p>
           <button
             onClick={mode === "TEXT" ? handleTextSubmit : handleDocumentSubmit}
             disabled={!canSubmit || submitting || (mode === "TEXT" && contentText.trim().length === 0)}
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-5 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
           >
             {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             {submitting ? "Submitting..." : hasSubmission ? "Resubmit" : "Submit"}

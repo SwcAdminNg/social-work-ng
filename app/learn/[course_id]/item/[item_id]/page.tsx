@@ -9,8 +9,9 @@ import { MarkCompleteButton } from "@/components/learning/MarkCompleteButton";
 import { DocumentDownloadButton } from "@/components/learning/DocumentDownloadButton";
 import { LinkResourcePanel } from "@/components/learning/LinkResourcePanel";
 import { LiveSessionPanel } from "@/components/learning/LiveSessionPanel";
+import { LessonDescription } from "@/components/learning/LessonDescription";
 import Link from "next/link";
-import { CheckCircle, ChevronLeft, ChevronRight, Lock } from "lucide-react";
+import { CheckCircle, ChevronLeft, ChevronRight, Clock, Lock } from "lucide-react";
 
 type LearningNavItem = {
   id: string;
@@ -21,6 +22,7 @@ type LearningNavItem = {
 
 type CurriculumSection = {
   id?: string;
+  title?: string | null;
   items?: LearningNavItem[] | null;
 };
 
@@ -61,6 +63,10 @@ export default async function LearningItemPage(props: {
   let isSequentiallyLocked = false;
   let frontierItem: LearningNavItem | null = null;
   let currentNavItem: LearningNavItem | null = null;
+  let moduleNumber = 0;
+  let moduleTitle: string | null = null;
+  let positionInModule = 0;
+  let moduleItemCount = 0;
 
   if (curriculum?.sections) {
     const allItems = curriculum.sections.flatMap(
@@ -82,12 +88,16 @@ export default async function LearningItemPage(props: {
     const currentSectionItems: LearningNavItem[] =
       curriculum.sections[currentSectionIndex]?.items || [];
     sectionFirstItemId = currentSectionItems[0]?.id || null;
+    moduleNumber = currentSectionIndex + 1;
+    moduleTitle = curriculum.sections[currentSectionIndex]?.title || null;
+    moduleItemCount = currentSectionItems.length;
     isLastSection =
       currentSectionIndex !== -1 && currentSectionIndex === curriculum.sections.length - 1;
 
     const currentItemIndexInSection = currentSectionItems.findIndex(
       (i) => i.id === params.item_id,
     );
+    positionInModule = currentItemIndexInSection + 1;
     const firstIncompleteIndex = currentSectionItems.findIndex((i) => !i.is_completed);
     const frontierIndex =
       firstIncompleteIndex === -1 ? currentSectionItems.length : firstIncompleteIndex;
@@ -147,9 +157,9 @@ export default async function LearningItemPage(props: {
     item.item_type === "ASSESSMENT" && item.assessment_type === "QUIZ_GROUP";
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#f7fcf9] dark:bg-[#0b1220]">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#f5f5f7] dark:bg-[#0a0c11]">
       {item.item_type === "VIDEO" && item.video_url && (
-        <div className="z-20 w-full flex-shrink-0 border-b border-[#dceee4] bg-slate-950 shadow-sm dark:border-[#27433a]">
+        <div className="z-20 w-full flex-shrink-0 bg-black">
           <div className="mx-auto w-full max-w-[1180px]">
             <VideoPlayer
               url={item.video_url}
@@ -162,37 +172,58 @@ export default async function LearningItemPage(props: {
       )}
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <header className="sticky top-0 z-10 border-b border-[#dceee4] bg-white/92 px-4 py-3 backdrop-blur dark:border-[#27433a] dark:bg-[#111525]/92 sm:px-5 lg:px-7">
-          <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <div className="mb-1 flex flex-wrap items-center gap-2">
-                <span className="rounded-md bg-[#e7f6ee] px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-                  {itemLabel}
-                </span>
+        <div className="mx-auto w-full max-w-[1040px] px-5 pb-32 pt-8 sm:px-8 sm:pt-12 lg:pb-12">
+          <header className="mb-8 sm:mb-10">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-[#2D6A4F] dark:text-[#74c69d]">
+              {moduleNumber > 0 ? (
+                <>
+                  <span>Module {moduleNumber}</span>
+                  {moduleItemCount > 0 && (
+                    <>
+                      <span aria-hidden className="text-slate-300 dark:text-slate-600">·</span>
+                      <span>
+                        {positionInModule} of {moduleItemCount}
+                      </span>
+                    </>
+                  )}
+                </>
+              ) : (
+                <span>{itemLabel}</span>
+              )}
+            </p>
+
+            <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+              <h1 className="max-w-[760px] text-[1.875rem] font-semibold leading-[1.15] tracking-[-0.022em] text-slate-950 dark:text-white sm:text-[2.5rem]">
+                {item.title}
+              </h1>
+              <div className="flex flex-shrink-0 flex-wrap items-center gap-2 sm:mt-2">
                 {estimatedMinutes > 0 && (
-                  <span className="rounded-md border border-[#b7e4c7] px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:border-[#27433a] dark:text-[#b7e4c7]">
+                  <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-black/[0.05] px-3 text-[0.8125rem] font-medium text-slate-700 dark:bg-white/10 dark:text-slate-200">
+                    <Clock className="h-3.5 w-3.5" aria-hidden />
                     {formatMinutes(estimatedMinutes)}
                   </span>
                 )}
                 {item.is_completed && (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-[#b7e4c7] px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:border-[#27433a] dark:text-[#b7e4c7]">
-                    <CheckCircle className="h-3.5 w-3.5" />
+                  <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#2D6A4F]/10 px-3 text-[0.8125rem] font-semibold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#95d5b2]">
+                    <CheckCircle className="h-3.5 w-3.5" aria-hidden />
                     Complete
                   </span>
                 )}
               </div>
-              <h1 className="line-clamp-2 text-lg font-extrabold leading-6 text-slate-950 dark:text-white sm:text-xl">
-                {item.title}
-              </h1>
             </div>
-          </div>
-        </header>
 
-        <div className="mx-auto w-full max-w-[1040px] px-4 py-4 pb-28 sm:px-5 sm:py-5 lg:px-7 lg:pb-8">
+            {moduleTitle && moduleNumber > 0 && (
+              <p className="mt-3 text-[0.9375rem] text-slate-500 dark:text-slate-400">
+                {moduleTitle} · {itemLabel}
+              </p>
+            )}
+
+            <LessonDescription text={item.item_description} />
+          </header>
 
         {item.item_type === "DOCUMENT" && item.document_url && (
-          <div className="flex h-[calc(100dvh-180px)] min-h-[420px] w-full flex-col overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
-            <div className="flex flex-shrink-0 flex-col gap-3 border-b border-[#dceee4] bg-[#fbfefd] px-4 py-3 dark:border-[#27433a] dark:bg-[#0f1726] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex h-[calc(100dvh-220px)] min-h-[420px] w-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[#14171f] dark:ring-white/10">
+            <div className="flex flex-shrink-0 flex-col gap-3 border-b border-black/[0.06] bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#14171f]/80 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7] [&>svg]:h-5 [&>svg]:w-5">
                   <IconClipboardCheck />
@@ -303,11 +334,11 @@ export default async function LearningItemPage(props: {
         )}
 
         {/* Course Navigation Footer */}
-        <div className="mt-5 grid gap-3 border-t border-[#dceee4] pt-4 dark:border-[#27433a] sm:grid-cols-2">
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
           {prevItem ? (
             <Link 
               href={`/learn/${params.course_id}/item/${prevItem.id}`}
-              className="grid min-h-16 grid-cols-[20px_minmax(0,1fr)] items-center gap-3 rounded-lg border border-[#dceee4] bg-white px-4 py-3 text-slate-700 transition hover:bg-[#f0fbf5] hover:text-[#2D6A4F] dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-300 dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7]"
+              className="grid min-h-[68px] grid-cols-[20px_minmax(0,1fr)] items-center gap-3 rounded-2xl bg-white px-5 py-3 text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_14px_30px_-14px_rgba(0,0,0,0.18)] dark:bg-[#14171f] dark:text-slate-300 dark:ring-white/10"
             >
               <ChevronLeft className="h-5 w-5" />
               <div className="min-w-0 text-left">
@@ -321,7 +352,7 @@ export default async function LearningItemPage(props: {
             item.is_completed ? (
               <Link
                 href={`/learn/${params.course_id}/item/${nextItem.id}`}
-                className="grid min-h-16 grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-lg bg-[#2D6A4F] px-4 py-3 text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+                className="grid min-h-[68px] grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-2xl bg-[#2D6A4F] px-5 py-3 text-white shadow-[0_10px_24px_-12px_rgba(45,106,79,0.7)] transition hover:bg-[#245c43] active:scale-[0.99] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
               >
                 <div className="min-w-0 text-right">
                   <div className="text-[0.68rem] font-extrabold uppercase tracking-wide text-white/70 dark:text-[#1B4332]/70">Next</div>
@@ -331,7 +362,7 @@ export default async function LearningItemPage(props: {
               </Link>
             ) : (
               <div
-                className="grid min-h-16 cursor-not-allowed grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-lg border border-[#dceee4] bg-slate-50 px-4 py-3 text-slate-400 dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-500"
+                className="grid min-h-[68px] cursor-not-allowed grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-2xl bg-black/[0.04] px-5 py-3 text-slate-400 dark:bg-white/5 dark:text-slate-500"
                 aria-disabled="true"
               >
                 <div className="min-w-0 text-right">
@@ -346,14 +377,14 @@ export default async function LearningItemPage(props: {
           ) : item.is_completed ? (
             <Link
               href={`/dashboard/courses`}
-              className="inline-flex min-h-16 items-center justify-center gap-3 rounded-lg bg-[#2D6A4F] px-4 py-3 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+              className="inline-flex min-h-[68px] items-center justify-center gap-3 rounded-2xl bg-[#2D6A4F] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(45,106,79,0.7)] transition hover:bg-[#245c43] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
             >
               <CheckCircle className="h-5 w-5" />
               <span>Finish Course</span>
             </Link>
           ) : (
             <div
-              className="inline-flex min-h-16 cursor-not-allowed items-center justify-center gap-3 rounded-lg border border-[#dceee4] bg-slate-50 px-4 py-3 text-sm font-extrabold text-slate-400 dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-500"
+              className="inline-flex min-h-[68px] cursor-not-allowed items-center justify-center gap-3 rounded-2xl bg-black/[0.04] px-5 py-3 text-sm font-semibold text-slate-400 dark:bg-white/5 dark:text-slate-500"
               aria-disabled="true"
             >
               <Lock className="h-5 w-5" />

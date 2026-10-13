@@ -25,16 +25,16 @@ export default async function LearningLayout(props: { params: Promise<{ course_i
   }
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-[#f7fcf9] text-slate-900 dark:bg-[#0b1220] dark:text-slate-100">
-      <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-[#f7fcf9] dark:bg-[#0b1220]">
-        {props.children}
-      </main>
-
+    <div className="flex h-[100dvh] overflow-hidden bg-[#f5f5f7] text-slate-900 dark:bg-[#0a0c11] dark:text-slate-100">
       <CourseSidebar
         courseId={params.course_id}
         curriculum={curriculum}
         resources={resourcesResult.ok ? resourcesResult.items : []}
       />
+
+      <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-[#f5f5f7] dark:bg-[#0a0c11]">
+        {props.children}
+      </main>
     </div>
   );
 }
