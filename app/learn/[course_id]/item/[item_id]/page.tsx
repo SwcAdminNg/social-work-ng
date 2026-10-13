@@ -171,7 +171,7 @@ export default async function LearningItemPage(props: {
         </div>
       )}
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="swcl-sidebar-scroll min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-[1040px] px-5 pb-32 pt-8 sm:px-8 sm:pt-12 lg:pb-12">
           <header className="mb-8 sm:mb-10">
             <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-[#2D6A4F] dark:text-[#74c69d]">

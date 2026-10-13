@@ -184,7 +184,7 @@ export function CourseSidebar({ courseId, curriculum, resources = [] }: CourseSi
         )}
       </div>
 
-      <nav aria-label="Course outline" className="min-h-0 flex-1 overflow-y-auto px-3 pb-6">
+      <nav aria-label="Course outline" className="swcl-sidebar-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-6">
         {sections.map((section, sectionIndex) => {
           const isSectionLocked = section.is_locked === true;
           const guestLabel = formatGuestInstructors(section.guest_instructors);
