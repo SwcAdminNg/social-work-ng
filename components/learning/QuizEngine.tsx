@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmSubmitDialog } from "./ConfirmSubmitDialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -77,6 +78,7 @@ export function QuizEngine({
   const [currentTime] = useState(() => Date.now());
   const [answers, setAnswers] = useState<Record<string, string[]>>(previousAttempt?.answers || {});
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [attemptsUsedThisSession, setAttemptsUsedThisSession] = useState(0);
   const [result, setResult] = useState<QuizResult | null>(
     previousAttempt
@@ -478,13 +480,29 @@ export function QuizEngine({
                 {hasUnanswered ? "Unanswered questions will be scored as 0." : "All questions have a selected answer."}
               </p>
               <button
-                onClick={handleSubmit}
+                onClick={() => setConfirmOpen(true)}
                 disabled={submitting}
                 className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
               >
                 {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 {submitting ? "Submitting..." : "Submit"}
               </button>
+              <ConfirmSubmitDialog
+                open={confirmOpen}
+                onOpenChange={setConfirmOpen}
+                busy={submitting}
+                title="Submit your quiz?"
+                onConfirm={() => {
+                  setConfirmOpen(false);
+                  void handleSubmit();
+                }}
+              >
+                {hasUnanswered
+                  ? `You have ${questions.length - answeredCount} unanswered question${
+                      questions.length - answeredCount === 1 ? "" : "s"
+                    }. They will be scored as 0.`
+                  : "All questions have an answer. You won't be able to change them after submitting."}
+              </ConfirmSubmitDialog>
             </div>
           </div>
         )}

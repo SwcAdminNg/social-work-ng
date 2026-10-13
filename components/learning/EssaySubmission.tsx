@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmSubmitDialog } from "./ConfirmSubmitDialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, FileText, Send, ShieldAlert, Upload, XCircle } from "lucide-react";
@@ -57,6 +58,7 @@ export function EssaySubmission({
   const [contentText, setContentText] = useState(submission?.content_text || "");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [markingLockedMessage, setMarkingLockedMessage] = useState("");
@@ -384,13 +386,27 @@ export function EssaySubmission({
             {canSubmit ? "Submissions can be updated until marking begins." : "Submission is locked."}
           </p>
           <button
-            onClick={mode === "TEXT" ? handleTextSubmit : handleDocumentSubmit}
+            onClick={() => setConfirmOpen(true)}
             disabled={!canSubmit || submitting || (mode === "TEXT" && contentText.trim().length === 0)}
             className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
           >
             {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             {submitting ? "Submitting..." : hasSubmission ? "Resubmit" : "Submit"}
           </button>
+          <ConfirmSubmitDialog
+            open={confirmOpen}
+            onOpenChange={setConfirmOpen}
+            busy={submitting}
+            title={hasSubmission ? "Resubmit your essay?" : "Submit your essay?"}
+            confirmLabel={hasSubmission ? "Yes, resubmit" : "Yes, submit"}
+            onConfirm={() => {
+              setConfirmOpen(false);
+              void (mode === "TEXT" ? handleTextSubmit() : handleDocumentSubmit());
+            }}
+          >
+            Your essay goes to be marked and you won&apos;t be able to edit it once marking begins. Make sure this is
+            your final version.
+          </ConfirmSubmitDialog>
         </div>
       </section>
     </div>

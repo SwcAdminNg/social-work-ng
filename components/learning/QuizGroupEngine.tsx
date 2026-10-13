@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmSubmitDialog } from "./ConfirmSubmitDialog";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -112,6 +113,7 @@ export function QuizGroupEngine({
   const [attemptsUsedThisSession, setAttemptsUsedThisSession] = useState(0);
   const [starting, setStarting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState("");
   const [now, setNow] = useState(() => Date.now());
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -319,6 +321,7 @@ export function QuizGroupEngine({
       })),
     ) || [];
   const answeredCount = attemptQuestions.filter(({ question }) => (answers[question.id] || []).length > 0).length;
+  const unansweredCount = attemptQuestions.length - answeredCount;
   const boundedQuestionIndex =
     attemptQuestions.length > 0 ? Math.min(currentQuestionIndex, attemptQuestions.length - 1) : 0;
   const currentQuestionItem = attemptQuestions[boundedQuestionIndex] || null;
@@ -698,13 +701,30 @@ export function QuizGroupEngine({
                 Your progress is saved automatically. Unanswered questions will be scored as 0.
               </p>
               <button
-                onClick={() => handleSubmit(false)}
+                onClick={() => setConfirmOpen(true)}
                 disabled={submitting}
                 className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
               >
                 {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 {submitting ? "Submitting..." : "Submit"}
               </button>
+              <ConfirmSubmitDialog
+                // The timer can still expire while this is open; the auto-submit then takes over.
+                open={confirmOpen && !!attempt}
+                onOpenChange={setConfirmOpen}
+                busy={submitting}
+                title="Submit this quiz?"
+                onConfirm={() => {
+                  setConfirmOpen(false);
+                  void handleSubmit(false);
+                }}
+              >
+                {unansweredCount > 0
+                  ? `You have ${unansweredCount} unanswered question${
+                      unansweredCount === 1 ? "" : "s"
+                    }. They will be scored as 0.`
+                  : "All questions have an answer. You won't be able to change them after submitting."}
+              </ConfirmSubmitDialog>
             </div>
           </div>
         </section>
