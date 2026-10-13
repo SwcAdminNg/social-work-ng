@@ -63,14 +63,14 @@ export function VideoPlayer({ url, courseId, itemId, isCompleted }: VideoPlayerP
         <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between lg:px-5">
           <div className="flex min-w-0 items-center gap-3">
             <span
-              className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md ${
+              className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${
                 isCompleted ? "bg-[#52b788] text-[#06130d]" : "bg-white/10 text-white"
               }`}
             >
               <CheckCircle className="h-4 w-4" />
             </span>
             <div className="min-w-0">
-              <h3 className="text-sm font-extrabold text-white">Learning Progress</h3>
+              <h3 className="text-sm font-semibold text-white">Learning Progress</h3>
               <p className="line-clamp-1 text-xs font-medium text-slate-400">
                 {isCompleted ? "This video is complete." : "Complete the video automatically or mark it done."}
               </p>
@@ -79,7 +79,7 @@ export function VideoPlayer({ url, courseId, itemId, isCompleted }: VideoPlayerP
           <button
             onClick={markComplete}
             disabled={isCompleted || marking}
-            className={`inline-flex h-9 w-full flex-shrink-0 items-center justify-center gap-2 rounded-md px-4 text-sm font-extrabold transition sm:w-auto ${
+            className={`inline-flex h-9 w-full flex-shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition sm:w-auto ${
               isCompleted
                 ? "cursor-not-allowed bg-white/10 text-slate-400"
                 : "bg-[#52b788] text-[#06130d] hover:bg-[#74c69d]"

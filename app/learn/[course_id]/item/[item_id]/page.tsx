@@ -115,7 +115,7 @@ export default async function LearningItemPage(props: {
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400">
           <Lock className="h-6 w-6" />
         </span>
-        <h1 className="text-lg font-extrabold text-slate-950 dark:text-white">
+        <h1 className="text-lg font-semibold text-slate-950 dark:text-white">
           {itemRes.status === 403 ? "Module locked" : "Complete previous items first"}
         </h1>
         <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
@@ -131,7 +131,7 @@ export default async function LearningItemPage(props: {
                 ? `/learn/${params.course_id}/item/${frontierItem.id}`
                 : `/learn/${params.course_id}`
           }
-          className="mt-2 inline-flex h-10 items-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white shadow-sm shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+          className="mt-2 inline-flex h-10 items-center gap-2 rounded-xl bg-[#2D6A4F] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
         >
           {itemRes.status === 403 ? "Back to course" : "Continue where you left off"}
         </Link>
@@ -225,10 +225,10 @@ export default async function LearningItemPage(props: {
           <div className="flex h-[calc(100dvh-220px)] min-h-[420px] w-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[#14171f] dark:ring-white/10">
             <div className="flex flex-shrink-0 flex-col gap-3 border-b border-black/[0.06] bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#14171f]/80 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7] [&>svg]:h-5 [&>svg]:w-5">
+                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7] [&>svg]:h-5 [&>svg]:w-5">
                   <IconClipboardCheck />
                 </span>
-                <h2 className="line-clamp-1 text-sm font-extrabold text-slate-950 dark:text-white sm:text-base">{item.title}</h2>
+                <h2 className="line-clamp-1 text-sm font-semibold text-slate-950 dark:text-white sm:text-base">{item.title}</h2>
               </div>
               <div className="flex flex-shrink-0 items-center gap-2">
                 {item.downloadable === true && (
@@ -245,7 +245,7 @@ export default async function LearningItemPage(props: {
                 />
               </div>
             </div>
-            <div className="w-full flex-1 bg-slate-100 dark:bg-[#0b1220]">
+            <div className="w-full flex-1 bg-slate-100 dark:bg-[#0a0c11]">
               <iframe
                 src={getDocumentViewerUrl(params.course_id, item.id, item.document_url)}
                 title={item.title}
@@ -328,7 +328,7 @@ export default async function LearningItemPage(props: {
         )}
 
         {item.item_type === "ASSESSMENT" && !isQuiz && !isEssay && !isQuizGroup && (
-          <div className="rounded-lg border border-[#dceee4] bg-white p-5 text-center text-sm font-medium text-slate-600 shadow-sm dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-300">
+          <div className="rounded-2xl border border-black/[0.06] bg-white p-5 text-center text-sm font-medium text-slate-600 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f] dark:text-slate-300">
             This assessment type is not available yet.
           </div>
         )}
@@ -338,12 +338,12 @@ export default async function LearningItemPage(props: {
           {prevItem ? (
             <Link 
               href={`/learn/${params.course_id}/item/${prevItem.id}`}
-              className="grid min-h-[68px] grid-cols-[20px_minmax(0,1fr)] items-center gap-3 rounded-2xl bg-white px-5 py-3 text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_14px_30px_-14px_rgba(0,0,0,0.18)] dark:bg-[#14171f] dark:text-slate-300 dark:ring-white/10"
+              className="grid min-h-[68px] grid-cols-[20px_minmax(0,1fr)] items-center gap-3 rounded-2xl bg-white px-5 py-3 text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition-[box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_14px_30px_-14px_rgba(0,0,0,0.18)] dark:bg-[#14171f] dark:text-slate-300 dark:ring-white/10"
             >
               <ChevronLeft className="h-5 w-5" />
               <div className="min-w-0 text-left">
-                <div className="text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Previous</div>
-                <div className="line-clamp-1 text-sm font-extrabold">{prevItem.title}</div>
+                <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Previous</div>
+                <div className="line-clamp-1 text-sm font-semibold">{prevItem.title}</div>
               </div>
             </Link>
           ) : <div className="hidden sm:block" />}
@@ -352,11 +352,11 @@ export default async function LearningItemPage(props: {
             item.is_completed ? (
               <Link
                 href={`/learn/${params.course_id}/item/${nextItem.id}`}
-                className="grid min-h-[68px] grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-2xl bg-[#2D6A4F] px-5 py-3 text-white shadow-[0_10px_24px_-12px_rgba(45,106,79,0.7)] transition hover:bg-[#245c43] active:scale-[0.99] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+                className="grid min-h-[68px] grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-2xl bg-[#2D6A4F] px-5 py-3 text-white shadow-[0_10px_24px_-12px_rgba(45,106,79,0.7)] transition-[background-color,transform] duration-150 hover:bg-[#245c43] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
               >
                 <div className="min-w-0 text-right">
-                  <div className="text-[0.68rem] font-extrabold uppercase tracking-wide text-white/70 dark:text-[#1B4332]/70">Next</div>
-                  <div className="line-clamp-1 text-sm font-extrabold">{nextItem.title}</div>
+                  <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-white/70 dark:text-[#1B4332]/70">Next</div>
+                  <div className="line-clamp-1 text-sm font-semibold">{nextItem.title}</div>
                 </div>
                 <ChevronRight className="h-5 w-5" />
               </Link>
@@ -366,8 +366,8 @@ export default async function LearningItemPage(props: {
                 aria-disabled="true"
               >
                 <div className="min-w-0 text-right">
-                  <div className="text-[0.68rem] font-extrabold uppercase tracking-wide">Next</div>
-                  <div className="line-clamp-1 text-sm font-extrabold">
+                  <div className="text-[0.68rem] font-semibold uppercase tracking-wide">Next</div>
+                  <div className="line-clamp-1 text-sm font-semibold">
                     Complete this item to continue
                   </div>
                 </div>

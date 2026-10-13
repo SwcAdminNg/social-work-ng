@@ -290,7 +290,7 @@ export function CourseSidebar({ courseId, curriculum, resources = [] }: CourseSi
                         href={itemUrl}
                         onClick={() => setIsOpen(false)}
                         aria-current={isActive ? "page" : undefined}
-                        className={`grid min-h-[52px] grid-cols-[28px_minmax(0,1fr)] items-center gap-3 rounded-xl px-2.5 py-2 transition-colors ${
+                        className={`grid min-h-[52px] grid-cols-[28px_minmax(0,1fr)] items-center gap-3 rounded-xl px-2.5 py-2 transition-[background-color,transform] duration-100 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 ${
                           isActive
                             ? "bg-white text-slate-950 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_14px_-6px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] dark:bg-white/10 dark:text-white dark:ring-white/10"
                             : "text-slate-700 hover:bg-black/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.06]"
@@ -373,14 +373,14 @@ export function CourseSidebar({ courseId, curriculum, resources = [] }: CourseSi
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-full w-[88vw] max-w-[360px] flex-col overflow-hidden bg-[#fbfbfd] shadow-2xl transition-transform duration-300 ease-out dark:bg-[#0f1218] lg:hidden ${
+        className={`fixed left-0 top-0 z-50 flex h-full w-[88vw] max-w-[360px] flex-col overflow-hidden bg-[#fbfbfd] shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none dark:bg-[#0f1218] lg:hidden ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {SidebarContent}
       </aside>
 
-      <div className="fixed inset-x-3 bottom-3 z-30 rounded-[22px] bg-white/80 p-2 shadow-[0_18px_50px_-20px_rgba(15,23,42,0.45)] ring-1 ring-black/[0.06] backdrop-blur-xl dark:bg-[#14171f]/80 dark:ring-white/10 lg:hidden">
+      <div className="fixed inset-x-3 bottom-3 z-30 rounded-[22px] bg-white/80 p-2 shadow-[0_18px_50px_-20px_rgba(15,23,42,0.45)] ring-1 ring-black/[0.06] backdrop-blur-xl backdrop-saturate-150 contrast-more:bg-white dark:bg-[#14171f]/80 dark:contrast-more:bg-[#14171f] dark:ring-white/10 lg:hidden">
         <button
           onClick={() => setIsOpen(true)}
           className="grid min-h-[44px] w-full grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl px-2 py-1.5 text-left transition hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
