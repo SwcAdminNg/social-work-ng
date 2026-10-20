@@ -9,6 +9,7 @@ import {
   Check,
   Clock3,
   ExternalLink,
+  Boxes,
   FileText,
   HelpCircle,
   Layers3,
@@ -53,7 +54,14 @@ type CourseItemType =
   | "ASSESSMENT"
   | "ESSAY"
   | "LINKS"
-  | "LIVE_SESSION";
+  | "LIVE_SESSION"
+  | "SCORM";
+
+type CourseScorm = {
+  status?: "PENDING" | "PROCESSING" | "READY" | "FAILED" | null;
+  scorm_version?: string | null;
+  manifest_title?: string | null;
+};
 
 type CourseVideo = {
   status?: "PENDING" | "PROCESSING" | "READY" | "FAILED" | null;
@@ -97,6 +105,7 @@ type CourseItem = {
   quiz?: CourseQuiz | null;
   link?: CourseLink | null;
   live_session?: CourseLiveSession | null;
+  scorm?: CourseScorm | null;
 };
 
 type CourseLiveSession = {
@@ -756,6 +765,7 @@ function itemIcon(item: CourseItem) {
   if (item.item_type === "VIDEO") return <PlayCircle className="h-5 w-5" />;
   if (item.item_type === "LINKS") return <Link2 className="h-5 w-5" />;
   if (item.item_type === "LIVE_SESSION") return <CalendarDays className="h-5 w-5" />;
+  if (item.item_type === "SCORM") return <Boxes className="h-5 w-5" />;
   if (isQuizItem(item) || isEssayItem(item)) return <HelpCircle className="h-5 w-5" />;
   return <FileText className="h-5 w-5" />;
 }
@@ -827,6 +837,11 @@ function getPayloadStatus(item: CourseItem, unlocked: boolean) {
     return item.link?.url ? "Link ready" : "Link hidden";
   }
 
+  if (item.item_type === "SCORM") {
+    if (!item.scorm) return "Lesson hidden";
+    return item.scorm.status === "READY" ? "Interactive lesson ready" : "Lesson being prepared";
+  }
+
   if (item.item_type === "LIVE_SESSION") {
     if (item.live_session?.status === "ENDED" && item.live_session.recording_status === "READY") {
       return "Recording ready";
@@ -865,6 +880,7 @@ function getItemLabel(item: CourseItem) {
   if (item.item_type === "ASSESSMENT" && item.assessment_type) {
     return `${titleCaseEnum(item.assessment_type)} assessment`;
   }
+  if (item.item_type === "SCORM") return "Interactive lesson";
 
   return titleCaseEnum(item.item_type);
 }

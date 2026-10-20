@@ -10,6 +10,7 @@ import { DocumentDownloadButton } from "@/components/learning/DocumentDownloadBu
 import { LinkResourcePanel } from "@/components/learning/LinkResourcePanel";
 import { LiveSessionPanel } from "@/components/learning/LiveSessionPanel";
 import { LessonDescription } from "@/components/learning/LessonDescription";
+import { ScormPlayer } from "@/components/learning/ScormPlayer";
 import Link from "next/link";
 import { CheckCircle, ChevronLeft, ChevronRight, Clock, Lock } from "lucide-react";
 
@@ -256,6 +257,16 @@ export default async function LearningItemPage(props: {
           </div>
         )}
 
+        {item.item_type === "SCORM" && (
+          <ScormPlayer
+            courseId={params.course_id}
+            itemId={item.id}
+            title={item.title}
+            isCompleted={item.is_completed}
+            scorm={item.scorm ?? {}}
+          />
+        )}
+
         {item.item_type === "LINKS" && item.link_url && (
           <LinkResourcePanel
             courseId={params.course_id}
@@ -402,6 +413,7 @@ function getLearningItemLabel(item: LearningItemLabel) {
   if (item.item_type === "ASSESSMENT" && item.assessment_type) {
     return `${item.assessment_type} ASSESSMENT`;
   }
+  if (item.item_type === "SCORM") return "INTERACTIVE LESSON";
 
   return item.item_type;
 }
