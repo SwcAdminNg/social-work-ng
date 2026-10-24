@@ -15,8 +15,22 @@ const protectedRoutes = [
   "/learn",
 ];
 
+// Set MAINTENANCE_MODE=false to take the site out of maintenance.
+const maintenanceMode = process.env.MAINTENANCE_MODE !== "false";
+
 export default auth((req) => {
   const { nextUrl } = req;
+
+  if (maintenanceMode) {
+    const isStaticFile = /\.[a-z0-9]+$/i.test(nextUrl.pathname);
+    if (nextUrl.pathname === "/maintenance" || isStaticFile) {
+      return NextResponse.next();
+    }
+    return NextResponse.rewrite(new URL("/maintenance", nextUrl), {
+      status: 503,
+      headers: { "Retry-After": "3600" },
+    });
+  }
   const isLoggedIn = !!req.auth;
 
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
