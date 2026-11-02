@@ -1,17 +1,26 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import {
   motion,
+  useMotionValueEvent,
   useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
 } from "motion/react";
-import { Eyebrow, Reveal, useMediaQuery } from "./motion";
+import {
+  Eyebrow,
+  Reveal,
+  trackKeyframes,
+  useCardTrack,
+  useMediaQuery,
+} from "./motion";
 import { learningOptions, type ServiceCard } from "./content";
+
+const COUNT = learningOptions.length;
 
 // Smoothing for the horizontal travel: settles without wobble.
 const spring = { stiffness: 220, damping: 32, mass: 0.6 };
@@ -90,9 +99,9 @@ function Poster({
 
 /**
  * The three learning options as full-photograph posters. On laptops the
- * row pins and vertical scrolling slides the posters in from the right;
- * on phones they stack, each poster's words arriving from the right as it
- * comes into view.
+ * row pins and vertical scrolling brings each poster to the front in turn,
+ * holding on it long enough to read before sliding to the next; on phones
+ * they stack, each poster's words arriving from the right.
  */
 export default function LearningOptions() {
   const reduce = useReducedMotion();
@@ -101,40 +110,28 @@ export default function LearningOptions() {
 
   const ref = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
-  const [distance, setDistance] = useState(0);
-
-  useLayoutEffect(() => {
-    if (!horizontal) return;
-    const measure = () => {
-      const track = trackRef.current;
-      if (!track) return;
-      setDistance(
-        Math.max(0, track.scrollWidth - document.documentElement.clientWidth),
-      );
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (trackRef.current) ro.observe(trackRef.current);
-    window.addEventListener("resize", measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, [horizontal]);
+  const { distance, extra, stops } = useCardTrack(horizontal, trackRef, COUNT);
+  const { input, output } = trackKeyframes(stops);
 
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end end"],
   });
   const progress = useSpring(scrollYProgress, spring);
-  const x = useTransform(progress, [0, 1], [0, -distance]);
-  const barScale = useTransform(progress, [0, 1], [0.1, 1]);
+  const x = useTransform(progress, input, output);
+  const barScale = useTransform(scrollYProgress, [0, 1], [0.08, 1]);
+
+  const [active, setActive] = useState(0);
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    const next = Math.min(COUNT - 1, Math.max(0, Math.floor(v * COUNT)));
+    setActive((prev) => (prev === next ? prev : next));
+  });
 
   return (
     <section
       id="learning-options"
       aria-label="Three learning options"
-      className="relative bg-white dark:bg-[#0a0a0a] rounded-t-[40px] md:rounded-t-[56px] -mt-10 pt-24 md:pt-32 pb-20 md:pb-28 scroll-mt-20"
+      className="relative bg-white dark:bg-[#0B1410] rounded-t-[40px] md:rounded-t-[56px] -mt-10 pt-24 md:pt-32 pb-20 md:pb-28 scroll-mt-20"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-10">
         <Reveal>
@@ -146,13 +143,13 @@ export default function LearningOptions() {
         <div
           ref={ref}
           className="relative mt-6"
-          style={{ height: `calc(100vh + ${distance}px)` }}
+          style={{ height: `calc(100vh + ${distance + extra}px)` }}
         >
           <div className="sticky top-[84px] h-[calc(100vh-84px)] overflow-hidden flex flex-col justify-center">
             <motion.div
               ref={trackRef}
               style={{ x }}
-              className="flex items-stretch gap-6 w-max pl-[max(1.5rem,calc((100vw-72rem)/2+2.5rem))] pr-[10vw] will-change-transform"
+              className="flex items-stretch gap-6 w-max pl-[max(1.5rem,calc((100vw-72rem)/2+2.5rem))] pr-[max(1.5rem,calc((100vw-72rem)/2+2.5rem))] will-change-transform"
             >
               {learningOptions.map((item, i) => (
                 <Poster
@@ -170,7 +167,11 @@ export default function LearningOptions() {
                   className="h-full origin-left rounded-full bg-[#2D6A4F] dark:bg-[#52b788]"
                 />
               </div>
-              <p className="inline-flex items-center gap-2 text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
+              <p className="tabular-nums text-[0.85rem] font-semibold text-gray-700 dark:text-[#D7E2DB]">
+                {String(active + 1).padStart(2, "0")}
+                <span className="text-gray-400"> / {String(COUNT).padStart(2, "0")}</span>
+              </p>
+              <p className="hidden xl:inline-flex items-center gap-2 text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-gray-500 dark:text-[#A3B3A9]">
                 Keep scrolling
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </p>

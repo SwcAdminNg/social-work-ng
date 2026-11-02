@@ -94,7 +94,7 @@ function LinkList({ links }: { links: { label: string; href: string }[] }) {
         <li key={label}>
           <Link
             href={href}
-            className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
+            className="text-sm font-medium text-gray-600 dark:text-[#A3B3A9] hover:text-[#2D6A4F] dark:hover:text-[#95d5b2] transition-colors duration-200"
           >
             {label}
           </Link>
@@ -111,7 +111,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         className="w-4 h-px bg-[#2D6A4F] dark:bg-[#52b788]"
         aria-hidden="true"
       />
-      <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#2D6A4F] dark:text-[#52b788]">
+      <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#2D6A4F] dark:text-[#74c69d]">
         {children}
       </span>
     </div>
@@ -123,7 +123,7 @@ export default function Footer() {
 
   return (
     <footer
-      className="relative bg-white dark:bg-[#060f0a] border-t border-gray-100 dark:border-gray-900 overflow-hidden"
+      className="relative bg-white dark:bg-[#060f0a] border-t border-gray-100 dark:border-white/[0.06] overflow-hidden"
       aria-label="Site footer"
     >
       {/* Decorative Blur Blob */}
@@ -150,7 +150,7 @@ export default function Footer() {
               />
             </Link>
 
-            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm">
+            <p className="text-sm text-gray-500 dark:text-[#A3B3A9] leading-relaxed max-w-sm">
               Social Work Consultancy Ltd strengthens social work and social
               services through professional learning, research, policy and
               advocacy. We connect evidence, professional knowledge and local
@@ -164,7 +164,7 @@ export default function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-[#2D6A4F] dark:hover:bg-[#52b788] transition-all duration-300 no-underline"
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-[#16231C] text-gray-500 dark:text-[#A3B3A9] hover:text-white dark:hover:text-white hover:bg-[#2D6A4F] dark:hover:bg-[#52b788] transition-all duration-300 no-underline"
                 >
                   {icon}
                 </Link>
@@ -190,22 +190,22 @@ export default function Footer() {
             <ul className="flex flex-col gap-5" role="list">
               {contactItems.map(({ icon, label, value, href }) => (
                 <li key={label} className="flex items-start gap-3 group">
-                  <span className="mt-0.5 flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-900 text-[#2D6A4F] dark:text-[#52b788] group-hover:bg-[#2D6A4F] group-hover:text-white transition-colors duration-300">
+                  <span className="mt-0.5 flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-[#16231C] text-[#2D6A4F] dark:text-[#74c69d] group-hover:bg-[#2D6A4F] group-hover:text-white transition-colors duration-300">
                     {icon}
                   </span>
                   <div className="flex flex-col">
-                    <span className="text-[0.65rem] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-bold mb-0.5">
+                    <span className="text-[0.65rem] uppercase tracking-widest text-gray-400 dark:text-[#ECF2EE]0 font-bold mb-0.5">
                       {label}
                     </span>
                     {href ? (
                       <a
                         href={href}
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
+                        className="text-sm font-medium text-gray-700 dark:text-[#C3D1C8] hover:text-[#2D6A4F] dark:hover:text-[#95d5b2] transition-colors duration-200"
                       >
                         {value}
                       </a>
                     ) : (
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <span className="text-sm font-medium text-gray-700 dark:text-[#C3D1C8]">
                         {value}
                       </span>
                     )}
@@ -217,7 +217,7 @@ export default function Footer() {
         </div>
 
         {/* ── Professional learning ── */}
-        <div className="mt-14 flex flex-col sm:flex-row sm:items-center justify-between gap-5 rounded-2xl bg-[#14402F] dark:bg-[#0f2a20] px-6 py-6 sm:px-8">
+        <div className="mt-14 flex flex-col sm:flex-row sm:items-center justify-between gap-5 rounded-2xl bg-[#14402F] dark:bg-[#0F2A20] px-6 py-6 sm:px-8">
           <div className="flex items-start gap-4">
             <span className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-white/10 text-[#EBA937]">
               <GraduationCap className="w-5 h-5" aria-hidden="true" />
@@ -242,21 +242,21 @@ export default function Footer() {
         </div>
 
         {/* ── Bottom bar ── */}
-        <div className="mt-10 pt-8 border-t border-gray-100 dark:border-gray-900 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-500 text-center md:text-left">
+        <div className="mt-10 pt-8 border-t border-gray-100 dark:border-white/[0.06] flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm font-medium text-gray-500 dark:text-[#ECF2EE]0 text-center md:text-left">
             © {year} Social Work Consultancy Ltd. All rights reserved.
           </p>
 
           <div className="flex items-center gap-6 text-sm font-medium">
             <Link
               href="/privacy-policy"
-              className="text-gray-500 dark:text-gray-500 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
+              className="text-gray-500 dark:text-[#ECF2EE]0 hover:text-[#2D6A4F] dark:hover:text-[#95d5b2] transition-colors duration-200"
             >
               Privacy Policy
             </Link>
             <Link
               href="/terms-of-service"
-              className="text-gray-500 dark:text-gray-500 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
+              className="text-gray-500 dark:text-[#ECF2EE]0 hover:text-[#2D6A4F] dark:hover:text-[#95d5b2] transition-colors duration-200"
             >
               Terms of Service
             </Link>

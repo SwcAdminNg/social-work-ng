@@ -16,35 +16,58 @@ import { services, type ServiceCard } from "./content";
 
 const COUNT = services.items.length;
 
-// Cross-fade shared by the service copy: opacity and a short vertical
-// travel, run by CSS so the browser composites it.
+// Cross-fade shared by the service copy and photographs: opacity and a
+// short travel, run by CSS so the browser composites it.
 const fade =
-  "transition-[opacity,translate] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-opacity motion-reduce:duration-300 motion-reduce:!translate-none";
+  "transition-[opacity,translate,scale] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-opacity motion-reduce:duration-300 motion-reduce:!translate-none motion-reduce:!scale-100";
 
-// One segment of the progress rail; fills as its service is scrolled through.
-function Segment({
+// One step of the vertical rail: its bar fills top to bottom as the service
+// is scrolled through.
+function RailStep({
   progress,
   index,
+  item,
+  current,
 }: {
   progress: MotionValue<number>;
   index: number;
+  item: ServiceCard;
+  current: boolean;
 }) {
-  const scaleX = useTransform(
+  const scaleY = useTransform(
     progress,
     [index / COUNT, (index + 1) / COUNT],
     [0, 1],
   );
   return (
-    <span className="block h-[2px] w-full rounded-full bg-white/20 overflow-hidden">
-      <motion.span
-        style={{ scaleX }}
-        className="block h-full w-full origin-left rounded-full bg-[#EBA937]"
-      />
-    </span>
+    <li className="flex items-stretch justify-end gap-4">
+      <span className="py-1 text-right">
+        <span
+          className={`block text-[0.72rem] font-bold tabular-nums transition-colors duration-500 ${
+            current ? "text-[#F3C56B]" : "text-white/40"
+          }`}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <span
+          className={`block mt-0.5 max-w-[14ch] text-[0.85rem] font-bold leading-snug transition-colors duration-500 ${
+            current ? "text-white" : "text-white/45"
+          }`}
+        >
+          {item.title}
+        </span>
+      </span>
+      <span className="relative w-[2px] min-h-[4.5rem] rounded-full bg-white/20 overflow-hidden">
+        <motion.span
+          style={{ scaleY }}
+          className="absolute inset-0 origin-top rounded-full bg-[#EBA937]"
+        />
+      </span>
+    </li>
   );
 }
 
-// The words for one service, set on a dark photograph.
+// The words for one service.
 function Copy({ item, index }: { item: ServiceCard; index: number }) {
   return (
     <>
@@ -52,23 +75,20 @@ function Copy({ item, index }: { item: ServiceCard; index: number }) {
         {String(index + 1).padStart(2, "0")}
         <span className="h-px w-8 bg-current" aria-hidden="true" />
       </p>
-      <h3
-        id={`${item.id}-title`}
-        className="t-h2 font-bold mt-4 text-white [text-shadow:0_2px_24px_rgba(0,0,0,0.35)]"
-      >
+      <h3 id={`${item.id}-title`} className="t-h3 font-bold mt-4 text-white">
         {item.title}
       </h3>
-      <p className="mt-4 text-[1.1rem] md:text-[1.2rem] font-medium leading-snug text-[#F3C56B] max-w-[40ch]">
+      <p className="mt-3 text-[1.02rem] md:text-[1.06rem] font-medium leading-snug text-[#F3C56B] max-w-[40ch]">
         {item.tagline}
       </p>
-      <div className="mt-5 space-y-3 text-[0.98rem] md:text-[1.02rem] leading-relaxed text-white/85 max-w-[58ch]">
+      <div className="mt-4 space-y-2.5 text-[0.93rem] leading-[1.6] text-white/85 max-w-[58ch]">
         {item.paragraphs.map((p) => (
           <p key={p}>{p}</p>
         ))}
       </div>
       <Link
         href={item.button.href}
-        className="group mt-7 inline-flex items-center gap-2 min-h-[52px] px-7 rounded-full bg-white text-[#14402F] text-[0.95rem] font-bold shadow-[0_12px_30px_-10px_rgba(0,0,0,0.6)] hover:bg-[#EBA937] hover:text-[#10291E] active:scale-[0.97] transition-[background-color,color,scale] duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
+        className="group mt-5 inline-flex items-center gap-2 min-h-[48px] px-6 rounded-full bg-white text-[#14402F] text-[0.95rem] font-bold shadow-[0_12px_30px_-10px_rgba(0,0,0,0.6)] hover:bg-[#EBA937] hover:text-[#10291E] active:scale-[0.97] transition-[background-color,color,scale] duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/70"
       >
         {item.button.label}
         <ArrowRight
@@ -81,14 +101,16 @@ function Copy({ item, index }: { item: ServiceCard; index: number }) {
 }
 
 /**
- * The three core service areas as full-screen photographs. On laptops the
- * stage stays pinned while scrolling moves from one service to the next:
- * the photograph and the words cross-fade together, and a rail at the foot
- * shows how far through the three you are. Phones get the same posters
- * stacked, each scrolling past in turn.
+ * The three core service areas, one dark chapter. The heading opens it;
+ * then, on laptops, the stage beneath stays pinned while scrolling moves
+ * from one service to the next — each photograph fills the screen and
+ * cross-fades into the next while the words change in a glass panel at the
+ * foot, with a vertical rail on the right marking progress. Phones stack
+ * the services, each with its photograph above its words.
  */
 export default function Services() {
-  const pinned = useMediaQuery("(min-width: 1024px) and (min-height: 640px)");
+  // Pin only where a whole service fits on one screen.
+  const pinned = useMediaQuery("(min-width: 1024px) and (min-height: 700px)");
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -107,13 +129,14 @@ export default function Services() {
     <section
       id="services"
       aria-labelledby="services-heading"
-      className="relative bg-[#EEF5F1] dark:bg-[#0f1713] rounded-t-[40px] md:rounded-t-[56px] -mt-10 pt-24 md:pt-32 scroll-mt-20"
+      className="relative bg-[#04120b] text-white rounded-t-[40px] md:rounded-t-[56px] -mt-10 pt-24 md:pt-32 scroll-mt-20"
     >
-      <div className="max-w-6xl mx-auto px-6 md:px-10 pb-14 md:pb-20">
+      <div className="relative max-w-6xl mx-auto px-6 md:px-10 pb-12 md:pb-10">
         <SectionHeading
           id="services-heading"
           eyebrow={services.eyebrow}
           title={services.title}
+          tone="dark"
         >
           <p>{services.intro}</p>
         </SectionHeading>
@@ -136,14 +159,14 @@ export default function Services() {
             />
           ))}
 
-          <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#04120b] text-white">
-            {/* Photographs */}
+          <div className="sticky top-0 h-[100vh] overflow-hidden bg-[#04120b]">
+            {/* Photographs, filling the screen */}
             {services.items.map((item, i) => (
               <div
                 key={item.id}
                 aria-hidden="true"
-                className={`absolute inset-0 transition-[opacity,transform] duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:duration-300 motion-reduce:!scale-100 ${
-                  i === active ? "opacity-100 scale-100" : "opacity-0 scale-[1.06]"
+                className={`absolute inset-0 ${fade} ${
+                  i === active ? "opacity-100 scale-100" : "opacity-0 scale-[1.05]"
                 }`}
               >
                 <img
@@ -151,16 +174,18 @@ export default function Services() {
                   alt=""
                   loading="lazy"
                   decoding="async"
+                  style={{ objectPosition: item.focus }}
                   className="h-full w-full object-cover"
                 />
               </div>
             ))}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#04120b]/90 via-[#04120b]/55 via-45% to-[#04120b]/15" />
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#04120b]/85 to-transparent" />
-            <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#04120b]/60 to-transparent" />
+            {/* Light wash only: deeper at the foot, a lift under the header */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#04120b]/80 via-[#04120b]/20 via-45% to-[#04120b]/5" />
+            <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#04120b]/70 to-transparent" />
 
-            <div className="relative h-full max-w-6xl mx-auto px-6 md:px-10 flex flex-col justify-end pt-[calc(84px+2rem)] pb-9">
-              <div className="grid">
+            <div className="relative h-full max-w-6xl mx-auto px-6 md:px-10 pt-[calc(84px+1rem)] pb-[4.5rem] flex items-end justify-between gap-10">
+              {/* Words, in a glass panel */}
+              <div className="grid w-full max-w-[600px]">
                 {services.items.map((item, i) => {
                   const isActive = i === active;
                   return (
@@ -169,7 +194,7 @@ export default function Services() {
                       aria-labelledby={`${item.id}-title`}
                       aria-hidden={!isActive}
                       inert={!isActive ? true : undefined}
-                      className={`[grid-area:1/1] self-end max-w-[620px] ${fade} ${offset(i)} ${
+                      className={`[grid-area:1/1] self-end rounded-[28px] bg-[#04120b]/55 backdrop-blur-xl ring-1 ring-white/10 p-7 lg:p-8 ${fade} ${offset(i)} ${
                         isActive ? "opacity-100" : "opacity-0 pointer-events-none"
                       }`}
                     >
@@ -179,55 +204,50 @@ export default function Services() {
                 })}
               </div>
 
-              {/* Progress rail */}
-              <div className="mt-10 flex items-end justify-between gap-6">
-                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-white/50">
-                  Our services
-                </p>
-                <p className="tabular-nums text-[0.85rem] font-semibold text-white/80">
+              {/* Vertical progress rail */}
+              <div className="shrink-0 self-end pb-2" aria-hidden="true">
+                <p className="mb-4 text-right tabular-nums text-[0.85rem] font-semibold text-white/80">
                   {String(active + 1).padStart(2, "0")}
                   <span className="text-white/40"> / {String(COUNT).padStart(2, "0")}</span>
                 </p>
+                <ol className="space-y-4">
+                  {services.items.map((item, i) => (
+                    <RailStep
+                      key={item.id}
+                      progress={scrollYProgress}
+                      index={i}
+                      item={item}
+                      current={i === active}
+                    />
+                  ))}
+                </ol>
               </div>
-              <ol className="mt-3 grid grid-cols-3 gap-5" aria-hidden="true">
-                {services.items.map((item, i) => (
-                  <li key={item.id}>
-                    <Segment progress={scrollYProgress} index={i} />
-                    <p
-                      className={`mt-3 text-[0.85rem] font-bold leading-tight transition-colors duration-500 ${
-                        i === active ? "text-white" : "text-white/50"
-                      }`}
-                    >
-                      {item.title}
-                    </p>
-                  </li>
-                ))}
-              </ol>
             </div>
           </div>
         </div>
       ) : (
-        <div ref={ref} className="space-y-3">
+        <div ref={ref} className="relative max-w-6xl mx-auto px-6 md:px-10 space-y-16 md:space-y-20 pb-28 md:pb-32">
           {services.items.map((item, i) => (
             <article
               key={item.id}
               id={item.id}
               aria-labelledby={`${item.id}-title`}
-              className="relative min-h-[92svh] overflow-hidden bg-[#04120b] text-white flex flex-col justify-end scroll-mt-20"
+              className="scroll-mt-28"
             >
-              <img
-                src={item.image}
-                alt={item.imageAlt}
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#04120b] via-[#04120b]/75 via-45% to-[#04120b]/10" />
-              <div className="relative px-6 md:px-10 pt-[46svh] pb-12">
-                <Reveal amount={0.2}>
-                  <Copy item={item} index={i} />
-                </Reveal>
-              </div>
+              <Reveal amount={0.15}>
+                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[24px] bg-[#0c2a1e] ring-1 ring-white/10 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.8)]">
+                  <img
+                    src={item.image}
+                    alt={item.imageAlt}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                </div>
+              </Reveal>
+              <Reveal amount={0.2} className="mt-7">
+                <Copy item={item} index={i} />
+              </Reveal>
             </article>
           ))}
         </div>

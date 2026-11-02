@@ -26,7 +26,7 @@ export default function Intro() {
     <section
       id="about"
       aria-labelledby="intro-heading"
-      className="relative bg-white dark:bg-[#0a0a0a] rounded-t-[40px] md:rounded-t-[56px] -mt-10 pt-24 pb-24 md:pt-32 md:pb-36 scroll-mt-20"
+      className="relative bg-white dark:bg-[#0B1410] rounded-t-[40px] md:rounded-t-[56px] -mt-10 pt-24 pb-24 md:pt-32 md:pb-36 scroll-mt-20"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-10 grid lg:grid-cols-12 gap-12 lg:gap-16">
         <div className="lg:col-span-5">
@@ -54,11 +54,11 @@ export default function Intro() {
 
         <div className="lg:col-span-7 lg:pt-3">
           <Reveal>
-            <p className="t-lead text-gray-900 dark:text-gray-100 max-w-[58ch]">
+            <p className="t-lead text-gray-900 dark:text-[#ECF2EE] max-w-[58ch]">
               {lead}
             </p>
           </Reveal>
-          <div className="mt-9 space-y-6 t-body text-gray-600 dark:text-gray-400 max-w-[64ch]">
+          <div className="mt-9 space-y-6 t-body text-gray-600 dark:text-[#A3B3A9] max-w-[64ch]">
             {rest.slice(0, 2).map((p) => (
               <Reveal key={p}>
                 <p>{p}</p>
@@ -68,7 +68,7 @@ export default function Intro() {
           <Reveal className="my-10 lg:hidden">
             {portrait("aspect-[16/11]")}
           </Reveal>
-          <div className="mt-6 space-y-6 t-body text-gray-600 dark:text-gray-400 max-w-[64ch]">
+          <div className="mt-6 space-y-6 t-body text-gray-600 dark:text-[#A3B3A9] max-w-[64ch]">
             {rest.slice(2).map((p) => (
               <Reveal key={p}>
                 <p>{p}</p>
@@ -77,19 +77,19 @@ export default function Intro() {
           </div>
 
           <Reveal className="mt-14">
-            <p className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">
+            <p className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-gray-500 dark:text-[#A3B3A9]">
               What we stand for
             </p>
             <ol className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-px bg-gray-200 dark:bg-white/10 rounded-[20px] overflow-hidden ring-1 ring-gray-200 dark:ring-white/10">
               {intro.values.map((value, i) => (
                 <li
                   key={value}
-                  className="bg-white dark:bg-gray-950 p-5 md:p-4 lg:p-5 min-h-[7.5rem] flex flex-col justify-between last:col-span-2 md:last:col-span-1"
+                  className="bg-white dark:bg-[#0F1A14] p-5 md:p-4 lg:p-5 min-h-[7.5rem] flex flex-col justify-between last:col-span-2 md:last:col-span-1"
                 >
                   <span className="text-[0.75rem] font-bold tabular-nums text-[#B7791F] dark:text-[#F3C56B]">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="text-[0.95rem] font-bold leading-snug text-gray-900 dark:text-gray-100">
+                  <span className="text-[0.95rem] font-bold leading-snug text-gray-900 dark:text-[#ECF2EE]">
                     {value}
                   </span>
                 </li>

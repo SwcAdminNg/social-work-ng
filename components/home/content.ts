@@ -113,6 +113,8 @@ export type ServiceCard = {
   tagline: string;
   image: string;
   imageAlt: string;
+  // Focal point kept in view when the photograph fills the screen.
+  focus?: string;
   paragraphs: string[];
   button: { label: string; href: string };
 };
@@ -130,6 +132,7 @@ export const services = {
       image: `${IMG}/digital-collaboration.webp`,
       imageAlt:
         "Three colleagues planning learning resources together with tablets",
+      focus: "50% 30%",
       paragraphs: [
         "Our learning services support people at different stages of their professional journey, from those exploring social work to experienced practitioners and organisations developing their workforce.",
         "Through our dedicated platform, socialworknigeria.org, we provide a home for professional learning that connects key concepts to real-world practice. Our approach encourages learners to reflect, question assumptions and consider how their learning applies to their own role and setting.",
@@ -144,6 +147,7 @@ export const services = {
         "We help organisations understand their needs and strengthen their response.",
       image: `${IMG}/research.webp`,
       imageAlt: "A professional reviewing printed charts and reports",
+      focus: "50% 55%",
       paragraphs: [
         "Relevant evidence helps organisations decide where to focus resources, how to design services, and whether their work achieves the intended impact.",
         "We support research, needs assessments, stakeholder consultation and programme evaluation. Our approach emphasises clear questions, appropriate methods and findings that people can understand and use.",
@@ -158,6 +162,7 @@ export const services = {
       image: `${IMG}/policy-consultation.webp`,
       imageAlt:
         "An inclusive policy consultation around a table, with participants listening and taking notes",
+      focus: "50% 35%",
       paragraphs: [
         "We support organisations in developing and reviewing policies, understanding implementation challenges and planning advocacy on issues affecting people’s rights and wellbeing.",
         "Our approach considers both the written policy and the conditions required to implement it. This includes professional responsibilities, organisational capacity, local context and the experiences of the people the policy is intended to support.",
@@ -325,6 +330,9 @@ export const learningCategories = {
 
 export const learningCta = {
   title: "Invest in Your Development. Strengthen Your Contribution.",
+  image: `${IMG}/learners-together.webp`,
+  imageAlt:
+    "Three learners of different ages studying together at laptops in a bright room",
   paragraphs: [
     "Professional learning is most valuable when it helps you respond more thoughtfully and effectively to the people and situations you encounter.",
     "Visit our learning platform to explore current opportunities, understand what each course offers, and choose learning that fits your role and development goals.",

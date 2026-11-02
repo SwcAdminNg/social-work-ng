@@ -33,7 +33,7 @@ export default function SectionHeading({
       </Eyebrow>
       <h2
         id={id}
-        className={`t-h2 font-bold ${dark ? "text-white" : "text-gray-900 dark:text-gray-50"}`}
+        className={`t-h2 font-bold ${dark ? "text-white" : "text-gray-900 dark:text-[#ECF2EE]"}`}
       >
         <WordReveal text={title} />
       </h2>
@@ -42,7 +42,7 @@ export default function SectionHeading({
           from="up"
           delay={0.2}
           className={`mt-6 space-y-4 t-body ${
-            dark ? "text-white/75" : "text-gray-600 dark:text-gray-400"
+            dark ? "text-white/75" : "text-gray-600 dark:text-[#A3B3A9]"
           }`}
         >
           {children}

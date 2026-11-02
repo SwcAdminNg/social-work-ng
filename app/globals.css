@@ -14,9 +14,12 @@
   --foreground: #171717;
 }
 
+/* Dark mode: deep green-black rather than pure black, with off-white text,
+   so the brand carries through and contrast stays easy on the eyes. */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #0b1410;
+  --foreground: #ecf2ee;
+  color-scheme: dark;
 }
 
 body {
@@ -45,7 +48,7 @@ body {
 }
 
 .t-h2 {
-  font-size: clamp(1.7rem, calc(0.95rem + 2.1vw), 2.7rem);
+  font-size: clamp(1.55rem, calc(0.9rem + 1.7vw), 2.3rem);
   line-height: 1.04;
   letter-spacing: -0.035em;
 }
@@ -94,7 +97,7 @@ body {
   }
 
   .hero-rail {
-    padding-bottom: 3.25rem;
+    padding-bottom: 4rem;
   }
 }
 

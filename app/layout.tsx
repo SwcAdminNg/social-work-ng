@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import ThemeProvider from "@/components/generic/ThemeProvider";
-import ThemeToggle from "@/components/generic/ThemeToggle";
 import { auth } from "@/auth";
 import SessionMonitor from "@/components/auth/SessionMonitor";
 import QueryProvider from "@/components/generic/QueryProvider";
@@ -35,7 +34,6 @@ export default async function RootLayout({
           <QueryProvider>
             <SessionMonitor session={session}>
               {children}
-              <ThemeToggle />
               <Toaster richColors position="top-right" />
             </SessionMonitor>
           </QueryProvider>

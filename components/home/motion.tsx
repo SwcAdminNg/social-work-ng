@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   motion,
   useReducedMotion,
@@ -156,9 +156,9 @@ export function Eyebrow({
   className?: string;
 }) {
   const tones = {
-    green: "text-[#2D6A4F] dark:text-[#52b788]",
+    green: "text-[#2D6A4F] dark:text-[#74c69d]",
     gold: "text-[#F3C56B]",
-    muted: "text-gray-500 dark:text-gray-400",
+    muted: "text-gray-500 dark:text-[#A3B3A9]",
   };
   return (
     <p
@@ -168,6 +168,69 @@ export function Eyebrow({
       {children}
     </p>
   );
+}
+
+/**
+ * Measures a pinned horizontal row of cards so vertical scrolling can slide
+ * it sideways and pause on each card. `stops` are the track offsets that
+ * bring each card to the front; `distance` is the full travel; `extra` is
+ * the additional scroll length that gives every card its reading time
+ * (`dwell` screens per card).
+ */
+export function useCardTrack(
+  enabled: boolean,
+  trackRef: React.RefObject<HTMLDivElement | null>,
+  count: number,
+  dwell = 0.6,
+) {
+  const [track, setTrack] = useState({
+    distance: 0,
+    extra: 0,
+    stops: [] as number[],
+  });
+
+  useLayoutEffect(() => {
+    if (!enabled) return;
+    const measure = () => {
+      const el = trackRef.current;
+      if (!el) return;
+      const viewport = document.documentElement.clientWidth;
+      const distance = Math.max(0, el.scrollWidth - viewport);
+      const cards = Array.from(el.children) as HTMLElement[];
+      const first = cards[0]?.offsetLeft ?? 0;
+      const stops = cards.map((c) => -Math.min(distance, c.offsetLeft - first));
+      setTrack({
+        distance,
+        extra: Math.round(window.innerHeight * dwell * count),
+        stops,
+      });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (trackRef.current) ro.observe(trackRef.current);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [enabled, trackRef, count, dwell]);
+
+  return track;
+}
+
+// Keyframes for a card track: the row holds on each card, then slides to
+// the next, holds again, and so on — equal time for every card.
+export function trackKeyframes(stops: number[]) {
+  const n = stops.length;
+  if (n === 0) return { input: [0, 1], output: [0, 0] };
+  const segments = 2 * n - 1;
+  const input: number[] = [];
+  const output: number[] = [];
+  stops.forEach((x, k) => {
+    input.push((2 * k) / segments, (2 * k + 1) / segments);
+    output.push(x, x);
+  });
+  return { input, output };
 }
 
 export function useMediaQuery(query: string) {
