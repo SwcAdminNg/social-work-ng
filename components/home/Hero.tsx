@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowRight, Pause, Play } from "lucide-react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { heroSlides } from "./content";
 import { calmSpring } from "./motion";
@@ -40,9 +40,10 @@ function Headline({ lines }: { lines: string[] }) {
 /**
  * Full-screen hero that moves through the four banners (Home, E-Learning,
  * Research, Policy and Advocacy) on a timer, with a progress rail that
- * doubles as the control. It pauses while hovered, focused, off screen or
- * when the tab is hidden, and never auto-advances for readers who prefer
- * reduced motion.
+ * doubles as the control. It keeps moving under the cursor; a pause button
+ * lets readers hold a banner to finish reading. It also holds while off
+ * screen or when the tab is hidden, and starts paused for readers who
+ * prefer reduced motion.
  */
 export default function Hero() {
   const reduce = useReducedMotion();
@@ -53,11 +54,12 @@ export default function Hero() {
   // Bumped on every change so the fill animation restarts even when the
   // same banner is chosen again.
   const [cycle, setCycle] = useState(0);
-  const [hover, setHover] = useState(false);
-  const [focus, setFocus] = useState(false);
+  const [held, setHeld] = useState<boolean | null>(null);
   const [hidden, setHidden] = useState(false);
 
-  const paused = !!reduce || hover || focus || hidden || !inView;
+  // Held by the reader; before they choose, follow their motion preference.
+  const userPaused = held ?? !!reduce;
+  const paused = userPaused || hidden || !inView;
 
   const go = (i: number) => {
     setActive(((i % COUNT) + COUNT) % COUNT);
@@ -110,8 +112,6 @@ export default function Hero() {
       aria-label="Introduction"
       data-nav-bg="rgba(4, 18, 11, 0.3)"
       data-nav-theme="dark"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       className={`relative -mt-[84px] min-h-[100svh] bg-[#04120b] text-white overflow-hidden ${
         paused ? "is-paused" : ""
       }`}
@@ -258,28 +258,41 @@ export default function Hero() {
             <p className="hidden md:block text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-white/50">
               Our focus areas
             </p>
-            <a
-              href="#about"
-              className="group inline-flex items-center gap-2 text-[0.8rem] font-semibold text-white/70 hover:text-white transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              Scroll
-              <span className="flex items-center justify-center w-8 h-8 rounded-full ring-1 ring-white/30 group-hover:ring-white/70 transition-colors">
-                <ArrowDown
-                  className="w-4 h-4 transition-transform group-hover:translate-y-0.5"
-                  aria-hidden="true"
-                />
-              </span>
-            </a>
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                aria-pressed={userPaused}
+                aria-label={userPaused ? "Resume the banners" : "Pause the banners"}
+                onClick={() => setHeld(!userPaused)}
+                className="group inline-flex items-center gap-2 text-[0.8rem] font-semibold text-white/70 hover:text-white transition-colors rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <span className="hidden sm:inline">{userPaused ? "Play" : "Pause"}</span>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full ring-1 ring-white/30 group-hover:ring-white/70 transition-colors">
+                  {userPaused ? (
+                    <Play className="w-3.5 h-3.5 translate-x-px" aria-hidden="true" />
+                  ) : (
+                    <Pause className="w-3.5 h-3.5" aria-hidden="true" />
+                  )}
+                </span>
+              </button>
+              <a
+                href="#about"
+                className="group inline-flex items-center gap-2 text-[0.8rem] font-semibold text-white/70 hover:text-white transition-colors rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <span className="hidden sm:inline">Scroll</span>
+                <span className="flex items-center justify-center w-8 h-8 rounded-full ring-1 ring-white/30 group-hover:ring-white/70 transition-colors">
+                  <ArrowDown
+                    className="w-4 h-4 transition-transform group-hover:translate-y-0.5"
+                    aria-hidden="true"
+                  />
+                </span>
+              </a>
+            </div>
           </div>
           <div
             role="tablist"
             aria-label="Our focus areas"
             className="grid grid-cols-4 gap-3 md:gap-6"
-            onFocus={() => setFocus(true)}
-            onBlur={(e) => {
-              if (!e.currentTarget.contains(e.relatedTarget as Node))
-                setFocus(false);
-            }}
           >
             {heroSlides.map((s, i) => {
               const selected = i === active;
