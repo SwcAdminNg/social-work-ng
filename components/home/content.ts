@@ -168,7 +168,10 @@ export const services = {
         "Our approach considers both the written policy and the conditions required to implement it. This includes professional responsibilities, organisational capacity, local context and the experiences of the people the policy is intended to support.",
         "We also help organisations communicate their evidence and priorities through policy briefs, consultations and stakeholder engagement.",
       ],
-      button: { label: "Explore Policy and Advocacy", href: "#contact" },
+      button: {
+        label: "Explore Policy and Advocacy",
+        href: "/policy-and-advocacy",
+      },
     },
   ] satisfies ServiceCard[],
 };

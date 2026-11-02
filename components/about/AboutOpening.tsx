@@ -1,21 +1,13 @@
 "use client";
 
-import { useRef } from "react";
 import Link from "next/link";
-import {
-  motion,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-} from "motion/react";
-import { Eyebrow, Reveal, WordReveal, calmSpring } from "@/components/home/motion";
+import { Eyebrow, Reveal, WordReveal } from "@/components/home/motion";
+import OpeningPhoto from "@/components/shared/OpeningPhoto";
 import { opening } from "./content";
 
 /**
  * The page's opening: the organisation named in large type, its tagline,
- * and the photograph of a facilitated discussion set into the page whole,
- * so no face or gesture is ever cropped away. The picture settles in as
- * the page opens and eases a touch closer while the reader scrolls.
+ * and the photograph of a facilitated discussion set into the page whole.
  */
 export default function AboutOpening() {
   const [first, second] = opening.paragraphs;
@@ -49,7 +41,14 @@ export default function AboutOpening() {
           </Reveal>
         </div>
 
-        <Photo />
+        <OpeningPhoto
+          src={opening.image}
+          alt={opening.imageAlt}
+          width={1672}
+          height={941}
+          note={opening.imageNote}
+          className="mt-12 md:mt-16"
+        />
 
         <div className="mt-12 md:mt-16 grid lg:grid-cols-12 gap-10 lg:gap-16">
           <div className="lg:col-span-7">
@@ -93,47 +92,5 @@ export default function AboutOpening() {
         </div>
       </div>
     </section>
-  );
-}
-
-// The photograph at its own proportions. It arrives with a soft rise and
-// then creeps very slightly closer as it travels up the screen: a few
-// percent, so the edges never lose anyone at the table.
-function Photo() {
-  const ref = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-  const scale = useTransform(
-    scrollYProgress,
-    [0, 1],
-    reduce ? [1, 1] : [1.02, 1.08],
-  );
-
-  return (
-    <motion.figure
-      ref={ref}
-      initial={reduce ? { opacity: 0 } : { opacity: 0, y: 36 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={reduce ? { duration: 0.4 } : { ...calmSpring, delay: 0.2 }}
-      className="relative mt-12 md:mt-16 aspect-[16/9] overflow-hidden rounded-[28px] md:rounded-[40px] bg-[#14402F] shadow-[0_50px_100px_-50px_rgba(20,64,47,0.5)] dark:shadow-none"
-    >
-      <motion.img
-        src={opening.image}
-        alt={opening.imageAlt}
-        width={1672}
-        height={941}
-        loading="eager"
-        decoding="async"
-        fetchPriority="high"
-        style={{ scale }}
-        className="absolute inset-0 h-full w-full object-cover will-change-transform"
-      />
-      <figcaption className="absolute left-4 bottom-4 md:left-6 md:bottom-6 inline-flex items-center rounded-full bg-black/35 backdrop-blur-md px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-white/85">
-        {opening.imageNote}
-      </figcaption>
-    </motion.figure>
   );
 }

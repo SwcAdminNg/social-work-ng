@@ -49,7 +49,7 @@ function IconLinkedIn() {
 const serviceLinks = [
   { label: "E-Learning and Professional Development", href: "/courses" },
   { label: "Research and Evaluation", href: "/#service-research" },
-  { label: "Policy and Advocacy", href: "/#service-policy" },
+  { label: "Policy and Advocacy", href: "/policy-and-advocacy" },
 ];
 
 // Partner and careers pages don't exist yet; route them to the enquiry page.
