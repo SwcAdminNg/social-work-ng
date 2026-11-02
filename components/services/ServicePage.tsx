@@ -20,7 +20,7 @@ export default function ServicePage({
       <ServiceOpening opening={content.opening} />
       <ServiceApproach approach={content.approach} />
       <ServiceCommission services={content.services} icons={icons} />
-      <ServiceEnquiry enquiry={content.enquiry} />
+      <ServiceEnquiry enquiry={content.enquiry} sourcePage={content.path} />
     </>
   );
 }

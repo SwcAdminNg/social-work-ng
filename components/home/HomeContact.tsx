@@ -113,6 +113,7 @@ export default function HomeContact() {
             : form.message,
           platform: "NG",
           category: "general",
+          source_page: "/",
         }),
       });
       const data = await res.json().catch(() => ({}));

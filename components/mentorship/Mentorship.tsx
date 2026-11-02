@@ -1,17 +1,17 @@
-"use client";
-
-import { MentorshipHero } from "./MentorshipHero";
-import { MentorshipOfferings } from "./MentorshipOfferings";
-import { MentorshipProcess } from "./MentorshipProcess";
+import MentorshipOpening from "./MentorshipOpening";
+import MentorshipIntro from "./MentorshipIntro";
+import MentorshipJoin from "./MentorshipJoin";
 import { MentorshipForm } from "./MentorshipForm";
 
+// The programme named over its photograph, why it matters and what we
+// offer, who can join and how it works, then the enquiry form.
 export default function Mentorship() {
   return (
-    <div className="w-full bg-white dark:bg-gray-950">
-      <MentorshipHero />
-      <MentorshipOfferings />
-      <MentorshipProcess />
+    <>
+      <MentorshipOpening />
+      <MentorshipIntro />
+      <MentorshipJoin />
       <MentorshipForm />
-    </div>
+    </>
   );
 }

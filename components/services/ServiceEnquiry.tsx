@@ -49,8 +49,11 @@ function validate(values: FormValues): Errors {
  */
 export default function ServiceEnquiry({
   enquiry,
+  sourcePage,
 }: {
   enquiry: ServicePageContent["enquiry"];
+  // The page's path, recorded on the message so admins see where it came from.
+  sourcePage: string;
 }) {
   const [form, setForm] = useState<FormValues>(emptyForm);
   const [errors, setErrors] = useState<Errors>({});
@@ -105,6 +108,7 @@ export default function ServiceEnquiry({
             : form.message,
           platform: "NG",
           category: "general",
+          source_page: sourcePage,
         }),
       });
       const data = await res.json().catch(() => ({}));
