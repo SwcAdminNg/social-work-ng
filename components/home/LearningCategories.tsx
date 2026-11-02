@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, HeartHandshake, Laptop, Scale } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import SectionHeading from "./SectionHeading";
 import { Reveal, calmSpring } from "./motion";
 import { learningCategories } from "./content";
@@ -12,27 +12,29 @@ const items = learningCategories.items;
 
 /**
  * "Explore Learning That Reflects Your Responsibilities". The three
- * learning areas as a tabbed panel: pick an area on the left (a scrolling
- * row on phones) and read its focus and eight learning themes on the right.
+ * learning areas open one after another as the reader scrolls: each
+ * panel settles into place and its eight themes cascade in. On large
+ * screens a pinned list on the left shows which area is in view.
  */
 export default function LearningCategories() {
   const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
-  const cat = items[active];
+  const panels = useRef<(HTMLElement | null)[]>([]);
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    let next: number | null = null;
-    if (e.key === "ArrowRight" || e.key === "ArrowDown")
-      next = (active + 1) % items.length;
-    if (e.key === "ArrowLeft" || e.key === "ArrowUp")
-      next = (active - 1 + items.length) % items.length;
-    if (e.key === "Home") next = 0;
-    if (e.key === "End") next = items.length - 1;
-    if (next === null) return;
-    e.preventDefault();
-    setActive(next);
-    document.getElementById(`area-tab-${items[next].id}`)?.focus();
-  };
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const i = panels.current.indexOf(entry.target as HTMLElement);
+          if (i >= 0) setActive(i);
+        }
+      },
+      { rootMargin: "-35% 0px -55% 0px", threshold: 0 },
+    );
+    panels.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <section
@@ -52,119 +54,132 @@ export default function LearningCategories() {
           ))}
         </SectionHeading>
 
-        <Reveal className="mt-14 md:mt-16">
-          <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)] gap-5 lg:gap-8 items-start">
-            {/* Area list */}
-            <div
-              role="tablist"
-              aria-label="Learning areas"
-              aria-orientation="vertical"
-              className="flex lg:flex-col gap-3 overflow-x-auto scrollbar-none -mx-6 px-6 lg:mx-0 lg:px-0 snap-x snap-mandatory lg:snap-none"
-            >
-              {items.map((item, i) => {
-                const Icon = icons[i];
-                const selected = i === active;
-                return (
-                  <button
-                    key={item.id}
-                    id={`area-tab-${item.id}`}
-                    role="tab"
-                    type="button"
-                    aria-selected={selected}
-                    aria-controls="area-panel"
-                    tabIndex={selected ? 0 : -1}
-                    onClick={() => setActive(i)}
-                    onKeyDown={onKeyDown}
-                    className={`snap-start shrink-0 w-[78vw] max-w-[320px] lg:w-full lg:max-w-none text-left rounded-[24px] p-5 lg:p-6 ring-1 cursor-pointer transition-[background-color,box-shadow,color] duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2D6A4F]/30 ${
-                      selected
+        <div className="mt-14 md:mt-16 grid lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.5fr)] gap-8 lg:gap-12 items-start">
+          {/* Pinned list of the areas (large screens) */}
+          <ol
+            aria-label="Learning areas"
+            className="hidden lg:block lg:sticky lg:top-28 space-y-2"
+          >
+            {items.map((item, i) => {
+              const Icon = icons[i];
+              const current = i === active;
+              return (
+                <li key={item.id}>
+                  <a
+                    href={`#area-${item.id}`}
+                    aria-current={current ? "true" : undefined}
+                    className={`group flex items-start gap-4 rounded-[22px] p-5 ring-1 transition-[background-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2D6A4F]/30 ${
+                      current
                         ? "bg-white dark:bg-gray-900 ring-black/5 dark:ring-white/10 shadow-[0_30px_60px_-30px_rgba(20,64,47,0.35)] dark:shadow-none"
-                        : "bg-white/50 dark:bg-white/[0.04] ring-transparent hover:bg-white/80 dark:hover:bg-white/[0.07]"
+                        : "ring-transparent hover:bg-white/60 dark:hover:bg-white/[0.05]"
                     }`}
                   >
-                    <span className="flex items-center justify-between">
-                      <span
-                        className={`flex items-center justify-center w-11 h-11 rounded-full transition-colors duration-300 ${
-                          selected
-                            ? "bg-[#2D6A4F] text-white"
-                            : "bg-[#2D6A4F]/10 text-[#2D6A4F] dark:bg-white/10 dark:text-[#52b788]"
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" aria-hidden="true" />
-                      </span>
-                      <span className="text-[0.75rem] font-bold tabular-nums text-gray-400">
+                    <span
+                      className={`flex items-center justify-center w-10 h-10 shrink-0 rounded-full transition-colors duration-500 ${
+                        current
+                          ? "bg-[#2D6A4F] text-white"
+                          : "bg-[#2D6A4F]/10 text-[#2D6A4F] dark:bg-white/10 dark:text-[#52b788]"
+                      }`}
+                    >
+                      <Icon className="w-4.5 h-4.5" aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[0.72rem] font-bold tabular-nums text-gray-400">
                         {String(i + 1).padStart(2, "0")}
                       </span>
-                    </span>
-                    <span className="block mt-5 text-[1.1rem] font-bold leading-snug tracking-[-0.01em] text-gray-900 dark:text-gray-50">
-                      {item.title}
-                    </span>
-                    <span className="hidden lg:block mt-2 text-[0.9rem] leading-snug text-gray-600 dark:text-gray-400">
-                      {item.tagline}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Area detail */}
-            <div
-              id="area-panel"
-              role="tabpanel"
-              aria-labelledby={`area-tab-${cat.id}`}
-              className="rounded-[32px] bg-white dark:bg-gray-900 ring-1 ring-black/5 dark:ring-white/10 p-7 md:p-10 lg:p-12 min-h-[520px]"
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={cat.id}
-                  initial={reduce ? { opacity: 0 } : { opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{
-                    opacity: 0,
-                    y: reduce ? 0 : -6,
-                    transition: { duration: 0.16, ease: "easeIn" },
-                  }}
-                  transition={
-                    reduce ? { duration: 0.2 } : { ...calmSpring, duration: 0.55 }
-                  }
-                >
-                  <p className="t-h3 font-bold text-gray-900 dark:text-gray-50 max-w-[26ch]">
-                    {cat.tagline}
-                  </p>
-                  <p className="mt-5 t-body text-gray-600 dark:text-gray-400 max-w-[62ch]">
-                    {cat.text}
-                  </p>
-                  <p className="mt-9 text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#2D6A4F] dark:text-[#52b788]">
-                    {learningCategories.themesLabel}
-                  </p>
-                  <motion.ul
-                    className="mt-4 grid sm:grid-cols-2 gap-x-8 gap-y-3"
-                    initial="hidden"
-                    animate="show"
-                    transition={{ staggerChildren: reduce ? 0 : 0.04, delayChildren: 0.1 }}
-                  >
-                    {cat.themes.map((theme) => (
-                      <motion.li
-                        key={theme}
-                        variants={{
-                          hidden: reduce ? { opacity: 0 } : { opacity: 0, y: 8 },
-                          show: { opacity: 1, y: 0 },
-                        }}
-                        transition={calmSpring}
-                        className="flex gap-3 text-[0.95rem] leading-snug text-gray-700 dark:text-gray-300 py-2 border-b border-gray-100 dark:border-white/10"
+                      <span
+                        className={`block mt-1 text-[1rem] font-bold leading-snug transition-colors duration-500 ${
+                          current
+                            ? "text-gray-900 dark:text-gray-50"
+                            : "text-gray-500 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200"
+                        }`}
                       >
-                        <Check
-                          className="w-4 h-4 mt-0.5 shrink-0 text-[#2D6A4F] dark:text-[#52b788]"
-                          aria-hidden="true"
-                        />
-                        {theme}
-                      </motion.li>
-                    ))}
-                  </motion.ul>
-                </motion.div>
-              </AnimatePresence>
-            </div>
+                        {item.title}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              );
+            })}
+          </ol>
+
+          {/* The areas, one after another */}
+          <div className="space-y-6 lg:space-y-8">
+            {items.map((cat, i) => {
+              const Icon = icons[i];
+              return (
+                <article
+                  key={cat.id}
+                  id={`area-${cat.id}`}
+                  ref={(el) => {
+                    panels.current[i] = el;
+                  }}
+                  aria-labelledby={`area-${cat.id}-title`}
+                  className="scroll-mt-28"
+                >
+                  <Reveal amount={0.2}>
+                    <div className="rounded-[32px] bg-white dark:bg-gray-900 ring-1 ring-black/5 dark:ring-white/10 p-7 md:p-10 lg:p-12">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="flex items-center justify-center w-11 h-11 rounded-full bg-[#2D6A4F] text-white">
+                          <Icon className="w-5 h-5" aria-hidden="true" />
+                        </span>
+                        <span className="text-[0.75rem] font-bold tabular-nums text-gray-400">
+                          {String(i + 1).padStart(2, "0")} /{" "}
+                          {String(items.length).padStart(2, "0")}
+                        </span>
+                      </div>
+                      <h3
+                        id={`area-${cat.id}-title`}
+                        className="mt-6 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788]"
+                      >
+                        {cat.title}
+                      </h3>
+                      <p className="mt-3 t-h3 font-bold text-gray-900 dark:text-gray-50 max-w-[28ch]">
+                        {cat.tagline}
+                      </p>
+                      <p className="mt-5 t-body text-gray-600 dark:text-gray-400 max-w-[62ch]">
+                        {cat.text}
+                      </p>
+                      <p className="mt-9 text-[0.72rem] font-bold uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">
+                        {learningCategories.themesLabel}
+                      </p>
+                      <motion.ul
+                        className="mt-4 grid sm:grid-cols-2 gap-x-8 gap-y-3"
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true, amount: 0.3 }}
+                        transition={{
+                          staggerChildren: reduce ? 0 : 0.05,
+                          delayChildren: 0.1,
+                        }}
+                      >
+                        {cat.themes.map((theme) => (
+                          <motion.li
+                            key={theme}
+                            variants={{
+                              hidden: reduce
+                                ? { opacity: 0 }
+                                : { opacity: 0, y: 10 },
+                              show: { opacity: 1, y: 0 },
+                            }}
+                            transition={calmSpring}
+                            className="flex gap-3 text-[0.95rem] leading-snug text-gray-700 dark:text-gray-300 py-2 border-b border-gray-100 dark:border-white/10"
+                          >
+                            <Check
+                              className="w-4 h-4 mt-0.5 shrink-0 text-[#2D6A4F] dark:text-[#52b788]"
+                              aria-hidden="true"
+                            />
+                            {theme}
+                          </motion.li>
+                        ))}
+                      </motion.ul>
+                    </div>
+                  </Reveal>
+                </article>
+              );
+            })}
           </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   );

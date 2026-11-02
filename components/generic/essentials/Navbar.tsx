@@ -57,11 +57,11 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           aria-label="Social Work Consultancy Home"
         >
           <img
-            src="/images/logo/swc-dark-logo.png"
+            src="/images/logo/swc-dark-logo-trim.png"
             alt="SWC Logo"
-            width={151}
-            height={40}
-            className={`w-[170px] md:w-[180px] h-auto object-contain transition-[filter] duration-500 ${
+            width={1322}
+            height={386}
+            className={`w-[148px] md:w-[156px] h-auto object-contain transition-[filter] duration-500 ${
               onDark ? "brightness-0 invert" : ""
             }`}
           />

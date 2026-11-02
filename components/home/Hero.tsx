@@ -116,8 +116,12 @@ export default function Hero() {
         paused ? "is-paused" : ""
       }`}
     >
-      {/* Photographs */}
-      <div className="absolute inset-0" aria-hidden="true">
+      {/* Photographs. Phones show the picture whole above the copy;
+          from tablets up it fills the screen behind it. */}
+      <div
+        className="relative mt-[84px] aspect-[4/3] md:mt-0 md:aspect-auto md:absolute md:inset-0"
+        aria-hidden="true"
+      >
         {heroSlides.map((s, i) => {
           const isActive = i === active;
           return (
@@ -142,18 +146,19 @@ export default function Hero() {
         })}
         {/* Legibility: deep at the foot where the copy sits, a lift under
             the header, and a soft left-to-right fall on wide screens. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#04120b] via-[#04120b]/55 via-40% to-[#04120b]/10" />
+        <div className="absolute inset-0 hidden md:block bg-gradient-to-t from-[#04120b] via-[#04120b]/55 via-40% to-[#04120b]/10" />
         <div className="absolute inset-0 hidden md:block bg-gradient-to-r from-[#04120b]/80 via-[#04120b]/30 via-55% to-transparent" />
-        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-[#04120b]/60 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-48 hidden md:block bg-gradient-to-b from-[#04120b]/60 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-16 md:hidden bg-gradient-to-t from-[#04120b] to-transparent" />
       </div>
 
       {/* Copy */}
-      <div className="relative z-10 min-h-[100svh] flex flex-col">
+      <div className="relative z-10 md:min-h-[100svh] flex flex-col">
         <div className="flex-1 flex items-end">
-          <div className="hero-copy w-full max-w-6xl mx-auto px-6 md:px-10 pt-[calc(84px+2rem)] pb-8 md:pb-9">
+          <div className="hero-copy w-full max-w-6xl mx-auto px-6 md:px-10 pt-6 md:pt-[calc(84px+2rem)] pb-8 md:pb-9">
             <motion.div
               {...enter(0)}
-              className="hero-meta flex items-center justify-between gap-6 mb-7 md:mb-9"
+              className="hero-meta flex items-center justify-between gap-6 mb-5 md:mb-9"
             >
               <p className="flex items-center gap-3 text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#F3C56B]">
                 <span className="h-px w-8 bg-current" aria-hidden="true" />

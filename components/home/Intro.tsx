@@ -84,7 +84,7 @@ export default function Intro() {
               {intro.values.map((value, i) => (
                 <li
                   key={value}
-                  className="bg-white dark:bg-gray-950 p-5 md:p-4 lg:p-5 min-h-[7.5rem] flex flex-col justify-between"
+                  className="bg-white dark:bg-gray-950 p-5 md:p-4 lg:p-5 min-h-[7.5rem] flex flex-col justify-between last:col-span-2 md:last:col-span-1"
                 >
                   <span className="text-[0.75rem] font-bold tabular-nums text-[#B7791F] dark:text-[#F3C56B]">
                     {String(i + 1).padStart(2, "0")}

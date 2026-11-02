@@ -142,11 +142,11 @@ export default function Footer() {
               aria-label="Social Work Consultancy Ltd home"
             >
               <img
-                src="/images/logo/swc-dark-logo.png"
+                src="/images/logo/swc-dark-logo-trim.png"
                 alt="Social Work Consultancy Ltd"
-                width={151}
-                height={40}
-                className="w-[170px] md:w-[180px] h-auto object-contain"
+                width={1322}
+                height={386}
+                className="w-[150px] md:w-[158px] h-auto object-contain"
               />
             </Link>
 

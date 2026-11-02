@@ -39,25 +39,25 @@ body {
    grows; body copy stays open and near-neutral. */
 
 .t-display {
-  font-size: clamp(2.4rem, calc(0.9rem + 4.4vw), 4.5rem);
+  font-size: clamp(2.15rem, calc(0.8rem + 3.5vw), 3.8rem);
   line-height: 1;
   letter-spacing: -0.04em;
 }
 
 .t-h2 {
-  font-size: clamp(2rem, calc(1rem + 3vw), 3.4rem);
+  font-size: clamp(1.7rem, calc(0.95rem + 2.1vw), 2.7rem);
   line-height: 1.04;
   letter-spacing: -0.035em;
 }
 
 .t-h3 {
-  font-size: clamp(1.45rem, calc(1rem + 1.2vw), 2rem);
+  font-size: clamp(1.3rem, calc(1rem + 0.8vw), 1.7rem);
   line-height: 1.12;
   letter-spacing: -0.025em;
 }
 
 .t-lead {
-  font-size: clamp(1.125rem, calc(1rem + 0.5vw), 1.4rem);
+  font-size: clamp(1.05rem, calc(0.95rem + 0.4vw), 1.25rem);
   line-height: 1.5;
   font-weight: 300;
   letter-spacing: -0.005em;
@@ -70,9 +70,15 @@ body {
 
 /* Short screens: keep the full-height hero comfortable. The second
    paragraph steps aside so the headline, button and rail always fit. */
+@media (max-height: 780px) and (min-width: 768px) {
+  .hero-copy {
+    padding-top: calc(84px + 1.5rem);
+  }
+}
+
 @media (max-height: 780px) {
   .t-display {
-    font-size: clamp(2rem, calc(0.8rem + 3.2vw), 3.15rem);
+    font-size: clamp(1.9rem, calc(0.7rem + 2.8vw), 2.8rem);
   }
 
   .hero-extra {
@@ -80,7 +86,6 @@ body {
   }
 
   .hero-copy {
-    padding-top: calc(84px + 1.5rem);
     padding-bottom: 1.25rem;
   }
 
