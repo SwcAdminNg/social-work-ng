@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSectionTheme } from "./useSectionTheme";
 
 interface NavbarProps {
   isLoggedIn?: boolean;
@@ -11,9 +12,40 @@ interface NavbarProps {
 export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+  const sectionTheme = useSectionTheme(navRef, [pathname]);
+  // The open mobile menu is a solid sheet, so the bar matches it instead.
+  const theme = menuOpen ? null : sectionTheme;
+  const onDark = theme?.dark ?? false;
+
+  const linkTone = onDark
+    ? "text-white/90 hover:bg-white/10"
+    : "text-gray-800 dark:text-gray-200 hover:bg-white/60 dark:hover:bg-gray-800/60";
+  const activeTone = onDark
+    ? "text-[#F3C56B]"
+    : "text-[#2D6A4F] dark:text-[#52b788]";
+  const accentBg = onDark ? "bg-[#F3C56B]" : "bg-[#2D6A4F] dark:bg-[#52b788]";
+  const barTone = onDark ? "bg-white" : "bg-gray-800 dark:bg-gray-200";
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/55 dark:bg-gray-900/55 backdrop-blur-xl backdrop-saturate-150 border-b border-white/30 dark:border-gray-700/40 shadow-[0_1px_20px_-4px_rgba(0,0,0,0.08)]">
+    <nav
+      ref={navRef}
+      style={
+        theme
+          ? {
+              backgroundColor: theme.background,
+              borderBottomColor: onDark
+                ? "rgba(255,255,255,0.08)"
+                : "rgba(0,0,0,0.06)",
+            }
+          : undefined
+      }
+      className={`sticky top-0 z-50 backdrop-blur-md border-b transition-[background-color,border-color] duration-500 ${
+        theme
+          ? ""
+          : "bg-white/55 dark:bg-gray-900/55 border-white/30 dark:border-gray-700/40 shadow-[0_1px_20px_-4px_rgba(0,0,0,0.08)]"
+      }`}
+    >
       <div
         className="max-w-6xl mx-auto px-6 flex items-center gap-6"
         style={{ height: "84px" }}
@@ -29,7 +61,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             alt="SWC Logo"
             width={151}
             height={40}
-            className="w-[170px] md:w-[180px] h-auto object-contain"
+            className={`w-[170px] md:w-[180px] h-auto object-contain transition-[filter] duration-500 ${
+              onDark ? "brightness-0 invert" : ""
+            }`}
           />
         </Link>
 
@@ -47,16 +81,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               <li key={item.name}>
                 <Link
                   href={item.href}
-                  className={`relative flex items-center px-4 py-2 text-sm font-medium rounded-full transition-colors no-underline whitespace-nowrap group hover:bg-white/60 dark:hover:bg-gray-800/60 ${
-                    isActive
-                      ? "text-[#2D6A4F] dark:text-[#52b788]"
-                      : "text-gray-800 dark:text-gray-200"
+                  className={`relative flex items-center px-4 py-2 text-[0.95rem] font-medium rounded-full transition-colors no-underline whitespace-nowrap group ${linkTone} ${
+                    isActive ? activeTone : ""
                   }`}
                 >
                   {item.name}
                   {/* Modern Animated Underline */}
                   <span
-                    className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-[#2D6A4F] dark:bg-[#52b788] transition-all duration-300 ${
+                    className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full ${accentBg} transition-all duration-300 ${
                       isActive
                         ? "w-[60%] opacity-100"
                         : "w-0 opacity-0 group-hover:w-[30%] group-hover:opacity-40"
@@ -72,22 +104,42 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         {isLoggedIn ? (
           <Link
             href="/dashboard"
-            className="hidden lg:inline-flex items-center justify-center px-2 py-2 text-sm font-bold text-gray-800 dark:text-gray-200 relative group no-underline overflow-hidden flex-shrink-0 tracking-wide"
+            className={`hidden lg:inline-flex items-center justify-center px-2 py-2 text-[0.95rem] font-bold relative group no-underline overflow-hidden flex-shrink-0 tracking-wide ${
+              onDark ? "text-white" : "text-gray-800 dark:text-gray-200"
+            }`}
           >
-            <span className="relative z-10 group-hover:text-[#2D6A4F] dark:group-hover:text-[#52b788] transition-colors duration-300">
+            <span
+              className={`relative z-10 transition-colors duration-300 ${
+                onDark
+                  ? "group-hover:text-[#F3C56B]"
+                  : "group-hover:text-[#2D6A4F] dark:group-hover:text-[#52b788]"
+              }`}
+            >
               Dashboard
             </span>
-            <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#2D6A4F] dark:bg-[#52b788] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
+            <span
+              className={`absolute bottom-0 left-0 w-full h-[2px] ${accentBg} transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out`}
+            ></span>
           </Link>
         ) : (
           <Link
             href="/login"
-            className="hidden lg:inline-flex items-center justify-center px-2 py-2 text-sm font-bold text-gray-800 dark:text-gray-200 relative group no-underline overflow-hidden flex-shrink-0 tracking-wide"
+            className={`hidden lg:inline-flex items-center justify-center px-2 py-2 text-[0.95rem] font-bold relative group no-underline overflow-hidden flex-shrink-0 tracking-wide ${
+              onDark ? "text-white" : "text-gray-800 dark:text-gray-200"
+            }`}
           >
-            <span className="relative z-10 group-hover:text-[#2D6A4F] dark:group-hover:text-[#52b788] transition-colors duration-300">
+            <span
+              className={`relative z-10 transition-colors duration-300 ${
+                onDark
+                  ? "group-hover:text-[#F3C56B]"
+                  : "group-hover:text-[#2D6A4F] dark:group-hover:text-[#52b788]"
+              }`}
+            >
               Login
             </span>
-            <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#2D6A4F] dark:bg-[#52b788] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
+            <span
+              className={`absolute bottom-0 left-0 w-full h-[2px] ${accentBg} transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out`}
+            ></span>
           </Link>
         )}
 
@@ -97,16 +149,20 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
           aria-controls="mobile-menu-panel"
-          className="lg:hidden ml-auto flex flex-col justify-center gap-[5px] w-10 h-10 bg-transparent hover:bg-white/60 dark:hover:bg-gray-800/60 border-0 cursor-pointer p-1 rounded-full transition-colors"
+          className={`lg:hidden ml-auto flex flex-col items-center justify-center gap-[5px] w-12 h-12 bg-transparent border-0 ${
+            onDark
+              ? "hover:bg-white/10"
+              : "hover:bg-white/60 dark:hover:bg-gray-800/60"
+          } cursor-pointer p-1 rounded-full transition-colors`}
         >
           <span
-            className={`block w-[22px] h-[2px] bg-gray-800 dark:bg-gray-200 rounded transition-transform duration-200 origin-center ${menuOpen ? "translate-y-[7px] rotate-45" : ""}`}
+            className={`block w-[22px] h-[2px] ${barTone} rounded transition-transform duration-200 origin-center ${menuOpen ? "translate-y-[7px] rotate-45" : ""}`}
           />
           <span
-            className={`block w-[22px] h-[2px] bg-gray-800 dark:bg-gray-200 rounded transition-opacity duration-200 ${menuOpen ? "opacity-0" : ""}`}
+            className={`block w-[22px] h-[2px] ${barTone} rounded transition-opacity duration-200 ${menuOpen ? "opacity-0" : ""}`}
           />
           <span
-            className={`block w-[22px] h-[2px] bg-gray-800 dark:bg-gray-200 rounded transition-transform duration-200 origin-center ${menuOpen ? "-translate-y-[7px] -rotate-45" : ""}`}
+            className={`block w-[22px] h-[2px] ${barTone} rounded transition-transform duration-200 origin-center ${menuOpen ? "-translate-y-[7px] -rotate-45" : ""}`}
           />
         </button>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { ArrowRight, GraduationCap, Mail, MapPin, Phone } from "lucide-react";
 
 function IconFacebook() {
   return (
@@ -46,16 +46,18 @@ function IconLinkedIn() {
   );
 }
 
-const platformLinks = [
-  { label: "Our Courses", href: "/courses" },
-  { label: "Mentorship", href: "/mentorship" },
-  { label: "Resources", href: "/resources" },
+const serviceLinks = [
+  { label: "E-Learning and Professional Development", href: "/courses" },
+  { label: "Research and Evaluation", href: "/#service-research" },
+  { label: "Policy and Advocacy", href: "/#service-policy" },
 ];
 
-const companyLinks = [
+// Partner and careers pages don't exist yet; route them to the enquiry page.
+const exploreLinks = [
   { label: "About Us", href: "/about-us" },
+  { label: "Partner With Us", href: "/contact" },
+  { label: "Careers and Volunteering", href: "/contact" },
   { label: "Contact Us", href: "/contact" },
-  { label: "FAQ", href: "/faq" },
 ];
 
 const socialLinks = [
@@ -67,15 +69,15 @@ const socialLinks = [
 const contactItems = [
   {
     icon: <MapPin className="w-4 h-4" />,
-    label: "Address",
-    value: "Flat C3, Okonkwo Estate, Jos, Plateau State.",
+    label: "Our office",
+    value: "Flat C3, Okonkwo Estate, Jos, Plateau State, Nigeria.",
     href: undefined,
   },
   {
     icon: <Phone className="w-4 h-4" />,
-    label: "Phone",
-    value: "+2348034471063",
-    href: "tel:+2348034471063",
+    label: "Telephone",
+    value: "+234 806 404 7702",
+    href: "tel:+2348064047702",
   },
   {
     icon: <Mail className="w-4 h-4" />,
@@ -84,6 +86,23 @@ const contactItems = [
     href: "mailto:support@socialworknigeria.org",
   },
 ];
+
+function LinkList({ links }: { links: { label: string; href: string }[] }) {
+  return (
+    <ul className="flex flex-col gap-3" role="list">
+      {links.map(({ label, href }) => (
+        <li key={label}>
+          <Link
+            href={href}
+            className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
+          >
+            {label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -113,31 +132,33 @@ export default function Footer() {
         aria-hidden="true"
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_0.8fr_1.2fr] gap-12 lg:gap-10">
           {/* ── Column 1: Brand ── */}
-          <div className="flex flex-col gap-6 pr-4">
+          <div className="flex flex-col gap-6">
             <Link
               href="/"
               className="flex items-center gap-3 no-underline w-fit group"
-              aria-label="Social Work Nigeria home"
+              aria-label="Social Work Consultancy Ltd home"
             >
               <img
                 src="/images/logo/swc-dark-logo.png"
-                alt="SWC Logo"
+                alt="Social Work Consultancy Ltd"
                 width={151}
                 height={40}
                 className="w-[170px] md:w-[180px] h-auto object-contain"
               />
             </Link>
 
-            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs">
-              Strengthening ethical, skilled, and accountable social work
-              practice across Nigeria through structured, practice-led
-              education.
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm">
+              Social Work Consultancy Ltd strengthens social work and social
+              services through professional learning, research, policy and
+              advocacy. We connect evidence, professional knowledge and local
+              understanding to help individuals and organisations improve
+              practice.
             </p>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-3 pt-1">
               {socialLinks.map(({ label, href, icon }) => (
                 <Link
                   key={label}
@@ -151,43 +172,21 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* ── Column 2: Platform Links ── */}
+          {/* ── Column 2: Services ── */}
           <div>
-            <SectionLabel>Platform</SectionLabel>
-            <ul className="flex flex-col gap-3" role="list">
-              {platformLinks.map(({ label, href }) => (
-                <li key={label}>
-                  <Link
-                    href={href}
-                    className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <SectionLabel>Services</SectionLabel>
+            <LinkList links={serviceLinks} />
           </div>
 
-          {/* ── Column 3: Company Links ── */}
+          {/* ── Column 3: Explore SWCL ── */}
           <div>
-            <SectionLabel>Company</SectionLabel>
-            <ul className="flex flex-col gap-3" role="list">
-              {companyLinks.map(({ label, href }) => (
-                <li key={label}>
-                  <Link
-                    href={href}
-                    className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <SectionLabel>Explore SWCL</SectionLabel>
+            <LinkList links={exploreLinks} />
           </div>
 
-          {/* ── Column 4: Contact ── */}
+          {/* ── Column 4: Office ── */}
           <div>
-            <SectionLabel>Contact</SectionLabel>
+            <SectionLabel>Get in touch</SectionLabel>
             <ul className="flex flex-col gap-5" role="list">
               {contactItems.map(({ icon, label, value, href }) => (
                 <li key={label} className="flex items-start gap-3 group">
@@ -217,10 +216,35 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* ── Professional learning ── */}
+        <div className="mt-14 flex flex-col sm:flex-row sm:items-center justify-between gap-5 rounded-2xl bg-[#14402F] dark:bg-[#0f2a20] px-6 py-6 sm:px-8">
+          <div className="flex items-start gap-4">
+            <span className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-white/10 text-[#EBA937]">
+              <GraduationCap className="w-5 h-5" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-[0.7rem] font-bold uppercase tracking-[0.15em] text-[#EBA937]">
+                Professional learning
+              </p>
+              <p className="mt-1 text-sm text-white/85 leading-relaxed">
+                Visit socialworknigeria.org, Social Work Consultancy
+                Ltd.&rsquo;s dedicated learning platform.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/courses"
+            className="group inline-flex items-center justify-center gap-2 self-start sm:self-center px-5 py-2.5 rounded-full bg-[#EBA937] text-[#10291E] text-sm font-bold hover:bg-[#f3bb57] transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#14402F]"
+          >
+            Explore courses
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
+
         {/* ── Bottom bar ── */}
-        <div className="mt-16 pt-8 border-t border-gray-100 dark:border-gray-900 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-10 pt-8 border-t border-gray-100 dark:border-gray-900 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm font-medium text-gray-500 dark:text-gray-500 text-center md:text-left">
-            © {year} Social Work Consultancy Ltd. All Rights Reserved.
+            © {year} Social Work Consultancy Ltd. All rights reserved.
           </p>
 
           <div className="flex items-center gap-6 text-sm font-medium">

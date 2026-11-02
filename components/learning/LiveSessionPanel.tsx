@@ -159,7 +159,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
                   if (meetingWindow) {
                     meetingWindow.document.title = "Opening live session";
                     meetingWindow.document.body.innerHTML =
-                      '<div style="font-family: system-ui, sans-serif; min-height: 100vh; display: grid; place-items: center; color: #0f172a;"><div><strong>Opening live session...</strong><p style="color: #475569;">Please wait while we create your secure Daily link.</p></div></div>';
+                      '<div style="font-family: Roboto, Arial, sans-serif; min-height: 100vh; display: grid; place-items: center; color: #0f172a;"><div><strong>Opening live session...</strong><p style="color: #475569;">Please wait while we create your secure Daily link.</p></div></div>';
                   }
 
                   try {

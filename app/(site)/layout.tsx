@@ -18,7 +18,9 @@ export default async function SiteLayout({
         Skip to main content
       </a>
       <Navbar isLoggedIn={!!session} />
-      <main id="main-content">{children}</main>
+      <main id="main-content" className="overflow-x-clip">
+        {children}
+      </main>
       <Footer />
     </>
   );

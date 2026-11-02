@@ -2,6 +2,13 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+@theme {
+  /* Roboto is the only typeface on the platform; every family utility maps to it. */
+  --font-sans: var(--font-roboto), Arial, Helvetica, sans-serif;
+  --font-serif: var(--font-roboto), Arial, Helvetica, sans-serif;
+  --font-mono: var(--font-roboto), Arial, Helvetica, sans-serif;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -25,4 +32,46 @@ body {
 
 .swcl-sidebar-scroll::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
+}
+
+/* Homepage hero — type scales with both width and height so the
+   full-screen banner fits phones, short laptops and large monitors. */
+.hero-title {
+  font-size: clamp(1.75rem, calc(min(3.4vw, 5.2svh) + 0.45rem), 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.hero-body {
+  font-size: clamp(1rem, min(calc(0.9rem + 0.22vw), 2.2svh), 1.125rem);
+  line-height: 1.6;
+}
+
+/* On phones and short screens the second paragraph and the optional
+   secondary button step aside so the photo stays visible. */
+@media (max-width: 767px), (max-height: 699px) {
+  .hero-extra {
+    display: none;
+  }
+}
+
+/* Gentle downward nudge on the hero's "keep scrolling" cue */
+@keyframes hero-nudge {
+  0%,
+  100% {
+    translate: 0 -2px;
+  }
+  50% {
+    translate: 0 3px;
+  }
+}
+
+.hero-nudge {
+  animation: hero-nudge 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-nudge {
+    animation: none;
+  }
 }

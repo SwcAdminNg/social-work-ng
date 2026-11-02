@@ -10,9 +10,10 @@ import { Toaster } from "sonner";
 
 const roboto = Roboto({
   variable: "--font-roboto",
-  weight: ["400", "500", "700"],
+  weight: ["300", "400", "500", "700", "900"],
   subsets: ["latin"],
 });
+
 
 export const metadata: Metadata = {
   title: "Social Work Nigeria",
@@ -28,7 +29,7 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="en" className="scroll-smooth" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang="en" className={`${roboto.variable} scroll-smooth`} suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${roboto.className} antialiased`}>
         <ThemeProvider>
           <QueryProvider>
