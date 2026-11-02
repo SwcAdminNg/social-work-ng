@@ -1,26 +1,24 @@
-import {
-  ArrowDown,
-  FileText,
-  Megaphone,
-  MessagesSquare,
-  Presentation,
-  ScrollText,
-} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import SectionHeading from "@/components/home/SectionHeading";
 import { Reveal } from "@/components/home/motion";
-import { services } from "./content";
-
-const icons = [FileText, ScrollText, MessagesSquare, Megaphone, Presentation];
+import type { ServicePageContent } from "./types";
 
 /**
- * "Policy and Advocacy Support You Can Commission". A deep-green chapter
- * with the five kinds of support as tiles: three across the top row and
- * two wider ones below on large screens, pairs on tablets with the last
- * spanning the row, stacked on phones. It closes with how every
- * assignment is scoped and the invitation to talk, which scrolls to the
- * enquiry form beneath.
+ * "… Support You Can Commission". A deep-green chapter with the five
+ * kinds of support as tiles: three across the top row and two wider
+ * ones below on large screens, pairs on tablets with the last spanning
+ * the row, stacked on phones. It closes with how every assignment is
+ * framed and the invitation to talk, which scrolls to the enquiry form.
  */
-export default function Commission() {
+export default function ServiceCommission({
+  services,
+  icons,
+}: {
+  services: ServicePageContent["services"];
+  // One icon per item, in order.
+  icons: LucideIcon[];
+}) {
   const { scope } = services;
 
   return (
@@ -65,7 +63,7 @@ export default function Commission() {
                   >
                     <div className="flex items-center justify-between gap-4">
                       <span className="flex items-center justify-center w-12 h-12 rounded-full bg-[#EBA937]/15 text-[#F3C56B]">
-                        <Icon className="w-5 h-5" aria-hidden="true" />
+                        {Icon && <Icon className="w-5 h-5" aria-hidden="true" />}
                       </span>
                       <span
                         className="text-[0.75rem] font-bold tabular-nums text-[#F3C56B]"
@@ -104,10 +102,7 @@ export default function Commission() {
                 <h3 className="t-h3 font-bold">{scope.title}</h3>
                 <div className="mt-5 space-y-4">
                   {scope.paragraphs.map((p) => (
-                    <p
-                      key={p}
-                      className="t-body text-[#10291E]/80 max-w-[64ch]"
-                    >
+                    <p key={p} className="t-body text-[#10291E]/80 max-w-[64ch]">
                       {p}
                     </p>
                   ))}

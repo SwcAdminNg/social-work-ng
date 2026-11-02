@@ -7,7 +7,7 @@ import { IconSpinner } from "@/components/auth/shared/icons";
 import FormField from "@/components/shared/FormField";
 import SectionHeading from "@/components/home/SectionHeading";
 import { Reveal } from "@/components/home/motion";
-import { enquiry } from "./content";
+import type { ServicePageContent } from "./types";
 
 type FormValues = {
   name: string;
@@ -28,7 +28,7 @@ const emptyForm: FormValues = {
 };
 
 // Name, email and the enquiry itself are required; organisation and
-// phone are optional, as the handover asks.
+// phone are optional, as the handovers ask.
 function validate(values: FormValues): Errors {
   const errors: Errors = {};
   if (!values.name.trim()) errors.name = "Enter your name.";
@@ -42,12 +42,16 @@ function validate(values: FormValues): Errors {
 }
 
 /**
- * "Tell Us What You Want to Change". The invitation and what to include
- * on the left; the enquiry form on a card to the right. The form checks
- * fields as you leave them, keeps what you typed through any error, and
- * shows the confirmation only once the enquiry has actually been sent.
+ * The service page's enquiry: the invitation and what to include on the
+ * left; the form on a card to the right. Fields are checked as you leave
+ * them, what you typed survives any error, and the confirmation shows
+ * only once the enquiry has actually been sent.
  */
-export default function Enquiry() {
+export default function ServiceEnquiry({
+  enquiry,
+}: {
+  enquiry: ServicePageContent["enquiry"];
+}) {
   const [form, setForm] = useState<FormValues>(emptyForm);
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FormValues, boolean>>>({});
@@ -94,8 +98,8 @@ export default function Enquiry() {
           email: form.email.trim(),
           phone_number: phone || undefined,
           subject: organisation
-            ? `Policy and advocacy enquiry from ${organisation}`
-            : "Policy and advocacy enquiry",
+            ? `${labels.subject} from ${organisation}`
+            : labels.subject,
           message: organisation
             ? `Organisation: ${organisation}\n\n${form.message}`
             : form.message,
@@ -196,7 +200,7 @@ export default function Enquiry() {
                   {labels.heading}
                 </p>
                 <p className="mt-1 text-[0.9rem] text-gray-500 dark:text-[#A3B3A9]">
-                  We reply by email, or by telephone if you give us a number.
+                  {labels.replyNote}
                 </p>
 
                 <div className="mt-7 space-y-4">

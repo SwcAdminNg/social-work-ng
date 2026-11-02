@@ -48,7 +48,7 @@ function IconLinkedIn() {
 
 const serviceLinks = [
   { label: "E-Learning and Professional Development", href: "/courses" },
-  { label: "Research and Evaluation", href: "/#service-research" },
+  { label: "Research and Evaluation", href: "/research-and-evaluation" },
   { label: "Policy and Advocacy", href: "/policy-and-advocacy" },
 ];
 

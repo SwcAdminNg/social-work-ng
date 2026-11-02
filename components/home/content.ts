@@ -153,7 +153,10 @@ export const services = {
         "We support research, needs assessments, stakeholder consultation and programme evaluation. Our approach emphasises clear questions, appropriate methods and findings that people can understand and use.",
         "From exploring barriers to accessing services to reviewing programme implementation, we help organisations turn evidence into practical recommendations.",
       ],
-      button: { label: "Explore Research Services", href: "#contact" },
+      button: {
+        label: "Explore Research Services",
+        href: "/research-and-evaluation",
+      },
     },
     {
       id: "service-policy",

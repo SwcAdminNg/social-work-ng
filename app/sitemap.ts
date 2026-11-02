@@ -19,6 +19,7 @@ const staticRoutes: {
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/courses", changeFrequency: "weekly", priority: 0.9 },
   { path: "/about-us", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/research-and-evaluation", changeFrequency: "monthly", priority: 0.8 },
   { path: "/policy-and-advocacy", changeFrequency: "monthly", priority: 0.8 },
   { path: "/mentorship", changeFrequency: "monthly", priority: 0.7 },
   { path: "/resources", changeFrequency: "weekly", priority: 0.7 },

@@ -2,17 +2,21 @@
 
 import { Eyebrow, Reveal, WordReveal } from "@/components/home/motion";
 import OpeningPhoto from "@/components/shared/OpeningPhoto";
-import { opening } from "./content";
+import type { ServicePageContent } from "./types";
 
 /**
- * The page's opening: the service named in large type, the line that
- * sums it up, and the photograph of a policy consultation shown whole so
- * nobody at the table is cropped away.
+ * A service page's opening: the service named in large type, the line
+ * that sums it up, and its photograph shown whole so nobody in the
+ * scene is cropped away.
  */
-export default function PolicyOpening() {
+export default function ServiceOpening({
+  opening,
+}: {
+  opening: ServicePageContent["opening"];
+}) {
   return (
     <section
-      aria-labelledby="policy-heading"
+      aria-labelledby="service-heading"
       className="relative bg-[#EEF5F1] dark:bg-[#101B15] pt-12 pb-28 md:pt-20 md:pb-32"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-10">
@@ -21,7 +25,7 @@ export default function PolicyOpening() {
             <Eyebrow className="justify-center mb-6">{opening.eyebrow}</Eyebrow>
           </Reveal>
           <h1
-            id="policy-heading"
+            id="service-heading"
             className="t-display font-bold text-gray-900 dark:text-[#ECF2EE]"
           >
             <WordReveal text={opening.title} />

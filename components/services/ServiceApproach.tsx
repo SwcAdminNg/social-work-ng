@@ -1,13 +1,16 @@
 import SectionHeading from "@/components/home/SectionHeading";
 import { Reveal } from "@/components/home/motion";
-import { approach } from "./content";
+import type { ServicePageContent } from "./types";
 
 /**
- * "Turning Evidence and Experience into Better Policy". The service
- * described in full, then its three strands as numbered rows: the
- * one-line statement on the left, the explanation on the right.
+ * The service described in full, then its three strands as numbered
+ * rows: the one-line statement on the left, the explanation on the right.
  */
-export default function Approach() {
+export default function ServiceApproach({
+  approach,
+}: {
+  approach: ServicePageContent["approach"];
+}) {
   const [lead, ...rest] = approach.paragraphs;
 
   return (
