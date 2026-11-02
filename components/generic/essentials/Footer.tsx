@@ -52,11 +52,10 @@ const serviceLinks = [
   { label: "Policy and Advocacy", href: "/policy-and-advocacy" },
 ];
 
-// Partner and careers pages don't exist yet; route them to the enquiry page.
 const exploreLinks = [
   { label: "About Us", href: "/about-us" },
-  { label: "Partner With Us", href: "/contact" },
-  { label: "Careers and Volunteering", href: "/contact" },
+  { label: "Partner With Us", href: "/partner-with-us" },
+  { label: "Careers and Volunteering", href: "/careers-and-volunteering" },
   { label: "Contact Us", href: "/contact" },
 ];
 

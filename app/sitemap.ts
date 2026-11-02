@@ -21,6 +21,8 @@ const staticRoutes: {
   { path: "/about-us", changeFrequency: "monthly", priority: 0.8 },
   { path: "/research-and-evaluation", changeFrequency: "monthly", priority: 0.8 },
   { path: "/policy-and-advocacy", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/partner-with-us", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/careers-and-volunteering", changeFrequency: "monthly", priority: 0.7 },
   { path: "/mentorship", changeFrequency: "monthly", priority: 0.7 },
   { path: "/resources", changeFrequency: "weekly", priority: 0.7 },
   { path: "/contact", changeFrequency: "yearly", priority: 0.6 },
