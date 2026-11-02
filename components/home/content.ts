@@ -87,12 +87,29 @@ export const intro = {
   title: "Building the Knowledge and Capacity Behind Better Services",
   image: `${IMG}/listening-with-care.webp`,
   imageAlt: "A practitioner listening carefully and taking notes during a meeting",
-  lead: "Social Work Consultancy Ltd is a professional learning and consultancy organisation dedicated to strengthening social work and related services. We support the people and organisations working to improve the lives of children, families and communities, particularly in contexts where needs are complex, and resources are limited.",
-  paragraphs: [
-    "Our work brings together training and professional development, research and evaluation, policy and advocacy, and tailored organisational support. These services share a common purpose: to help people make informed decisions, strengthen practice, and develop more responsive, inclusive services.",
-    "We recognise that effective social work must be rooted in the communities it serves. Culture, family relationships, economic circumstances, disability, inequality and access to services all shape people’s experiences. Our approach links relevant international learning to Nigerian and wider Global South contexts, encouraging thoughtful application rather than assuming that one approach will suit every setting.",
-    "We work with social workers, students, educators, carers, NGOs, community organisations and institutions whose responsibilities bring them into contact with children, families and people facing disadvantage.",
-    "Across our work, we promote respect for human dignity, social justice, safeguarding, professional accountability and meaningful participation. We believe people should have opportunities to influence the services and decisions that affect their lives.",
+  // The handover's five paragraphs, shown one at a time. Labels are short
+  // signposts for each paragraph, not extra copy.
+  chunks: [
+    {
+      label: "Who we are",
+      text: "Social Work Consultancy Ltd is a professional learning and consultancy organisation dedicated to strengthening social work and related services. We support the people and organisations working to improve the lives of children, families and communities, particularly in contexts where needs are complex, and resources are limited.",
+    },
+    {
+      label: "What we do",
+      text: "Our work brings together training and professional development, research and evaluation, policy and advocacy, and tailored organisational support. These services share a common purpose: to help people make informed decisions, strengthen practice, and develop more responsive, inclusive services.",
+    },
+    {
+      label: "Rooted in communities",
+      text: "We recognise that effective social work must be rooted in the communities it serves. Culture, family relationships, economic circumstances, disability, inequality and access to services all shape people’s experiences. Our approach links relevant international learning to Nigerian and wider Global South contexts, encouraging thoughtful application rather than assuming that one approach will suit every setting.",
+    },
+    {
+      label: "Who we work with",
+      text: "We work with social workers, students, educators, carers, NGOs, community organisations and institutions whose responsibilities bring them into contact with children, families and people facing disadvantage.",
+    },
+    {
+      label: "What we stand for",
+      text: "Across our work, we promote respect for human dignity, social justice, safeguarding, professional accountability and meaningful participation. We believe people should have opportunities to influence the services and decisions that affect their lives.",
+    },
   ],
   button: { label: "Learn More About SWCL", href: "/about-us" },
 };

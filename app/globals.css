@@ -55,6 +55,24 @@ body {
   }
 }
 
+/* Introduction paragraphs: large and comfortable to read, scaled down on
+   short screens so each chunk always fits. */
+.intro-chunk {
+  font-size: clamp(1rem, min(calc(0.85rem + 0.45vw), 2.6svh), 1.3rem);
+  line-height: 1.65;
+}
+
+/* Short phones: a tighter heading leaves room for the longest paragraph. */
+@media (max-width: 767px) and (max-height: 720px) {
+  .intro-heading p:first-child {
+    display: none;
+  }
+
+  .intro-heading h2 {
+    font-size: 1.6rem;
+  }
+}
+
 /* Gentle downward nudge on the hero's "keep scrolling" cue */
 @keyframes hero-nudge {
   0%,
