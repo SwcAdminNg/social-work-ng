@@ -161,7 +161,7 @@ export const interest = {
       email: "Email address",
       phone: "Phone number",
       type: "Opportunity type",
-      typePlaceholder: "Employment, Volunteering, Internship or Consultancy",
+      typePlaceholder: "Choose an option",
       reference: "Role reference or area of interest",
       statement: "Statement of interest",
     },
