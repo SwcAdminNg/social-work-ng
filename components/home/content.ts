@@ -138,7 +138,7 @@ export const services = {
         "Through our dedicated platform, socialworknigeria.org, we provide a home for professional learning that connects key concepts to real-world practice. Our approach encourages learners to reflect, question assumptions and consider how their learning applies to their own role and setting.",
         "Organisations can also discuss their learning needs with us, including induction, practice development and training aligned with specific service priorities.",
       ],
-      button: { label: "Explore Professional Learning", href: "/courses" },
+      button: { label: "Explore Professional Learning", href: "/e-learning" },
     },
     {
       id: "service-research",
