@@ -1,9 +1,12 @@
 import { fetchApi, publicFetchApi } from "@/lib/fetchApi";
 import { SiteCourseCard } from "@/components/courses/SiteCourseCard";
 import { CourseFilters } from "@/components/courses/CourseFilters";
-import Link from "next/link";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import { auth } from "@/auth";
+import PageOpening from "@/components/shared/PageOpening";
+import Pager from "@/components/shared/Pager";
+import { absoluteUrl, shareImage, site } from "@/lib/site";
 
 type SessionWithAccessToken = {
   accessToken?: string;
@@ -35,10 +38,58 @@ type PublicCourse = {
   is_completed?: boolean | null;
 };
 
-export const metadata = {
-  title: "Courses",
-  description: "Browse our catalog of professional courses and materials.",
+const path = "/courses";
+const title = "Our Courses";
+const fullTitle = `${title} | ${site.name}`;
+const description =
+  "Browse Social Work Nigeria’s catalogue of professional courses and CPD for social workers, students, educators and organisations, with clear course information before you enrol.";
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: path },
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    locale: site.locale,
+    url: path,
+    title: fullTitle,
+    description,
+    images: [shareImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: fullTitle,
+    description,
+    images: [shareImage],
+  },
 };
+
+function structuredData() {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": absoluteUrl(`${path}#webpage`),
+        url: absoluteUrl(path),
+        name: fullTitle,
+        description,
+        isPartOf: { "@id": absoluteUrl("/#website") },
+        about: { "@id": absoluteUrl("/#organization") },
+        inLanguage: site.language,
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": absoluteUrl(`${path}#breadcrumb`),
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+          { "@type": "ListItem", position: 2, name: title, item: absoluteUrl(path) },
+        ],
+      },
+    ],
+  };
+}
 
 export default async function CoursesPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -111,114 +162,73 @@ export default async function CoursesPage(props: {
   };
 
   return (
-    <div className="w-full bg-white dark:bg-gray-950">
-      <div className="relative w-full h-[50vh] md:h-[60vh] min-h-[400px] lg:min-h-[500px] xl:min-h-[600px] flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              'url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop")',
-          }}
-        />
-        <div className="absolute inset-0 z-10 bg-black/50 dark:bg-black/60" />
-        <div className="relative z-20 flex flex-col items-center text-center px-4 max-w-4xl mx-auto mt-12 lg:mt-0">
-          <nav className="flex items-center text-sm text-gray-200 mb-4 tracking-wide font-medium">
-            <Link href="/" className="hover:text-white transition-colors">
-              Home
-            </Link>
-            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-white">Our Courses</span>
-          </nav>
+    <>
+      <script
+        type="application/ld+json"
+        // Escaped so "</script>" in content can never close the tag early.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData()).replace(/</g, "\\u003c"),
+        }}
+      />
 
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight drop-shadow-lg">
-            Courses
-          </h1>
+      <PageOpening
+        id="courses-heading"
+        eyebrow="Our courses"
+        title="Courses"
+        tagline="Professional learning that connects social work knowledge with real situations, reflective thinking and practical application. Review who each course is for, how it is delivered and what completion involves before you enrol."
+      />
+
+      <section
+        id="catalogue"
+        aria-label="Course catalogue"
+        className="relative bg-white dark:bg-[#0B1410] rounded-t-[40px] md:rounded-t-[56px] -mt-10 pt-16 pb-24 md:pt-20 md:pb-32 scroll-mt-20"
+      >
+        <div className="max-w-6xl mx-auto px-6 md:px-10">
+          <Suspense fallback={null}>
+            <CourseFilters catalogs={catalogs} />
+          </Suspense>
+
+          {items.length === 0 ? (
+            <div className="rounded-[28px] bg-[#EEF5F1] dark:bg-[#16231C] ring-1 ring-black/5 dark:ring-white/10 px-8 py-14 text-center">
+              <p className="text-[1.1rem] font-bold text-gray-900 dark:text-[#ECF2EE]">
+                No courses found.
+              </p>
+              <p className="mt-2 t-body text-gray-600 dark:text-[#A3B3A9]">
+                Try adjusting your filters or search query.
+              </p>
+            </div>
+          ) : (
+            <>
+              <ul className="grid grid-cols-1 gap-4 md:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {(items as PublicCourse[]).map((course) => (
+                  <li key={course.id} className="flex">
+                    <SiteCourseCard
+                      id={course.id}
+                      title={course.title}
+                      thumbnail_url={course.thumbnail_url}
+                      is_free={course.is_free}
+                      price={course.price}
+                      href={`/courses/${course.slug || course.id}`}
+                      level={course.level || "Beginner"}
+                      category={course.category || "Professional Development"}
+                      average_rating={course.average_rating}
+                      total_reviews={course.total_reviews}
+                      estimated_total_minutes={course.estimated_total_minutes}
+                      estimated_duration={course.estimated_duration}
+                      certificate_enabled={course.certificate_enabled}
+                      is_enrolled={course.is_enrolled === true || enrolledCourseIds.has(course.id)}
+                      is_completed={course.is_completed === true}
+                      has_access={course.has_access === true}
+                    />
+                  </li>
+                ))}
+              </ul>
+              <Pager page={page} hasNext={hasNextPage} hrefFor={buildPageUrl} />
+            </>
+          )}
         </div>
-      </div>
-
-      <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-16 md:py-24">
-        {/* Advanced Filters */}
-        <CourseFilters catalogs={catalogs} />
-
-        {items.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
-            <p className="text-gray-500 dark:text-gray-400 font-medium text-lg mb-2">
-              No courses found.
-            </p>
-            <p className="text-gray-400 dark:text-gray-500 text-sm">
-              Try adjusting your filters or search query.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8 lg:gap-10">
-              {(items as PublicCourse[]).map((course) => (
-                <SiteCourseCard
-                  key={course.id}
-                  id={course.id}
-                  title={course.title}
-                  thumbnail_url={course.thumbnail_url}
-                  is_free={course.is_free}
-                  price={course.price}
-                  href={`/courses/${course.slug || course.id}`}
-                  level={course.level || "Beginner"}
-                  category={course.category || "Professional Development"}
-                  average_rating={course.average_rating}
-                  total_reviews={course.total_reviews}
-                  estimated_total_minutes={course.estimated_total_minutes}
-                  estimated_duration={course.estimated_duration}
-                  certificate_enabled={course.certificate_enabled}
-                  is_enrolled={course.is_enrolled === true || enrolledCourseIds.has(course.id)}
-                  is_completed={course.is_completed === true}
-                  has_access={course.has_access === true}
-                />
-              ))}
-            </div>
-            <div className="mt-16 flex items-center justify-center gap-4">
-              {page > 1 ? (
-                <Link
-                  href={buildPageUrl(page - 1)}
-                  className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 transition-all shadow-sm"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                  Previous
-                </Link>
-              ) : (
-                <button
-                  disabled
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800/50 rounded-full font-bold text-gray-400 dark:text-gray-600 cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                  Previous
-                </button>
-              )}
-
-              <span className="font-semibold text-gray-600 dark:text-gray-400 px-4">
-                Page {page}
-              </span>
-
-              {hasNextPage ? (
-                <Link
-                  href={buildPageUrl(page + 1)}
-                  className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 transition-all shadow-sm"
-                >
-                  Next
-                  <ChevronRight className="w-5 h-5" />
-                </Link>
-              ) : (
-                <button
-                  disabled
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800/50 rounded-full font-bold text-gray-400 dark:text-gray-600 cursor-not-allowed"
-                >
-                  Next
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+      </section>
+    </>
   );
 }
 

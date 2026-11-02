@@ -1,14 +1,67 @@
-import { ResourcesHero } from "@/components/resources/ResourcesHero";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import PageOpening from "@/components/shared/PageOpening";
+import Pager from "@/components/shared/Pager";
+import SectionHeading from "@/components/home/SectionHeading";
 import { ResourceCard } from "@/components/resources/ResourceCard";
 import { ResourceFilters } from "@/components/resources/ResourceFilters";
 import { getResources } from "@/lib/resources";
-import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { absoluteUrl, shareImage, site } from "@/lib/site";
 
-export const metadata = {
-  title: "Resources",
-  description: "Access essential toolkits, guidelines, and practice materials designed to support social workers.",
+const path = "/resources";
+const title = "Resources";
+const fullTitle = `${title} | ${site.name}`;
+const description =
+  "Toolkits, guidelines, templates, recordings, research and links to support social workers and related professionals across Nigeria and the wider Global South.";
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: path },
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    locale: site.locale,
+    url: path,
+    title: fullTitle,
+    description,
+    images: [shareImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: fullTitle,
+    description,
+    images: [shareImage],
+  },
 };
+
+const PAGE_SIZE = 12;
+
+function structuredData() {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": absoluteUrl(`${path}#webpage`),
+        url: absoluteUrl(path),
+        name: fullTitle,
+        description,
+        isPartOf: { "@id": absoluteUrl("/#website") },
+        about: { "@id": absoluteUrl("/#organization") },
+        inLanguage: site.language,
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": absoluteUrl(`${path}#breadcrumb`),
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+          { "@type": "ListItem", position: 2, name: title, item: absoluteUrl(path) },
+        ],
+      },
+    ],
+  };
+}
 
 export default async function ResourcesPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -21,107 +74,106 @@ export default async function ResourcesPage(props: {
 
   const { items, meta, ok } = await getResources({
     page,
-    pageSize: 12,
+    pageSize: PAGE_SIZE,
     category,
     courseId,
     search,
   });
-  const hasNextPage = Boolean(meta.has_next ?? items.length === 12);
+  const hasNextPage = Boolean(meta.has_next ?? items.length === PAGE_SIZE);
 
-  const buildPageUrl = (targetPage: number) => {
+  const hrefFor = (targetPage: number) => {
     const params = new URLSearchParams();
     params.set("page", targetPage.toString());
     if (category) params.set("category", category);
     if (search) params.set("search", search);
     if (courseId) params.set("course_id", courseId);
-    return `/resources?${params.toString()}`;
+    return `${path}?${params.toString()}`;
   };
 
+  const count =
+    meta.total_items !== undefined
+      ? `${meta.total_items} ${meta.total_items === 1 ? "resource" : "resources"}`
+      : null;
+
   return (
-    <div className="w-full bg-white dark:bg-gray-950 flex flex-col">
-      <ResourcesHero />
-      <main className="mx-auto w-full max-w-[1600px] px-4 py-16 sm:px-6 md:py-24 lg:px-8 xl:px-12">
-        <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white md:text-5xl">
-              Resource Library
-            </h2>
-            <p className="mt-3 max-w-2xl text-base font-medium leading-7 text-slate-600 dark:text-slate-300">
-              Browse practical references, templates, recordings, research, and links. Locked resources stay visible so you can see what an account or course enrollment unlocks.
-            </p>
+    <>
+      <script
+        type="application/ld+json"
+        // Escaped so "</script>" in content can never close the tag early.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData()).replace(/</g, "\\u003c"),
+        }}
+      />
+
+      <PageOpening
+        id="resources-heading"
+        eyebrow="Resources"
+        title="Knowledge Hub"
+        tagline="Access essential toolkits, guidelines, and practice materials designed to support social workers across the Global South."
+      />
+
+      <section
+        id="library"
+        aria-labelledby="library-heading"
+        className="relative bg-white dark:bg-[#0B1410] rounded-t-[40px] md:rounded-t-[56px] -mt-10 pt-20 pb-24 md:pt-24 md:pb-32 scroll-mt-20"
+      >
+        <div className="max-w-6xl mx-auto px-6 md:px-10">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-end">
+            <div className="lg:col-span-7">
+              <SectionHeading id="library-heading" eyebrow="The library" title="Resource Library">
+                <p>
+                  Browse practical references, templates, recordings, research, and links.
+                  Locked resources stay visible so you can see what an account or course
+                  enrolment unlocks.
+                </p>
+              </SectionHeading>
+            </div>
+            {count && (
+              <p className="lg:col-span-5 lg:text-right text-[0.78rem] font-bold uppercase tracking-[0.18em] text-gray-500 dark:text-[#A3B3A9]">
+                {count}
+              </p>
+            )}
           </div>
-          {meta.total_items !== undefined && (
-            <p className="text-sm font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              {meta.total_items} {meta.total_items === 1 ? "resource" : "resources"}
-            </p>
-          )}
+
+          <div className="mt-12 md:mt-14">
+            <Suspense fallback={null}>
+              <ResourceFilters />
+            </Suspense>
+          </div>
+
+          <div className="mt-10">
+            {!ok ? (
+              <Notice
+                title="The resource library could not be loaded right now."
+                text="Please try again in a moment."
+              />
+            ) : items.length === 0 ? (
+              <Notice title="No resources found." text="Try another category or search term." />
+            ) : (
+              <>
+                <ul className="grid grid-cols-1 gap-4 md:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {items.map((resource) => (
+                    <li key={resource.id} className="flex">
+                      <ResourceCard resource={resource} />
+                    </li>
+                  ))}
+                </ul>
+                <Pager page={page} hasNext={hasNextPage} hrefFor={hrefFor} scroll={false} />
+              </>
+            )}
+          </div>
         </div>
+      </section>
+    </>
+  );
+}
 
-        <ResourceFilters />
-
-        {!ok ? (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-500/30 dark:bg-amber-500/10">
-            <p className="text-sm font-extrabold text-amber-900 dark:text-amber-100">
-              The resource library could not be loaded right now.
-            </p>
-          </div>
-        ) : items.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-12 text-center dark:border-slate-800 dark:bg-slate-900/50">
-            <p className="text-lg font-extrabold text-slate-700 dark:text-slate-200">
-              No resources found.
-            </p>
-            <p className="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-              Try another category or search term.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {items.map((resource) => (
-                <ResourceCard key={resource.id} resource={resource} />
-              ))}
-            </div>
-
-            <div className="mt-14 flex items-center justify-center gap-4">
-              {page > 1 ? (
-                <Link
-                  href={buildPageUrl(page - 1)}
-                  scroll={false}
-                  className="inline-flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Link>
-              ) : (
-                <span className="inline-flex h-11 cursor-not-allowed items-center gap-2 rounded-md border border-slate-100 bg-slate-50 px-4 text-sm font-extrabold text-slate-400 dark:border-slate-800/60 dark:bg-slate-900/50 dark:text-slate-600">
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </span>
-              )}
-
-              <span className="text-sm font-extrabold text-slate-600 dark:text-slate-300">
-                Page {page}
-              </span>
-
-              {hasNextPage ? (
-                <Link
-                  href={buildPageUrl(page + 1)}
-                  scroll={false}
-                  className="inline-flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-              ) : (
-                <span className="inline-flex h-11 cursor-not-allowed items-center gap-2 rounded-md border border-slate-100 bg-slate-50 px-4 text-sm font-extrabold text-slate-400 dark:border-slate-800/60 dark:bg-slate-900/50 dark:text-slate-600">
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </span>
-              )}
-            </div>
-          </>
-        )}
-      </main>
+// An empty or failed state on a mint tile.
+function Notice({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-[28px] bg-[#EEF5F1] dark:bg-[#16231C] ring-1 ring-black/5 dark:ring-white/10 px-8 py-14 text-center">
+      <p className="text-[1.1rem] font-bold text-gray-900 dark:text-[#ECF2EE]">{title}</p>
+      <p className="mt-2 t-body text-gray-600 dark:text-[#A3B3A9]">{text}</p>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock3, Trophy } from "lucide-react";
+import { ArrowRight, Clock3, Trophy } from "lucide-react";
 import Link from "next/link";
 import { getCourseDurationLabel } from "@/lib/courseDuration";
 
@@ -25,9 +25,9 @@ interface SiteCourseCardProps {
 }
 
 const levelColors: Record<string, string> = {
-  Beginner: "bg-[#2D6A4F] text-white",
-  Intermediate: "bg-amber-600 text-white",
-  Advanced: "bg-rose-700 text-white",
+  Beginner: "bg-[#14402F] text-white",
+  Intermediate: "bg-[#EBA937] text-[#10291E]",
+  Advanced: "bg-[#557F8F] text-white",
 };
 
 function formatEnumString(str: string): string {
@@ -40,18 +40,15 @@ function formatEnumString(str: string): string {
 
 function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
   return (
-    <div
-      className="flex items-center gap-0.5"
-      aria-label={`${rating} out of ${max} stars`}
-    >
+    <div className="flex items-center gap-0.5" aria-label={`${rating} out of ${max} stars`}>
       {Array.from({ length: max }).map((_, i) => (
         <svg
           key={i}
           width="14"
           height="14"
           viewBox="0 0 16 16"
-          fill={i < rating ? "#f59e0b" : "none"}
-          stroke="#f59e0b"
+          fill={i < rating ? "#EBA937" : "none"}
+          stroke="#EBA937"
           strokeWidth="1.4"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -64,6 +61,11 @@ function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
   );
 }
 
+/**
+ * One course as a rounded tile: its picture with the level and access
+ * labels, the rating when it has one, the title, category, duration and
+ * certificate, and the price or enrolment state with the link to it.
+ */
 export function SiteCourseCard({
   id,
   title,
@@ -82,126 +84,97 @@ export function SiteCourseCard({
   estimated_duration,
   certificate_enabled,
 }: SiteCourseCardProps) {
-  const displayPrice = is_free ? "Free" : (price ? `₦${price.toLocaleString()}` : "Paid");
-  const fallbackImage = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop";
+  const displayPrice = is_free ? "Free" : price ? `₦${price.toLocaleString()}` : "Paid";
+  const fallbackImage = "/images/home/swcl/elearning.webp";
   const displayCategory = formatEnumString(category);
   const displayLevel = formatEnumString(level);
-  const durationLabel = getCourseDurationLabel({
-    estimated_duration,
-    estimated_total_minutes,
-  });
+  const durationLabel = getCourseDurationLabel({ estimated_duration, estimated_total_minutes });
   const canViewCourse = is_enrolled === true || has_access === true || is_completed === true;
 
   return (
     <article
-      className="group flex flex-col bg-white dark:bg-[#141414] rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 h-full"
+      className="group flex h-full flex-col overflow-hidden rounded-[28px] bg-white dark:bg-[#16231C] ring-1 ring-black/5 dark:ring-white/10 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_30px_60px_-40px_rgba(20,64,47,0.45)] dark:hover:shadow-none"
       aria-labelledby={`course-${id}-title`}
     >
-      {/* Image */}
-      <div className="relative overflow-hidden aspect-[16/9] bg-[#2D6A4F]/10 flex-shrink-0">
+      <Link
+        href={href}
+        className="relative block aspect-[16/10] overflow-hidden bg-[#EEF5F1] dark:bg-[#0F1A14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2D6A4F]"
+        aria-label={title}
+      >
         <img
           src={thumbnail_url || fallbackImage}
           alt=""
           aria-hidden="true"
-          className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-300"
+          className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.04]"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).src = fallbackImage;
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/30 via-[#52b788]/20 to-[#2D6A4F]/10 -z-10" />
-
-        {/* Level badge */}
         <span
-          className={`absolute top-3 left-3 text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${levelColors[displayLevel] || levelColors["Beginner"]}`}
+          className={`absolute left-3 top-3 rounded-full px-3 py-1.5 text-[0.68rem] font-bold uppercase tracking-[0.14em] ${levelColors[displayLevel] || levelColors["Beginner"]}`}
         >
           {displayLevel}
         </span>
-        {/* Access badge */}
         {canViewCourse && (
-          <span className="absolute top-3 right-3 text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#1e4d38] text-white shadow-lg shadow-[#1e4d38]/30">
+          <span className="absolute right-3 top-3 rounded-full bg-black/45 backdrop-blur-md px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-white">
             {is_completed ? "Completed" : is_enrolled ? "Enrolled" : "Access"}
           </span>
         )}
-      </div>
+      </Link>
 
-      {/* Body */}
-      <div className="flex flex-col flex-1 p-5 gap-3">
-        {/* Stars */}
-        {(total_reviews !== undefined && total_reviews > 0) && (
+      <div className="flex flex-1 flex-col gap-3 p-6">
+        {total_reviews !== undefined && total_reviews > 0 && (
           <div className="flex items-center gap-1.5">
             <StarRating rating={average_rating || 0} />
-            <span className="text-[0.8rem] font-bold text-gray-900 dark:text-gray-100">
+            <span className="text-[0.8rem] font-bold text-gray-900 dark:text-[#ECF2EE]">
               {Number(average_rating).toFixed(1)}
             </span>
-            <span className="text-[0.75rem] text-gray-500">
+            <span className="text-[0.75rem] text-gray-500 dark:text-[#A3B3A9]">
               ({total_reviews} reviews)
             </span>
           </div>
         )}
 
-        {/* Title */}
         <h3
           id={`course-${id}-title`}
-          className="text-[0.95rem] font-bold leading-snug text-gray-900 dark:text-gray-100 tracking-tight line-clamp-2"
+          className="line-clamp-2 text-[1.05rem] font-bold leading-snug tracking-[-0.01em] text-gray-900 dark:text-[#ECF2EE]"
         >
           {title}
         </h3>
 
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-[0.78rem] text-gray-400 dark:text-gray-500">
-            In{" "}
-            <span className="text-[#2D6A4F] dark:text-[#52b788] font-semibold">
-              {displayCategory}
-            </span>
-          </p>
+          <span className="rounded-full bg-[#EEF5F1] dark:bg-[#0F1A14] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[#2D6A4F] dark:text-[#74c69d]">
+            {displayCategory}
+          </span>
           {durationLabel && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-[#e7f6ee] px-2 py-1 text-[0.72rem] font-bold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-              <Clock3 className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1 rounded-full ring-1 ring-black/10 dark:ring-white/10 px-3 py-1 text-[0.72rem] font-semibold text-gray-600 dark:text-[#A3B3A9]">
+              <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
               {durationLabel}
             </span>
           )}
           {certificate_enabled === true && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-[#ecfff4] px-2 py-1 text-[0.72rem] font-bold text-[#0f8a46] dark:bg-[#15945a]/15 dark:text-[#8de5b5]">
-              <Trophy className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1 rounded-full ring-1 ring-black/10 dark:ring-white/10 px-3 py-1 text-[0.72rem] font-semibold text-[#B7791F] dark:text-[#F3C56B]">
+              <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
               Certificate
             </span>
           )}
         </div>
 
-        {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
-          <span className="text-[0.9rem] font-bold text-[#2D6A4F] dark:text-[#52b788]">
+        <div className="flex items-center justify-between gap-3 border-t border-gray-900/10 dark:border-white/10 pt-4">
+          <span className="text-[1rem] font-bold text-[#14402F] dark:text-[#74c69d]">
             {is_completed ? "Completed" : canViewCourse ? "Enrolled" : displayPrice}
           </span>
           <Link
             href={href}
-            className={`inline-flex items-center gap-1.5 text-[0.8rem] font-semibold no-underline transition-colors duration-150 ${
-              canViewCourse
-                ? "text-[#F4A261] dark:text-[#F4A261] hover:text-[#d98b4f]"
-                : "text-gray-700 dark:text-gray-300 hover:text-[#2D6A4F] dark:hover:text-[#52b788]"
-            }`}
+            className="group/cta inline-flex items-center gap-1.5 text-[0.88rem] font-bold text-gray-900 dark:text-[#ECF2EE] hover:text-[#2D6A4F] dark:hover:text-[#74c69d] transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F]"
           >
-            {/* Grid icon */}
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            {canViewCourse ? "View course" : "Get enrolled"}
+            <ArrowRight
+              className="h-4 w-4 transition-transform group-hover/cta:translate-x-1"
               aria-hidden="true"
-            >
-              <rect x="1" y="1" width="6" height="6" rx="1" />
-              <rect x="9" y="1" width="6" height="6" rx="1" />
-              <rect x="1" y="9" width="6" height="6" rx="1" />
-              <rect x="9" y="9" width="6" height="6" rx="1" />
-            </svg>
-            {canViewCourse ? "View Course" : "Get Enrolled"}
+            />
           </Link>
         </div>
       </div>
