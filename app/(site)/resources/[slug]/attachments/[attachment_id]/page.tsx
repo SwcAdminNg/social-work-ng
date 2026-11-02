@@ -15,7 +15,7 @@ export async function generateMetadata(props: {
   const attachment = resource?.attachments?.find((item) => item.id === attachment_id);
 
   return {
-    title: `${attachment?.title || resource?.name || "Resource"} | Social Work Nigeria`,
+    title: `${attachment?.title || resource?.name || "Resource"}`,
   };
 }
 

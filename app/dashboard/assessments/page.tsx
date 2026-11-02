@@ -1,7 +1,7 @@
 import AssessmentsContainer from "@/components/dashboard/assessments/AssessmentsContainer";
 
 export const metadata = {
-  title: "Assessments | Social Work Nigeria",
+  title: "Assessments",
 };
 
 export default function AssessmentsPage({

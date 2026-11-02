@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Wrench } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Under Maintenance | Social Work Nigeria",
+  title: "Under Maintenance",
   robots: { index: false, follow: false },
 };
 

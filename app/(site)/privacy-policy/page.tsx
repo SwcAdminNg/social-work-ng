@@ -2,7 +2,7 @@ import { PrivacyHero } from "@/components/privacy/PrivacyHero";
 import { PrivacyContent } from "@/components/privacy/PrivacyContent";
 
 export const metadata = {
-  title: "Privacy Policy | Social Work Nigeria",
+  title: "Privacy Policy",
   description: "Privacy Policy, Terms of Use, and Safeguarding Statement for Social Work Consultancy Ltd.",
 };
 

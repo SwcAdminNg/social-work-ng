@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const metadata = {
-  title: "Resources | Social Work Nigeria",
+  title: "Resources",
   description: "Access essential toolkits, guidelines, and practice materials designed to support social workers.",
 };
 

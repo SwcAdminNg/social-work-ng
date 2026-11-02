@@ -36,7 +36,7 @@ type PublicCourse = {
 };
 
 export const metadata = {
-  title: "Courses | Social Work Nigeria",
+  title: "Courses",
   description: "Browse our catalog of professional courses and materials.",
 };
 

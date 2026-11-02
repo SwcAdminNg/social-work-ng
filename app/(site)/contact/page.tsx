@@ -3,7 +3,7 @@ import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactMap } from "@/components/contact/ContactMap";
 
 export const metadata = {
-  title: "Contact Us | Social Work Nigeria",
+  title: "Contact Us",
   description: "Get in touch with the Social Work Nigeria team.",
 };
 

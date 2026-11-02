@@ -11,10 +11,10 @@ export async function generateMetadata(props: {
   const { slug } = await props.params;
   const { resource, ok } = await getResource(slug);
 
-  if (!ok || !resource) return { title: "Resource Not Found | Social Work Nigeria" };
+  if (!ok || !resource) return { title: "Resource Not Found" };
 
   return {
-    title: `${resource.name} | Resources | Social Work Nigeria`,
+    title: `${resource.name} | Resources`,
     description:
       resource.description ||
       "Browse professional social work resources, templates, recordings, and practice material.",

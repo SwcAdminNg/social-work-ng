@@ -3,7 +3,7 @@ import { AboutIntro } from "@/components/about/AboutIntro";
 import { AboutWhy } from "@/components/about/AboutWhy";
 
 export const metadata = {
-  title: "About Us | Social Work Nigeria",
+  title: "About Us",
   description: "Learn more about Social Work Nigeria and our mission.",
 };
 

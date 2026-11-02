@@ -2,7 +2,7 @@ import { TermsHero } from "@/components/terms/TermsHero";
 import { TermsContent } from "@/components/terms/TermsContent";
 
 export const metadata = {
-  title: "Terms of Service | Social Work Nigeria",
+  title: "Terms of Service",
   description: "Terms of Service for the Social Work Consultancy Ltd (SWCL) LMS platform.",
 };
 
