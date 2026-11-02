@@ -3,6 +3,8 @@
 
 const IMG = "/images/home/swcl";
 
+export type Photo = { src: string; alt: string };
+
 export type HeroSlide = {
   id: string;
   tab: string;
@@ -46,8 +48,8 @@ export const heroSlides: HeroSlide[] = [
       "Develop the knowledge, skills and confidence to make informed decisions, respond to complex situations and work more effectively with people.",
       "Explore Social Work Consultancy Ltd’s dedicated e-learning platform, designed to connect social work principles with the realities of practice.",
     ],
-    image: `${IMG}/foundation-learning.webp`,
-    imageAlt: "A learner studying online at a desk with a laptop and notebook",
+    image: `${IMG}/elearning.webp`,
+    imageAlt: "A professional completing an online course on a laptop",
     focus: "47% 35%",
     primary: { label: "Explore Our Learning Platform", href: "/courses" },
   },
@@ -59,9 +61,9 @@ export const heroSlides: HeroSlide[] = [
       "Good services begin with a clear understanding of people’s experiences and priorities.",
       "Our research and evaluation services help organisations ask the right questions, understand their findings and use evidence to strengthen programmes and service delivery.",
     ],
-    image: `${IMG}/organisational-learning.webp`,
-    imageAlt: "An open report with charts and a pen on a wooden desk",
-    focus: "46% 55%",
+    image: `${IMG}/research-together.webp`,
+    imageAlt: "Two researchers reviewing printed charts together at a desk",
+    focus: "40% 35%",
     primary: {
       label: "Explore Research and Evaluation",
       href: "#service-research",
@@ -83,33 +85,24 @@ export const heroSlides: HeroSlide[] = [
 ];
 
 export const intro = {
-  eyebrow: "Social Work Consultancy Ltd",
+  eyebrow: "Introduction to SWCL",
   title: "Building the Knowledge and Capacity Behind Better Services",
   image: `${IMG}/listening-with-care.webp`,
   imageAlt: "A practitioner listening carefully and taking notes during a meeting",
-  // The handover's five paragraphs, shown one at a time. Labels are short
-  // signposts for each paragraph, not extra copy.
-  chunks: [
-    {
-      label: "Who we are",
-      text: "Social Work Consultancy Ltd is a professional learning and consultancy organisation dedicated to strengthening social work and related services. We support the people and organisations working to improve the lives of children, families and communities, particularly in contexts where needs are complex, and resources are limited.",
-    },
-    {
-      label: "What we do",
-      text: "Our work brings together training and professional development, research and evaluation, policy and advocacy, and tailored organisational support. These services share a common purpose: to help people make informed decisions, strengthen practice, and develop more responsive, inclusive services.",
-    },
-    {
-      label: "Rooted in communities",
-      text: "We recognise that effective social work must be rooted in the communities it serves. Culture, family relationships, economic circumstances, disability, inequality and access to services all shape people’s experiences. Our approach links relevant international learning to Nigerian and wider Global South contexts, encouraging thoughtful application rather than assuming that one approach will suit every setting.",
-    },
-    {
-      label: "Who we work with",
-      text: "We work with social workers, students, educators, carers, NGOs, community organisations and institutions whose responsibilities bring them into contact with children, families and people facing disadvantage.",
-    },
-    {
-      label: "What we stand for",
-      text: "Across our work, we promote respect for human dignity, social justice, safeguarding, professional accountability and meaningful participation. We believe people should have opportunities to influence the services and decisions that affect their lives.",
-    },
+  paragraphs: [
+    "Social Work Consultancy Ltd is a professional learning and consultancy organisation dedicated to strengthening social work and related services. We support the people and organisations working to improve the lives of children, families and communities, particularly in contexts where needs are complex, and resources are limited.",
+    "Our work brings together training and professional development, research and evaluation, policy and advocacy, and tailored organisational support. These services share a common purpose: to help people make informed decisions, strengthen practice, and develop more responsive, inclusive services.",
+    "We recognise that effective social work must be rooted in the communities it serves. Culture, family relationships, economic circumstances, disability, inequality and access to services all shape people’s experiences. Our approach links relevant international learning to Nigerian and wider Global South contexts, encouraging thoughtful application rather than assuming that one approach will suit every setting.",
+    "We work with social workers, students, educators, carers, NGOs, community organisations and institutions whose responsibilities bring them into contact with children, families and people facing disadvantage.",
+    "Across our work, we promote respect for human dignity, social justice, safeguarding, professional accountability and meaningful participation. We believe people should have opportunities to influence the services and decisions that affect their lives.",
+  ],
+  // The five commitments named in the final paragraph, shown as a strip.
+  values: [
+    "Human dignity",
+    "Social justice",
+    "Safeguarding",
+    "Professional accountability",
+    "Meaningful participation",
   ],
   button: { label: "Learn More About SWCL", href: "/about-us" },
 };
@@ -125,7 +118,7 @@ export type ServiceCard = {
 };
 
 export const services = {
-  eyebrow: "Our Services",
+  eyebrow: "Three core service areas",
   title: "Connected Services for Stronger Practice and Organisations",
   intro:
     "Learning, evidence and policy work best when they inform one another. Our three core service areas help individuals and organisations build capability, understand what needs to change and take practical steps.",
@@ -134,8 +127,9 @@ export const services = {
       id: "service-learning",
       title: "E-Learning and Professional Development",
       tagline: "Developing knowledge, confidence and practical capability.",
-      image: `${IMG}/elearning.webp`,
-      imageAlt: "A professional completing an online course on a laptop",
+      image: `${IMG}/digital-collaboration.webp`,
+      imageAlt:
+        "Three colleagues planning learning resources together with tablets",
       paragraphs: [
         "Our learning services support people at different stages of their professional journey, from those exploring social work to experienced practitioners and organisations developing their workforce.",
         "Through our dedicated platform, socialworknigeria.org, we provide a home for professional learning that connects key concepts to real-world practice. Our approach encourages learners to reflect, question assumptions and consider how their learning applies to their own role and setting.",
@@ -161,8 +155,9 @@ export const services = {
       id: "service-policy",
       title: "Policy and Advocacy",
       tagline: "Turning evidence and experience into clearer guidance.",
-      image: `${IMG}/policy.webp`,
-      imageAlt: "A white civic building with a green dome",
+      image: `${IMG}/policy-consultation.webp`,
+      imageAlt:
+        "An inclusive policy consultation around a table, with participants listening and taking notes",
       paragraphs: [
         "We support organisations in developing and reviewing policies, understanding implementation challenges and planning advocacy on issues affecting people’s rights and wellbeing.",
         "Our approach considers both the written policy and the conditions required to implement it. This includes professional responsibilities, organisational capacity, local context and the experiences of the people the policy is intended to support.",
@@ -174,15 +169,22 @@ export const services = {
 };
 
 export const learningApproach = {
-  eyebrow: "Learning",
+  eyebrow: "Learning and professional development",
   title: "Learning That Strengthens What You Do in Practice",
   paragraphs: [
     "Social work and related professions require more than theoretical understanding. Practitioners need to communicate sensitively, recognise risk, weigh different perspectives, and make decisions that they can explain and reflect on.",
     "Social Work Consultancy Ltd’s learning approach connects professional knowledge with these everyday responsibilities. We aim to help learners understand not only what an approach involves, but also when it may be useful, how context affects its application and what its limitations might be.",
-    "Our dedicated e-learning platform, socialworknigeria.org, is SWCL’s training arm. It brings together learning opportunities for individuals and organisations seeking to strengthen ethical, informed, and culturally relevant practice.",
-    "Learning activities may include case scenarios, guided reflection, knowledge checks and practical exercises, with the format detailed in each course description.",
   ],
-  listTitle: "Our learning approach supports you to:",
+  platform: {
+    name: "socialworknigeria.org",
+    image: `${IMG}/cpd-training.webp`,
+    imageAlt: "Professionals in a group discussion around a table",
+    paragraphs: [
+      "Our dedicated e-learning platform, socialworknigeria.org, is SWCL's training arm. It brings together learning opportunities for individuals and organisations seeking to strengthen ethical, informed, and culturally relevant practice.",
+      "Learning activities may include case scenarios, guided reflection, knowledge checks and practical exercises, with the format detailed in each course description.",
+    ],
+  },
+  supports: "Our learning approach supports you to:",
   outcomes: [
     {
       title: "Connect knowledge with action",
@@ -261,12 +263,13 @@ export const learningOptions: ServiceCard[] = [
 ];
 
 export const learningCategories = {
-  eyebrow: "Learning Areas",
+  eyebrow: "Learning categories",
   title: "Explore Learning That Reflects Your Responsibilities",
   intro: [
     "Our learning priorities bring together core practice skills, responsible use of digital tools, and an understanding of the laws and policies that shape services.",
     "These areas help learners identify relevant development opportunities. Current courses, availability and entry requirements are listed on our learning platform.",
   ],
+  themesLabel: "Learning themes include",
   items: [
     {
       id: "skills",
@@ -332,7 +335,7 @@ export const learningCta = {
 };
 
 export const faqs = {
-  eyebrow: "FAQs",
+  eyebrow: "Frequently asked questions",
   title: "Understanding SWCL and How We Can Support You",
   items: [
     {
@@ -416,7 +419,7 @@ export const faqs = {
 };
 
 export const contact = {
-  eyebrow: "Get in Touch",
+  eyebrow: "Contact and enquiry",
   title: "Let Us Turn Your Priorities into a Practical Plan",
   paragraphs: [
     "Are you developing your workforce, exploring a research question, reviewing a policy, or seeking a partner?",
@@ -425,8 +428,21 @@ export const contact = {
   ],
   notice:
     "Please avoid including confidential case details or sensitive personal information in your initial enquiry.",
+  organisation: "Social Work Consultancy Ltd",
   address: "Flat C3, Okonkwo Estate, Jos, Plateau State, Nigeria",
   phone: "+234 806 404 7702",
   messagePrompt:
     "Tell us about your needs, the support you are seeking, and any preferred timescale.",
+  button: "Send Your Enquiry",
 };
+
+// Section index shown down the right-hand edge on large screens.
+export const sectionIndex = [
+  { id: "about", label: "Introduction" },
+  { id: "services", label: "Services" },
+  { id: "learning", label: "Learning" },
+  { id: "learning-options", label: "Ways to learn" },
+  { id: "learning-areas", label: "Learning areas" },
+  { id: "faqs", label: "FAQs" },
+  { id: "contact", label: "Contact" },
+];

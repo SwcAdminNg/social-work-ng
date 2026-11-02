@@ -1,40 +1,52 @@
+import { Eyebrow, Reveal, WordReveal } from "./motion";
+
+// Opening block of a section: label, display heading and optional intro.
 export default function SectionHeading({
   id,
   eyebrow,
   title,
-  align = "center",
+  align = "left",
+  tone = "light",
   children,
+  className = "",
 }: {
   id: string;
   eyebrow: string;
   title: string;
   align?: "center" | "left";
+  // "light" sits on white or mint; "dark" on deep green.
+  tone?: "light" | "dark";
   children?: React.ReactNode;
+  className?: string;
 }) {
   const centered = align === "center";
+  const dark = tone === "dark";
   return (
-    <div className={centered ? "max-w-3xl mx-auto text-center" : "max-w-2xl"}>
-      <p
-        className={`flex items-center gap-2 text-[0.72rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-3 ${
-          centered ? "justify-center" : ""
-        }`}
+    <div
+      className={`${centered ? "max-w-3xl mx-auto text-center" : "max-w-3xl"} ${className}`}
+    >
+      <Eyebrow
+        tone={dark ? "gold" : "green"}
+        className={`mb-5 ${centered ? "justify-center" : ""}`}
       >
-        <span className="h-px w-6 bg-current" aria-hidden="true" />
         {eyebrow}
-        {centered && (
-          <span className="h-px w-6 bg-current" aria-hidden="true" />
-        )}
-      </p>
+      </Eyebrow>
       <h2
         id={id}
-        className="text-[2rem] sm:text-[2.5rem] lg:text-[2.9rem] font-bold leading-[1.08] tracking-[-0.03em] text-gray-900 dark:text-gray-50"
+        className={`t-h2 font-bold ${dark ? "text-white" : "text-gray-900 dark:text-gray-50"}`}
       >
-        {title}
+        <WordReveal text={title} />
       </h2>
       {children && (
-        <div className="mt-4 space-y-3 text-[0.98rem] leading-relaxed text-gray-600 dark:text-gray-400">
+        <Reveal
+          from="up"
+          delay={0.2}
+          className={`mt-6 space-y-4 t-body ${
+            dark ? "text-white/75" : "text-gray-600 dark:text-gray-400"
+          }`}
+        >
           {children}
-        </div>
+        </Reveal>
       )}
     </div>
   );

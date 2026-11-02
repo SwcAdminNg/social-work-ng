@@ -1,171 +1,143 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import {
-  motion,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform,
-} from "motion/react";
-import ExpandableCopy from "./ExpandableCopy";
 import SectionHeading from "./SectionHeading";
-import { Reveal, scrollSpring, useMediaQuery } from "./motion";
-import { services, type ServiceCard } from "./content";
+import { Reveal } from "./motion";
+import { services } from "./content";
 
-function Card({ item, index }: { item: ServiceCard; index: number }) {
-  return (
-    <article
-      id={item.id}
-      aria-labelledby={`${item.id}-title`}
-      className="scroll-mt-28 group grid grid-cols-1 lg:grid-cols-[0.95fr_1fr] bg-white dark:bg-gray-900 rounded-3xl overflow-hidden border border-black/5 dark:border-gray-800 shadow-[0_30px_60px_-30px_rgba(20,64,47,0.35)] dark:shadow-none lg:w-[min(64vw,860px)] lg:min-h-[min(60vh,540px)] lg:shrink-0"
-    >
-      <div className="relative aspect-[16/10] lg:aspect-auto lg:h-full overflow-hidden">
-        <img
-          src={item.image}
-          alt={item.imageAlt}
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105 dark:brightness-90"
-        />
-        <span className="absolute top-5 left-5 px-3 py-1.5 rounded-full bg-white/80 dark:bg-black/50 backdrop-blur-md text-[0.75rem] font-bold tracking-wide text-[#14402F] dark:text-white">
-          {String(index + 1).padStart(2, "0")} /{" "}
-          {String(services.items.length).padStart(2, "0")}
-        </span>
-      </div>
-      <div className="flex flex-col p-7 md:p-9">
-        <h3
-          id={`${item.id}-title`}
-          className="text-[1.5rem] md:text-[1.7rem] font-bold leading-[1.15] tracking-[-0.02em] text-gray-900 dark:text-gray-50"
-        >
-          {item.title}
-        </h3>
-        <p className="mt-3 text-[0.98rem] font-medium text-[#2D6A4F] dark:text-[#52b788] leading-snug">
-          {item.tagline}
-        </p>
-        <ExpandableCopy
-          paragraphs={item.paragraphs}
-          className="mt-4 text-[0.93rem] leading-relaxed text-gray-600 dark:text-gray-400"
-        />
-        <Link
-          href={item.button.href}
-          className="group/link mt-auto pt-7 inline-flex items-center gap-2 self-start text-[0.95rem] font-bold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-[#74c69d] rounded focus-visible:outline-none focus-visible:underline"
-        >
-          {item.button.label}
-          <ArrowRight className="w-4 h-4 transition-transform group-hover/link:translate-x-1" />
-        </Link>
-      </div>
-    </article>
-  );
-}
+const COUNT = services.items.length;
 
-// On large screens the section pins and vertical scrolling slides the
-// cards sideways; everywhere else it is a normal stacked list.
+/**
+ * The three core service areas. On large screens a photograph stays pinned
+ * on the left and changes as the reader scrolls through each service on the
+ * right; on smaller screens each service carries its own photograph.
+ */
 export default function Services() {
-  const reduce = useReducedMotion();
-  const wide = useMediaQuery("(min-width: 1024px) and (min-height: 680px)");
-  const horizontal = wide && !reduce;
+  const [active, setActive] = useState(0);
+  const blocks = useRef<(HTMLElement | null)[]>([]);
 
-  const sectionRef = useRef<HTMLElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [distance, setDistance] = useState(0);
-
-  useLayoutEffect(() => {
-    if (!horizontal) return;
-    const measure = () => {
-      const track = trackRef.current;
-      const viewport = viewportRef.current;
-      if (!track || !viewport) return;
-      setDistance(Math.max(0, track.scrollWidth - viewport.clientWidth));
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (trackRef.current) ro.observe(trackRef.current);
-    window.addEventListener("resize", measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, [horizontal]);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
-  const progress = useSpring(scrollYProgress, scrollSpring);
-  const x = useTransform(progress, [0, 1], [0, -distance]);
-  const barScale = useTransform(progress, [0, 1], [0.08, 1]);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const i = blocks.current.indexOf(entry.target as HTMLElement);
+          if (i >= 0) setActive(i);
+        }
+      },
+      // A block becomes current when it crosses the middle of the screen.
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+    );
+    blocks.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <section
-      ref={sectionRef}
       id="services"
       aria-labelledby="services-heading"
-      className="relative scroll-mt-24 bg-[#EEF5F1] dark:bg-[#0f1713]"
-      style={horizontal ? { height: `calc(100vh + ${distance}px)` } : undefined}
+      className="relative bg-[#EEF5F1] dark:bg-[#0f1713] rounded-t-[40px] md:rounded-t-[56px] -mt-10 pt-24 pb-24 md:pt-32 md:pb-32 scroll-mt-20"
     >
-      <div
-        ref={viewportRef}
-        className={
-          horizontal
-            ? "sticky top-[84px] h-[calc(100vh-84px)] overflow-hidden flex flex-col justify-center"
-            : "py-20 md:py-24 px-6"
-        }
-      >
-        <motion.div
-          ref={trackRef}
-          style={horizontal ? { x } : undefined}
-          className={
-            horizontal
-              ? "flex items-stretch gap-8 w-max pl-[max(1.5rem,calc((100vw-72rem)/2+1.5rem))] pr-[8vw] will-change-transform"
-              : "max-w-6xl mx-auto flex flex-col gap-8"
-          }
+      <div className="max-w-6xl mx-auto px-6 md:px-10">
+        <SectionHeading
+          id="services-heading"
+          eyebrow={services.eyebrow}
+          title={services.title}
         >
-          <div className={horizontal ? "w-[380px] shrink-0 self-center" : ""}>
-            <Reveal from={horizontal ? "left" : "up"}>
-              <SectionHeading
-                id="services-heading"
-                eyebrow={services.eyebrow}
-                title={services.title}
-                align="left"
-              >
-                <p>{services.intro}</p>
-              </SectionHeading>
-              {horizontal && (
-                <p className="mt-8 inline-flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
-                  Keep scrolling
-                  <ArrowRight
-                    className="w-4 h-4 animate-pulse"
-                    aria-hidden="true"
-                  />
+          <p>{services.intro}</p>
+        </SectionHeading>
+
+        <div className="mt-16 md:mt-20 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] gap-10 lg:gap-16 items-start">
+          {/* Pinned photograph (large screens) */}
+          <div className="hidden lg:block lg:sticky lg:top-28">
+            <div className="relative h-[calc(100vh-9rem)] min-h-[520px] rounded-[32px] overflow-hidden bg-[#0c2a1e] shadow-[0_40px_80px_-40px_rgba(20,64,47,0.5)] dark:shadow-none">
+              {services.items.map((item, i) => (
+                <img
+                  key={item.id}
+                  src={item.image}
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  decoding="async"
+                  className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:duration-300 motion-reduce:!scale-100 dark:brightness-90 ${
+                    i === active ? "opacity-100 scale-100" : "opacity-0 scale-[1.04]"
+                  }`}
+                />
+              ))}
+              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#04120b]/70 to-transparent" />
+              <div className="absolute left-6 bottom-6 right-6 flex items-end justify-between gap-4 text-white">
+                <p className="text-[1rem] font-bold leading-snug max-w-[22ch] [text-shadow:0_1px_12px_rgba(0,0,0,0.4)]">
+                  {services.items[active].title}
                 </p>
-              )}
-            </Reveal>
-          </div>
-
-          {services.items.map((item, i) =>
-            horizontal ? (
-              <Card key={item.id} item={item} index={i} />
-            ) : (
-              <Reveal key={item.id} from="up" delay={0.05 * i}>
-                <Card item={item} index={i} />
-              </Reveal>
-            ),
-          )}
-        </motion.div>
-
-        {horizontal && (
-          <div className="max-w-6xl w-full mx-auto px-6 mt-10">
-            <div className="h-1 rounded-full bg-[#2D6A4F]/15 overflow-hidden">
-              <motion.div
-                style={{ scaleX: barScale }}
-                className="h-full origin-left rounded-full bg-[#2D6A4F] dark:bg-[#52b788]"
-              />
+                <p className="shrink-0 tabular-nums text-[0.85rem] font-semibold text-white/80">
+                  {String(active + 1).padStart(2, "0")}
+                  <span className="text-white/40"> / {String(COUNT).padStart(2, "0")}</span>
+                </p>
+              </div>
             </div>
           </div>
-        )}
+
+          {/* The services */}
+          <div>
+            {services.items.map((item, i) => (
+              <article
+                key={item.id}
+                id={item.id}
+                ref={(el) => {
+                  blocks.current[i] = el;
+                }}
+                aria-labelledby={`${item.id}-title`}
+                className={`scroll-mt-28 lg:min-h-[82vh] lg:flex lg:flex-col lg:justify-center lg:py-10 ${
+                  i > 0 ? "mt-20 lg:mt-0" : ""
+                }`}
+              >
+                <Reveal className="lg:hidden mb-7">
+                  <div className="aspect-[16/10] rounded-[24px] overflow-hidden">
+                    <img
+                      src={item.image}
+                      alt={item.imageAlt}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover dark:brightness-90"
+                    />
+                  </div>
+                </Reveal>
+                <Reveal>
+                  <p className="flex items-center gap-3 text-[0.8rem] font-bold tabular-nums text-[#B7791F] dark:text-[#F3C56B]">
+                    {String(i + 1).padStart(2, "0")}
+                    <span className="h-px w-8 bg-current" aria-hidden="true" />
+                  </p>
+                  <h3
+                    id={`${item.id}-title`}
+                    className="t-h3 font-bold mt-4 text-gray-900 dark:text-gray-50"
+                  >
+                    {item.title}
+                  </h3>
+                  <p className="mt-4 text-[1.15rem] md:text-[1.25rem] font-medium leading-snug text-[#2D6A4F] dark:text-[#52b788] max-w-[40ch]">
+                    {item.tagline}
+                  </p>
+                  <div className="mt-6 space-y-4 t-body text-gray-600 dark:text-gray-400 max-w-[60ch]">
+                    {item.paragraphs.map((p) => (
+                      <p key={p}>{p}</p>
+                    ))}
+                  </div>
+                  <Link
+                    href={item.button.href}
+                    className="group mt-8 inline-flex items-center gap-2 min-h-[50px] px-6 rounded-full border border-[#2D6A4F]/35 dark:border-[#52b788]/40 text-[0.95rem] font-bold text-[#14402F] dark:text-[#52b788] hover:bg-[#2D6A4F] hover:border-[#2D6A4F] hover:text-white dark:hover:bg-[#52b788] dark:hover:text-gray-950 active:scale-[0.97] transition-[background-color,color,border-color,scale] duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2D6A4F]/30"
+                  >
+                    {item.button.label}
+                    <ArrowRight
+                      className="w-4 h-4 transition-transform group-hover:translate-x-1"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                </Reveal>
+              </article>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

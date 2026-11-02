@@ -1,312 +1,282 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  ArrowRight,
-  BookOpen,
-  ChartColumnIncreasing,
-  House,
-  Users,
-} from "lucide-react";
-import { motion, useTransform, type MotionValue } from "motion/react";
+import { ArrowDown, ArrowRight } from "lucide-react";
+import { motion, useInView, useReducedMotion } from "motion/react";
 import { heroSlides } from "./content";
-import {
-  NextCue,
-  StepBar,
-  crossFade as fade,
-  useSegment,
-  useStepScroll,
-} from "./ScrollSteps";
-
-const tabs = [
-  {
-    icon: House,
-    short: "Home",
-    tone: "bg-[#2D6A4F] text-white",
-    badge: "bg-[#2D6A4F]",
-  },
-  {
-    icon: BookOpen,
-    short: "E-Learning",
-    tone: "bg-[#557F8F] text-white",
-    badge: "bg-[#557F8F]",
-  },
-  {
-    icon: ChartColumnIncreasing,
-    short: "Research",
-    tone: "bg-[#EBA937] text-[#10291E]",
-    badge: "bg-[#EBA937] !text-[#10291E]",
-  },
-  {
-    icon: Users,
-    short: "Policy",
-    tone: "bg-[#14402F] text-white",
-    badge: "bg-[#14402F]",
-  },
-];
+import { calmSpring } from "./motion";
 
 const COUNT = heroSlides.length;
+// How long each banner stays before the next one.
+const DURATION = 8000;
 
-// Fills as the reader scrolls through that tab's banner.
-function TabProgress({
-  progress,
-  index,
-}: {
-  progress: MotionValue<number>;
-  index: number;
-}) {
-  const scaleX = useSegment(progress, index, COUNT);
-  return (
-    <span
-      aria-hidden="true"
-      className="absolute inset-x-3 bottom-2 h-1 rounded-full bg-black/15 overflow-hidden"
-    >
-      <motion.span
-        style={{ scaleX }}
-        className="block h-full origin-left rounded-full bg-white"
-      />
-    </span>
-  );
-}
+// Cross-fade shared by the banner copy: opacity and a short vertical
+// travel, run by CSS so the browser composites it.
+const fade =
+  "transition-[opacity,translate] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-opacity motion-reduce:duration-300 motion-reduce:!translate-none";
 
-// Each photo eases in a little closer as its banner is scrolled through,
-// so the screen visibly responds to every scroll.
-function HeroPhoto({
-  slide,
-  index,
-  active,
-  progress,
-  still,
-}: {
-  slide: (typeof heroSlides)[number];
-  index: number;
-  active: boolean;
-  progress: MotionValue<number>;
-  still: boolean;
-}) {
-  const local = useSegment(progress, index, COUNT);
-  const scale = useTransform(local, [0, 1], still ? [1, 1] : [1, 1.08]);
+// Display headline: light weight with the final word of each line in bold.
+function Headline({ lines }: { lines: string[] }) {
   return (
-    <motion.div
-      style={{ scale }}
-      className={`absolute inset-0 will-change-[opacity,transform] transition-opacity duration-700 ease-out motion-reduce:duration-300 ${
-        active ? "opacity-100" : "opacity-0"
-      }`}
-    >
-      <img
-        src={slide.image}
-        alt=""
-        aria-hidden="true"
-        decoding="async"
-        fetchPriority={index === 0 ? "high" : "low"}
-        style={{ "--focus": slide.focus } as React.CSSProperties}
-        className="w-full h-full object-cover object-[var(--focus)] md:object-center"
-      />
-    </motion.div>
+    <>
+      {lines.map((line) => {
+        const words = line.split(" ");
+        const last = words.pop();
+        return (
+          <span key={line} className="block">
+            {words.length > 0 && (
+              <span className="font-light">{words.join(" ")} </span>
+            )}
+            <span className="font-bold">{last}</span>
+            <span className="text-[#EBA937]">.</span>
+          </span>
+        );
+      })}
+    </>
   );
 }
 
 /**
- * Full-screen hero that stays in place while the reader scrolls through
- * the four banners (Home, E-Learning, Research, Policy and Advocacy), then
- * releases into the rest of the page. All four banners stay mounted and
- * cross-fade, so a change starts instantly and can reverse mid-way.
+ * Full-screen hero that moves through the four banners (Home, E-Learning,
+ * Research, Policy and Advocacy) on a timer, with a progress rail that
+ * doubles as the control. It pauses while hovered, focused, off screen or
+ * when the tab is hidden, and never auto-advances for readers who prefer
+ * reduced motion.
  */
 export default function Hero() {
-  const {
-    ref: sectionRef,
-    progress: scrollYProgress,
-    active,
-    goTo,
-    reduce,
-  } = useStepScroll<HTMLElement>(COUNT);
+  const reduce = useReducedMotion();
+  const sectionRef = useRef<HTMLElement>(null);
+  const inView = useInView(sectionRef, { amount: 0.3 });
 
-  const last = active === COUNT - 1;
-  const nextFull = last
-    ? "Continue below"
-    : `Next: ${heroSlides[active + 1].tab}`;
-  const nextShort = last ? "Continue below" : `Next: ${tabs[active + 1].short}`;
+  const [active, setActive] = useState(0);
+  // Bumped on every change so the fill animation restarts even when the
+  // same banner is chosen again.
+  const [cycle, setCycle] = useState(0);
+  const [hover, setHover] = useState(false);
+  const [focus, setFocus] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
-  const onTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    const last = COUNT - 1;
-    let next = -1;
-    if (e.key === "ArrowRight") next = active === last ? 0 : active + 1;
-    if (e.key === "ArrowLeft") next = active === 0 ? last : active - 1;
-    if (e.key === "Home") next = 0;
-    if (e.key === "End") next = last;
-    if (next < 0) return;
-    e.preventDefault();
-    goTo(next);
-    document.getElementById(`hero-tab-${heroSlides[next].id}`)?.focus();
+  const paused = !!reduce || hover || focus || hidden || !inView;
+
+  const go = (i: number) => {
+    setActive(((i % COUNT) + COUNT) % COUNT);
+    setCycle((c) => c + 1);
   };
 
-  // Banners before the active one sit slightly above, later ones below,
-  // so the motion always follows the scroll direction.
+  useEffect(() => {
+    const onVisibility = () => setHidden(document.hidden);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (paused) return;
+    const id = setTimeout(() => go(active + 1), DURATION);
+    return () => clearTimeout(id);
+  }, [active, cycle, paused]);
+
+  const onTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    let next: number | null = null;
+    if (e.key === "ArrowRight") next = active + 1;
+    if (e.key === "ArrowLeft") next = active - 1;
+    if (e.key === "Home") next = 0;
+    if (e.key === "End") next = COUNT - 1;
+    if (next === null) return;
+    e.preventDefault();
+    go(next);
+    const target = ((next % COUNT) + COUNT) % COUNT;
+    document.getElementById(`hero-tab-${heroSlides[target].id}`)?.focus();
+  };
+
+  // Banners before the active one sit slightly above, later ones below.
   const offset = (i: number) =>
-    i === active
-      ? "translate-y-0"
-      : i < active
-        ? "-translate-y-6"
-        : "translate-y-6";
+    i === active ? "translate-y-0" : i < active ? "-translate-y-4" : "translate-y-4";
+
+  // First paint: the opening banner settles into place in beats.
+  const enter = (order: number) =>
+    reduce
+      ? {}
+      : {
+          initial: { opacity: 0, y: 24 },
+          animate: { opacity: 1, y: 0 },
+          transition: { ...calmSpring, delay: 0.2 + order * 0.12 },
+        };
 
   return (
     <section
       ref={sectionRef}
       aria-label="Introduction"
-      data-nav-bg="rgba(4, 18, 11, 0.35)"
+      data-nav-bg="rgba(4, 18, 11, 0.3)"
       data-nav-theme="dark"
-      className="relative -mt-[84px] h-[280svh] bg-[#04120b]"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className={`relative -mt-[84px] min-h-[100svh] bg-[#04120b] text-white overflow-hidden ${
+        paused ? "is-paused" : ""
+      }`}
     >
-      <div className="sticky top-0 h-[100svh] min-h-[560px] overflow-hidden flex flex-col bg-[#04120b]">
-        {/* Photos. Phones show the photo in the top part of the screen so
-            more of it is visible; larger screens fill the background. */}
-        <div className="absolute inset-x-0 top-0 h-[66%] md:h-full overflow-hidden">
-          {heroSlides.map((s, i) => (
-            <HeroPhoto
+      {/* Photographs */}
+      <div className="absolute inset-0" aria-hidden="true">
+        {heroSlides.map((s, i) => {
+          const isActive = i === active;
+          return (
+            <div
               key={s.id}
-              slide={s}
-              index={i}
-              active={i === active}
-              progress={scrollYProgress}
-              still={!!reduce}
-            />
-          ))}
-        </div>
+              className={`absolute inset-0 transition-opacity duration-[1100ms] ease-out motion-reduce:duration-300 ${
+                isActive ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <img
+                src={s.image}
+                alt=""
+                decoding="async"
+                fetchPriority={i === 0 ? "high" : "low"}
+                style={{ "--focus": s.focus } as React.CSSProperties}
+                className={`h-full w-full object-cover object-[var(--focus)] md:object-center will-change-transform ${
+                  isActive ? "hero-zoom" : ""
+                }`}
+              />
+            </div>
+          );
+        })}
+        {/* Legibility: deep at the foot where the copy sits, a lift under
+            the header, and a soft left-to-right fall on wide screens. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#04120b] via-[#04120b]/55 via-40% to-[#04120b]/10" />
+        <div className="absolute inset-0 hidden md:block bg-gradient-to-r from-[#04120b]/80 via-[#04120b]/30 via-55% to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-[#04120b]/60 to-transparent" />
+      </div>
 
-        {/* Keeps the header legible over bright photos */}
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#04120b]/70 to-transparent" />
-        {/* Phones: photo fades into the dark panel that holds the text */}
-        <div className="absolute inset-x-0 top-0 h-[calc(66%+2px)] md:hidden bg-gradient-to-b from-transparent from-[45%] to-[#04120b] to-[98%]" />
-        {/* Tablets and desktops: fade from the left behind the text */}
-        <div className="absolute inset-0 hidden md:block bg-gradient-to-r from-[#04120b]/90 via-[#04120b]/55 to-[#04120b]/5" />
-        <div className="absolute inset-x-0 bottom-0 h-56 hidden md:block bg-gradient-to-t from-[#04120b]/80 to-transparent" />
+      {/* Copy */}
+      <div className="relative z-10 min-h-[100svh] flex flex-col">
+        <div className="flex-1 flex items-end">
+          <div className="hero-copy w-full max-w-6xl mx-auto px-6 md:px-10 pt-[calc(84px+2rem)] pb-8 md:pb-9">
+            <motion.div
+              {...enter(0)}
+              className="hero-meta flex items-center justify-between gap-6 mb-7 md:mb-9"
+            >
+              <p className="flex items-center gap-3 text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#F3C56B]">
+                <span className="h-px w-8 bg-current" aria-hidden="true" />
+                Social Work Consultancy Ltd
+              </p>
+              <p className="hidden sm:block text-[0.72rem] font-medium uppercase tracking-[0.22em] text-white/55">
+                Jos, Plateau State · Nigeria
+              </p>
+            </motion.div>
 
-        {/* Copy */}
-        <div className="relative z-10 flex-1 flex items-end md:items-center">
-          <div className="w-full max-w-6xl mx-auto px-5 sm:px-8 lg:px-6 pt-[calc(84px+1.5rem)] pb-6 md:pb-[clamp(1rem,4svh,2.5rem)]">
             {/* All banners share one grid cell and cross-fade in place */}
             <div
               id="hero-panel"
               role="tabpanel"
               aria-labelledby={`hero-tab-${heroSlides[active].id}`}
-              className="grid max-w-[680px]"
+              className="grid"
             >
               {heroSlides.map((s, i) => {
                 const isActive = i === active;
                 const Heading = isActive ? "h1" : "p";
-                const Icon = tabs[i].icon;
+                const first = i === 0;
                 return (
                   <div
                     key={s.id}
                     aria-hidden={!isActive}
                     inert={!isActive ? true : undefined}
-                    className={`[grid-area:1/1] self-end md:self-center ${fade} ${offset(i)} ${
+                    className={`[grid-area:1/1] self-end ${fade} ${offset(i)} ${
                       isActive ? "opacity-100" : "opacity-0 pointer-events-none"
                     }`}
                   >
-                    {/* Phones: a badge naming this banner */}
-                    <span
-                      className={`md:hidden inline-flex items-center gap-2 mb-4 pl-1.5 pr-4 py-1.5 rounded-full text-[0.95rem] font-bold text-white ring-1 ring-white/25 shadow-lg shadow-black/30 ${tabs[i].badge}`}
-                    >
-                      <span className="flex items-center justify-center w-7 h-7 rounded-full bg-white/20">
-                        <Icon className="w-4 h-4" aria-hidden="true" />
-                      </span>
-                      {s.tab}
-                    </span>
-                    <p className="hidden md:flex items-center gap-3 mb-4 text-base font-bold text-[#F3C56B]">
-                      <span
-                        className="h-px w-8 bg-current"
-                        aria-hidden="true"
-                      />
-                      Social Work Consultancy Ltd
-                    </p>
-                    <Heading className="hero-title font-bold text-white [text-shadow:0_1px_8px_rgba(0,0,0,0.3)]">
-                      {s.headline.map((line) => (
-                        <span key={line} className="block">
-                          {line}
-                          {s.headline.length > 1 && (
-                            <span className="text-[#EBA937]">.</span>
-                          )}
-                        </span>
-                      ))}
-                    </Heading>
-                    <div className="hero-body mt-4 space-y-3 max-w-[580px] text-white/90">
-                      {s.paragraphs.map((p, j) => (
-                        <p key={p} className={j > 0 ? "hero-extra" : undefined}>
-                          {p}
-                        </p>
-                      ))}
-                    </div>
-                    <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
-                      <Link
-                        href={s.primary.href}
-                        className="group inline-flex items-center justify-center gap-2 min-h-[54px] px-7 bg-[#EBA937] text-[#10291E] text-[1.0625rem] font-bold rounded-full shadow-lg shadow-black/25 hover:bg-[#f3bb57] active:scale-[0.97] transition-[background-color,scale] duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/80"
+                    <motion.div {...(first ? enter(1) : {})}>
+                      <Heading className="t-display max-w-[20ch] text-white [text-shadow:0_2px_24px_rgba(0,0,0,0.35)]">
+                        <Headline lines={s.headline} />
+                      </Heading>
+                    </motion.div>
+                    <div className="mt-7 md:mt-9 grid md:grid-cols-[minmax(0,560px)_auto] md:items-end gap-6 md:gap-12">
+                      <motion.div
+                        {...(first ? enter(2) : {})}
+                        className="space-y-3 text-[1rem] md:text-[1.0625rem] leading-relaxed text-white/85"
                       >
-                        {s.primary.label}
-                        <ArrowRight
-                          className="w-5 h-5 transition-transform group-hover:translate-x-1"
-                          aria-hidden="true"
-                        />
-                      </Link>
-                      {s.secondary && (
+                        {s.paragraphs.map((p, j) => (
+                          <p key={p} className={j > 0 ? "hero-extra hidden sm:block" : ""}>
+                            {p}
+                          </p>
+                        ))}
+                      </motion.div>
+                      <motion.div
+                        {...(first ? enter(3) : {})}
+                        className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-stretch sm:items-center md:items-start lg:items-center gap-3"
+                      >
                         <Link
-                          href={s.secondary.href}
-                          className="hero-extra inline-flex items-center justify-center min-h-[52px] px-7 text-white text-[1.0625rem] font-bold rounded-full border-2 border-white/70 hover:bg-white hover:text-[#14402F] active:scale-[0.97] transition-[background-color,color,scale] duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/80"
+                          href={s.primary.href}
+                          className="group inline-flex items-center justify-center gap-2 min-h-[54px] px-7 bg-[#EBA937] text-[#10291E] text-[1rem] font-bold rounded-full shadow-[0_12px_30px_-10px_rgba(0,0,0,0.6)] hover:bg-[#f3bb57] active:scale-[0.97] transition-[background-color,scale] duration-150 whitespace-nowrap focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/80"
                         >
-                          {s.secondary.label}
+                          {s.primary.label}
+                          <ArrowRight
+                            className="w-5 h-5 transition-transform group-hover:translate-x-1"
+                            aria-hidden="true"
+                          />
                         </Link>
-                      )}
+                        {s.secondary && (
+                          <Link
+                            href={s.secondary.href}
+                            className="inline-flex items-center justify-center min-h-[54px] px-7 text-white text-[1rem] font-bold rounded-full bg-white/10 ring-1 ring-inset ring-white/30 backdrop-blur-md hover:bg-white hover:text-[#14402F] active:scale-[0.97] transition-[background-color,color,scale] duration-150 whitespace-nowrap focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/80"
+                          >
+                            {s.secondary.label}
+                          </Link>
+                        )}
+                      </motion.div>
                     </div>
                   </div>
                 );
               })}
             </div>
-
-            {/* Phones: progress bars and what comes next */}
-            {/* Right padding leaves room for the floating light/dark button */}
-            <div className="md:hidden mt-5 pr-14 flex items-center gap-3">
-              <div
-                className="flex-1 flex items-center gap-1.5"
-                aria-label="Choose an area"
-              >
-                {heroSlides.map((s, i) => (
-                  <StepBar
-                    key={s.id}
-                    progress={scrollYProgress}
-                    index={i}
-                    count={COUNT}
-                    label={s.tab}
-                    current={i === active}
-                    onSelect={() => goTo(i)}
-                  />
-                ))}
-              </div>
-              {/* Fixed width so a changing label never resizes the bars */}
-              <div className="w-[9.5rem] shrink-0">
-                <NextCue
-                  progress={scrollYProgress}
-                  count={COUNT}
-                  next={nextShort}
-                  wrap
-                />
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Tabs — tablets and desktops */}
-        <div className="relative z-10 hidden md:block w-full max-w-6xl mx-auto px-8 lg:px-6 pb-6">
-          <div className="flex justify-end mb-3">
-            <NextCue progress={scrollYProgress} count={COUNT} next={nextFull} />
+        {/* Progress rail: one segment per banner. The active segment fills
+            over the slide's duration; earlier ones stay full. */}
+        <motion.div
+          {...(reduce
+            ? {}
+            : {
+                initial: { opacity: 0 },
+                animate: { opacity: 1 },
+                transition: { duration: 0.8, delay: 0.8 },
+              })}
+          className="hero-rail w-full max-w-6xl mx-auto px-6 md:px-10 pb-[4.25rem] md:pb-[4.5rem]"
+        >
+          <div className="flex items-end justify-between gap-6 mb-4">
+            <p className="md:hidden text-[0.9rem] font-bold text-white">
+              <span className="text-white/50 tabular-nums mr-2">
+                {String(active + 1).padStart(2, "0")}
+              </span>
+              {heroSlides[active].tab}
+            </p>
+            <p className="hidden md:block text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-white/50">
+              Our focus areas
+            </p>
+            <a
+              href="#about"
+              className="group inline-flex items-center gap-2 text-[0.8rem] font-semibold text-white/70 hover:text-white transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              Scroll
+              <span className="flex items-center justify-center w-8 h-8 rounded-full ring-1 ring-white/30 group-hover:ring-white/70 transition-colors">
+                <ArrowDown
+                  className="w-4 h-4 transition-transform group-hover:translate-y-0.5"
+                  aria-hidden="true"
+                />
+              </span>
+            </a>
           </div>
           <div
             role="tablist"
             aria-label="Our focus areas"
-            className="grid grid-cols-4 gap-3 lg:gap-4"
+            className="grid grid-cols-4 gap-3 md:gap-6"
+            onFocus={() => setFocus(true)}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node))
+                setFocus(false);
+            }}
           >
             {heroSlides.map((s, i) => {
-              const tab = tabs[i];
-              const Icon = tab.icon;
               const selected = i === active;
               return (
                 <button
@@ -317,24 +287,44 @@ export default function Hero() {
                   aria-selected={selected}
                   aria-controls="hero-panel"
                   tabIndex={selected ? 0 : -1}
-                  onClick={() => goTo(i)}
+                  onClick={() => go(i)}
                   onKeyDown={onTabKeyDown}
-                  className={`relative overflow-hidden flex items-center gap-3 min-h-[68px] px-4 lg:px-5 pb-1 rounded-2xl text-left shadow-lg shadow-black/25 cursor-pointer transition-[opacity,translate] duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white ${tab.tone} ${
-                    selected
-                      ? "ring-2 ring-white/90 lg:-translate-y-1.5"
-                      : "opacity-75 hover:opacity-100"
-                  }`}
+                  className="group text-left pt-3 pb-1 cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                 >
-                  <Icon className="w-6 h-6 shrink-0" aria-hidden="true" />
-                  <span className="text-[0.95rem] lg:text-[1.05rem] font-bold leading-tight">
-                    {s.tab}
+                  <span className="block h-[2px] w-full rounded-full bg-white/20 overflow-hidden">
+                    <span
+                      key={selected ? `fill-${cycle}` : "idle"}
+                      style={
+                        { "--hero-duration": `${DURATION}ms` } as React.CSSProperties
+                      }
+                      className={`block h-full w-full origin-left rounded-full bg-[#EBA937] ${
+                        selected
+                          ? "hero-fill"
+                          : i < active
+                            ? "scale-x-100"
+                            : "scale-x-0"
+                      }`}
+                    />
                   </span>
-                  <TabProgress progress={scrollYProgress} index={i} />
+                  <span className="mt-3 hidden md:flex items-baseline gap-3">
+                    <span className="text-[0.72rem] font-semibold tabular-nums text-white/45">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      className={`text-[0.92rem] font-bold leading-tight transition-colors duration-300 ${
+                        selected
+                          ? "text-white"
+                          : "text-white/55 group-hover:text-white/85"
+                      }`}
+                    >
+                      {s.tab}
+                    </span>
+                  </span>
                 </button>
               );
             })}
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

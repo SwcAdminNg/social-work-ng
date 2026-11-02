@@ -34,62 +34,115 @@ body {
   display: none; /* Chrome, Safari and Opera */
 }
 
-/* Homepage hero — type scales with both width and height so the
-   full-screen banner fits phones, short laptops and large monitors. */
-.hero-title {
-  font-size: clamp(1.75rem, calc(min(3.4vw, 5.2svh) + 0.45rem), 3.25rem);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+/* ------------------------------------------------------------------ */
+/* Homepage type scale. Tracking tightens and leading closes as type
+   grows; body copy stays open and near-neutral. */
+
+.t-display {
+  font-size: clamp(2.4rem, calc(0.9rem + 4.4vw), 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 
-.hero-body {
-  font-size: clamp(1rem, min(calc(0.9rem + 0.22vw), 2.2svh), 1.125rem);
-  line-height: 1.6;
+.t-h2 {
+  font-size: clamp(2rem, calc(1rem + 3vw), 3.4rem);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
 }
 
-/* On phones and short screens the second paragraph and the optional
-   secondary button step aside so the photo stays visible. */
-@media (max-width: 767px), (max-height: 699px) {
+.t-h3 {
+  font-size: clamp(1.45rem, calc(1rem + 1.2vw), 2rem);
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+}
+
+.t-lead {
+  font-size: clamp(1.125rem, calc(1rem + 0.5vw), 1.4rem);
+  line-height: 1.5;
+  font-weight: 300;
+  letter-spacing: -0.005em;
+}
+
+.t-body {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+/* Short screens: keep the full-height hero comfortable. The second
+   paragraph steps aside so the headline, button and rail always fit. */
+@media (max-height: 780px) {
+  .t-display {
+    font-size: clamp(2rem, calc(0.8rem + 3.2vw), 3.15rem);
+  }
+
   .hero-extra {
     display: none;
   }
-}
 
-/* Introduction paragraphs: large and comfortable to read, scaled down on
-   short screens so each chunk always fits. */
-.intro-chunk {
-  font-size: clamp(1rem, min(calc(0.85rem + 0.45vw), 2.6svh), 1.3rem);
-  line-height: 1.65;
-}
-
-/* Short phones: a tighter heading leaves room for the longest paragraph. */
-@media (max-width: 767px) and (max-height: 720px) {
-  .intro-heading p:first-child {
-    display: none;
+  .hero-copy {
+    padding-top: calc(84px + 1.5rem);
+    padding-bottom: 1.25rem;
   }
 
-  .intro-heading h2 {
-    font-size: 1.6rem;
+  .hero-meta {
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-rail {
+    padding-bottom: 3.25rem;
   }
 }
 
-/* Gentle downward nudge on the hero's "keep scrolling" cue */
-@keyframes hero-nudge {
-  0%,
-  100% {
-    translate: 0 -2px;
+/* ------------------------------------------------------------------ */
+/* Hero slideshow. The active banner's progress bar fills over the slide
+   duration and its photograph drifts slowly closer. */
+
+@keyframes hero-fill {
+  from {
+    transform: scaleX(0);
   }
-  50% {
-    translate: 0 3px;
+  to {
+    transform: scaleX(1);
   }
 }
 
-.hero-nudge {
-  animation: hero-nudge 1.8s ease-in-out infinite;
+@keyframes hero-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+.hero-fill {
+  animation: hero-fill var(--hero-duration, 8s) linear forwards;
+}
+
+.hero-zoom {
+  animation: hero-zoom 11s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.is-paused .hero-fill,
+.is-paused .hero-zoom {
+  animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-nudge {
+  .hero-zoom {
     animation: none;
   }
+  .hero-fill {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
+/* Hidden scrollbar for horizontal chip rows that still scroll. */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

@@ -2,22 +2,22 @@ import Hero from "./Hero";
 import HomeContact from "./HomeContact";
 import HomeFAQ from "./HomeFAQ";
 import Intro from "./Intro";
-import Learning from "./Learning";
+import LearningApproach from "./LearningApproach";
 import LearningCategories from "./LearningCategories";
 import LearningCTA from "./LearningCTA";
-import { ScrollProgress } from "./motion";
-import ScrollMarquee from "./ScrollMarquee";
+import LearningOptions from "./LearningOptions";
+import SectionIndex from "./SectionIndex";
 import Services from "./Services";
 
 export default function Home() {
   return (
     <>
-      <ScrollProgress />
+      <SectionIndex />
       <Hero />
       <Intro />
-      <ScrollMarquee />
       <Services />
-      <Learning />
+      <LearningApproach />
+      <LearningOptions />
       <LearningCategories />
       <LearningCTA />
       <HomeFAQ />
