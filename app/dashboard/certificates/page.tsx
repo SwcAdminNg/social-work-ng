@@ -1,7 +1,7 @@
 import CertificatesContainer from "@/components/dashboard/certificates/CertificatesContainer";
 
 export const metadata = {
-  title: "Certificates",
+  title: "Certificates | Social Work Nigeria",
 };
 
 export default function CertificatesPage({

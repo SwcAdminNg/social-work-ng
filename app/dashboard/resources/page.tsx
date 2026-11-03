@@ -22,7 +22,7 @@ import {
 import { ResourceSearchBar } from "./ResourceSearchBar";
 
 export const metadata = {
-  title: "Resources | Dashboard",
+  title: "Resources | Dashboard | Social Work Nigeria",
 };
 
 const PAGE_SIZE = 12;

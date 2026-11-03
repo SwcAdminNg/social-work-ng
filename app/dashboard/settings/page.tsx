@@ -2,7 +2,7 @@ import { ProfileSettings } from "@/components/dashboard/ProfileSettings";
 import { SecuritySettings } from "@/components/dashboard/SecuritySettings";
 
 export const metadata = {
-  title: "Settings",
+  title: "Settings | Social Work Nigeria",
   description: "Manage your profile and account settings.",
 };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, GraduationCap, Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 
 function IconFacebook() {
   return (
@@ -46,17 +46,16 @@ function IconLinkedIn() {
   );
 }
 
-const serviceLinks = [
-  { label: "E-Learning and Professional Development", href: "/e-learning" },
-  { label: "Research and Evaluation", href: "/research-and-evaluation" },
-  { label: "Policy and Advocacy", href: "/policy-and-advocacy" },
+const platformLinks = [
+  { label: "Our Courses", href: "/courses" },
+  { label: "Mentorship", href: "/mentorship" },
+  { label: "Resources", href: "/resources" },
 ];
 
-const exploreLinks = [
+const companyLinks = [
   { label: "About Us", href: "/about-us" },
-  { label: "Partner With Us", href: "/partner-with-us" },
-  { label: "Careers and Volunteering", href: "/careers-and-volunteering" },
   { label: "Contact Us", href: "/contact" },
+  { label: "FAQ", href: "/faq" },
 ];
 
 const socialLinks = [
@@ -68,15 +67,15 @@ const socialLinks = [
 const contactItems = [
   {
     icon: <MapPin className="w-4 h-4" />,
-    label: "Our office",
-    value: "Flat C3, Okonkwo Estate, Jos, Plateau State, Nigeria.",
+    label: "Address",
+    value: "Flat C3, Okonkwo Estate, Jos, Plateau State.",
     href: undefined,
   },
   {
     icon: <Phone className="w-4 h-4" />,
-    label: "Telephone",
-    value: "+234 806 404 7702",
-    href: "tel:+2348064047702",
+    label: "Phone",
+    value: "+2348034471063",
+    href: "tel:+2348034471063",
   },
   {
     icon: <Mail className="w-4 h-4" />,
@@ -86,23 +85,6 @@ const contactItems = [
   },
 ];
 
-function LinkList({ links }: { links: { label: string; href: string }[] }) {
-  return (
-    <ul className="flex flex-col gap-3" role="list">
-      {links.map(({ label, href }) => (
-        <li key={label}>
-          <Link
-            href={href}
-            className="text-sm font-medium text-gray-600 dark:text-[#A3B3A9] hover:text-[#2D6A4F] dark:hover:text-[#95d5b2] transition-colors duration-200"
-          >
-            {label}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2.5 mb-6">
@@ -110,7 +92,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         className="w-4 h-px bg-[#2D6A4F] dark:bg-[#52b788]"
         aria-hidden="true"
       />
-      <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#2D6A4F] dark:text-[#74c69d]">
+      <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#2D6A4F] dark:text-[#52b788]">
         {children}
       </span>
     </div>
@@ -122,7 +104,7 @@ export default function Footer() {
 
   return (
     <footer
-      className="relative bg-white dark:bg-[#060f0a] border-t border-gray-100 dark:border-white/[0.06] overflow-hidden"
+      className="relative bg-white dark:bg-[#060f0a] border-t border-gray-100 dark:border-gray-900 overflow-hidden"
       aria-label="Site footer"
     >
       {/* Decorative Blur Blob */}
@@ -131,39 +113,37 @@ export default function Footer() {
         aria-hidden="true"
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_0.8fr_1.2fr] gap-12 lg:gap-10">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {/* ── Column 1: Brand ── */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 pr-4">
             <Link
               href="/"
               className="flex items-center gap-3 no-underline w-fit group"
-              aria-label="Social Work Consultancy Ltd home"
+              aria-label="Social Work Nigeria home"
             >
               <img
-                src="/images/logo/swc-dark-logo-trim.png"
-                alt="Social Work Consultancy Ltd"
-                width={1322}
-                height={386}
-                className="w-[150px] md:w-[158px] h-auto object-contain"
+                src="/images/logo/swc-dark-logo.png"
+                alt="SWC Logo"
+                width={151}
+                height={40}
+                className="w-[170px] md:w-[180px] h-auto object-contain"
               />
             </Link>
 
-            <p className="text-sm text-gray-500 dark:text-[#A3B3A9] leading-relaxed max-w-sm">
-              Social Work Consultancy Ltd strengthens social work and social
-              services through professional learning, research, policy and
-              advocacy. We connect evidence, professional knowledge and local
-              understanding to help individuals and organisations improve
-              practice.
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs">
+              Strengthening ethical, skilled, and accountable social work
+              practice across Nigeria through structured, practice-led
+              education.
             </p>
 
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex items-center gap-3 pt-2">
               {socialLinks.map(({ label, href, icon }) => (
                 <Link
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-[#16231C] text-gray-500 dark:text-[#A3B3A9] hover:text-white dark:hover:text-white hover:bg-[#2D6A4F] dark:hover:bg-[#52b788] transition-all duration-300 no-underline"
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-[#2D6A4F] dark:hover:bg-[#52b788] transition-all duration-300 no-underline"
                 >
                   {icon}
                 </Link>
@@ -171,40 +151,62 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* ── Column 2: Services ── */}
+          {/* ── Column 2: Platform Links ── */}
           <div>
-            <SectionLabel>Services</SectionLabel>
-            <LinkList links={serviceLinks} />
+            <SectionLabel>Platform</SectionLabel>
+            <ul className="flex flex-col gap-3" role="list">
+              {platformLinks.map(({ label, href }) => (
+                <li key={label}>
+                  <Link
+                    href={href}
+                    className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* ── Column 3: Explore SWCL ── */}
+          {/* ── Column 3: Company Links ── */}
           <div>
-            <SectionLabel>Explore SWCL</SectionLabel>
-            <LinkList links={exploreLinks} />
+            <SectionLabel>Company</SectionLabel>
+            <ul className="flex flex-col gap-3" role="list">
+              {companyLinks.map(({ label, href }) => (
+                <li key={label}>
+                  <Link
+                    href={href}
+                    className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* ── Column 4: Office ── */}
+          {/* ── Column 4: Contact ── */}
           <div>
-            <SectionLabel>Get in touch</SectionLabel>
+            <SectionLabel>Contact</SectionLabel>
             <ul className="flex flex-col gap-5" role="list">
               {contactItems.map(({ icon, label, value, href }) => (
                 <li key={label} className="flex items-start gap-3 group">
-                  <span className="mt-0.5 flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-[#16231C] text-[#2D6A4F] dark:text-[#74c69d] group-hover:bg-[#2D6A4F] group-hover:text-white transition-colors duration-300">
+                  <span className="mt-0.5 flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-900 text-[#2D6A4F] dark:text-[#52b788] group-hover:bg-[#2D6A4F] group-hover:text-white transition-colors duration-300">
                     {icon}
                   </span>
                   <div className="flex flex-col">
-                    <span className="text-[0.65rem] uppercase tracking-widest text-gray-400 dark:text-[#ECF2EE]0 font-bold mb-0.5">
+                    <span className="text-[0.65rem] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-bold mb-0.5">
                       {label}
                     </span>
                     {href ? (
                       <a
                         href={href}
-                        className="text-sm font-medium text-gray-700 dark:text-[#C3D1C8] hover:text-[#2D6A4F] dark:hover:text-[#95d5b2] transition-colors duration-200"
+                        className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
                       >
                         {value}
                       </a>
                     ) : (
-                      <span className="text-sm font-medium text-gray-700 dark:text-[#C3D1C8]">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {value}
                       </span>
                     )}
@@ -215,47 +217,22 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* ── Professional learning ── */}
-        <div className="mt-14 flex flex-col sm:flex-row sm:items-center justify-between gap-5 rounded-2xl bg-[#14402F] dark:bg-[#0F2A20] px-6 py-6 sm:px-8">
-          <div className="flex items-start gap-4">
-            <span className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-white/10 text-[#EBA937]">
-              <GraduationCap className="w-5 h-5" aria-hidden="true" />
-            </span>
-            <div>
-              <p className="text-[0.7rem] font-bold uppercase tracking-[0.15em] text-[#EBA937]">
-                Professional learning
-              </p>
-              <p className="mt-1 text-sm text-white/85 leading-relaxed">
-                Visit socialworknigeria.org, Social Work Consultancy
-                Ltd.&rsquo;s dedicated learning platform.
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/courses"
-            className="group inline-flex items-center justify-center gap-2 self-start sm:self-center px-5 py-2.5 rounded-full bg-[#EBA937] text-[#10291E] text-sm font-bold hover:bg-[#f3bb57] transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#14402F]"
-          >
-            Explore courses
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
-
         {/* ── Bottom bar ── */}
-        <div className="mt-10 pt-8 border-t border-gray-100 dark:border-white/[0.06] flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm font-medium text-gray-500 dark:text-[#ECF2EE]0 text-center md:text-left">
-            © {year} Social Work Consultancy Ltd. All rights reserved.
+        <div className="mt-16 pt-8 border-t border-gray-100 dark:border-gray-900 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-500 text-center md:text-left">
+            © {year} Social Work Consultancy Ltd. All Rights Reserved.
           </p>
 
           <div className="flex items-center gap-6 text-sm font-medium">
             <Link
               href="/privacy-policy"
-              className="text-gray-500 dark:text-[#ECF2EE]0 hover:text-[#2D6A4F] dark:hover:text-[#95d5b2] transition-colors duration-200"
+              className="text-gray-500 dark:text-gray-500 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
             >
               Privacy Policy
             </Link>
             <Link
               href="/terms-of-service"
-              className="text-gray-500 dark:text-[#ECF2EE]0 hover:text-[#2D6A4F] dark:hover:text-[#95d5b2] transition-colors duration-200"
+              className="text-gray-500 dark:text-gray-500 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-200"
             >
               Terms of Service
             </Link>

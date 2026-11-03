@@ -56,7 +56,7 @@ export function SearchableDropdown({
     >
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-3 h-14 rounded-2xl bg-white dark:bg-white/[0.06] px-4 text-[0.95rem] font-medium text-gray-700 dark:text-[#D7E2DB] ring-1 ring-inset ring-transparent hover:ring-black/10 dark:hover:ring-white/15 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] transition-[background-color,box-shadow] cursor-pointer"
+        className="w-full flex items-center justify-between gap-3 bg-white dark:bg-[#0a0f0c] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/20 focus:border-[#2D6A4F] font-medium transition-all shadow-sm hover:border-gray-300 dark:hover:border-gray-700"
       >
         <span className="truncate">
           {selectedOption ? selectedOption.label : placeholder}

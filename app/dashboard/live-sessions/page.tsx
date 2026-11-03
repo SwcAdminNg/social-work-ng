@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "Live Sessions",
+  title: "Live Sessions | Social Work Nigeria",
 };
 
 type SearchParams = {

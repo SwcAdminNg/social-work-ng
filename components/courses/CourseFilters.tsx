@@ -116,18 +116,18 @@ export function CourseFilters({ catalogs = [] }: { catalogs?: Catalog[] }) {
   ].filter(Boolean).length;
 
   return (
-    <div className="w-full mb-10 flex flex-col items-end relative z-40">
+    <div className="w-full mb-10 flex flex-col items-end relative z-50">
       {/* Default Collapsed State: Single Icon Button */}
       {!showFilters && (
         <button
           onClick={handleToggleFilters}
-          className="inline-flex items-center gap-3 min-h-[50px] px-6 rounded-full bg-[#14402F] text-white text-[0.92rem] font-bold hover:bg-[#0c2a1e] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#14402F]/40"
+          className="flex items-center gap-3 px-6 py-3.5 bg-white dark:bg-[#111a14] border border-gray-200 dark:border-gray-800 rounded-full shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 text-gray-700 dark:text-gray-200 font-medium"
         >
-          <Search className="w-4.5 h-4.5" aria-hidden="true" />
-          <span>Search and filters</span>
+          <Search className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          <span>Search & Filters</span>
 
           {activeFiltersCount > 0 && (
-            <span className="flex items-center justify-center min-w-[22px] h-[22px] bg-[#EBA937] text-[#10291E] rounded-full text-xs font-bold">
+            <span className="flex items-center justify-center min-w-[22px] h-[22px] bg-[#2D6A4F] text-white rounded-full text-xs font-bold">
               {activeFiltersCount}
             </span>
           )}
@@ -143,22 +143,22 @@ export function CourseFilters({ catalogs = [] }: { catalogs?: Catalog[] }) {
         }`}
       >
         <div className={isFullyOpen ? "overflow-visible" : "overflow-hidden"}>
-          <div className="bg-[#EEF5F1] dark:bg-[#16231C] ring-1 ring-black/5 dark:ring-white/10 rounded-[28px] p-5 md:p-6 flex flex-col gap-5 mt-2 relative">
+          <div className="bg-white dark:bg-[#111a14] border border-gray-200 dark:border-gray-800 rounded-3xl p-5 md:p-6 shadow-xl flex flex-col gap-5 mt-2 relative">
             {/* Header & Close Button */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-[#0F1A14] text-[#2D6A4F] dark:text-[#74c69d] ring-1 ring-black/5 dark:ring-white/10">
+                <div className="p-2 bg-[#2D6A4F]/10 text-[#2D6A4F] dark:bg-[#2D6A4F]/20 dark:text-[#52b788] rounded-lg">
                   <SlidersHorizontal className="w-5 h-5" />
                 </div>
-                <h3 className="text-[1.1rem] font-bold tracking-[-0.01em] text-gray-900 dark:text-[#ECF2EE]">
-                  Search and filters
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  Advanced Filters
                 </h3>
               </div>
 
               <button
                 onClick={handleToggleFilters}
                 aria-label="Close filters"
-                className="p-2 rounded-full text-gray-500 dark:text-[#A3B3A9] hover:bg-white dark:hover:bg-[#0F1A14] hover:text-gray-900 dark:hover:text-[#ECF2EE] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F]"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -191,7 +191,7 @@ export function CourseFilters({ catalogs = [] }: { catalogs?: Catalog[] }) {
                   placeholder="Search courses..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full h-14 pl-12 pr-4 rounded-2xl bg-white dark:bg-white/[0.06] text-[1rem] text-gray-900 dark:text-[#ECF2EE] ring-1 ring-inset ring-transparent outline-none transition-[background-color,box-shadow] duration-200 placeholder:text-gray-500 dark:placeholder:text-[#A3B3A9] hover:ring-black/10 dark:hover:ring-white/15 focus:ring-2 focus:ring-[#2D6A4F]"
+                  className="block w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-[#0a0f0c] border border-gray-200 dark:border-gray-800 rounded-2xl text-[0.95rem] focus:ring-2 focus:ring-[#2D6A4F]/20 focus:border-[#2D6A4F] dark:text-gray-100 transition-all outline-none"
                 />
               </div>
 
@@ -243,7 +243,7 @@ export function CourseFilters({ catalogs = [] }: { catalogs?: Catalog[] }) {
               {activeFiltersCount > 0 && (
                 <button
                   onClick={() => router.push(pathname)}
-                  className="w-full sm:w-auto min-h-[50px] px-5 rounded-full text-[0.9rem] font-bold text-[#14402F] dark:text-[#C3D1C8] bg-white dark:bg-[#0F1A14] ring-1 ring-black/10 dark:ring-white/10 hover:bg-[#e2efe8] dark:hover:bg-[#15241b] transition-colors flex-shrink-0 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-3.5 text-[0.95rem] font-bold text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors flex-shrink-0"
                 >
                   Clear all
                 </button>

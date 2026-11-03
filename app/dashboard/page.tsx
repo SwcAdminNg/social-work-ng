@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "Dashboard",
+  title: "Dashboard | Social Work Nigeria",
 };
 
 type DashboardUser = {

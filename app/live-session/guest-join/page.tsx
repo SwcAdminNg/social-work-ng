@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { AlertCircle, ArrowLeft, Video } from "lucide-react";
 
 export const metadata = {
-  title: "Join Live Session",
+  title: "Join Live Session | Social Work Nigeria",
 };
 
 type SearchParams = {

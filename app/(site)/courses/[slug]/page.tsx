@@ -17,17 +17,17 @@ export async function generateMetadata(props: {
     next: { revalidate: 60 },
   });
 
-  if (!res.ok) return { title: "Course Not Found" };
+  if (!res.ok) return { title: "Course Not Found | Social Work Nigeria" };
 
   const data = await res.json().catch(() => ({}));
   const course = data?.data;
 
-  if (!course) return { title: "Course Not Found" };
+  if (!course) return { title: "Course Not Found | Social Work Nigeria" };
 
   const url = `${process.env.NEXT_PUBLIC_BASE_URL || "https://socialworknigeria.org"}/courses/${course.slug || course.id}`;
 
   return {
-    title: `${course.title}`,
+    title: `${course.title} | Social Work Nigeria`,
     description:
       course.description ||
       `Enroll in ${course.title} and advance your professional skills with Social Work Nigeria.`,

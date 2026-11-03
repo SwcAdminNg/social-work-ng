@@ -5,7 +5,7 @@ import { FAQHero } from "@/components/faq/FAQHero";
 import { FAQContent } from "@/components/faq/FAQContent";
 
 export const metadata: Metadata = {
-  title: "Frequently Asked Questions",
+  title: "Frequently Asked Questions | Social Work Nigeria",
   description:
     "Find answers to common questions about our courses, mentorship, and certification.",
 };

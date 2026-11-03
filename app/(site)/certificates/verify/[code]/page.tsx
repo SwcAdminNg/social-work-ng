@@ -11,7 +11,7 @@ type VerifyResult = {
 };
 
 export const metadata = {
-  title: "Verify Certificate",
+  title: "Verify Certificate | Social Work Nigeria",
 };
 
 export default async function VerifyCertificatePage(props: {
