@@ -102,7 +102,7 @@ export default function About() {
   return (
     <div className={s.page}>
       {/* Opening introduction */}
-      <section className={s.hero} aria-labelledby="about-heading" data-nav-bg="#fbf8f0">
+      <section className={s.hero} aria-labelledby="about-heading">
         <div className={s.heroCopy}>
           <h1 id="about-heading">About Social Work Consultancy Ltd</h1>
           <p className={s.heroLead}>
