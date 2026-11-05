@@ -155,7 +155,7 @@ export default function FAQ({ categories, isAuthenticated, loadFailed }: { categ
                   id="faq-search"
                   type="search"
                   className={lib.searchInput}
-                  placeholder="Search the FAQs, for example “payment”"
+                  placeholder="Search the FAQs"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   autoComplete="off"
@@ -183,9 +183,11 @@ export default function FAQ({ categories, isAuthenticated, loadFailed }: { categ
             </div>
           </div>
         ) : (
-          <>
-            <div className={s.controls}>
-              <div className={s.segmented} role="group" aria-label="Show answers for">
+          <div className={s.layout}>
+            <aside className={s.sidebar} aria-label="Filter answers">
+              <div className={s.controls}>
+                <p className={s.sideLabel} aria-hidden="true">Show answers for</p>
+                <div className={s.segmented} role="group" aria-label="Show answers for">
                 {AUDIENCES.map((a) => (
                   <button
                     key={a.value}
@@ -201,6 +203,8 @@ export default function FAQ({ categories, isAuthenticated, loadFailed }: { categ
             </div>
 
             {audienceCategories.length > 1 && (
+              <div>
+              <p className={s.sideLabel} aria-hidden="true">Topics</p>
               <ul className={s.chips} aria-label="Topics">
                 <li>
                   <button type="button" className={s.chip} aria-pressed={activeTopic === "ALL"} onClick={() => setTopic("ALL")}>
@@ -215,8 +219,11 @@ export default function FAQ({ categories, isAuthenticated, loadFailed }: { categ
                   </li>
                 ))}
               </ul>
+              </div>
             )}
+            </aside>
 
+            <div className={s.content}>
             <div className={s.listHead}>
               <p role="status" aria-live="polite">
                 {results.length} {results.length === 1 ? "answer" : "answers"}
@@ -323,7 +330,8 @@ export default function FAQ({ categories, isAuthenticated, loadFailed }: { categ
                 })}
               </ul>
             )}
-          </>
+            </div>
+          </div>
         )}
       </div>
 
