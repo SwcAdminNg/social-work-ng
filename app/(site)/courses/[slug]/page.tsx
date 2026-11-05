@@ -1,322 +1,302 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  ArrowLeft,
+  Award,
+  CalendarClock,
+  CheckCircle2,
+  Clock3,
+  GraduationCap,
+  LifeBuoy,
+  RotateCw,
+  Star,
+} from "lucide-react";
 import { fetchApi } from "@/lib/fetchApi";
-import { EnrollButton } from "./EnrollButton";
-import { CourseCurriculum } from "./CourseCurriculum";
+import { getCourseDurationLabel } from "@/lib/courseDuration";
+import { estimateTotalWithTax, formatNaira } from "@/lib/paymentTax";
 import { CourseReviews } from "@/components/courses/CourseReviews";
 import { CourseResourcesSection } from "@/components/resources/CourseResourcesSection";
-import { IconBookOpen } from "@/components/dashboard/icons";
-import { notFound } from "next/navigation";
-import { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft, Star, Trophy } from "lucide-react";
+import { fallbackImage, levelLabel, priceLabel, type CatalogueCourse } from "@/components/courses/catalogue/courseFormat";
+import lib from "@/components/resources/library/Library.module.css";
+import s from "@/components/courses/detail/CourseDetail.module.css";
+import { CourseCurriculum } from "./CourseCurriculum";
+import { EnrollButton } from "./EnrollButton";
 
-export async function generateMetadata(props: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const params = await props.params;
-  const res = await fetchApi(`/courses/${params.slug}`, {
-    next: { revalidate: 60 },
-  });
+type Instructor = { name: string; profile_picture_url?: string | null };
+type CourseDetail = CatalogueCourse & {
+  id: string;
+  prerequisite?: string | null;
+  what_you_will_learn?: string[];
+  material_includes?: string[];
+  requirements?: string[];
+  instructors?: Instructor[];
+  access_start_date?: string | null;
+  access_end_date?: string | null;
+  certificate_pass_mark_percentage?: number;
+  current_version_label?: string | null;
+  sections?: unknown;
+};
 
-  if (!res.ok) return { title: "Course Not Found | Social Work Nigeria" };
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://socialworknigeria.org";
 
-  const data = await res.json().catch(() => ({}));
-  const course = data?.data;
+async function loadCourse(slug: string) {
+  const res = await fetchApi(`/courses/${encodeURIComponent(slug)}`, { next: { revalidate: 60 } }).catch(() => null);
+  if (!res) return { status: 0, course: null as CourseDetail | null };
+  const json = await res.json().catch(() => null);
+  return { status: res.status, course: (json?.data ?? null) as CourseDetail | null };
+}
 
-  if (!course) return { title: "Course Not Found | Social Work Nigeria" };
+function plainText(text?: string | null) {
+  return (text || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
 
-  const url = `${process.env.NEXT_PUBLIC_BASE_URL || "https://socialworknigeria.org"}/courses/${course.slug || course.id}`;
-
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await props.params;
+  const { course } = await loadCourse(slug);
+  if (!course) return { title: "Course not found | Social Work Consultancy Ltd" };
+  const description = plainText(course.description).slice(0, 160) || `${course.title} from Social Work Consultancy Ltd.`;
+  const url = `/courses/${course.slug || course.id}`;
+  const image = course.thumbnail_url || fallbackImage(course.id);
   return {
-    title: `${course.title} | Social Work Nigeria`,
-    description:
-      course.description ||
-      `Enroll in ${course.title} and advance your professional skills with Social Work Nigeria.`,
-    alternates: {
-      canonical: url,
-    },
-    openGraph: {
-      title: course.title,
-      description:
-        course.description ||
-        `Enroll in ${course.title} and advance your professional skills.`,
-      url,
-      siteName: "Social Work Nigeria",
-      images: [
-        {
-          url:
-            course.thumbnail_url ||
-            "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop",
-          width: 1200,
-          height: 630,
-          alt: course.title,
-        },
-      ],
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: course.title,
-      description: course.description,
-      images: [
-        course.thumbnail_url ||
-          "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop",
-      ],
-    },
+    title: `${course.title} | Social Work Consultancy Ltd`,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "website", url, title: course.title, description, images: [image] },
+    twitter: { card: "summary_large_image", title: course.title, description, images: [image] },
   };
 }
 
-export default async function CourseDetailsPage(props: {
-  params: Promise<{ slug: string }>;
-}) {
-  const params = await props.params;
-  const res = await fetchApi(`/courses/${params.slug}`, {
-    next: { revalidate: 60 },
-  });
+const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" });
+const formatDate = (iso?: string | null) => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : dateFormat.format(d);
+};
 
-  if (res.status === 404) {
-    notFound();
-  }
-
-  const data = await res.json().catch(() => ({}));
-  const course = data?.data;
+export default async function CourseDetailsPage(props: { params: Promise<{ slug: string }> }) {
+  const { slug } = await props.params;
+  const { status, course } = await loadCourse(slug);
+  if (status === 404) notFound();
 
   if (!course) {
     return (
-      <div className="p-20 text-center text-red-500">
-        Failed to load course details.
+      <div className={lib.page}>
+        <div className={lib.container} style={{ paddingBlock: 64 }}>
+          <div className={lib.state} role="alert">
+            <h1 style={{ fontSize: "1.4rem" }}>We could not load this course.</h1>
+            <p>Please try again. If the problem continues, contact support.</p>
+            <div className={lib.stateActions}>
+              <Link href={`/courses/${encodeURIComponent(slug)}`} className={`${lib.cta} ${lib.ctaPrimary}`}>
+                <RotateCw size={17} aria-hidden="true" /> Retry
+              </Link>
+              <Link href="/courses" className={`${lib.cta} ${lib.ctaSecondary}`}>Back to courses</Link>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
+
+  const level = levelLabel(course.level);
+  const price = priceLabel(course);
+  const duration = getCourseDurationLabel(course);
+  const hasAccess = course.has_access === true || course.is_enrolled === true;
+  const outcomes = (course.what_you_will_learn || []).filter(Boolean);
+  const includes = (course.material_includes || []).filter(Boolean);
+  const requirements = (course.requirements || []).filter(Boolean);
+  const instructors = (course.instructors || []).filter((i) => i?.name);
+  const start = formatDate(course.access_start_date);
+  const end = formatDate(course.access_end_date);
+  const passMark = course.certificate_pass_mark_percentage;
+
+  const enroll = (compact = false) => (
+    <EnrollButton
+      courseId={course.id}
+      isEnrolled={Boolean(course.is_enrolled)}
+      isFree={Boolean(course.is_free)}
+      price={course.price ?? undefined}
+      hasAccess={course.has_access ?? undefined}
+      isCompleted={course.is_completed ?? undefined}
+      compact={compact}
+    />
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Course",
     name: course.title,
-    description:
-      course.description || `Comprehensive course on ${course.title}`,
-    provider: {
-      "@type": "Organization",
-      name: "Social Work Nigeria",
-      sameAs:
-        process.env.NEXT_PUBLIC_BASE_URL || "https://socialworknigeria.org",
-    },
-    image: course.thumbnail_url || undefined,
-    offers: {
-      "@type": "Offer",
-      category: course.is_free ? "Free" : "Paid",
-      price: course.price || 0,
-      priceCurrency: "NGN",
-    },
+    description: plainText(course.description) || course.title,
+    url: `${BASE_URL}/courses/${course.slug || course.id}`,
+    provider: { "@type": "Organization", name: "Social Work Consultancy Ltd", sameAs: BASE_URL },
+    ...(course.thumbnail_url ? { image: course.thumbnail_url } : {}),
+    ...(price
+      ? { offers: { "@type": "Offer", category: course.is_free ? "Free" : "Paid", price: course.is_free ? 0 : course.price, priceCurrency: "NGN" } }
+      : {}),
   };
 
   return (
-    <>
+    <div className={`${lib.page} ${s.page}`}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
-      {/* Hero Section */}
-      <div className="relative w-full py-16 lg:py-24 overflow-hidden bg-gray-900">
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url("${course.thumbnail_url || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop"}")`,
-          }}
-        />
-        <div className="absolute inset-0 z-10 bg-black/40" />
 
-        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full">
-          <div className="flex-1 w-full lg:pr-12 pt-4 lg:pt-8">
-            {/* Back Button */}
-            <Link
-              href="/courses"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white mb-8 transition-colors group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" />
-              Back to Courses
+      <section className={s.hero} aria-labelledby="course-title">
+        <div className={`${lib.container} ${s.heroInner}`}>
+          <div>
+            <Link href="/courses" className={s.back}>
+              <ArrowLeft size={16} aria-hidden="true" /> Back to courses
             </Link>
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              {course.is_free ? (
-                <span className="px-3 py-1.5 text-xs font-extrabold tracking-wider bg-[#F4A261] text-white rounded-lg shadow-lg">
-                  FREE COURSE
-                </span>
-              ) : course.price !== undefined ? (
-                <span className="px-3 py-1.5 text-xs font-extrabold tracking-wider bg-[#2D6A4F] text-white rounded-lg shadow-lg">
-                  PREMIUM
-                </span>
-              ) : null}
-              {course.category && (
-                <span className="px-3 py-1.5 text-xs font-extrabold tracking-wider bg-white/10 text-white rounded-lg border border-white/20 backdrop-blur-md">
-                  {course.category.replace("_", " ")}
-                </span>
-              )}
-              {course.current_version_label && (
-                <span className="px-3 py-1.5 text-xs font-extrabold tracking-wider bg-white/10 text-white rounded-lg border border-white/20 backdrop-blur-md">
-                  Version {course.current_version_label}
-                </span>
-              )}
-              {course.certificate_enabled === true && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-extrabold tracking-wider bg-[#52b788] text-[#06130d] rounded-lg shadow-lg">
-                  <Trophy className="h-3.5 w-3.5" />
-                  CERTIFICATE ON COMPLETION
-                </span>
-              )}
+            <div className={s.tags}>
+              {level && <span className={s.tag}><GraduationCap size={14} aria-hidden="true" /> {level}</span>}
+              {course.certificate_enabled && <span className={s.tag}><Award size={14} aria-hidden="true" /> Certificate on completion</span>}
+              {hasAccess && <span className={s.tag}><CheckCircle2 size={14} aria-hidden="true" /> {course.is_completed ? "Completed" : "Enrolled"}</span>}
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-4 leading-[1.1] drop-shadow-2xl">
-              {course.title}
-            </h1>
-
-            {/* Rating Display */}
-            {course.total_reviews !== undefined && course.total_reviews > 0 && (
-              <div className="flex items-center gap-2 mb-6">
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-5 h-5 ${i < (course.average_rating || 0) ? "fill-yellow-400 text-yellow-400" : "fill-transparent text-gray-300/50"}`}
-                    />
-                  ))}
-                </div>
-                <span className="text-lg font-bold text-white drop-shadow-md ml-1">
-                  {Number(course.average_rating).toFixed(1)}
-                </span>
-                <span className="text-base font-medium text-gray-300 drop-shadow-md">
-                  ({course.total_reviews} reviews)
-                </span>
-              </div>
-            )}
-
-            <p className="text-lg md:text-xl text-gray-300 max-w-2xl leading-relaxed drop-shadow-md font-medium">
-              {course.description ||
-                "Unlock premium insights, structured learning, and actionable strategies tailored for you."}
-            </p>
-          </div>
-
-          {/* Spacer to keep text constrained when sidebar overlaps */}
-          <div className="hidden lg:block w-[400px] flex-shrink-0" />
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32 md:pb-20">
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Left Column (Curriculum) */}
-          <div className="flex-1 space-y-12 pt-12 lg:pt-16">
-            <div>
-              <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8 tracking-tight">
-                Curriculum
-              </h2>
-              <CourseCurriculum
-                courseId={course.id}
-                sections={course.sections}
-              />
-
-              <div className="mt-12">
-                <CourseResourcesSection courseId={course.id} />
-              </div>
-
-              {/* Course Reviews */}
-              <CourseReviews courseId={course.id} />
-            </div>
-          </div>
-          {/* Right Column (Sticky Sidebar) */}
-          <div className="w-full lg:w-[400px] flex-shrink-0 lg:-mt-64 relative z-30">
-            <div className="sticky top-24 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 shadow-2xl">
-              <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden mb-8">
-                {course.thumbnail_url ? (
-                  <img
-                    src={course.thumbnail_url}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <IconBookOpen />
-                  </div>
-                )}
-              </div>
-
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                {course.is_free
-                  ? "Free"
-                  : course.price !== undefined
-                    ? `₦${course.price.toLocaleString()}`
-                    : "Premium"}
-              </h3>
-              <p className="text-sm text-gray-500 mb-8">
-                {course.is_enrolled
-                  ? "You are already enrolled. Jump back in and continue your progress."
-                  : "Join thousands of professionals already learning."}
+            <h1 id="course-title">{course.title}</h1>
+            {course.description && <p className={s.summary}>{plainText(course.description)}</p>}
+            {typeof course.total_reviews === "number" && course.total_reviews > 0 && (
+              <p className={s.rating}>
+                <Star size={16} aria-hidden="true" />
+                {Number(course.average_rating || 0).toFixed(1)} from {course.total_reviews}{" "}
+                {course.total_reviews === 1 ? "learner review" : "learner reviews"}
               </p>
-
-              <div className="hidden lg:block">
-                <EnrollButton
-                  courseId={course.id}
-                  isEnrolled={course.is_enrolled}
-                  isFree={course.is_free}
-                  price={course.price}
-                  hasAccess={course.has_access}
-                  isCompleted={course.is_completed}
-                />
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 space-y-4">
-                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                  <span className="w-2 h-2 rounded-full bg-[#2D6A4F]" /> Full
-                  lifetime access
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                  <span className="w-2 h-2 rounded-full bg-[#2D6A4F]" /> Access
-                  on mobile and TV
-                </div>
-                {course.certificate_enabled === true && (
-                  <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                    <span className="w-2 h-2 rounded-full bg-[#2D6A4F]" />{" "}
-                    Certificate of completion
-                    {typeof course.certificate_pass_mark_percentage === "number" &&
-                      course.certificate_pass_mark_percentage > 0 &&
-                      ` (${course.certificate_pass_mark_percentage}% overall score to pass)`}
-                  </div>
-                )}
-                {course.current_version_label && (
-                  <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                    <span className="w-2 h-2 rounded-full bg-[#2D6A4F]" />{" "}
-                    Version {course.current_version_label}
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-      </div>
-
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-18px_40px_-28px_rgba(15,23,42,0.45)] backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/95 lg:hidden">
-        <div className="mx-auto flex max-w-7xl items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[0.68rem] font-black uppercase tracking-normal text-gray-500 dark:text-gray-400">
-              Course access
-            </p>
-            <p className="truncate text-lg font-black text-gray-950 dark:text-white">
-              {course.is_free
-                ? "Free"
-                : course.price !== undefined
-                  ? `₦${course.price.toLocaleString()}`
-                  : "Premium"}
-            </p>
-          </div>
-          <div className="w-[52%] max-w-[220px] flex-shrink-0 [&_button]:rounded-md [&_button]:px-3 [&_button]:py-3 [&_button]:text-sm">
-            <EnrollButton
-              courseId={course.id}
-              isEnrolled={course.is_enrolled}
-              isFree={course.is_free}
-              price={course.price}
-              hasAccess={course.has_access}
-              isCompleted={course.is_completed}
-              compact
+          <div className={s.media}>
+            <Image
+              src={course.thumbnail_url || fallbackImage(course.id)}
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 960px) 40vw, 100vw"
+              unoptimized={Boolean(course.thumbnail_url)}
             />
           </div>
         </div>
+      </section>
+
+      <div className={`${lib.container} ${s.layout}`}>
+        <div className={s.main}>
+          {(course.prerequisite || requirements.length > 0) && (
+            <section className={s.block} aria-labelledby="audience-heading">
+              <h2 id="audience-heading" className={s.blockTitle}>Who this course is for</h2>
+              {course.prerequisite && <p className={s.prose}>{plainText(course.prerequisite)}</p>}
+              {requirements.length > 0 && (
+                <>
+                  <p className={s.prose} style={{ marginTop: course.prerequisite ? 12 : 0, fontWeight: 600 }}>Before you start</p>
+                  <ul className={s.list} style={{ marginTop: 8 }}>
+                    {requirements.map((r) => <li key={r}>{r}</li>)}
+                  </ul>
+                </>
+              )}
+            </section>
+          )}
+
+          {outcomes.length > 0 && (
+            <section className={s.block} aria-labelledby="outcomes-heading">
+              <h2 id="outcomes-heading" className={s.blockTitle}>What you will learn</h2>
+              <ul className={s.outcomes}>
+                {outcomes.map((o) => (
+                  <li key={o}>
+                    <CheckCircle2 size={18} aria-hidden="true" />
+                    <span>{o}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <section className={s.block} aria-labelledby="curriculum-heading">
+            <h2 id="curriculum-heading" className={s.blockTitle}>Course outline</h2>
+            <CourseCurriculum courseId={course.id} sections={course.sections as never} />
+          </section>
+
+          {instructors.length > 0 && (
+            <section className={s.block} aria-labelledby="instructors-heading">
+              <h2 id="instructors-heading" className={s.blockTitle}>{instructors.length === 1 ? "Instructor" : "Instructors"}</h2>
+              <ul className={s.instructors}>
+                {instructors.map((i) => (
+                  <li key={i.name} className={s.instructor}>
+                    <span className={s.avatar} aria-hidden="true">
+                      {i.profile_picture_url ? <Image src={i.profile_picture_url} alt="" fill sizes="44px" unoptimized /> : i.name.charAt(0)}
+                    </span>
+                    <span>{i.name}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <CourseResourcesSection courseId={course.id} />
+          <CourseReviews courseId={course.id} />
+        </div>
+
+        <aside className={s.aside} aria-label="Enrolment">
+          <div className={s.card}>
+            <div>
+              <p className={s.price}>{hasAccess ? "Enrolled" : price ?? "Fee to be confirmed"}</p>
+              <p className={s.priceNote} style={{ marginTop: 6 }}>
+                {hasAccess
+                  ? "You have access to this course. Continue where you left off."
+                  : course.is_free
+                    ? "No fee. Sign in or create a free account to enrol."
+                    : price
+                      ? `Course fee before VAT. With 7.5% VAT you pay ${formatNaira(estimateTotalWithTax(course.price ?? 0).totalWithTax)} at checkout.`
+                      : "Contact us for the fee before enrolling."}
+              </p>
+            </div>
+            <div className={s.desktopOnly}>{enroll()}</div>
+
+            {/* Only facts held on the course record. */}
+            <ul className={s.facts}>
+              {duration && (
+                <li><Clock3 size={18} aria-hidden="true" /><span><span className={s.factLabel}>Study time</span>About {duration}</span></li>
+              )}
+              {course.access_mode && (
+                <li>
+                  <CalendarClock size={18} aria-hidden="true" />
+                  <span>
+                    <span className={s.factLabel}>Delivery</span>
+                    {course.access_mode === "SCHEDULED"
+                      ? `Online, on scheduled dates${start ? ` from ${start}` : ""}${end ? ` to ${end}` : ""}`
+                      : "Online and self-paced"}
+                  </span>
+                </li>
+              )}
+              {course.certificate_enabled && (
+                <li>
+                  <Award size={18} aria-hidden="true" />
+                  <span>
+                    <span className={s.factLabel}>Certificate</span>
+                    Certificate of completion from Social Work Consultancy Ltd
+                    {typeof passMark === "number" && passMark > 0 ? ` when you achieve an overall score of ${passMark}% or more` : ""}.
+                  </span>
+                </li>
+              )}
+              {includes.length > 0 && (
+                <li>
+                  <CheckCircle2 size={18} aria-hidden="true" />
+                  <span><span className={s.factLabel}>Includes</span>{includes.join(", ")}</span>
+                </li>
+              )}
+            </ul>
+            <p className={s.support}>
+              <LifeBuoy size={14} aria-hidden="true" style={{ verticalAlign: "-2px", marginRight: 6 }} />
+              Questions before enrolling? <Link href="/contact?topic=course">Contact us</Link>.
+            </p>
+          </div>
+        </aside>
       </div>
-    </>
+
+      <div className={s.mobileBar}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <span className={s.factLabel}>Course access</span>
+          <p className={s.price}>{hasAccess ? "Enrolled" : price ?? "Fee to be confirmed"}</p>
+        </div>
+        <div className={s.mobileBarAction}>{enroll(true)}</div>
+      </div>
+    </div>
   );
 }

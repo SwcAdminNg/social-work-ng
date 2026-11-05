@@ -1,0 +1,53 @@
+/* Course detail page. Palette and dark mode come from the Resources library styles. */
+.page { isolation: isolate; }
+
+.hero { background: var(--ivory); }
+.heroInner { display: grid; gap: clamp(20px, 3vw, 40px); padding-block: clamp(24px, 4vw, 44px) clamp(28px, 4.5vw, 48px); align-items: center; }
+@media (min-width: 960px) { .heroInner { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } }
+.back { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; margin-bottom: 10px; color: var(--link); font-size: 0.92rem; font-weight: 600; text-decoration: none; }
+.back:hover { text-decoration: underline; text-underline-offset: 3px; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; background: var(--icon-bg); color: var(--heading); font-size: 0.8rem; font-weight: 600; }
+.page .hero h1 { font-size: clamp(1.9rem, 1.3rem + 2.6vw, 3rem); line-height: 1.08; letter-spacing: -0.03em; }
+.summary { max-width: 62ch; margin-top: 14px !important; color: var(--muted); font-size: clamp(1rem, 0.96rem + 0.3vw, 1.12rem); line-height: 1.6; white-space: pre-line; }
+.rating { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px !important; color: var(--muted); font-size: 0.92rem; }
+.rating svg { color: #e5a61d; fill: #e5a61d; }
+.media { position: relative; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; box-shadow: var(--shadow); background: var(--card); }
+.media img { object-fit: cover; }
+
+.layout { display: grid; gap: clamp(24px, 4vw, 48px); padding-block: clamp(28px, 4vw, 48px) clamp(96px, 10vw, 80px); align-items: start; }
+@media (min-width: 1024px) { .layout { grid-template-columns: minmax(0, 1fr) 360px; } }
+.main { display: grid; gap: clamp(28px, 4vw, 44px); min-width: 0; }
+.block { min-width: 0; }
+.page .blockTitle { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.65rem); }
+.blockTitle::before { content: ""; width: 24px; height: 3px; border-radius: 2px; background: var(--gold); }
+.prose { color: var(--muted); white-space: pre-line; }
+.outcomes { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 700px) { .outcomes { grid-template-columns: 1fr 1fr; } }
+.outcomes li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.outcomes svg { flex: none; margin-top: 2px; color: #2d6a4f; }
+:global(.dark) .outcomes svg { color: #95d5b2; }
+.list { display: grid; gap: 8px; margin: 0; padding-left: 20px; color: var(--muted); }
+.instructors { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.instructor { display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); }
+.avatar { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: var(--icon-bg); color: var(--icon-ink); font-weight: 700; }
+.avatar img { object-fit: cover; }
+
+/* Enrolment card */
+.aside { position: sticky; top: 100px; }
+.card { display: grid; gap: 16px; padding: clamp(20px, 3vw, 26px); border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); }
+.price { color: var(--heading); font-size: 2rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.priceNote { color: var(--muted); font-size: 0.9rem; }
+.facts { display: grid; gap: 12px; margin: 0; padding: 16px 0 0; border-top: 1px solid var(--line); list-style: none; }
+.facts li { display: flex; gap: 12px; align-items: flex-start; color: var(--ink); font-size: 0.93rem; line-height: 1.45; }
+.facts svg { flex: none; margin-top: 1px; color: var(--icon-ink); }
+.factLabel { display: block; color: var(--muted); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em; }
+.support { color: var(--muted); font-size: 0.86rem; }
+.support a { color: var(--link); font-weight: 600; }
+
+/* Phones: action bar fixed to the bottom */
+.mobileBar { position: fixed; inset: auto 0 0 0; z-index: 40; display: flex; align-items: center; gap: 12px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: color-mix(in srgb, var(--card) 94%, transparent); backdrop-filter: blur(16px); }
+.mobileBar .price { font-size: 1.25rem; }
+.mobileBarAction { flex: 0 0 52%; max-width: 230px; }
+@media (min-width: 1024px) { .mobileBar { display: none; } .desktopOnly { display: block; } }
+@media (max-width: 1023px) { .desktopOnly { display: none; } .aside { position: static; } }

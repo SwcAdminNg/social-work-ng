@@ -1,254 +1,104 @@
-import { fetchApi, publicFetchApi } from "@/lib/fetchApi";
-import { SiteCourseCard } from "@/components/courses/SiteCourseCard";
-import { CourseFilters } from "@/components/courses/CourseFilters";
-import Link from "next/link";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import type { Metadata } from "next";
 import { auth } from "@/auth";
+import { fetchApi, publicFetchApi } from "@/lib/fetchApi";
+import CourseCatalogue, { type CatalogueQuery } from "@/components/courses/catalogue/CourseCatalogue";
+import { COSTS, LEVELS, type CatalogueCourse, type CourseCatalog } from "@/components/courses/catalogue/courseFormat";
 
-type SessionWithAccessToken = {
-  accessToken?: string;
+const title = "Courses | Social Work Consultancy Ltd";
+const description =
+  "Practical social work courses from Social Work Consultancy Ltd for students, practitioners and those supporting children, families and communities in Nigeria and the Global South.";
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: "/courses" },
+  openGraph: {
+    type: "website",
+    url: "/courses",
+    title,
+    description,
+    images: ["/images/courses/learners-collaborate.webp"],
+  },
 };
 
-type EnrolledCourse = {
-  id?: string;
-  course?: {
-    id?: string;
-  };
-};
+const PAGE_SIZE = 12;
 
-type PublicCourse = {
-  id: string;
-  title: string;
-  slug?: string;
-  thumbnail_url?: string;
-  is_free?: boolean;
-  price?: number;
-  level?: string;
-  category?: string;
-  average_rating?: number;
-  total_reviews?: number;
-  estimated_total_minutes?: number | null;
-  estimated_duration?: string | null;
-  certificate_enabled?: boolean | null;
-  is_enrolled?: boolean | null;
-  has_access?: boolean | null;
-  is_completed?: boolean | null;
-};
+type EnrolledCourse = { id?: string; course?: { id?: string } };
 
-export const metadata = {
-  title: "Courses | Social Work Nigeria",
-  description: "Browse our catalog of professional courses and materials.",
-};
+const pick = (value: string | string[] | undefined) => (typeof value === "string" ? value.trim() : "");
+
+function listFrom<T>(json: unknown): T[] {
+  const payload = json as { data?: T[] | { items?: T[]; courses?: T[] }; items?: T[] } | null;
+  if (!payload) return [];
+  if (Array.isArray(payload.data)) return payload.data;
+  if (payload.data && Array.isArray(payload.data.items)) return payload.data.items;
+  if (payload.data && Array.isArray(payload.data.courses)) return payload.data.courses;
+  if (Array.isArray(payload.items)) return payload.items;
+  return [];
+}
 
 export default async function CoursesPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const searchParams = await props.searchParams;
-  const page = searchParams.page ? parseInt(searchParams.page as string) : 1;
-  const search = searchParams.search as string | undefined;
-  const catalog = searchParams.catalog as string | undefined;
-  const level = searchParams.level as string | undefined;
-  const category = searchParams.category as string | undefined;
-  const is_free = searchParams.is_free as string | undefined;
+  const params = await props.searchParams;
+  const pageNumber = Number.parseInt(pick(params.page), 10);
+  const level = pick(params.level);
+  const cost = pick(params.cost);
+  // `catalog` is the old name for the topic filter; keep old links working.
+  const topic = pick(params.topic) || pick(params.catalog);
 
-  let url = `/courses?page=${page}&page_size=12`;
-  if (search) url += `&search=${encodeURIComponent(search)}`;
-  if (catalog) url += `&catalog=${encodeURIComponent(catalog)}`;
-  if (level) url += `&level=${encodeURIComponent(level)}`;
-  if (category) url += `&category=${encodeURIComponent(category)}`;
-  if (is_free === 'true') url += `&is_free=true`;
-  else if (is_free === 'false') url += `&is_free=false`;
+  const query: CatalogueQuery = {
+    search: pick(params.search).slice(0, 120),
+    topic: /^[a-z0-9-]{1,120}$/i.test(topic) ? topic : "",
+    level: LEVELS.some((l) => l.value === level) ? level : "",
+    cost: COSTS.some((c) => c.value === cost) ? cost : "",
+    page: Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1,
+  };
 
-  const [initialRes, catalogsRes] = await Promise.all([
-    fetchApi(url, { next: { revalidate: 60 } }),
-    fetchApi("/courses/catalogs", { next: { revalidate: 3600 } }),
-  ]);
+  const api = new URLSearchParams({ page: String(query.page), page_size: String(PAGE_SIZE) });
+  if (query.search) api.set("search", query.search);
+  if (query.topic) api.set("catalog", query.topic);
+  if (query.level) api.set("level", query.level);
+  if (query.cost) api.set("is_free", query.cost);
+  const url = `/courses?${api.toString()}`;
 
-  const res = initialRes.ok
-    ? initialRes
-    : await publicFetchApi(url, { next: { revalidate: 60 } });
-  const data = await res.json().catch(() => ({}));
-  const items = getCourseItems(data);
-  const meta = getCourseMeta(data);
-  const hasNextPage = Boolean(meta.has_next ?? items.length === 12);
-
-  let catalogs = [];
-  if (catalogsRes.ok) {
-    const cData = await catalogsRes.json().catch(() => ({}));
-    catalogs = cData?.data || [];
-  }
-
-  // Fetch enrolled courses if the user is logged in
   const session = await auth();
-  const enrolledCourseIds = new Set<string>();
+  const signedIn = Boolean((session as { accessToken?: string } | null)?.accessToken);
 
-  if (session && (session as SessionWithAccessToken).accessToken) {
-    const enrolledRes = await fetchApi(`/learning/courses`, {
-      next: { revalidate: 0 },
-    });
-    if (enrolledRes.ok) {
-      const enrolledData = await enrolledRes.json().catch(() => ({}));
-      const enrolledCourses = Array.isArray(enrolledData?.data)
-        ? (enrolledData.data as EnrolledCourse[])
-        : ((enrolledData?.data?.items || []) as EnrolledCourse[]);
-      enrolledCourses.forEach((c) => {
-        if (c.id) enrolledCourseIds.add(c.id);
-        if (c.course?.id) enrolledCourseIds.add(c.course.id);
-      });
+  const [firstRes, catalogsRes, enrolledRes] = await Promise.all([
+    fetchApi(url, { next: { revalidate: 60 } }).catch(() => null),
+    publicFetchApi("/courses/catalogs", { next: { revalidate: 600 } }).catch(() => null),
+    signedIn ? fetchApi("/learning/courses", { cache: "no-store" }).catch(() => null) : Promise.resolve(null),
+  ]);
+  // An expired session can make the signed-in request fail; fall back to the public list.
+  const res = firstRes?.ok ? firstRes : await publicFetchApi(url, { next: { revalidate: 60 } }).catch(() => null);
+  const json = res?.ok ? await res.json().catch(() => null) : null;
+  const courses = listFrom<CatalogueCourse>(json);
+  const meta = (json?.meta ?? json?.data?.meta ?? {}) as { total_items?: number; total_pages?: number };
+  const total = meta.total_items ?? courses.length;
+  const totalPages = meta.total_pages ?? Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Only offer topics that contain published courses.
+  const catalogs = catalogsRes?.ok ? listFrom<CourseCatalog>(await catalogsRes.json().catch(() => null)) : [];
+  const topics = catalogs.filter((c) => c.total_courses === undefined || c.total_courses > 0 || c.slug === query.topic);
+
+  const enrolledIds: string[] = [];
+  if (enrolledRes?.ok) {
+    for (const c of listFrom<EnrolledCourse>(await enrolledRes.json().catch(() => null))) {
+      if (c.id) enrolledIds.push(c.id);
+      if (c.course?.id) enrolledIds.push(c.course.id);
     }
   }
 
-  // Helpers to build URLs preserving all filters
-  const buildPageUrl = (targetPage: number) => {
-    const params = new URLSearchParams();
-    params.set("page", targetPage.toString());
-    if (catalog) params.set("catalog", catalog);
-    if (search) params.set("search", search);
-    if (level) params.set("level", level);
-    if (category) params.set("category", category);
-    if (is_free) params.set("is_free", is_free);
-    return `/courses?${params.toString()}`;
-  };
-
   return (
-    <div className="w-full bg-white dark:bg-gray-950">
-      <div className="relative w-full h-[50vh] md:h-[60vh] min-h-[400px] lg:min-h-[500px] xl:min-h-[600px] flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              'url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop")',
-          }}
-        />
-        <div className="absolute inset-0 z-10 bg-black/50 dark:bg-black/60" />
-        <div className="relative z-20 flex flex-col items-center text-center px-4 max-w-4xl mx-auto mt-12 lg:mt-0">
-          <nav className="flex items-center text-sm text-gray-200 mb-4 tracking-wide font-medium">
-            <Link href="/" className="hover:text-white transition-colors">
-              Home
-            </Link>
-            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-white">Our Courses</span>
-          </nav>
-
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight drop-shadow-lg">
-            Courses
-          </h1>
-        </div>
-      </div>
-
-      <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-16 md:py-24">
-        {/* Advanced Filters */}
-        <CourseFilters catalogs={catalogs} />
-
-        {items.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
-            <p className="text-gray-500 dark:text-gray-400 font-medium text-lg mb-2">
-              No courses found.
-            </p>
-            <p className="text-gray-400 dark:text-gray-500 text-sm">
-              Try adjusting your filters or search query.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8 lg:gap-10">
-              {(items as PublicCourse[]).map((course) => (
-                <SiteCourseCard
-                  key={course.id}
-                  id={course.id}
-                  title={course.title}
-                  thumbnail_url={course.thumbnail_url}
-                  is_free={course.is_free}
-                  price={course.price}
-                  href={`/courses/${course.slug || course.id}`}
-                  level={course.level || "Beginner"}
-                  category={course.category || "Professional Development"}
-                  average_rating={course.average_rating}
-                  total_reviews={course.total_reviews}
-                  estimated_total_minutes={course.estimated_total_minutes}
-                  estimated_duration={course.estimated_duration}
-                  certificate_enabled={course.certificate_enabled}
-                  is_enrolled={course.is_enrolled === true || enrolledCourseIds.has(course.id)}
-                  is_completed={course.is_completed === true}
-                  has_access={course.has_access === true}
-                />
-              ))}
-            </div>
-            <div className="mt-16 flex items-center justify-center gap-4">
-              {page > 1 ? (
-                <Link
-                  href={buildPageUrl(page - 1)}
-                  className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 transition-all shadow-sm"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                  Previous
-                </Link>
-              ) : (
-                <button
-                  disabled
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800/50 rounded-full font-bold text-gray-400 dark:text-gray-600 cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                  Previous
-                </button>
-              )}
-
-              <span className="font-semibold text-gray-600 dark:text-gray-400 px-4">
-                Page {page}
-              </span>
-
-              {hasNextPage ? (
-                <Link
-                  href={buildPageUrl(page + 1)}
-                  className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 transition-all shadow-sm"
-                >
-                  Next
-                  <ChevronRight className="w-5 h-5" />
-                </Link>
-              ) : (
-                <button
-                  disabled
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800/50 rounded-full font-bold text-gray-400 dark:text-gray-600 cursor-not-allowed"
-                >
-                  Next
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+    <CourseCatalogue
+      query={query}
+      courses={courses}
+      ok={Boolean(res?.ok)}
+      total={total}
+      totalPages={totalPages}
+      topics={topics}
+      enrolledIds={enrolledIds}
+    />
   );
-}
-
-function getCourseItems(json: unknown): PublicCourse[] {
-  if (!json || typeof json !== "object") return [];
-
-  const payload = json as {
-    data?: PublicCourse[] | { items?: PublicCourse[]; courses?: PublicCourse[] };
-    items?: PublicCourse[];
-    courses?: PublicCourse[];
-  };
-
-  if (Array.isArray(payload.data)) return payload.data;
-  if (payload.data && !Array.isArray(payload.data)) {
-    if (Array.isArray(payload.data.items)) return payload.data.items;
-    if (Array.isArray(payload.data.courses)) return payload.data.courses;
-  }
-  if (Array.isArray(payload.items)) return payload.items;
-  if (Array.isArray(payload.courses)) return payload.courses;
-
-  return [];
-}
-
-function getCourseMeta(json: unknown) {
-  if (!json || typeof json !== "object") return {};
-
-  const payload = json as {
-    meta?: { has_next?: boolean };
-    data?: { meta?: { has_next?: boolean } };
-  };
-
-  return payload.meta || payload.data?.meta || {};
 }
