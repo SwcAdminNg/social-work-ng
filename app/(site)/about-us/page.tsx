@@ -1,18 +1,23 @@
-import { AboutHero } from "@/components/about/AboutHero";
-import { AboutIntro } from "@/components/about/AboutIntro";
-import { AboutWhy } from "@/components/about/AboutWhy";
+import type { Metadata } from "next";
+import About from "@/components/about/About";
 
-export const metadata = {
-  title: "About Us | Social Work Nigeria",
-  description: "Learn more about Social Work Nigeria and our mission.",
+const title = "About Us | Social Work Consultancy Ltd";
+const description =
+  "Social Work Consultancy Ltd supports ethical, skilled and culturally relevant social work practice in Nigeria and across the Global South through courses, mentorship and resources.";
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: "/about-us" },
+  openGraph: {
+    type: "website",
+    url: "/about-us",
+    title,
+    description,
+    images: ["/images/about/training-workshop.webp"],
+  },
 };
 
 export default function AboutUsPage() {
-  return (
-    <div className="w-full bg-white dark:bg-gray-950 flex flex-col">
-      <AboutHero />
-      <AboutIntro />
-      <AboutWhy />
-    </div>
-  );
+  return <About />;
 }
