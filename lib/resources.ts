@@ -1,4 +1,4 @@
-import { fetchApi } from "@/lib/fetchApi";
+import { fetchApi, publicFetchApi } from "@/lib/fetchApi";
 
 export const RESOURCE_CATEGORIES = [
   "COURSE_MATERIALS",
@@ -12,6 +12,24 @@ export const RESOURCE_CATEGORIES = [
 ] as const;
 
 export type ResourceCategory = (typeof RESOURCE_CATEGORIES)[number];
+
+// Names used on the public library, matching the Resources brief.
+export const RESOURCE_CATEGORY_LABELS: Record<ResourceCategory, string> = {
+  PRACTICE_RESOURCES: "Practice Tools",
+  POLICIES_AND_GUIDANCE: "Policies and Guidance",
+  VIDEOS_AND_WEBINARS: "Videos and Webinars",
+  RESEARCH_AND_PUBLICATIONS: "Research and Reading",
+  TEMPLATES_AND_FORMS: "Templates and Forms",
+  COURSE_MATERIALS: "Course Materials",
+  CAREER_AND_CPD: "Career and CPD",
+  USEFUL_LINKS: "Useful Links",
+};
+
+export const RESOURCE_ACCESS_OPTIONS = [
+  { value: "PUBLIC", label: "Free public resources" },
+  { value: "LOGGED_IN", label: "Free account required" },
+  { value: "COURSE_ENROLLED", label: "Included with a course" },
+] as const;
 export type ResourceAccessReason = "LOGIN_REQUIRED" | "ENROLLMENT_REQUIRED";
 export type ResourceVisibility = "PUBLIC" | "LOGGED_IN" | "COURSE_ENROLLED";
 export type ResourceAttachmentType = "VIDEO" | "DOCUMENT" | "LINKS";
@@ -30,7 +48,14 @@ export type ResourceRead = {
   can_access?: boolean;
   access_reason?: ResourceAccessReason;
   attachments?: ResourceAttachment[];
+  // Filled by the public library for resources tied to a course.
+  course_title?: string | null;
+  course_slug?: string | null;
+  created_at?: string;
+  updated_at?: string | null;
 };
+
+export type ResourceCategoryCount = { category: ResourceCategory | string; count: number };
 
 export type ResourceAttachment = {
   id: string;
@@ -85,6 +110,7 @@ type ResourceQuery = {
   category?: string;
   courseId?: string;
   search?: string;
+  visibility?: string;
 };
 
 export async function getResources(query: ResourceQuery = {}): Promise<ResourceListResult> {
@@ -94,6 +120,7 @@ export async function getResources(query: ResourceQuery = {}): Promise<ResourceL
   if (query.category) params.set("category", query.category);
   if (query.courseId) params.set("course_id", query.courseId);
   if (query.search) params.set("search", query.search);
+  if (query.visibility) params.set("visibility", query.visibility);
 
   const res = await fetchApi(`/resources?${params.toString()}`, {
     next: { revalidate: 60 },
@@ -129,6 +156,18 @@ export async function getCourseResources(
     ok: res.ok,
     status: res.status,
   };
+}
+
+/** Published counts per category, or null if the API cannot provide them. */
+export async function getResourceCategoryCounts(): Promise<ResourceCategoryCount[] | null> {
+  try {
+    const res = await publicFetchApi("/resources/category-counts", { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    const json = await res.json().catch(() => null);
+    return Array.isArray(json?.data) ? (json.data as ResourceCategoryCount[]) : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getResource(slug: string) {
