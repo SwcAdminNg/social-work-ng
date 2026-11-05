@@ -80,8 +80,8 @@ export const FloatingInput = forwardRef<HTMLInputElement, Props>(function Floati
           aria-invalid={!!error || undefined}
           aria-describedby={describedBy}
           maxLength={maxLength}
-          autoCapitalize={type === "email" || autoComplete === "username" ? "none" : undefined}
-          spellCheck={type === "email" || type === "password" || autoComplete === "username" ? false : undefined}
+          autoCapitalize={type === "email" || autoComplete?.startsWith("username") ? "none" : undefined}
+          spellCheck={type === "email" || type === "password" || autoComplete?.startsWith("username") ? false : undefined}
           onFocus={() => setFocused(true)}
           onBlur={() => {
             setFocused(false);

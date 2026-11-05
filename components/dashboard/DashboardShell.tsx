@@ -6,6 +6,7 @@ import { Award, Camera } from "lucide-react";
 import { SidebarProvider, useSidebar } from "./SidebarContext";
 import { Sidebar } from "./Sidebar";
 import { DashboardHeader } from "./DashboardHeader";
+import { PasskeyPrompt } from "./PasskeyPrompt";
 
 function CertificatePhotoBanner() {
   return (
@@ -63,6 +64,7 @@ function Content({
         {showPhotoBanner && <CertificatePhotoBanner />}
         {children}
       </main>
+      <PasskeyPrompt />
     </div>
   );
 }
