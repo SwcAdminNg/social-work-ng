@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import SignUp from "@/components/auth/SignUp";
 import { Suspense } from "react";
 import { fetchApi } from "@/lib/fetchApi";
+
+export const metadata: Metadata = {
+  title: "Create an account | Social Work Consultancy Ltd",
+  description: "Create a free Social Work Consultancy Ltd account to enrol on courses and use learning resources.",
+  alternates: { canonical: "/register" },
+};
 
 export default async function RegisterPage() {
   const res = await fetchApi("/home/stats", { next: { revalidate: 3600 } });

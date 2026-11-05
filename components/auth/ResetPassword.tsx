@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
+import { PasswordChecklist, PASSWORD_MIN } from "./shared/PasswordChecklist";
 import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
 import { IconArrowRight, IconLock, IconSpinner } from "./shared/icons";
@@ -38,6 +39,10 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
 
     if (!password) {
       setPasswordError("Please enter a new password.");
+      return passwordRef.current?.focus();
+    }
+    if (password.length < PASSWORD_MIN) {
+      setPasswordError(`Use at least ${PASSWORD_MIN} characters.`);
       return passwordRef.current?.focus();
     }
     if (!confirmPassword) {
@@ -155,6 +160,8 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
           icon={<IconLock />}
           autoComplete="new-password"
           required
+          capsLockWarning
+          describedById={password ? "reset-password-rules" : undefined}
           error={passwordError}
           suffix={
             <PasswordToggle
@@ -177,6 +184,7 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
           icon={<IconLock />}
           autoComplete="new-password"
           required
+          capsLockWarning
           error={confirmPasswordError}
           suffix={
             <PasswordToggle
@@ -185,6 +193,7 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
             />
           }
         />
+        {password && <PasswordChecklist id="reset-password-rules" password={password} confirm={confirmPassword} />}
 
         {/* Submit button */}
         <button

@@ -29,6 +29,10 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
       setEmailError("Please enter your email address.");
       return emailRef.current?.focus();
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
+      setEmailError("Enter a valid email address, like name@example.com.");
+      return emailRef.current?.focus();
+    }
 
     setLoading(true);
     try {
@@ -133,6 +137,7 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
           }}
           icon={<IconMail />}
           autoComplete="email"
+          inputMode="email"
           required
           error={emailError}
         />

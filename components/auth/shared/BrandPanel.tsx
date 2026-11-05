@@ -1,151 +1,99 @@
+import Image from "next/image";
 import Link from "next/link";
 
 type AuthVariant = "login" | "register" | "forgot-password" | "reset-password";
 
-const PANEL_CONFIG: Record<
-  AuthVariant,
-  {
-    image: string;
-    quote: string;
-    label: string;
-  }
-> = {
+type HomeStats = { total_number_of_students?: number; number_of_published_courses?: number } | null | undefined;
+
+// SWCL photography of Nigerian social work learning settings (illustrative).
+const PANEL: Record<AuthVariant, { image: string; alt: string; eyebrow: string; title: string; body: string }> = {
   login: {
-    image:
-      "https://images.unsplash.com/photo-1560264280-88b68371db39?q=80&w=2070&auto=format&fit=crop",
-    quote:
-      "Education is the most powerful weapon you can use to change the world.",
-    label: "Reconnect with your learning journey",
+    image: "/images/courses/learners-collaborate.webp",
+    alt: "Three social work learners study case notes together at a table.",
+    eyebrow: "Welcome back",
+    title: "Pick up where you left off.",
+    body: "Continue your courses, mentorship and practice resources from Social Work Consultancy Ltd.",
   },
   register: {
-    image:
-      "https://images.unsplash.com/photo-1573496799652-408c2ac9fe98?q=80&w=2069&auto=format&fit=crop",
-    quote:
-      "Empowering social workers with knowledge and skills to build stronger communities across Nigeria.",
-    label: "Join thousands of professionals",
+    image: "/images/about/training-workshop.webp",
+    alt: "A facilitator leads a small group discussion beside a flip chart.",
+    eyebrow: "Join the learning platform",
+    title: "Practical learning for social work in Nigeria and beyond.",
+    body: "Create a free account to explore courses, save your progress and access learning resources.",
   },
   "forgot-password": {
-    image:
-      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop",
-    quote:
-      "Every setback is a setup for a comeback. We're here to get you back on track.",
-    label: "Account recovery",
+    image: "/images/courses/reflective-notes.webp",
+    alt: "A practitioner writes reflective notes at a wooden desk.",
+    eyebrow: "Account recovery",
+    title: "We will help you get back in.",
+    body: "Enter the email on your account and we will send you a secure link to choose a new password.",
   },
   "reset-password": {
-    image:
-      "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=2070&auto=format&fit=crop",
-    quote:
-      "Security and trust are the foundation of every great professional relationship.",
-    label: "Secure your account",
+    image: "/images/contact/support-professional.webp",
+    alt: "A support professional wearing a headset smiles at a desk.",
+    eyebrow: "Secure your account",
+    title: "Choose a strong new password.",
+    body: "Use at least 8 characters. A longer passphrase is easier to remember and harder to guess.",
   },
 };
 
-export function BrandPanel({
-  variant = "login",
-  statsData,
-}: {
-  variant?: AuthVariant;
-  statsData?: any;
-}) {
-  const config = PANEL_CONFIG[variant];
-
-  const studentsCount = statsData?.total_number_of_students || 4200;
-  const coursesCount = statsData?.number_of_published_courses || 18;
+export function BrandPanel({ variant = "login", statsData }: { variant?: AuthVariant; statsData?: HomeStats }) {
+  const panel = PANEL[variant];
+  // Only real figures from the API; nothing is shown when they are unavailable.
+  const stats = [
+    statsData?.total_number_of_students ? `${statsData.total_number_of_students.toLocaleString()} learners` : null,
+    statsData?.number_of_published_courses
+      ? `${statsData.number_of_published_courses.toLocaleString()} ${statsData.number_of_published_courses === 1 ? "course" : "courses"}`
+      : null,
+  ].filter(Boolean) as string[];
 
   return (
-    <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden flex-shrink-0">
-      <img
-        src={config.image}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover object-center"
-        onError={(e) => {
-          (e.currentTarget as HTMLImageElement).style.opacity = "0";
-        }}
-      />
+    <aside className="relative hidden lg:flex lg:w-[50%] xl:w-[52%] flex-shrink-0 overflow-hidden bg-[#0f3324]" aria-label="About the learning platform">
+      <Image src={panel.image} alt={panel.alt} fill priority sizes="52vw" className="object-cover" />
       <div
-        className="absolute inset-0 -z-10"
-        style={{
-          background:
-            "linear-gradient(145deg, #0d2b1e 0%, #1a4d35 35%, #2D6A4F 65%, #52b788 100%)",
-        }}
         aria-hidden="true"
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(180deg, rgba(9,36,24,0.55) 0%, rgba(9,36,24,0.15) 35%, rgba(6,24,16,0.88) 100%)" }}
       />
-      <div
-        className="absolute inset-0 bg-gradient-to-t from-[#071410]/90 via-[#071410]/40 to-[#071410]/20"
-        aria-hidden="true"
-      />
-      <div className="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
-        <Link
-          href="/"
-          className="flex items-center no-underline w-fit"
-          aria-label="Social Work Nigeria home"
-        >
-          <img
-            src="/images/logo/swc-dark-logo.png"
-            alt="Social Work Nigeria Logo"
-            width={151}
-            height={40}
-            className="w-[220px] h-auto object-contain px-2 py-1"
-          />
+      <div className="relative z-10 flex h-full w-full flex-col justify-between p-10 xl:p-14">
+        <Link href="/" className="w-fit rounded-md" aria-label="Social Work Consultancy Ltd home">
+          <Image src="/images/logo/swc-logo-on-dark.webp" alt="" width={480} height={133} className="h-auto w-[180px]" priority />
         </Link>
-        <div className="max-w-sm">
-          <svg
-            width="36"
-            height="28"
-            viewBox="0 0 36 28"
-            fill="none"
-            aria-hidden="true"
-            className="mb-4 opacity-60"
-          >
-            <path
-              d="M0 28V17.6C0 13.013 1.173 9.12 3.52 5.92 5.92 2.72 9.44.853 14.08 0L15.84 3.04C12.8 3.893 10.507 5.387 8.96 7.52 7.413 9.6 6.64 12 6.64 14.72h7.04V28H0zm20.16 0V17.6c0-4.587 1.173-8.48 3.52-11.68C26.08 2.72 29.6.853 34.24 0L36 3.04c-3.04.853-5.333 2.347-6.88 4.48C27.573 9.6 26.8 12 26.8 14.72h7.04V28H20.16z"
-              fill="white"
-            />
-          </svg>
 
-          <p className="text-white/60 text-[0.72rem] uppercase tracking-widest font-bold mb-3">
-            {config.label}
+        <div className="max-w-md">
+          <p className="mb-3 flex items-center gap-3 text-[0.75rem] font-bold uppercase tracking-[0.18em] text-[#F3C56B]">
+            <span aria-hidden="true" className="h-[2px] w-7 rounded bg-[#E5A61D]" />
+            {panel.eyebrow}
           </p>
-
-          <blockquote className="text-white text-[1.15rem] leading-relaxed font-medium mb-5">
-            "{config.quote}"
-          </blockquote>
-          <div className="flex flex-wrap gap-2">
-            {[
-              `${studentsCount.toLocaleString()}+ Trained`,
-              `${coursesCount.toLocaleString()} Courses`,
-              "12 States",
-            ].map((badge) => (
-              <span
-                key={badge}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-white text-[0.72rem] font-semibold"
-              >
-                <span
-                  className="w-1.5 h-1.5 rounded-full bg-[#52b788]"
-                  aria-hidden="true"
-                />
-                {badge}
-              </span>
-            ))}
-          </div>
+          <p className="text-[1.9rem] font-bold leading-tight tracking-tight text-white xl:text-[2.2rem]">{panel.title}</p>
+          <p className="mt-4 text-[1rem] leading-relaxed text-white/80">{panel.body}</p>
+          {stats.length > 0 && (
+            <ul className="mt-6 flex flex-wrap gap-2" aria-label="Platform at a glance">
+              {stats.map((stat) => (
+                <li
+                  key={stat}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[0.78rem] font-semibold text-white backdrop-blur-sm"
+                >
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#74c69d]" />
+                  {stat}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-8 text-[0.72rem] text-white/50">Illustrative image</p>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }
 
+/** Logo above the form on phones and tablets, in the colour that suits the theme. */
 export function MobileBrandLogo() {
   return (
-    <div className="flex lg:hidden items-center mb-10">
-      <Link href="/" aria-label="Social Work Nigeria home">
-        <img
-          src="/images/logo/swc-dark-logo.png"
-          alt="Social Work Nigeria Logo"
-          width={151}
-          height={40}
-          className="w-[200px] h-auto object-contain dark:px-0 dark:py-1"
-        />
+    <div className="mb-8 flex items-center lg:hidden">
+      <Link href="/" className="rounded-md" aria-label="Social Work Consultancy Ltd home">
+        <Image src="/images/logo/swc-logo-on-light.webp" alt="" width={480} height={133} className="h-auto w-[170px] dark:hidden" priority />
+        <Image src="/images/logo/swc-logo-on-dark.webp" alt="" width={480} height={133} className="hidden h-auto w-[170px] dark:block" priority />
       </Link>
     </div>
   );

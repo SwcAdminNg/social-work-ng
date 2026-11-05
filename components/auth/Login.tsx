@@ -155,7 +155,7 @@ export default function Login({ statsData }: { statsData?: any }) {
           Sign in to your account
         </h1>
         <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
-          Continue your learning journey with Social Work Nigeria.
+          Continue your learning with Social Work Consultancy Ltd.
         </p>
       </div>
 
@@ -198,6 +198,7 @@ export default function Login({ statsData }: { statsData?: any }) {
           icon={<IconLock />}
           autoComplete="current-password"
           required
+          capsLockWarning
           error={passwordError}
           suffix={
             <PasswordToggle

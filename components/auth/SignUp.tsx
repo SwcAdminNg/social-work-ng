@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
+import { PasswordChecklist, PASSWORD_MIN } from "./shared/PasswordChecklist";
 import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
 import { TwoFactorSetup } from "./TwoFactorSetup";
@@ -114,13 +115,25 @@ export default function SignUp({ statsData }: { statsData?: any }) {
       setFieldErrors({ username: "Please choose a username." });
       return usernameRef.current?.focus();
     }
+    if (usernameAvailable === false) {
+      setFieldErrors({ username: "That username is taken. Choose another or pick a suggestion." });
+      return usernameRef.current?.focus();
+    }
     if (!email) {
       setFieldErrors({ email: "Please enter your email address." });
+      return emailRef.current?.focus();
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
+      setFieldErrors({ email: "Enter a valid email address, like name@example.com." });
       return emailRef.current?.focus();
     }
     // phone is optional
     if (!password) {
       setFieldErrors({ password: "Please enter a password." });
+      return passwordRef.current?.focus();
+    }
+    if (password.length < PASSWORD_MIN) {
+      setFieldErrors({ password: `Use at least ${PASSWORD_MIN} characters.` });
       return passwordRef.current?.focus();
     }
     if (!confirmPassword) {
@@ -221,7 +234,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
           Create your account
         </h1>
         <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
-          Join thousands of social workers advancing their careers.
+          A free account lets you enrol on courses, save your progress and use learning resources.
         </p>
       </div>
 
@@ -243,7 +256,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
       {/* Form */}
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         {/* First / Last name */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-4 min-[400px]:grid-cols-2 min-[400px]:gap-3">
           <FloatingInput
             ref={firstNameRef}
             id="firstName"
@@ -342,6 +355,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
           }}
           icon={<IconMail />}
           autoComplete="email"
+          inputMode="email"
           required
           error={fieldErrors.email}
         />
@@ -356,6 +370,8 @@ export default function SignUp({ statsData }: { statsData?: any }) {
           onChange={setPhone}
           icon={<IconPhone />}
           autoComplete="tel"
+          inputMode="tel"
+          hint="Include your country code, for example +234."
         />
 
         {/* Password */}
@@ -372,6 +388,8 @@ export default function SignUp({ statsData }: { statsData?: any }) {
           icon={<IconLock />}
           autoComplete="new-password"
           required
+          capsLockWarning
+          describedById={password ? "signup-password-rules" : undefined}
           error={fieldErrors.password}
           suffix={
             <PasswordToggle
@@ -395,6 +413,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
           icon={<IconLock />}
           autoComplete="new-password"
           required
+          capsLockWarning
           error={fieldErrors.confirmPassword}
           suffix={
             <PasswordToggle
@@ -403,6 +422,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
             />
           }
         />
+        {password && <PasswordChecklist id="signup-password-rules" password={password} confirm={confirmPassword} />}
 
         {/* Submit button */}
         <button
