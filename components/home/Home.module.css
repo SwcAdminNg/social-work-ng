@@ -125,6 +125,35 @@
 .page .closingCta p { margin-top: 10px; }
 .closingCta .buttonGroup { justify-content: center; margin-top: 22px; }
 
+/* Dark mode: same deep green-black palette as the About page. */
+:global(.dark) .page {
+  --ink: #ecf2ee;
+  --line: rgba(255, 255, 255, 0.1);
+  color: var(--ink);
+  background: #0b1410;
+  color-scheme: dark;
+}
+:global(.dark) .page h1,
+:global(.dark) .page h2,
+:global(.dark) .page h3 { color: #ecf2ee; }
+:global(.dark) .page p { color: #c3d1c8; }
+:global(.dark) .page :focus-visible { outline-color: #f3c56b; }
+:global(.dark) .hero,
+:global(.dark) .heroImage::before { background: #0f3324; }
+:global(.dark) .page .hero p { color: #e4ece7; }
+:global(.dark) .pathways { background: linear-gradient(#101b15, #0b1410); }
+:global(.dark) .pathwayCard { background: #16231c; }
+:global(.dark) .lineIcon { stroke: #f3c56b; }
+:global(.dark) .featuredPanel { background: #16231c; }
+:global(.dark) .page .eyebrow { color: #f3c56b; }
+:global(.dark) .page .buttonGreen { background: #2d6a4f; border-color: #2d6a4f; }
+:global(.dark) .page .buttonGreen:hover { background: #367d5d; border-color: #367d5d; }
+:global(.dark) .practiceIcon { background: rgba(229, 166, 29, 0.16); }
+:global(.dark) .practiceText { border-left-color: rgba(243, 197, 107, 0.35); }
+:global(.dark) .teamSection { border-top-color: rgba(255, 255, 255, 0.08); }
+:global(.dark) .closingCta { background: linear-gradient(180deg, #0f3324, #0a2419); }
+:global(.dark) .page .closingCta p { color: rgba(255, 255, 255, 0.86); }
+
 @media (max-width: 1100px) {
   .hero { grid-template-columns: 48% 52%; }
   .heroContent { padding-right: 15px; }
