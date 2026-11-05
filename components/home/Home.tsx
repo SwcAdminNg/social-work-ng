@@ -16,7 +16,7 @@ export default function Home() {
             <Link className={cx(s.button, s.buttonOutline)} href="/mentorship">Explore Mentorship</Link>
           </div>
         </div>
-        <div className={s.heroImage}>
+        <div className={s.heroImage} data-nav-bg="#123e29">
           <Image
             src="/images/home/elearning/hero-learners.webp"
             alt="Three adult learners work together with a laptop and notebooks in a bright library."

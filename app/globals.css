@@ -26,3 +26,53 @@ body {
 .swcl-sidebar-scroll::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
 }
+
+/* Mobile menu sheet: opens as a circle growing out of the menu button. */
+.swcl-menu-sheet {
+  background:
+    radial-gradient(120% 55% at 100% 0%, rgba(235, 169, 55, 0.2), transparent 62%),
+    radial-gradient(90% 45% at 0% 100%, rgba(116, 198, 157, 0.16), transparent 60%),
+    linear-gradient(180deg, #0f3324 0%, #0a2419 45%, #04120b 100%);
+  clip-path: circle(0px at calc(100% - 42px) 42px);
+  visibility: hidden;
+  scrollbar-width: none;
+  transition:
+    clip-path 0.55s cubic-bezier(0.65, 0, 0.35, 1),
+    visibility 0s linear 0.55s;
+}
+.swcl-menu-sheet.is-open {
+  clip-path: circle(150% at calc(100% - 42px) 42px);
+  visibility: visible;
+  transition:
+    clip-path 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
+}
+.swcl-menu-sheet::-webkit-scrollbar {
+  display: none;
+}
+/* Fine grain keeps the large gradient from banding. */
+.swcl-menu-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  .swcl-menu-sheet,
+  .swcl-menu-sheet.is-open {
+    clip-path: none;
+    opacity: 0;
+    transition: opacity 0.2s, visibility 0s linear 0.2s;
+  }
+  .swcl-menu-sheet.is-open {
+    opacity: 1;
+    transition: opacity 0.2s;
+  }
+}
+
+/* The header settles on its first colour reading without fading into it. */
+[data-site-header]:not([data-ready]) *:not(.swcl-menu-sheet) {
+  transition: none !important;
+}
