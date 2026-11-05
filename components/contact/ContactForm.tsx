@@ -5,12 +5,13 @@ import Link from "next/link";
 import { AlertCircle, Check, CheckCircle2, Info, Loader2, Send, ShieldAlert } from "lucide-react";
 import s from "./Contact.module.css";
 
+// `category` is the API's contact category for each enquiry type.
 export const TOPICS = [
-  { value: "course", label: "Course Enquiry" },
-  { value: "mentorship", label: "Mentorship" },
-  { value: "account", label: "Account or Learning Support" },
-  { value: "partnership", label: "Partnership or Organisational Enquiry" },
-  { value: "other", label: "Other" },
+  { value: "course", label: "Course Enquiry", category: "courses" },
+  { value: "mentorship", label: "Mentorship", category: "mentorship" },
+  { value: "account", label: "Account or Learning Support", category: "account_support" },
+  { value: "partnership", label: "Partnership or Organisational Enquiry", category: "partnership" },
+  { value: "other", label: "Other", category: "other" },
 ] as const;
 
 export type TopicValue = (typeof TOPICS)[number]["value"];
@@ -26,7 +27,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 type Values = { fullName: string; email: string; topic: TopicValue | ""; phone: string; message: string };
 type Field = keyof Values;
 type Errors = Partial<Record<Field, string>>;
-type Status = "idle" | "sending" | "failed" | "sent";
+type Status = "idle" | "sending" | "failed" | "limited" | "sent";
 
 const EMPTY: Values = { fullName: "", email: "", topic: "", phone: "", message: "" };
 
@@ -43,7 +44,7 @@ function validate(values: Values): Errors {
   const errors: Errors = {};
   const name = values.fullName.trim();
   if (!name) errors.fullName = "Enter your full name so we know who to reply to.";
-  else if (name.length > 120) errors.fullName = "Keep your name under 120 characters.";
+  else if (name.length > 200) errors.fullName = "Keep your name under 200 characters.";
 
   const email = values.email.trim();
   if (!email) errors.email = "Enter your email address so we can reply.";
@@ -113,7 +114,7 @@ export default function ContactForm({ initialTopic }: { initialTopic?: string })
 
   useEffect(() => {
     if (status === "sent") successRef.current?.focus();
-    if (status === "failed") failureRef.current?.focus();
+    if (status === "failed" || status === "limited") failureRef.current?.focus();
   }, [status]);
 
   const update = (field: Field, value: string) => {
@@ -149,7 +150,7 @@ export default function ContactForm({ initialTopic }: { initialTopic?: string })
     }
 
     setStatus("sending");
-    const topicLabel = TOPICS.find((topic) => topic.value === values.topic)?.label ?? "Other";
+    const topic = TOPICS.find((t) => t.value === values.topic) ?? TOPICS[TOPICS.length - 1];
     try {
       const res = await fetch("/api/proxy/contact-us", {
         method: "POST",
@@ -158,16 +159,20 @@ export default function ContactForm({ initialTopic }: { initialTopic?: string })
           full_name: values.fullName.trim(),
           email: values.email.trim(),
           phone_number: values.phone.trim() || undefined,
-          subject: `Contact page: ${topicLabel}`,
+          subject: topic.label,
           message: values.message.trim(),
           platform: "NG",
-          category: values.topic === "mentorship" ? "mentorship" : "general",
+          category: topic.category,
           source_page: "/contact",
         }),
       });
+      if (res.status === 429) {
+        setStatus("limited");
+        return;
+      }
       if (!res.ok) throw new Error(`Request failed with ${res.status}`);
       const data = await res.json().catch(() => ({}));
-      const ref = data?.data?.reference ?? data?.data?.id ?? data?.reference ?? data?.id ?? null;
+      const ref = data?.data?.reference ?? null;
       setReference(ref ? String(ref) : null);
       setValues(EMPTY);
       setErrors({});
@@ -227,6 +232,19 @@ export default function ContactForm({ initialTopic }: { initialTopic?: string })
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+      )}
+
+      {status === "limited" && (
+        <div ref={failureRef} tabIndex={-1} className={s.alert} role="alert">
+          <AlertCircle size={20} aria-hidden="true" />
+          <div>
+            <h3>You have sent several messages in a short time.</h3>
+            <p>
+              Please wait a few minutes and try again, or email{" "}
+              <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. Your answers are still below.
+            </p>
           </div>
         </div>
       )}
