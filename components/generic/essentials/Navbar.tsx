@@ -32,7 +32,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const pathname = usePathname();
   const { theme, toggle, setHeaderToggle } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [hidden, setHidden] = useState(false);
   // Keeps the header above page overlays until the sheet has finished closing.
   const [raised, setRaised] = useState(false);
   if (menuOpen && !raised) setRaised(true);
@@ -66,28 +65,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     setLastPath(pathname);
     setMenuOpen(false);
   }
-
-  // Hide the header while reading down the page; bring it back on any scroll up.
-  useEffect(() => {
-    let lastY = window.scrollY;
-    let frame = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const y = window.scrollY;
-        const delta = y - lastY;
-        if (Math.abs(delta) < 6) return;
-        const focusInside = navRef.current?.contains(document.activeElement);
-        setHidden(delta > 0 && y > HEADER_HEIGHT * 1.5 && !focusInside);
-        lastY = y;
-      });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, []);
 
   // Menu open: lock page scroll, trap focus, close on Escape or on desktop widths.
   useIsoLayoutEffect(() => {
@@ -155,11 +132,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       aria-label="Main"
       data-site-header
       data-ready={surface.ready || undefined}
-      className={`sticky top-0 transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none ${
-        raised ? "z-[1000]" : "z-50"
-      } ${hidden && !menuOpen ? "-translate-y-full" : ""}`}
+      // Sticky, always in view: it stays pinned to the top while the page scrolls.
+      className={`sticky top-0 ${raised ? "z-[1000]" : "z-50"}`}
     >
-      {/* No transform on the nav while open: it would trap the fixed sheet. */}
+      {/* Never give the nav a transform: it would trap the fixed menu sheet. */}
       {/* Adaptive surface: takes on the colour of whatever is beneath it. */}
       <div
         aria-hidden="true"
