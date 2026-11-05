@@ -258,7 +258,7 @@ export default function About() {
             <Link href="/mentorship" className={cx(s.button, s.ghostLight)}>
               Explore Mentorship
             </Link>
-            <Link href="/contact" className={s.textLink}>
+            <Link href="/contact?topic=partnership" className={s.textLink}>
               Work With Us <ArrowRight size={18} aria-hidden="true" />
             </Link>
           </div>

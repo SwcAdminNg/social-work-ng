@@ -1,18 +1,29 @@
-import { ContactHero } from "@/components/contact/ContactHero";
-import { ContactForm } from "@/components/contact/ContactForm";
-import { ContactMap } from "@/components/contact/ContactMap";
+import type { Metadata } from "next";
+import Contact from "@/components/contact/Contact";
 
-export const metadata = {
-  title: "Contact Us | Social Work Nigeria",
-  description: "Get in touch with the Social Work Nigeria team.",
+const title = "Contact Us | Social Work Consultancy Ltd";
+const description =
+  "Ask Social Work Consultancy Ltd about courses, mentorship, learning support or partnerships. Send a message and we will reply by email.";
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: "/contact" },
+  openGraph: {
+    type: "website",
+    url: "/contact",
+    title,
+    description,
+    images: ["/images/contact/support-professional.webp"],
+  },
 };
 
-export default function ContactPage() {
-  return (
-    <div className="w-full bg-white dark:bg-gray-950 flex flex-col">
-      <ContactHero />
-      <ContactForm />
-      <ContactMap />
-    </div>
-  );
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  // ?topic=mentorship (or course, account, partnership, other) pre-selects the enquiry type.
+  const { topic } = await searchParams;
+  return <Contact initialTopic={typeof topic === "string" ? topic : undefined} />;
 }
