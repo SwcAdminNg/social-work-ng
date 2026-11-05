@@ -179,7 +179,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         <Link
           href="/"
           className="group relative flex flex-col flex-shrink-0 no-underline rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
-          aria-label="SWCL E-Learning, Social Work Consultancy home"
+          aria-label="SWCL E-Learning Platform, Social Work Consultancy home"
         >
           <span className="relative block">
           {/* Both marks are stacked so the swap is a cross-fade, not a flash. */}
@@ -202,20 +202,20 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             className={`absolute inset-0 w-[138px] md:w-[156px] h-auto object-contain transition-opacity duration-500 ${onDark ? "opacity-100" : "opacity-0"}`}
           />
           </span>
-          {/* Sub-brand line, aligned with the start of the wordmark (≈26.7% in). */}
+          {/* Sub-brand line, spanning the width of the logo. */}
           <span
             aria-hidden="true"
-            className="mt-[3px] flex items-center gap-[7px] pl-[26.7%] text-[9px] md:text-[10px] font-semibold uppercase leading-none tracking-[0.26em] whitespace-nowrap"
+            className="mt-[3px] flex items-center gap-[5px] md:gap-[7px] text-[9px] md:text-[10px] font-semibold uppercase leading-none tracking-[0.12em] whitespace-nowrap"
           >
             <span
-              className={`h-px w-3 md:w-3.5 rounded-full transition-[background-color,width] duration-500 group-hover:w-5 ${
+              className={`h-px w-2 md:w-3.5 rounded-full transition-[background-color,width] duration-500 group-hover:w-3 md:group-hover:w-5 ${
                 onDark ? "bg-[#F3C56B]" : "bg-[#EBA937]"
               }`}
             />
             <span
               className={`transition-colors duration-500 ${onDark ? "text-[#F3C56B]" : "text-[#2D6A4F]"}`}
             >
-              E-Learning
+              E-Learning Platform
             </span>
           </span>
         </Link>
