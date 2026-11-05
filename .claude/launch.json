@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "social-workers-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "../admin", "run", "dev", "--", "-p", "3002"],
+      "port": 3002
     }
   ]
 }
