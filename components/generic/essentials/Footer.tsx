@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 
@@ -122,12 +123,22 @@ export default function Footer() {
               className="flex items-center gap-3 no-underline w-fit group"
               aria-label="Social Work Nigeria home"
             >
-              <img
-                src="/images/logo/swc-dark-logo.png"
-                alt="SWC Logo"
-                width={151}
-                height={40}
-                className="w-[170px] md:w-[180px] h-auto object-contain"
+              {/* Trimmed logo files: no built-in padding above or below the mark. */}
+              <Image
+                src="/images/logo/swc-logo-on-light.webp"
+                alt="Social Work Consultancy Ltd"
+                width={480}
+                height={133}
+                sizes="170px"
+                className="w-[156px] md:w-[170px] h-auto object-contain dark:hidden"
+              />
+              <Image
+                src="/images/logo/swc-logo-on-dark.webp"
+                alt="Social Work Consultancy Ltd"
+                width={480}
+                height={133}
+                sizes="170px"
+                className="hidden w-[156px] md:w-[170px] h-auto object-contain dark:block"
               />
             </Link>
 

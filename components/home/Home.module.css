@@ -1,4 +1,5 @@
-/* Home page styles, ported from the SWCL e-learning homepage template. */
+/* Home page styles, ported from the SWCL e-learning homepage template.
+   Type uses the site-wide font inherited from <body>. */
 .page {
   --green: #123e29;
   --green-dark: #092b1c;
@@ -7,10 +8,7 @@
   --ink: #17251d;
   --line: #dedfd7;
   --page-width: 1240px;
-  --heading-font: Georgia, "Times New Roman", serif;
-  --body-font: Arial, Helvetica, sans-serif;
   color: var(--ink);
-  font-family: var(--body-font);
   line-height: 1.55;
   background: #fff;
 }
@@ -20,7 +18,6 @@
 .page h1, .page h2, .page h3, .page p { margin: 0; }
 .page h1, .page h2, .page h3 {
   color: var(--green);
-  font-family: var(--heading-font);
   font-weight: 700;
   line-height: 1.12;
   letter-spacing: -.025em;
