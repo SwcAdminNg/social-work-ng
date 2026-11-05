@@ -6,30 +6,36 @@ type AuthVariant = "login" | "register" | "forgot-password" | "reset-password";
 type HomeStats = { total_number_of_students?: number; number_of_published_courses?: number } | null | undefined;
 
 // SWCL photography of Nigerian social work learning settings (illustrative).
-const PANEL: Record<AuthVariant, { image: string; alt: string; eyebrow: string; title: string; body: string }> = {
+// Full-resolution copies (1672x941, high quality) served as-is so the photo stays sharp.
+// `focus` keeps the people in frame when the landscape photo fills a tall panel.
+const PANEL: Record<AuthVariant, { image: string; focus: string; alt: string; eyebrow: string; title: string; body: string }> = {
   login: {
-    image: "/images/courses/learners-collaborate.webp",
+    image: "/images/auth/learners-collaborate.webp",
+    focus: "46% 40%",
     alt: "Three social work learners study case notes together at a table.",
     eyebrow: "Welcome back",
     title: "Pick up where you left off.",
     body: "Continue your courses, mentorship and practice resources from Social Work Consultancy Ltd.",
   },
   register: {
-    image: "/images/about/training-workshop.webp",
+    image: "/images/auth/training-workshop.webp",
+    focus: "50% 35%",
     alt: "A facilitator leads a small group discussion beside a flip chart.",
     eyebrow: "Join the learning platform",
     title: "Practical learning for social work in Nigeria and beyond.",
     body: "Create a free account to explore courses, save your progress and access learning resources.",
   },
   "forgot-password": {
-    image: "/images/courses/reflective-notes.webp",
+    image: "/images/auth/reflective-notes.webp",
+    focus: "62% 40%",
     alt: "A practitioner writes reflective notes at a wooden desk.",
     eyebrow: "Account recovery",
     title: "We will help you get back in.",
     body: "Enter the email on your account and we will send you a secure link to choose a new password.",
   },
   "reset-password": {
-    image: "/images/contact/support-professional.webp",
+    image: "/images/auth/support-professional.webp",
+    focus: "60% 30%",
     alt: "A support professional wearing a headset smiles at a desk.",
     eyebrow: "Secure your account",
     title: "Choose a strong new password.",
@@ -49,11 +55,26 @@ export function BrandPanel({ variant = "login", statsData }: { variant?: AuthVar
 
   return (
     <aside className="relative hidden lg:flex lg:w-[50%] xl:w-[52%] flex-shrink-0 overflow-hidden bg-[#0f3324]" aria-label="About the learning platform">
-      <Image src={panel.image} alt={panel.alt} fill priority sizes="52vw" className="object-cover" />
+      <Image
+        src={panel.image}
+        alt={panel.alt}
+        fill
+        priority
+        unoptimized
+        sizes="52vw"
+        className="object-cover"
+        style={{ objectPosition: panel.focus }}
+      />
+      {/* Shade only behind the logo and the text, so the photo itself stays clear. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0"
-        style={{ background: "linear-gradient(180deg, rgba(9,36,24,0.55) 0%, rgba(9,36,24,0.15) 35%, rgba(6,24,16,0.88) 100%)" }}
+        className="absolute inset-x-0 top-0 h-36"
+        style={{ background: "linear-gradient(180deg, rgba(6,24,16,0.5), rgba(6,24,16,0))" }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-[55%]"
+        style={{ background: "linear-gradient(0deg, rgba(6,24,16,0.92) 0%, rgba(6,24,16,0.7) 45%, rgba(6,24,16,0) 100%)" }}
       />
       <div className="relative z-10 flex h-full w-full flex-col justify-between p-10 xl:p-14">
         <Link href="/" className="w-fit rounded-md" aria-label="Social Work Consultancy Ltd home">
