@@ -178,9 +178,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       >
         <Link
           href="/"
-          className="relative flex items-center flex-shrink-0 no-underline"
-          aria-label="Social Work Consultancy home"
+          className="group relative flex flex-col flex-shrink-0 no-underline rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
+          aria-label="SWCL E-Learning, Social Work Consultancy home"
         >
+          <span className="relative block">
           {/* Both marks are stacked so the swap is a cross-fade, not a flash. */}
           <Image
             src="/images/logo/swc-logo-on-light.webp"
@@ -200,6 +201,23 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             priority
             className={`absolute inset-0 w-[138px] md:w-[156px] h-auto object-contain transition-opacity duration-500 ${onDark ? "opacity-100" : "opacity-0"}`}
           />
+          </span>
+          {/* Sub-brand line, aligned with the start of the wordmark (≈26.7% in). */}
+          <span
+            aria-hidden="true"
+            className="mt-[3px] flex items-center gap-[7px] pl-[26.7%] text-[9px] md:text-[10px] font-semibold uppercase leading-none tracking-[0.26em] whitespace-nowrap"
+          >
+            <span
+              className={`h-px w-3 md:w-3.5 rounded-full transition-[background-color,width] duration-500 group-hover:w-5 ${
+                onDark ? "bg-[#F3C56B]" : "bg-[#EBA937]"
+              }`}
+            />
+            <span
+              className={`transition-colors duration-500 ${onDark ? "text-[#F3C56B]" : "text-[#2D6A4F]"}`}
+            >
+              E-Learning
+            </span>
+          </span>
         </Link>
 
         {/* Desktop navigation */}
