@@ -91,7 +91,7 @@ export const FloatingInput = forwardRef<HTMLInputElement, Props>(function Floati
           onKeyUp={trackCaps}
           onChange={(e) => onChange(e.target.value)}
           placeholder=" "
-          className={`peer h-[56px] w-full rounded-xl border bg-white pb-1.5 pl-11 pt-5 text-base text-gray-900 outline-none transition-[border-color,box-shadow] duration-150 placeholder-transparent dark:bg-[#121e18] dark:text-white ${
+          className={`peer h-[56px] w-full rounded-2xl border bg-white pb-1.5 pl-11 pt-5 text-base text-gray-900 outline-none transition-[border-color,box-shadow] duration-150 placeholder-transparent dark:bg-[#121e18] dark:text-white ${
             suffix ? "pr-12" : "pr-4"
           } ${
             error

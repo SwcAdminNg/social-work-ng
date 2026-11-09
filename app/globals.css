@@ -388,7 +388,7 @@ html.lenis { scroll-behavior: auto !important; }
 } /* end @layer components */
 
 /* ── Motion ── */
-/* Hidden states only apply once the motion engine has marked the page. */
+/* Hidden states only apply once the page is marked for motion; data-in reveals. */
 .sw-motion [data-reveal] {
   opacity: 0;
   transform: translate3d(0, 32px, 0);
@@ -403,9 +403,9 @@ html.lenis { scroll-behavior: auto !important; }
 /* The clip sits on the child, so the observed box keeps its size. */
 .sw-motion [data-reveal="clip"] { opacity: 1; transform: none; }
 .sw-motion [data-reveal="clip"] > * { clip-path: inset(100% 0 0 0); transition: clip-path 1.3s var(--sw-ease) var(--d, 0s); }
-.sw-motion [data-reveal="clip"].is-in > * { clip-path: inset(0 0 0 0); }
+.sw-motion [data-reveal="clip"][data-in] > * { clip-path: inset(0 0 0 0); }
 .sw-motion [data-reveal="words"] { opacity: 1; transform: none; }
-.sw-motion [data-reveal].is-in { opacity: 1; transform: none; }
+.sw-motion [data-reveal][data-in] { opacity: 1; transform: none; }
 
 /* Words that rise out of a mask, one after another. */
 .sw-w {
@@ -421,7 +421,13 @@ html.lenis { scroll-behavior: auto !important; }
   transform-origin: left bottom;
   transition: transform 1.1s var(--sw-ease) calc(var(--i, 0) * 42ms + var(--d, 0s));
 }
-.sw-motion [data-reveal="words"].is-in .sw-w > span { transform: none; }
+.sw-motion [data-reveal="words"][data-in] .sw-w > span { transform: none; }
+
+/* If the script never arrives, show everything rather than leave the page blank. */
+@keyframes sw-failsafe { to { opacity: 1; transform: none; clip-path: none; } }
+.sw-motion:not(.sw-ready) [data-reveal],
+.sw-motion:not(.sw-ready) [data-reveal="clip"] > *,
+.sw-motion:not(.sw-ready) [data-reveal="words"] .sw-w > span { animation: sw-failsafe 0.6s ease 5s forwards; }
 
 /* Words that light up as the paragraph is read down the page. */
 [data-progress="scrub"] .sw-w > span {

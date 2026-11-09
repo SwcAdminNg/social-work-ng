@@ -16,7 +16,7 @@ export function PasswordChecklist({ id, password, confirm }: { id: string; passw
   const colour = strength === "Strong" ? "bg-[#2D6A4F] dark:bg-[#74c69d]" : strength === "Fair" ? "bg-[#E5A61D]" : "bg-red-500";
 
   return (
-    <div id={id} className="mt-2.5 rounded-xl border border-[#e4e1d6] bg-white/70 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+    <div id={id} className="mt-2.5 rounded-2xl border border-[#e4e1d6] bg-white/70 p-3 dark:border-white/10 dark:bg-white/[0.03]">
       <div className="flex items-center gap-3">
         <div className="flex flex-1 gap-1" aria-hidden="true">
           {[0, 1, 2].map((i) => (

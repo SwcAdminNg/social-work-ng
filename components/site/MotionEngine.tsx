@@ -13,8 +13,9 @@ import Lenis from "lenis";
  *   data-hscroll                                         writes --travel (px) for pinned side-scrolls
  *   data-count="1234"                                    counts up when revealed
  *
- * It also runs smooth scrolling and the curtain between pages. Everything
- * is switched off for people who ask for reduced motion.
+ * A revealed element gets data-in. It also runs smooth scrolling and the
+ * curtain between pages. Everything is switched off for people who ask for
+ * reduced motion.
  */
 
 // Routes that have their own shell; the curtain is only for the public pages.
@@ -22,6 +23,15 @@ const NO_CURTAIN = /^\/(dashboard|learn|api|logout|payment-confirmation|live-ses
 const COVER_MS = 480;
 
 const clamp = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+/**
+ * React keeps a private key on every element it has hydrated. Content inside
+ * a Suspense boundary hydrates late, and touching it sooner would show up as
+ * a hydration mismatch, so the engine waits for that key (for a few seconds
+ * at most).
+ */
+const isHydrated = (el: Element) => Object.keys(el).some((key) => key.startsWith("__reactFiber$"));
+const HYDRATION_WAIT_MS = 4000;
 
 export default function MotionEngine() {
   const pathname = usePathname();
@@ -36,7 +46,10 @@ export default function MotionEngine() {
   useEffect(() => {
     const root = document.documentElement;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    root.classList.add("sw-motion");
+    root.classList.add("sw-motion", "sw-ready");
+    const startedAt = performance.now();
+    const seenReveal = new WeakSet<Element>();
+    const seenProgress = new WeakSet<Element>();
 
     /* ── Smooth scrolling ── */
     let lenis: Lenis | null = null;
@@ -59,7 +72,7 @@ export default function MotionEngine() {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
           const el = entry.target as HTMLElement;
-          el.classList.add("is-in");
+          el.dataset.in = "1";
           revealIO.unobserve(el);
           el.querySelectorAll<HTMLElement>("[data-count]").forEach(countUp);
           if (el.dataset.count !== undefined) countUp(el);
@@ -139,18 +152,31 @@ export default function MotionEngine() {
     };
 
     /* ── Find new elements (first paint, route changes, streamed content) ── */
+    let retry = 0;
     const scan = () => {
-      document.querySelectorAll<HTMLElement>("[data-reveal]:not([data-sw-seen])").forEach((el) => {
-        el.dataset.swSeen = "1";
-        if (reduced.matches) el.classList.add("is-in");
+      window.clearTimeout(retry);
+      const waited = performance.now() - startedAt > HYDRATION_WAIT_MS;
+      let pending = false;
+      const ready = (el: Element) => {
+        if (waited || isHydrated(el)) return true;
+        pending = true;
+        return false;
+      };
+      document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => {
+        if (seenReveal.has(el) || !ready(el)) return;
+        seenReveal.add(el);
+        if (reduced.matches) el.dataset.in = "1";
         else revealIO.observe(el);
       });
-      document.querySelectorAll<HTMLElement>("[data-progress]:not([data-sw-seen-p])").forEach((el) => {
-        el.dataset.swSeenP = "1";
+      document.querySelectorAll<HTMLElement>("[data-progress]").forEach((el) => {
+        if (seenProgress.has(el) || !ready(el)) return;
+        seenProgress.add(el);
         if (!reduced.matches) progressIO.observe(el);
       });
       measureTracks();
       schedule();
+      // Something has not hydrated yet: look again shortly.
+      if (pending) retry = window.setTimeout(scan, 150);
     };
     rescanRef.current = scan;
 
@@ -185,7 +211,7 @@ export default function MotionEngine() {
     const onMotionPreference = () => {
       if (reduced.matches) {
         stopLenis();
-        document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => el.classList.add("is-in"));
+        document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => (el.dataset.in = "1"));
       } else {
         startLenis();
       }
@@ -202,6 +228,7 @@ export default function MotionEngine() {
     return () => {
       cancelAnimationFrame(raf);
       window.clearTimeout(scanQueued);
+      window.clearTimeout(retry);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("load", onResize);
@@ -211,9 +238,7 @@ export default function MotionEngine() {
       mutations.disconnect();
       lockWatcher.disconnect();
       stopLenis();
-      root.classList.remove("sw-motion");
-      document.querySelectorAll<HTMLElement>("[data-sw-seen]").forEach((el) => delete el.dataset.swSeen);
-      document.querySelectorAll<HTMLElement>("[data-sw-seen-p]").forEach((el) => delete el.dataset.swSeenP);
+      root.classList.remove("sw-motion", "sw-ready");
     };
   }, []);
 

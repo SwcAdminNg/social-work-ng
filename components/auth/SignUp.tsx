@@ -209,7 +209,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
     return (
       <AuthPageShell variant="register" statsData={statsData}>
         {finalizeError && (
-          <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+          <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
             {finalizeError}
           </div>
         )}
@@ -227,24 +227,24 @@ export default function SignUp({ statsData }: { statsData?: any }) {
     <AuthPageShell variant="register" statsData={statsData}>
       {/* Heading */}
       <div className="mb-8">
-        <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">
+        <p className="sw-eyebrow text-accent mb-4">
           Get started
         </p>
-        <h1 className="text-[1.75rem] sm:text-[2rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-2">
+        <h1 className="sw-display text-[2.1rem] sm:text-[2.6rem] text-ink mb-3">
           Create your account
         </h1>
-        <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
+        <p className="text-[0.98rem] text-ink-2">
           A free account lets you enrol on courses, save your progress and use learning resources.
         </p>
       </div>
 
       {error && (
-        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
           {error}
         </div>
       )}
 
-      <div className="mb-4 flex items-start gap-3 rounded-xl border border-[#b7e4c7] bg-[#f1fbf6] p-3 text-[#173f2d] dark:border-[#2f6f55] dark:bg-[#10261c] dark:text-[#d8f3dc]">
+      <div className="mb-4 flex items-start gap-3 rounded-2xl border border-[#b7e4c7] bg-[#f1fbf6] p-3 text-[#173f2d] dark:border-[#2f6f55] dark:bg-[#10261c] dark:text-[#d8f3dc]">
         <Camera className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#2D6A4F] dark:text-[#52b788]" />
         <p className="text-xs leading-5">
           After signup, add a clear professional profile photo. It is required
@@ -429,8 +429,8 @@ export default function SignUp({ statsData }: { statsData?: any }) {
           type="submit"
           disabled={loading}
           className={`
-            relative mt-2 w-full h-[52px] rounded-xl font-bold text-[0.93rem] text-white
-            bg-[#2D6A4F] hover:bg-[#1e4d38] dark:hover:bg-[#3d8c68]
+            relative mt-2 w-full h-[56px] rounded-full font-semibold text-[0.98rem] text-white
+            bg-[#14402F] hover:bg-[#0c2a1e] dark:bg-[#2D6A4F] dark:hover:bg-[#3d8c68]
             shadow-lg shadow-green-900/20 hover:shadow-green-900/30
             transition-all duration-200 hover:-translate-y-0.5
             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2

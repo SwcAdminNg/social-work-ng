@@ -3,6 +3,7 @@
 import { Fragment, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ArrowRight, Link2, MessageCircleQuestion, Plus, Search, X } from "lucide-react";
+import PageHero from "@/components/site/PageHero";
 import lib from "@/components/resources/library/Library.module.css";
 import s from "./FAQ.module.css";
 
@@ -138,41 +139,45 @@ export default function FAQ({ categories, isAuthenticated, loadFailed }: { categ
   };
 
   return (
-    <div className={`${lib.page} ${s.page}`}>
-      <section className={s.hero} aria-labelledby="faq-heading">
-        <div className={`${lib.container} ${s.heroInner}`}>
-          <p className={s.eyebrow}>Help centre</p>
-          <h1 id="faq-heading">Frequently asked questions</h1>
-          <p className={s.heroLead}>
-            Answers about courses, payments, certificates and your account. Search or browse by topic.
-          </p>
-          {total > 0 && (
-            <form className={s.search} role="search" onSubmit={(e) => e.preventDefault()}>
-              <label htmlFor="faq-search" className="sr-only">Search the FAQs</label>
-              <div className={lib.searchField}>
-                <Search size={20} aria-hidden="true" />
-                <input
-                  id="faq-search"
-                  type="search"
-                  className={lib.searchInput}
-                  placeholder="Search the FAQs"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  autoComplete="off"
-                  enterKeyHint="search"
-                  style={{ paddingRight: 52 }}
-                />
-                {query && (
-                  <button type="button" className={s.clearSearch} onClick={() => setQuery("")} aria-label="Clear search">
-                    <X size={18} aria-hidden="true" />
-                  </button>
-                )}
-              </div>
-            </form>
-          )}
-        </div>
-      </section>
+    <>
+      <PageHero
+        id="faq-heading"
+        eyebrow="Help centre"
+        title="Frequently asked *questions*"
+        lead="Answers about courses, payments, certificates and your account. Search or browse by topic."
+        compact
+      >
+        {total > 0 && (
+          <form className="w-full max-w-xl" role="search" onSubmit={(e) => e.preventDefault()}>
+            <label htmlFor="faq-search" className="sr-only">Search the FAQs</label>
+            <div className="relative">
+              <Search size={20} aria-hidden="true" className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-[#10231a]/60" />
+              <input
+                id="faq-search"
+                type="search"
+                className="h-16 w-full rounded-full border-0 bg-white pl-14 pr-16 text-[1.05rem] text-[#10231a] shadow-[0_24px_50px_-24px_rgba(0,0,0,0.6)] outline-none ring-0 transition-shadow duration-300 placeholder:text-[#10231a]/50 focus-visible:ring-4 focus-visible:ring-gold/60 [&::-webkit-search-cancel-button]:hidden"
+                placeholder="Search the FAQs"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                autoComplete="off"
+                enterKeyHint="search"
+              />
+              {query && (
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-0 bg-[#10231a]/[0.07] text-[#10231a] transition-colors hover:bg-[#10231a]/15"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                >
+                  <X size={18} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+          </form>
+        )}
+      </PageHero>
 
+      <div className={`${lib.page} ${s.page} sw-sheet`}>
       <div className={`${lib.container} ${s.body}`}>
         {total === 0 ? (
           <div className={lib.state} role={loadFailed ? "alert" : undefined}>
@@ -363,6 +368,7 @@ export default function FAQ({ categories, isAuthenticated, loadFailed }: { categ
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

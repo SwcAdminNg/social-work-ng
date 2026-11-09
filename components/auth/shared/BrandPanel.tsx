@@ -1,44 +1,41 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Contours, Heading, Photo, type Vars } from "@/components/site/ui";
+import { photos, type Photo as PhotoData } from "@/lib/photos";
 
 type AuthVariant = "login" | "register" | "forgot-password" | "reset-password";
 
 type HomeStats = { total_number_of_students?: number; number_of_published_courses?: number } | null | undefined;
 
-// SWCL photography of Nigerian social work learning settings (illustrative).
-// Full-resolution copies (1672x941, high quality) served as-is so the photo stays sharp.
-// `focus` keeps the people in frame when the landscape photo fills a tall panel.
-const PANEL: Record<AuthVariant, { image: string; focus: string; alt: string; eyebrow: string; title: string; body: string }> = {
+// `focus` keeps the person in frame when the photo fills a tall panel.
+// Wrap a phrase of the title in *asterisks* to set it in the accent serif.
+const PANEL: Record<AuthVariant, { photo: PhotoData; focus: string; eyebrow: string; title: string; body: string }> = {
   login: {
-    image: "/images/auth/learners-collaborate.webp",
-    focus: "46% 40%",
-    alt: "Three social work learners study case notes together at a table.",
+    photo: photos.practitioner,
+    focus: "66% 40%",
     eyebrow: "Welcome back",
-    title: "Pick up where you left off.",
+    title: "Pick up where you *left off.*",
     body: "Continue your courses, mentorship and practice resources from Social Work Consultancy Ltd.",
   },
   register: {
-    image: "/images/auth/training-workshop.webp",
-    focus: "50% 35%",
-    alt: "A facilitator leads a small group discussion beside a flip chart.",
+    photo: photos.portraitJoy,
+    focus: "58% 40%",
     eyebrow: "Join the learning platform",
-    title: "Practical learning for social work in Nigeria and beyond.",
+    title: "Practical learning for social work in *Nigeria* and beyond.",
     body: "Create a free account to explore courses, save your progress and access learning resources.",
   },
   "forgot-password": {
-    image: "/images/auth/reflective-notes.webp",
-    focus: "62% 40%",
-    alt: "A practitioner writes reflective notes at a wooden desk.",
+    photo: photos.zariaSerene,
+    focus: "50% 30%",
     eyebrow: "Account recovery",
-    title: "We will help you get back in.",
+    title: "We will help you get *back in.*",
     body: "Enter the email on your account and we will send you a secure link to choose a new password.",
   },
   "reset-password": {
-    image: "/images/auth/support-professional.webp",
-    focus: "60% 30%",
-    alt: "A support professional wearing a headset smiles at a desk.",
+    photo: photos.atWork,
+    focus: "50% 25%",
     eyebrow: "Secure your account",
-    title: "Choose a strong new password.",
+    title: "Choose a strong *new password.*",
     body: "Use at least 8 characters. A longer passphrase is easier to remember and harder to guess.",
   },
 };
@@ -54,54 +51,72 @@ export function BrandPanel({ variant = "login", statsData }: { variant?: AuthVar
   ].filter(Boolean) as string[];
 
   return (
-    <aside className="relative hidden lg:flex lg:w-[50%] xl:w-[52%] flex-shrink-0 overflow-hidden bg-[#0f3324]" aria-label="About the learning platform">
-      <Image
-        src={panel.image}
-        alt={panel.alt}
-        fill
-        priority
-        unoptimized
-        sizes="52vw"
-        className="object-cover"
-        style={{ objectPosition: panel.focus }}
-      />
-      {/* Shade only behind the logo and the text, so the photo itself stays clear. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-36"
-        style={{ background: "linear-gradient(180deg, rgba(6,24,16,0.5), rgba(6,24,16,0))" }}
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 bottom-0 h-[55%]"
-        style={{ background: "linear-gradient(0deg, rgba(6,24,16,0.92) 0%, rgba(6,24,16,0.7) 45%, rgba(6,24,16,0) 100%)" }}
-      />
-      <div className="relative z-10 flex h-full w-full flex-col justify-between p-10 xl:p-14">
-        <Link href="/" className="w-fit rounded-md" aria-label="Social Work Consultancy Ltd home">
-          <Image src="/images/logo/swc-logo-on-dark.webp" alt="" width={480} height={133} className="h-auto w-[180px]" priority />
-        </Link>
+    <aside
+      className="sw-on-dark sticky top-0 hidden h-[100dvh] flex-shrink-0 p-3 lg:flex lg:w-[50%] xl:w-[52%]"
+      aria-label="About the learning platform"
+    >
+      <div className="relative h-full w-full overflow-hidden rounded-[36px] bg-forest" data-progress="view">
+        <div className="absolute inset-0" data-reveal="fade">
+          <Photo
+            photo={panel.photo}
+            priority
+            parallax={false}
+            place={false}
+            sizes="52vw"
+            position={panel.focus}
+            className="h-full w-full"
+          />
+        </div>
+        {/* Shade only behind the logo and the text, so the photo itself stays clear. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-40"
+          style={{ background: "linear-gradient(180deg, rgba(4,18,11,0.6), rgba(4,18,11,0))" }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-[62%]"
+          style={{ background: "linear-gradient(0deg, rgba(4,18,11,0.94) 0%, rgba(4,18,11,0.72) 45%, rgba(4,18,11,0) 100%)" }}
+        />
+        <Contours className="text-leaf opacity-[0.12]" />
 
-        <div className="max-w-md">
-          <p className="mb-3 flex items-center gap-3 text-[0.75rem] font-bold uppercase tracking-[0.18em] text-[#F3C56B]">
-            <span aria-hidden="true" className="h-[2px] w-7 rounded bg-[#E5A61D]" />
-            {panel.eyebrow}
-          </p>
-          <p className="text-[1.9rem] font-bold leading-tight tracking-tight text-white xl:text-[2.2rem]">{panel.title}</p>
-          <p className="mt-4 text-[1rem] leading-relaxed text-white/80">{panel.body}</p>
-          {stats.length > 0 && (
-            <ul className="mt-6 flex flex-wrap gap-2" aria-label="Platform at a glance">
-              {stats.map((stat) => (
-                <li
-                  key={stat}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[0.78rem] font-semibold text-white backdrop-blur-sm"
-                >
-                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#74c69d]" />
-                  {stat}
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="mt-8 text-[0.72rem] text-white/50">Illustrative image</p>
+        <div className="relative z-10 flex h-full w-full flex-col justify-between p-9 xl:p-12">
+          <div className="flex items-center justify-between gap-4">
+            <Link href="/" className="w-fit rounded-md" aria-label="Social Work Consultancy Ltd home">
+              <Image src="/images/logo/swc-logo-on-dark.webp" alt="" width={480} height={133} className="h-auto w-[172px]" priority />
+            </Link>
+            {panel.photo.place && (
+              <span className="sw-chip sw-cap bg-night/50 text-white backdrop-blur-md">
+                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-gold" />
+                {panel.photo.place}
+              </span>
+            )}
+          </div>
+
+          <div className="max-w-lg">
+            <p data-reveal className="sw-eyebrow m-0 text-gold-light">{panel.eyebrow}</p>
+            <Heading
+              as="p"
+              text={panel.title}
+              accent="text-gold-light"
+              delay={0.45}
+              className="sw-display m-0 mt-5 text-[clamp(2.3rem,3.6vw,3.6rem)] text-[#fffdf4]"
+            />
+            <p data-reveal style={{ "--d": "0.8s" } as Vars} className="m-0 mt-5 max-w-md text-[1.02rem] leading-relaxed text-white/80">
+              {panel.body}
+            </p>
+            {stats.length > 0 && (
+              <ul data-reveal style={{ "--d": "0.9s" } as Vars} className="m-0 mt-7 flex list-none flex-wrap gap-2 p-0" aria-label="Platform at a glance">
+                {stats.map((stat) => (
+                  <li key={stat} className="sw-chip border border-white/15 bg-white/10 text-white backdrop-blur-sm">
+                    <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-leaf" />
+                    {stat}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="m-0 mt-8 text-[0.72rem] text-white/50">Photo: {panel.photo.by}, Unsplash</p>
+          </div>
         </div>
       </div>
     </aside>

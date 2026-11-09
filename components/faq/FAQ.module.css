@@ -2,21 +2,8 @@
    Resources library styles applied to the same root. */
 .page { isolation: isolate; }
 
-.hero { background: var(--ivory); text-align: center; }
-.heroInner { padding-block: clamp(36px, 6vw, 64px) clamp(28px, 4vw, 40px); }
-.eyebrow { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 12px !important; color: var(--focus); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
-.eyebrow::before, .eyebrow::after { content: ""; width: 22px; height: 2px; border-radius: 2px; background: var(--gold); }
-.page .hero h1 { font-size: clamp(1.7rem, 1.2rem + 3vw, 3.1rem); line-height: 1.08; letter-spacing: -0.03em; }
-.heroLead { max-width: 56ch; margin: 12px auto 0 !important; color: var(--muted); font-size: clamp(1rem, 0.95rem + 0.3vw, 1.12rem); }
-.search { max-width: 640px; margin: clamp(20px, 3vw, 28px) auto 0; text-align: left; }
-.clearSearch {
-  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-  display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 10px;
-  background: transparent; color: var(--muted); cursor: pointer;
-}
-.clearSearch:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
-
-.body { padding-block: clamp(28px, 4vw, 44px) clamp(48px, 7vw, 80px); }
+/* The opening (heading and search) is the shared PageHero. */
+.body { padding-block: clamp(48px, 6vw, 80px) clamp(64px, 8vw, 110px); }
 /* Layout: filters above the answers on phones and tablets, a sticky sidebar beside them on desktop. */
 .layout { display: grid; gap: 4px; min-width: 0; }
 .sidebar { min-width: 0; }
@@ -65,7 +52,7 @@
   border: 1.5px solid var(--field-line); border-radius: 999px; background: var(--field); color: var(--ink);
   font: inherit; font-size: 0.92rem; font-weight: 500; cursor: pointer; transition: border-color 0.2s, background-color 0.2s;
 }
-.chip:hover { border-color: #9fb2a6; }
+.chip:hover { border-color: var(--sw-ink); }
 .chip[aria-pressed="true"] { background: var(--chip-on-bg); border-color: var(--chip-on-bg); color: var(--chip-on-ink); font-weight: 600; }
 .chipCount { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
 .chip[aria-pressed="true"] .chipCount { color: inherit; opacity: 0.75; }
@@ -75,16 +62,16 @@
 .textButton:hover { background: color-mix(in srgb, var(--gold) 12%, transparent); }
 
 .list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.item { border: 1px solid var(--line); border-radius: 16px; background: var(--card); scroll-margin-top: 110px; transition: border-color 0.2s, box-shadow 0.2s; }
+.item { border: 1px solid var(--line); border-radius: 24px; background: var(--card); scroll-margin-top: 110px; transition: border-color 0.3s, box-shadow 0.3s; }
 .itemOpen { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); box-shadow: var(--shadow); }
-.page .question { margin: 0; font-size: inherit; }
+.page .question { margin: 0; font-size: inherit; font-family: inherit; font-variation-settings: normal; }
 .trigger {
   display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; min-height: 60px;
-  padding: 16px 20px; overflow-wrap: anywhere; border: 0; border-radius: 16px; background: transparent; color: var(--heading);
-  font: inherit; font-size: clamp(1rem, 0.97rem + 0.15vw, 1.06rem); font-weight: 600; text-align: left; cursor: pointer;
+  padding: 18px 22px; overflow-wrap: anywhere; border: 0; border-radius: 24px; background: transparent; color: var(--heading);
+  font: inherit; font-size: clamp(1.02rem, 0.98rem + 0.2vw, 1.12rem); font-weight: 600; letter-spacing: 0; text-align: left; cursor: pointer;
 }
-.triggerIcon { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--icon-bg); color: var(--icon-ink); transition: transform 0.3s; }
-.itemOpen .triggerIcon { transform: rotate(45deg); }
+.triggerIcon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--icon-bg); color: var(--icon-ink); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s, color 0.3s; }
+.itemOpen .triggerIcon { transform: rotate(45deg); background: var(--sw-gold); color: #10231a; }
 .category { display: block; margin-bottom: 3px; color: var(--muted); font-size: 0.76rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
 .panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
 .itemOpen .panel { grid-template-rows: 1fr; }

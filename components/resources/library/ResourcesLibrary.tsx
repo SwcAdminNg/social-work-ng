@@ -10,6 +10,8 @@ import {
 } from "@/lib/resources";
 import AccessSelect from "./AccessSelect";
 import LibraryCard, { categoryLabel } from "./LibraryCard";
+import PageHero from "@/components/site/PageHero";
+import { photos } from "@/lib/photos";
 import s from "./Library.module.css";
 
 export type LibraryQuery = { search: string; category: string; access: string; page: number };
@@ -62,36 +64,27 @@ export default function ResourcesLibrary({ query, result, counts, pageSize }: Pr
     .join(" · ");
 
   return (
-    <div className={s.page}>
-      <section className={s.hero} aria-labelledby="resources-heading">
-        <div className={s.heroCopy}>
-          <p className={s.eyebrow}>Knowledge Hub</p>
-          <h1 id="resources-heading">Practical resources for informed practice</h1>
-          <p className={s.heroLead}>
-            Explore learning materials, practice tools and guidance from Social Work Consultancy Ltd.
-            Find resources to support reflection, professional development and your understanding of
-            social work practice in Nigeria and the Global South.
-          </p>
-          <p className={s.heroNote}>
-            <Info size={16} aria-hidden="true" />
+    <>
+      <PageHero
+        id="resources-heading"
+        eyebrow="Knowledge Hub"
+        title="Practical resources for *informed* practice"
+        lead="Explore learning materials, practice tools and guidance from Social Work Consultancy Ltd. Find resources to support reflection, professional development and your understanding of social work practice in Nigeria and the Global South."
+        body={
+          <span className="flex items-start gap-2">
+            <Info size={16} className="mt-1 flex-none text-gold-light" aria-hidden="true" />
             <span>
-              Check each resource for its intended audience, source, publication or review date, and
-              access requirements.
+              Check each resource for its intended audience, source, publication or review date, and access
+              requirements.
             </span>
-          </p>
-        </div>
-        <div className={s.heroMedia}>
-          <Image
-            src="/images/resources/library-browsing.webp"
-            alt="Two colleagues browse folders and books on the shelves of a bright resource library."
-            fill
-            priority
-            sizes="(min-width: 900px) 48vw, 100vw"
-          />
-          <span className={s.chip}>Illustrative image</span>
-        </div>
-      </section>
+          </span>
+        }
+        photo={photos.readingTea}
+        position="70% 30%"
+        compact
+      />
 
+      <div className={`${s.page} sw-sheet pt-6 md:pt-10`}>
       {!libraryEmpty && (
         <section className={`${s.toolbar} ${s.container}`} aria-label="Search and filter resources">
           <Form action="/resources" className={s.searchForm} role="search">
@@ -271,6 +264,7 @@ export default function ResourcesLibrary({ query, result, counts, pageSize }: Pr
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

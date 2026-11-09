@@ -5,6 +5,9 @@ import { ArrowRight, ChevronLeft, ChevronRight, RotateCw, Search, UsersRound, X 
 import CatalogueCard from "./CatalogueCard";
 import FiltersPanel from "./FiltersPanel";
 import { COSTS, LEVELS, type CatalogueCourse, type CourseCatalog } from "./courseFormat";
+import PageHero from "@/components/site/PageHero";
+import { Btn } from "@/components/site/ui";
+import { photos } from "@/lib/photos";
 import lib from "@/components/resources/library/Library.module.css";
 import s from "./Catalogue.module.css";
 
@@ -58,27 +61,21 @@ export default function CourseCatalogue({ query, courses, ok, total, totalPages,
   ];
 
   return (
-    <div className={`${lib.page} ${s.page}`}>
-      <section className={s.hero} aria-labelledby="courses-heading">
-        <div className={`${lib.container} ${s.heroInner}`}>
-          <h1 id="courses-heading">Build your knowledge and strengthen your social work practice</h1>
-          <p className={s.heroLead}>
-            Explore practical learning from Social Work Consultancy Ltd for social work students,
-            practitioners and those supporting children, families and communities. Find learning that
-            connects professional knowledge with the realities of practice in Nigeria and the Global
-            South.
-          </p>
-          <div className={s.heroActions}>
-            <a href="#catalogue" className={s.browse}>
-              Browse Courses <ArrowRight size={17} aria-hidden="true" />
-            </a>
-            <Link href="/contact?topic=course" className={s.help}>
-              Need Help Choosing?
-            </Link>
-          </div>
-        </div>
-      </section>
+    <>
+      <PageHero
+        id="courses-heading"
+        eyebrow="Our courses"
+        title="Build your knowledge and *strengthen* your social work practice"
+        lead="Explore practical learning from Social Work Consultancy Ltd for social work students, practitioners and those supporting children, families and communities. Find learning that connects professional knowledge with the realities of practice in Nigeria and the Global South."
+        photo={photos.atWork}
+        position="50% 26%"
+        compact
+      >
+        <Btn href="#catalogue" variant="gold">Browse Courses</Btn>
+        <Btn href="/contact?topic=course" variant="ghost">Need Help Choosing?</Btn>
+      </PageHero>
 
+      <div className={`${lib.page} ${s.page} sw-sheet pt-6 md:pt-10`}>
       {!catalogueEmpty && ok && (
         <section className={`${lib.toolbar} ${lib.container}`} aria-label="Search and filter courses">
           <Form action="/courses" className={lib.searchForm} role="search">
@@ -226,6 +223,7 @@ export default function CourseCatalogue({ query, courses, ok, total, totalPages,
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,14 +1,16 @@
+import type { Metadata } from "next";
 import { TermsHero } from "@/components/terms/TermsHero";
 import { TermsContent } from "@/components/terms/TermsContent";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Terms of Service | Social Work Nigeria",
   description: "Terms of Service for the Social Work Consultancy Ltd (SWCL) LMS platform.",
+  alternates: { canonical: "/terms-of-service" },
 };
 
 export default function TermsOfServicePage() {
   return (
-    <div className="w-full bg-white dark:bg-[#0a0a0a] flex flex-col">
+    <div>
       <TermsHero />
       <TermsContent />
     </div>
