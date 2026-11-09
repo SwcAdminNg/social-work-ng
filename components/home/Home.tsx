@@ -643,7 +643,7 @@ function CollagePhoto({
       <div className="sw-drift" style={{ "--shift": `${shift}px` } as Vars}>
         <p className="sw-cap m-0 mb-2.5 flex items-center justify-between gap-3 text-ink-3">
           <span>{photo.place ?? ""}</span>
-          <span className="normal-case tracking-normal opacity-80">Photo: {photo.by}</span>
+          <span className="normal-case tracking-normal opacity-80 max-md:hidden">Photo: {photo.by}</span>
         </p>
         <div data-reveal="clip">
           <Photo
