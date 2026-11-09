@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: "/courses",
     title,
     description,
-    images: ["/images/courses/learners-collaborate.webp"],
+    images: ["/images/ng/at-work-laptop.webp"],
   },
 };
 

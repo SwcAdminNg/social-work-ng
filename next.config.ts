@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // 90 keeps the site's photographs crisp; 75 stays the default elsewhere.
+    qualities: [75, 90],
     remotePatterns: [
       {
         protocol: "https",

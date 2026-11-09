@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical: "/faq" },
-  openGraph: { type: "website", url: "/faq", title, description, images: ["/images/contact/support-professional.webp"] },
+  openGraph: { type: "website", url: "/faq", title, description, images: ["/images/ng/learning-together.webp"] },
 };
 
 export default async function FAQPage() {

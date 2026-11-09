@@ -62,7 +62,7 @@ export function BrandPanel({ variant = "login", statsData }: { variant?: AuthVar
             priority
             parallax={false}
             place={false}
-            sizes="52vw"
+            sizes="(min-width: 1024px) 160vh, 1px"
             position={panel.focus}
             className="h-full w-full"
           />

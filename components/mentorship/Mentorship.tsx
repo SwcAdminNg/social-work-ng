@@ -10,7 +10,6 @@ import {
   Signpost,
   UsersRound,
 } from "lucide-react";
-import contact from "@/components/contact/Contact.module.css";
 import PageHero from "@/components/site/PageHero";
 import { Btn, Contours, Eyebrow, Heading, Photo, SectionHead, TextLink, type Vars } from "@/components/site/ui";
 import { photos } from "@/lib/photos";
@@ -85,7 +84,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
   },
 ];
 
-const formCard = `${contact.page} rounded-[32px] border border-line bg-card p-6 shadow-[0_30px_70px_-50px_rgba(14,31,23,0.45)] sm:p-9 md:rounded-[40px] md:p-11`;
+const formCard = `rounded-[32px] border border-line bg-card p-6 shadow-[0_30px_70px_-50px_rgba(14,31,23,0.45)] sm:p-9 md:rounded-[40px] md:p-11`;
 
 function Notice({ children }: { children: React.ReactNode }) {
   return (

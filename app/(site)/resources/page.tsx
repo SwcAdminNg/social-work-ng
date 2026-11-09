@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     url: "/resources",
     title,
     description,
-    images: ["/images/resources/library-browsing.webp"],
+    images: ["/images/ng/reading-tea.webp"],
   },
 };
 

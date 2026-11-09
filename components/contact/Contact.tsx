@@ -5,7 +5,6 @@ import { Btn, Contours, Eyebrow, type Vars } from "@/components/site/ui";
 import { photos } from "@/lib/photos";
 import ContactForm from "./ContactForm";
 import TopicButton from "./TopicButton";
-import s from "./Contact.module.css";
 
 const linkRow =
   "group flex w-full cursor-pointer items-center justify-between gap-4 border-0 border-b border-line bg-transparent py-4 text-left text-ink no-underline last:border-b-0";
@@ -144,13 +143,13 @@ export default function Contact({ initialTopic }: { initialTopic?: string }) {
             id="send-message"
             data-reveal
             style={{ "--d": "0.15s", scrollMarginTop: 110 } as Vars}
-            className={`${s.page} rounded-[32px] border border-line bg-card p-6 shadow-[0_30px_70px_-50px_rgba(14,31,23,0.45)] sm:p-9 md:rounded-[40px] md:p-12`}
+            className={`rounded-[32px] border border-line bg-card p-6 shadow-[0_30px_70px_-50px_rgba(14,31,23,0.45)] sm:p-9 md:rounded-[40px] md:p-12`}
           >
             <Eyebrow className="text-accent">Enquiry form</Eyebrow>
-            <h2 id="form-heading" className="sw-display mt-4 text-[clamp(1.9rem,3.2vw,2.7rem)] text-ink">
+            <h2 id="form-heading" className="sw-display m-0 mt-4 text-[clamp(1.9rem,3.2vw,2.7rem)] text-ink">
               Send us a <em className="sw-em text-clay-ink">message</em>
             </h2>
-            <p className="mt-3 text-ink-2">Choose a topic, tell us what you need and we will reply by email.</p>
+            <p className="m-0 mt-3 text-ink-2">Choose a topic, tell us what you need and we will reply by email.</p>
             <ContactForm initialTopic={initialTopic} />
           </section>
         </div>

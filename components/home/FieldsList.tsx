@@ -74,7 +74,7 @@ export default function FieldsList({ fields }: { fields: Field[] }) {
               </span>
               {/* Touch screens: the photo sits in the row. */}
               <span className="relative h-14 w-14 overflow-hidden rounded-2xl md:hidden">
-                <Image src={field.image.src} alt="" fill sizes="56px" className="object-cover" />
+                <Image src={field.image.src} alt="" fill sizes="160px" quality={90} className="object-cover" />
               </span>
               <h3
                 className={`sw-display m-0 text-[clamp(1.35rem,3.2vw,2.6rem)] transition-colors duration-300 ${
@@ -105,7 +105,8 @@ export default function FieldsList({ fields }: { fields: Field[] }) {
             src={field.image.src}
             alt=""
             fill
-            sizes="240px"
+            sizes="640px"
+            quality={90}
             className={`object-cover transition-[opacity,transform] duration-700 ease-sw ${
               active === index ? "scale-100 opacity-100" : "scale-110 opacity-0"
             }`}

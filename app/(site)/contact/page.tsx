@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     url: "/contact",
     title,
     description,
-    images: ["/images/contact/support-professional.webp"],
+    images: ["/images/ng/man-laugh.webp"],
   },
 };
 

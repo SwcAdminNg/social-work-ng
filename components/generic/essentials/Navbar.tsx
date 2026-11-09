@@ -92,6 +92,12 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     };
   }, []);
 
+  // Lets sticky page elements (such as a section menu) move up when the header slides away.
+  useEffect(() => {
+    document.documentElement.toggleAttribute("data-nav-hidden", hidden && !menuOpen);
+    return () => document.documentElement.removeAttribute("data-nav-hidden");
+  }, [hidden, menuOpen]);
+
   // Menu open: lock page scroll, trap focus, close on Escape or on desktop widths.
   useIsoLayoutEffect(() => {
     if (!menuOpen) return;

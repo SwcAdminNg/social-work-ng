@@ -158,7 +158,10 @@ export default function MotionEngine() {
       const waited = performance.now() - startedAt > HYDRATION_WAIT_MS;
       let pending = false;
       const ready = (el: Element) => {
-        if (waited || isHydrated(el)) return true;
+        if (waited) return true;
+        // A HydrationGate says exactly when its contents are safe to touch.
+        const gate = el.closest<HTMLElement>("[data-hydrate-gate]");
+        if (gate ? gate.dataset.hydrated === "1" : isHydrated(el)) return true;
         pending = true;
         return false;
       };
@@ -193,11 +196,15 @@ export default function MotionEngine() {
     /* ── Pause smooth scrolling while an overlay locks the page ── */
     const lockWatcher = new MutationObserver(() => {
       if (!lenis) return;
-      if (root.style.overflow === "hidden" || document.body.style.overflow === "hidden") lenis.stop();
+      const locked =
+        root.style.overflow === "hidden" ||
+        document.body.style.overflow === "hidden" ||
+        document.body.hasAttribute("data-scroll-locked"); // set by open menus and dialogs
+      if (locked) lenis.stop();
       else lenis.start();
     });
     lockWatcher.observe(root, { attributes: true, attributeFilter: ["style"] });
-    lockWatcher.observe(document.body, { attributes: true, attributeFilter: ["style"] });
+    lockWatcher.observe(document.body, { attributes: true, attributeFilter: ["style", "data-scroll-locked"] });
 
     const loop = (time: number) => {
       lenis?.raf(time);
@@ -223,9 +230,11 @@ export default function MotionEngine() {
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", onResize);
     window.addEventListener("load", onResize);
+    window.addEventListener("sw:scan", scan);
     reduced.addEventListener("change", onMotionPreference);
 
     return () => {
+      window.removeEventListener("sw:scan", scan);
       cancelAnimationFrame(raf);
       window.clearTimeout(scanQueued);
       window.clearTimeout(retry);

@@ -56,7 +56,7 @@
 
 /* Search and filters */
 .toolbar { padding-block: clamp(20px, 3.5vw, 32px) 8px; }
-.searchForm { display: grid; gap: 14px; }
+.searchForm { display: grid; gap: 18px; }
 .searchLabel { color: var(--ink); font-size: 0.92rem; font-weight: 600; }
 .searchRow { display: flex; gap: 10px; }
 .searchField { position: relative; flex: 1; min-width: 0; }
@@ -113,7 +113,7 @@
 .chipCount { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
 .chipActive { background: var(--chip-on-bg); border-color: var(--chip-on-bg); color: var(--chip-on-ink); font-weight: 600; }
 .chipActive .chipCount { color: inherit; opacity: 0.75; }
-.accessField { display: flex; align-items: center; gap: 10px; }
+.accessField { min-width: 230px; }
 .accessLabel { color: var(--muted); font-size: 0.88rem; font-weight: 600; white-space: nowrap; }
 .select {
   min-height: 44px;
@@ -129,8 +129,6 @@
 }
 @media (max-width: 559px) {
   .accessField { width: 100%; }
-  .select { flex: 1; }
-  .searchButton { padding: 0 18px; }
 }
 
 /* Library */

@@ -2,8 +2,8 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, Check, CheckCircle2, Info, Loader2, Send, ShieldAlert } from "lucide-react";
-import s from "./Contact.module.css";
+import { Info, Mail, Phone, ShieldAlert, UserRound } from "lucide-react";
+import { ChoiceGroup, FormAlert, FormNote, FormSuccess, RequiredNote, SpamTrap, SubmitButton, TextArea, TextField } from "@/components/site/form";
 
 // `category` is the API's contact category for each enquiry type.
 export const TOPICS = [
@@ -184,279 +184,161 @@ export default function ContactForm({ initialTopic }: { initialTopic?: string })
     }
   };
 
-  const describedBy = (...ids: (string | false | undefined)[]) => ids.filter(Boolean).join(" ") || undefined;
   const errorList = FIELD_ORDER.filter((field) => errors[field]);
   const sending = status === "sending";
-  const messageLength = values.message.length;
+  const checked = validate(values);
+  const isValid = (field: Field) => Boolean(values[field].trim()) && !checked[field];
 
   if (status === "sent") {
     return (
-      <div className={s.success} role="status">
-        <span className={s.successIcon}>
-          <CheckCircle2 size={34} strokeWidth={1.75} aria-hidden="true" />
-        </span>
-        <h2 ref={successRef} tabIndex={-1}>
-          Thank you. Your message has been received.
-        </h2>
-        <p>We will reply to the email address you provided.</p>
-        {reference && (
-          <p className={s.reference}>
-            Reference: <strong>{reference}</strong>
-          </p>
-        )}
-        <button type="button" className={s.secondaryButton} onClick={() => setStatus("idle")}>
-          Send another message
-        </button>
-      </div>
+      <FormSuccess
+        ref={successRef}
+        title="Thank you. Your message has been received."
+        body="We will reply to the email address you provided."
+        reference={reference}
+        againLabel="Send another message"
+        onAgain={() => setStatus("idle")}
+      />
     );
   }
 
   return (
-    <form ref={formRef} className={s.form} onSubmit={handleSubmit} noValidate aria-describedby={id("required-note")}>
-      <p id={id("required-note")} className={s.hint}>
-        Fields marked <span className={s.required} aria-hidden="true">*</span>
-        <span className="sr-only">with an asterisk</span> are required.
-      </p>
+    <form ref={formRef} className="swf-form mt-7" onSubmit={handleSubmit} noValidate aria-describedby={id("required-note")}>
+      <RequiredNote id={id("required-note")} />
 
       {errorList.length > 0 && (
-        <div ref={summaryRef} tabIndex={-1} className={s.alert} role="alert" aria-labelledby={id("summary-title")}>
-          <AlertCircle size={20} aria-hidden="true" />
-          <div>
-            <h3 id={id("summary-title")}>
-              Please check {errorList.length === 1 ? "this field" : `these ${errorList.length} fields`}
-            </h3>
-            <ul>
-              {errorList.map((field) => (
-                <li key={field}>
-                  <a href={`#${id(field)}`}>{FIELD_LABELS[field]}</a>: {errors[field]}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <FormAlert
+          ref={summaryRef}
+          titleId={id("summary-title")}
+          title={`Please check ${errorList.length === 1 ? "this field" : `these ${errorList.length} fields`}`}
+        >
+          <ul>
+            {errorList.map((field) => (
+              <li key={field}>
+                <a href={`#${id(field)}`}>{FIELD_LABELS[field]}</a>: {errors[field]}
+              </li>
+            ))}
+          </ul>
+        </FormAlert>
       )}
 
       {status === "limited" && (
-        <div ref={failureRef} tabIndex={-1} className={s.alert} role="alert">
-          <AlertCircle size={20} aria-hidden="true" />
-          <div>
-            <h3>You have sent several messages in a short time.</h3>
-            <p>
-              Please wait a few minutes and try again, or email{" "}
-              <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. Your answers are still below.
-            </p>
-          </div>
-        </div>
+        <FormAlert ref={failureRef} title="You have sent several messages in a short time.">
+          <p>
+            Please wait a few minutes and try again, or email{" "}
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. Your answers are still below.
+          </p>
+        </FormAlert>
       )}
 
       {status === "failed" && (
-        <div ref={failureRef} tabIndex={-1} className={s.alert} role="alert">
-          <AlertCircle size={20} aria-hidden="true" />
-          <div>
-            <h3>We could not send your message.</h3>
-            <p>
-              Please try again or email{" "}
-              <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. Your answers are still below.
-            </p>
-          </div>
-        </div>
+        <FormAlert ref={failureRef} title="We could not send your message.">
+          <p>
+            Please try again or email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. Your answers are still
+            below.
+          </p>
+        </FormAlert>
       )}
 
-      <div className={s.row}>
-        <div className={s.field}>
-          <label htmlFor={id("fullName")} className={s.label}>
-            Full name<span className={s.required} aria-hidden="true">*</span>
-          </label>
-          <input
-            id={id("fullName")}
-            name="name"
-            className={s.input}
-            autoComplete="name"
-            required
-            aria-required="true"
-            aria-invalid={!!errors.fullName || undefined}
-            aria-describedby={describedBy(errors.fullName && id("fullName-error"))}
-            value={values.fullName}
-            onChange={(e) => update("fullName", e.target.value)}
-            onBlur={() => revalidateOnBlur("fullName")}
-            disabled={sending}
-          />
-          {errors.fullName && <FieldError id={id("fullName-error")}>{errors.fullName}</FieldError>}
-        </div>
-
-        <div className={s.field}>
-          <label htmlFor={id("email")} className={s.label}>
-            Email address<span className={s.required} aria-hidden="true">*</span>
-          </label>
-          <input
-            id={id("email")}
-            name="email"
-            type="email"
-            inputMode="email"
-            className={s.input}
-            autoComplete="email"
-            autoCapitalize="none"
-            spellCheck={false}
-            required
-            aria-required="true"
-            aria-invalid={!!errors.email || undefined}
-            aria-describedby={describedBy(id("email-hint"), errors.email && id("email-error"))}
-            value={values.email}
-            onChange={(e) => update("email", e.target.value)}
-            onBlur={() => revalidateOnBlur("email")}
-            disabled={sending}
-          />
-          <span id={id("email-hint")} className={s.hint}>We will send our reply here.</span>
-          {errors.email && <FieldError id={id("email-error")}>{errors.email}</FieldError>}
-        </div>
+      <div className="swf-row">
+        <TextField
+          id={id("fullName")}
+          name="name"
+          label="Full name"
+          icon={<UserRound size={19} />}
+          autoComplete="name"
+          required
+          value={values.fullName}
+          onChange={(value) => update("fullName", value)}
+          onBlur={() => revalidateOnBlur("fullName")}
+          error={errors.fullName}
+          valid={isValid("fullName")}
+          disabled={sending}
+        />
+        <TextField
+          id={id("email")}
+          name="email"
+          type="email"
+          label="Email address"
+          icon={<Mail size={19} />}
+          autoComplete="email"
+          required
+          hint="We will send our reply here."
+          value={values.email}
+          onChange={(value) => update("email", value)}
+          onBlur={() => revalidateOnBlur("email")}
+          error={errors.email}
+          valid={isValid("email")}
+          disabled={sending}
+        />
       </div>
 
-      <fieldset
-        className={s.fieldset}
-        aria-required="true"
-        aria-invalid={!!errors.topic || undefined}
-        aria-describedby={describedBy(errors.topic && id("topic-error"))}
+      <ChoiceGroup
+        id={id("topic")}
+        name="topic"
+        legend="Enquiry type"
+        required
+        options={TOPICS.map((topic) => ({ value: topic.value, label: topic.label }))}
+        value={values.topic ? [values.topic] : []}
+        onToggle={(value) => update("topic", value)}
+        error={errors.topic}
         disabled={sending}
-      >
-        <legend className={s.label}>
-          Enquiry type<span className={s.required} aria-hidden="true">*</span>
-        </legend>
-        <div id={id("topic")} tabIndex={-1} className={`${s.topics} ${errors.topic ? s.topicsInvalid : ""}`}>
-          {TOPICS.map((topic) => (
-            <label key={topic.value} className={s.topic}>
-              <input
-                type="radio"
-                name="topic"
-                value={topic.value}
-                checked={values.topic === topic.value}
-                onChange={() => update("topic", topic.value)}
-              />
-              <span className={s.topicFace}>
-                <Check size={15} strokeWidth={2.5} aria-hidden="true" />
-                {topic.label}
-              </span>
-            </label>
-          ))}
-        </div>
-        {errors.topic && (
-          <div style={{ marginTop: 8 }}>
-            <FieldError id={id("topic-error")}>{errors.topic}</FieldError>
-          </div>
-        )}
-      </fieldset>
+      />
 
       {values.topic === "account" && (
-        <p className={s.callout} id={id("account-tip")}>
-          <ShieldAlert size={18} aria-hidden="true" />
-          <span>
-            Describe the issue and the email you sign in with. Never send passwords, payment-card
-            details or confidential case records.
-          </span>
-        </p>
+        <FormNote id={id("account-tip")} icon={<ShieldAlert size={18} aria-hidden="true" />}>
+          Describe the issue and the email you sign in with. Never send passwords, payment-card details or
+          confidential case records.
+        </FormNote>
       )}
 
-      <div className={s.field}>
-        <label htmlFor={id("phone")} className={s.label}>
-          Telephone number <span className={s.optional}>(optional)</span>
-        </label>
-        <input
-          id={id("phone")}
-          name="phone"
-          type="tel"
-          inputMode="tel"
-          className={s.input}
-          autoComplete="tel"
-          aria-invalid={!!errors.phone || undefined}
-          aria-describedby={describedBy(id("phone-hint"), errors.phone && id("phone-error"))}
-          value={values.phone}
-          onChange={(e) => update("phone", e.target.value)}
-          onBlur={() => revalidateOnBlur("phone")}
-          disabled={sending}
-        />
-        <span id={id("phone-hint")} className={s.hint}>Include your country code if you are outside Nigeria.</span>
-        {errors.phone && <FieldError id={id("phone-error")}>{errors.phone}</FieldError>}
-      </div>
+      <TextField
+        id={id("phone")}
+        name="phone"
+        type="tel"
+        label="Telephone number"
+        icon={<Phone size={19} />}
+        autoComplete="tel"
+        optional
+        hint="Include your country code if you are outside Nigeria."
+        value={values.phone}
+        onChange={(value) => update("phone", value)}
+        onBlur={() => revalidateOnBlur("phone")}
+        error={errors.phone}
+        valid={isValid("phone")}
+        disabled={sending}
+      />
 
-      <div className={s.field}>
-        <label htmlFor={id("message")} className={s.label}>
-          Message<span className={s.required} aria-hidden="true">*</span>
-        </label>
-        <textarea
-          ref={messageRef}
-          id={id("message")}
-          name="message"
-          className={s.textarea}
-          required
-          aria-required="true"
-          maxLength={MESSAGE_MAX}
-          placeholder="Tell us what you need help with."
-          aria-invalid={!!errors.message || undefined}
-          aria-describedby={describedBy(
-            id("message-privacy"),
-            values.topic === "account" && id("account-tip"),
-            errors.message && id("message-error"),
-          )}
-          value={values.message}
-          onChange={(e) => update("message", e.target.value)}
-          onBlur={() => revalidateOnBlur("message")}
-          disabled={sending}
-        />
-        <div className={s.messageMeta}>
-          {errors.message ? (
-            <FieldError id={id("message-error")}>{errors.message}</FieldError>
-          ) : (
-            <span />
-          )}
-          <span className={`${s.counter} ${messageLength > MESSAGE_MAX - 100 ? s.counterNear : ""}`} aria-hidden="true">
-            {messageLength}/{MESSAGE_MAX}
-          </span>
-        </div>
-        <p className={s.callout} id={id("message-privacy")}>
-          <Info size={18} aria-hidden="true" />
-          <span>
-            Please do not include confidential case information or personal details about people you
-            support.
-          </span>
+      <TextArea
+        ref={messageRef}
+        id={id("message")}
+        name="message"
+        label="Message"
+        required
+        maxLength={MESSAGE_MAX}
+        placeholder="Tell us what you need help with."
+        describedBy={[id("message-privacy"), values.topic === "account" ? id("account-tip") : ""].filter(Boolean).join(" ")}
+        value={values.message}
+        onChange={(value) => update("message", value)}
+        onBlur={() => revalidateOnBlur("message")}
+        error={errors.message}
+        disabled={sending}
+      />
+      <FormNote id={id("message-privacy")} icon={<Info size={18} aria-hidden="true" />}>
+        Please do not include confidential case information or personal details about people you support.
+      </FormNote>
+
+      <SpamTrap />
+
+      <div className="swf-foot">
+        <p>
+          We use these details only to respond to your enquiry. Read our <Link href="/privacy-policy">Privacy Policy</Link>.
         </p>
-      </div>
-
-      {/* Spam trap: real visitors never see or fill this. */}
-      <div className={s.trap} aria-hidden="true">
-        <label>
-          Website
-          <input type="text" name="website" tabIndex={-1} autoComplete="off" />
-        </label>
-      </div>
-
-      <div className={s.submitArea}>
-        <p className={s.privacy}>
-          We use these details only to respond to your enquiry. Read our{" "}
-          <Link href="/privacy-policy">Privacy Policy</Link>.
-        </p>
-        <button type="submit" className={s.submit} disabled={sending} aria-disabled={sending}>
-          {sending ? (
-            <>
-              <Loader2 size={18} className={s.spinner} aria-hidden="true" /> Sending…
-            </>
-          ) : (
-            <>
-              Send Message <Send size={17} aria-hidden="true" />
-            </>
-          )}
-        </button>
-        <p className={s.replyNote} role="status" aria-live="polite">
+        <SubmitButton sending={sending}>Send Message</SubmitButton>
+        <p className="text-center" role="status" aria-live="polite">
           {sending ? "Sending your message, please wait." : "We will reply using the email address you provide."}
         </p>
       </div>
     </form>
-  );
-}
-
-function FieldError({ id, children }: { id: string; children: React.ReactNode }) {
-  return (
-    <span id={id} className={s.fieldError}>
-      <AlertCircle size={15} aria-hidden="true" />
-      {children}
-    </span>
   );
 }

@@ -59,7 +59,7 @@ export function EnrollButton({
     return (
       <button
         onClick={() => router.push(`/learn/${courseId}`)}
-        className="w-full py-4 px-6 rounded-2xl font-bold text-white bg-[#2D6A4F] hover:bg-[#1B4332] dark:bg-[#52b788] dark:hover:bg-[#40916c] transition-colors shadow-lg shadow-[#2D6A4F]/20"
+        className="sw-btn min-h-[3.75rem] w-full justify-center px-6 text-[1rem]"
       >
         View Course
       </button>
@@ -219,7 +219,7 @@ export function EnrollButton({
         <button
           onClick={handleEnrollClick}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl font-bold text-white bg-[#2D6A4F] hover:bg-[#1B4332] dark:bg-[#52b788] dark:hover:bg-[#40916c] transition-colors shadow-lg shadow-[#2D6A4F]/20 disabled:opacity-70"
+          className="sw-btn min-h-[3.75rem] w-full justify-center gap-2 px-6 text-[1rem] disabled:cursor-progress disabled:opacity-70"
         >
           {loading ? <IconSpinner className="w-5 h-5 animate-spin" /> : null}
           {loading
@@ -248,25 +248,25 @@ export function EnrollButton({
       {showModal &&
         typeof document !== "undefined" &&
         createPortal(
-          <div className="fixed inset-0 z-[10000] flex items-end justify-center bg-black/65 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-          <div className="max-h-[94vh] w-full overflow-y-auto rounded-t-2xl border border-gray-100 bg-white p-4 shadow-2xl transition-all dark:border-gray-800 dark:bg-gray-950 sm:max-w-xl sm:rounded-2xl sm:p-6">
+          <div className="fixed inset-0 z-[10000] flex items-end justify-center bg-night/75 p-0 backdrop-blur-sm sm:items-center sm:p-4" data-lenis-prevent>
+          <div className="max-h-[94vh] w-full overflow-y-auto rounded-t-[28px] border border-line bg-card p-5 text-ink shadow-2xl transition-all sm:max-w-xl sm:rounded-[28px] sm:p-7">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-normal text-[#2D6A4F] dark:text-[#95d5b2]">
                   Secure checkout
                 </p>
-                <h3 className="mt-1 text-2xl font-black text-gray-900 dark:text-white">
+                <h3 className="sw-display m-0 mt-1 text-[1.7rem] text-ink">
                   Choose how to pay
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm leading-6 text-ink-2">
                   Complete your course purchase for{" "}
-                  <span className="font-extrabold text-gray-900 dark:text-white">
+                  <span className="font-extrabold text-ink">
                     {checkoutTotalLabel}
                   </span>
                   .
                 </p>
               </div>
-              <div className="rounded-lg bg-[#f1fbf6] px-4 py-3 text-left dark:bg-[#10261c] sm:text-right">
+              <div className="rounded-2xl bg-[#f1fbf6] px-4 py-3 text-left dark:bg-[#10261c] sm:text-right">
                 <p className="text-xs font-bold uppercase text-[#2D6A4F] dark:text-[#95d5b2]">
                   Total
                 </p>
@@ -276,7 +276,7 @@ export function EnrollButton({
               </div>
             </div>
 
-            <div className="mb-5 rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-3 dark:border-[#27433a] dark:bg-[#13231d]">
+            <div className="mb-5 rounded-2xl border border-[#dceee4] bg-[#f7fcf9] p-3 dark:border-[#27433a] dark:bg-[#13231d]">
               {checkoutEstimate && (
                 <dl className="mb-4 grid gap-2 border-b border-[#dceee4] pb-4 text-sm dark:border-[#27433a]">
                   <CheckoutRow label="Subtotal" value={formatNaira(price || 0)} />
@@ -303,13 +303,13 @@ export function EnrollButton({
                   value={couponCode}
                   onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
                   placeholder="Coupon code"
-                  className="h-10 min-w-0 flex-1 rounded-md border border-[#dceee4] bg-white px-3 text-sm font-bold text-gray-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#27433a] dark:bg-gray-950 dark:text-white dark:focus:border-[#52b788]"
+                  className="h-10 min-w-0 flex-1 rounded-xl border border-[#dceee4] bg-white px-3 text-sm font-bold text-gray-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#27433a] dark:bg-gray-950 dark:text-white dark:focus:border-[#52b788]"
                 />
                 <button
                   type="button"
                   onClick={applyCoupon}
                   disabled={couponLoading}
-                  className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-[#2D6A4F] text-white transition hover:bg-[#1B4332] disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+                  className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#2D6A4F] text-white transition hover:bg-[#1B4332] disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
                   aria-label="Apply coupon"
                 >
                   {couponLoading ? (
@@ -339,7 +339,7 @@ export function EnrollButton({
                 </div>
               )}
               {couponError && (
-                <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-100">
+                <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-100">
                   {couponError}
                 </p>
               )}
@@ -364,14 +364,14 @@ export function EnrollButton({
               <button
                 onClick={() => setShowModal(false)}
                 disabled={loading}
-                className="flex-1 py-3 px-4 rounded-md font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
+                className="flex-1 cursor-pointer rounded-full border border-line bg-transparent px-4 py-3.5 font-semibold text-ink transition-colors hover:bg-paper-2 disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
                 onClick={executeEnrollment}
                 disabled={loading || cardsLoading}
-                className="flex-1 py-3 px-4 rounded-md font-bold text-white bg-[#2D6A4F] hover:bg-[#1B4332] transition-colors shadow-md shadow-[#2D6A4F]/20 disabled:opacity-60"
+                className="flex-1 cursor-pointer rounded-full border-0 bg-[#14402F] px-4 py-3.5 font-semibold text-white transition-colors hover:bg-[#0c2a1e] disabled:opacity-60 dark:bg-[#2D6A4F]"
               >
                 {loading ? "Processing..." : "Pay now"}
               </button>
@@ -400,8 +400,8 @@ function CheckoutRow({
       <dt
         className={
           strong
-            ? "font-black text-gray-950 dark:text-white"
-            : "font-semibold text-gray-500 dark:text-gray-400"
+            ? "font-black text-ink"
+            : "font-semibold text-ink-3"
         }
       >
         {label}
@@ -409,10 +409,10 @@ function CheckoutRow({
       <dd
         className={
           strong
-            ? "text-base font-black text-gray-950 dark:text-white"
+            ? "text-base font-black text-ink"
             : tone === "discount"
               ? "font-extrabold text-[#0f8a46] dark:text-[#8de5b5]"
-              : "font-extrabold text-gray-900 dark:text-white"
+              : "font-extrabold text-ink"
         }
       >
         {value}

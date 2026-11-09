@@ -61,7 +61,7 @@ export const FloatingInput = forwardRef<HTMLInputElement, Props>(function Floati
       <div className="relative">
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-150 ${
+          className={`pointer-events-none absolute left-[1.15rem] top-1/2 -translate-y-1/2 transition-colors duration-300 ${
             error ? "text-red-500 dark:text-red-400" : focused ? "text-[#2D6A4F] dark:text-[#95d5b2]" : "text-gray-400 dark:text-gray-500"
           }`}
         >
@@ -91,23 +91,23 @@ export const FloatingInput = forwardRef<HTMLInputElement, Props>(function Floati
           onKeyUp={trackCaps}
           onChange={(e) => onChange(e.target.value)}
           placeholder=" "
-          className={`peer h-[56px] w-full rounded-2xl border bg-white pb-1.5 pl-11 pt-5 text-base text-gray-900 outline-none transition-[border-color,box-shadow] duration-150 placeholder-transparent dark:bg-[#121e18] dark:text-white ${
+          className={`peer h-16 w-full rounded-[20px] border-[1.5px] bg-white pb-1.5 pl-12 pt-6 text-base text-ink outline-none transition-[border-color,box-shadow,background-color] duration-300 placeholder-transparent dark:bg-[#0e1913] ${
             suffix ? "pr-12" : "pr-4"
           } ${
             error
               ? "border-red-500 shadow-[0_0_0_4px_rgba(239,68,68,0.12)] dark:border-red-400"
               : focused
-                ? "border-[#2D6A4F] shadow-[0_0_0_4px_rgba(45,106,79,0.14)] dark:border-[#74c69d] dark:shadow-[0_0_0_4px_rgba(116,198,157,0.16)]"
-                : "border-[#cfd4cc] hover:border-[#9fb2a6] dark:border-white/15 dark:hover:border-white/25"
+                ? "border-[#2D6A4F] shadow-[0_0_0_5px_rgba(45,106,79,0.16)] dark:border-[#74c69d] dark:shadow-[0_0_0_5px_rgba(116,198,157,0.16)]"
+                : "border-ink/15 hover:border-ink/35 dark:border-white/15 dark:hover:border-white/30"
           }`}
         />
 
         <label
           htmlFor={id}
-          className={`pointer-events-none absolute left-11 select-none transition-all duration-150 ${
+          className={`pointer-events-none absolute left-12 select-none transition-all duration-300 ease-sw ${
             lifted
-              ? "top-[8px] text-[0.72rem] font-semibold tracking-wide text-[#2D6A4F] dark:text-[#95d5b2]"
-              : "top-1/2 -translate-y-1/2 text-[0.95rem] text-gray-500 dark:text-gray-400"
+              ? "top-[11px] text-[0.74rem] font-semibold tracking-wide text-accent"
+              : "top-1/2 -translate-y-1/2 text-base text-ink-3"
           }`}
         >
           {label}

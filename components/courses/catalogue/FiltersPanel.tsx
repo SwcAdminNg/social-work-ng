@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { SlidersHorizontal } from "lucide-react";
-import lib from "@/components/resources/library/Library.module.css";
+import { SelectField } from "@/components/site/form";
 import s from "./Catalogue.module.css";
 
 type Option = { value: string; label: string };
@@ -19,13 +19,17 @@ const noopSubscribe = () => () => {};
 export default function FiltersPanel({ filters, activeCount, clearHref }: { filters: Filter[]; activeCount: number; clearHref: string }) {
   const [open, setOpen] = useState(false);
   const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
-  const applyOnWideScreens = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    if (window.matchMedia("(min-width: 768px)").matches) event.currentTarget.form?.requestSubmit();
+  // Runs after the chosen value has been written into the form.
+  const applyOnWideScreens = () => {
+    window.setTimeout(() => {
+      if (window.matchMedia("(min-width: 768px)").matches) wrapRef.current?.closest("form")?.requestSubmit();
+    }, 0);
   };
 
   return (
-    <div className={hydrated ? undefined : s.noJs}>
+    <div ref={wrapRef} className={hydrated ? undefined : s.noJs}>
       <button
         type="button"
         className={s.panelToggle}
@@ -45,30 +49,34 @@ export default function FiltersPanel({ filters, activeCount, clearHref }: { filt
       </button>
       <div id="course-filters" className={`${s.filters} ${open ? s.filtersOpen : ""}`}>
         {filters.map((filter) => (
-          <div key={filter.name} className={s.filterField}>
-            <label htmlFor={`filter-${filter.name}`}>{filter.label}</label>
-            <select
-              key={filter.value}
-              id={`filter-${filter.name}`}
-              name={filter.name}
-              className={lib.select}
-              defaultValue={filter.value}
-              onChange={applyOnWideScreens}
-            >
-              <option value="">{filter.allLabel}</option>
-              {filter.options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <FilterSelect key={`${filter.name}:${filter.value}`} filter={filter} onPicked={applyOnWideScreens} />
         ))}
         <div className={s.panelActions}>
           <button type="submit" className={s.applyButton}>Apply</button>
           <Link href={clearHref} className={s.clearButton} scroll={false}>Clear</Link>
         </div>
       </div>
+    </div>
+  );
+}
+
+function FilterSelect({ filter, onPicked }: { filter: Filter; onPicked: () => void }) {
+  const [value, setValue] = useState(filter.value);
+  return (
+    <div className={s.filterField}>
+      <SelectField
+        id={`filter-${filter.name}`}
+        name={filter.name}
+        label={filter.label}
+        emptyLabel={filter.allLabel}
+        options={filter.options}
+        value={value}
+        onChange={(next) => {
+          setValue(next);
+          onPicked();
+        }}
+        compact
+      />
     </div>
   );
 }

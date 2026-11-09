@@ -369,7 +369,7 @@ export default function About() {
                   className="group flex items-center gap-3 text-ink no-underline"
                 >
                   <span className="relative h-12 w-12 flex-none overflow-hidden rounded-xl">
-                    <Image src={photo.src} alt="" fill sizes="48px" className="object-cover transition-transform duration-700 ease-sw group-hover:scale-110" />
+                    <Image src={photo.src} alt="" fill sizes="128px" className="object-cover transition-transform duration-700 ease-sw group-hover:scale-110" />
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-semibold group-hover:text-accent">{photo.by}</span>

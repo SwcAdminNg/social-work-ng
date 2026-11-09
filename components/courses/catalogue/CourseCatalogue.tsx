@@ -78,27 +78,27 @@ export default function CourseCatalogue({ query, courses, ok, total, totalPages,
       <div className={`${lib.page} ${s.page} sw-sheet pt-6 md:pt-10`}>
       {!catalogueEmpty && ok && (
         <section className={`${lib.toolbar} ${lib.container}`} aria-label="Search and filter courses">
-          <Form action="/courses" className={lib.searchForm} role="search">
-            <label htmlFor="course-search" className={lib.searchLabel}>
+          <Form action="/courses" scroll={false} className={lib.searchForm} role="search">
+            <label htmlFor="course-search" className="sr-only">
               Search courses
             </label>
-            <div className={lib.searchRow}>
-              <div className={lib.searchField}>
-                <Search size={20} aria-hidden="true" />
-                <input
-                  key={query.search}
-                  id="course-search"
-                  name="search"
-                  type="search"
-                  className={lib.searchInput}
-                  placeholder="Search by course title or topic"
-                  defaultValue={query.search}
-                  autoComplete="off"
-                  enterKeyHint="search"
-                />
-              </div>
-              <button type="submit" className={lib.searchButton}>
-                Search
+            <div className="swf-search">
+              <Search size={20} aria-hidden="true" />
+              <input
+                key={query.search}
+                id="course-search"
+                name="search"
+                type="search"
+                placeholder="Search by course title or topic"
+                defaultValue={query.search}
+                autoComplete="off"
+                enterKeyHint="search"
+              />
+              <button type="submit" className="sw-btn">
+                <span>Search</span>
+                <span className="sw-btn-dot" aria-hidden="true">
+                  <Search size={16} />
+                </span>
               </button>
             </div>
             <FiltersPanel filters={filters} activeCount={activeCount} clearHref="/courses#catalogue" />
@@ -146,7 +146,7 @@ export default function CourseCatalogue({ query, courses, ok, total, totalPages,
         ) : catalogueEmpty ? (
           <div className={lib.state}>
             <div className={lib.stateMedia}>
-              <Image src="/images/courses/learners-collaborate.webp" alt="Three learners study together at a table with notebooks and a laptop." fill sizes="420px" />
+              <Image src="/images/ng/learning-together.webp" alt="Two colleagues look at a laptop together." fill sizes="840px" quality={90} />
             </div>
             <h3>New courses are being prepared.</h3>
             <p>Register your interest to be notified when learning becomes available.</p>

@@ -7,9 +7,7 @@
 
 /* Filters: inline on wide screens, a labelled panel on phones */
 .filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
-.filterField { display: grid; gap: 6px; min-width: 0; }
-.filterField label { color: var(--muted); font-size: 0.82rem; font-weight: 600; }
-.filterField select { min-width: 190px; }
+.filterField { min-width: 210px; }
 .panelToggle {
   display: none;
   align-items: center;
@@ -56,7 +54,7 @@
   .panelToggle { display: flex; }
   .filters { display: none; flex-direction: column; align-items: stretch; padding: 14px; border: 1px solid var(--line); border-radius: 24px; background: var(--card); }
   .filtersOpen { display: flex; }
-  .filterField select { width: 100%; min-width: 0; }
+  .filterField { min-width: 0; }
   .panelActions { display: flex; }
 }
 /* Without JavaScript the panel cannot open, so keep it visible. */

@@ -87,27 +87,27 @@ export default function ResourcesLibrary({ query, result, counts, pageSize }: Pr
       <div className={`${s.page} sw-sheet pt-6 md:pt-10`}>
       {!libraryEmpty && (
         <section className={`${s.toolbar} ${s.container}`} aria-label="Search and filter resources">
-          <Form action="/resources" className={s.searchForm} role="search">
-            <label htmlFor="resource-search" className={s.searchLabel}>
+          <Form action="/resources" scroll={false} className={s.searchForm} role="search">
+            <label htmlFor="resource-search" className="sr-only">
               Search the resource library
             </label>
-            <div className={s.searchRow}>
-              <div className={s.searchField}>
-                <Search size={20} aria-hidden="true" />
-                <input
-                  key={query.search}
-                  id="resource-search"
-                  name="search"
-                  type="search"
-                  className={s.searchInput}
-                  placeholder="Search by title or topic"
-                  defaultValue={query.search}
-                  autoComplete="off"
-                  enterKeyHint="search"
-                />
-              </div>
-              <button type="submit" className={s.searchButton}>
-                Search
+            <div className="swf-search">
+              <Search size={20} aria-hidden="true" />
+              <input
+                key={query.search}
+                id="resource-search"
+                name="search"
+                type="search"
+                placeholder="Search by title or topic"
+                defaultValue={query.search}
+                autoComplete="off"
+                enterKeyHint="search"
+              />
+              <button type="submit" className="sw-btn">
+                <span>Search</span>
+                <span className="sw-btn-dot" aria-hidden="true">
+                  <Search size={16} />
+                </span>
               </button>
             </div>
             {query.category && <input type="hidden" name="category" value={query.category} />}
@@ -179,10 +179,11 @@ export default function ResourcesLibrary({ query, result, counts, pageSize }: Pr
           <div className={s.state}>
             <div className={s.stateMedia}>
               <Image
-                src="/images/resources/learning-toolkit.webp"
-                alt="A planner, notebook and tablet laid out on a desk, ready for study."
+                src="/images/ng/reading-tea.webp"
+                alt="A woman in glasses and a striped kaftan reads a newspaper over a cup of tea."
                 fill
-                sizes="420px"
+                sizes="840px"
+                quality={90}
               />
             </div>
             <h3>Our resource library is under development.</h3>

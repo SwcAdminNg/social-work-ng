@@ -55,9 +55,9 @@ export function summaryOf(description?: string | null): string | null {
 }
 
 const FALLBACK_IMAGES = [
-  "/images/courses/learners-collaborate.webp",
-  "/images/courses/professionals-discuss.webp",
-  "/images/courses/reflective-notes.webp",
+  "/images/ng/learning-together.webp",
+  "/images/ng/team-meeting.webp",
+  "/images/ng/reading-tea.webp",
 ];
 
 /** A consistent stand-in photo for courses without a thumbnail. */

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import HydrationGate from "@/components/site/HydrationGate";
 import { BrandPanel, MobileBrandLogo } from "./BrandPanel";
 
 type AuthVariant = "login" | "register" | "forgot-password" | "reset-password";
@@ -15,7 +16,7 @@ export function AuthPageShell({
   statsData?: HomeStats;
 }) {
   return (
-    <div className="flex min-h-[100dvh] bg-paper">
+    <HydrationGate className="flex min-h-[100dvh] bg-paper">
       <BrandPanel variant={variant} statsData={statsData} />
 
       <main className="relative flex flex-1 flex-col">
@@ -35,6 +36,6 @@ export function AuthPageShell({
           </div>
         </div>
       </main>
-    </div>
+    </HydrationGate>
   );
 }

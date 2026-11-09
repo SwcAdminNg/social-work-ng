@@ -155,7 +155,25 @@ export function Marquee({
   );
 }
 
-type PhotoSource = { src: string; alt: string; place?: string };
+type PhotoSource = { src: string; alt: string; place?: string; width?: number; height?: number };
+
+/**
+ * A photo that is cropped to fill a frame of a different shape is drawn
+ * larger than the frame. This widens every length in `sizes` by that amount,
+ * so the browser fetches a file with enough pixels to stay sharp.
+ */
+function sharpSizes(sizes: string, photo: PhotoSource, className: string | undefined, parallax: boolean) {
+  if (!photo.width || !photo.height) return sizes;
+  // The narrowest frame shape named in the class list decides.
+  const shapes = [...(className ?? "").matchAll(/aspect-(?:\[([\d.]+)\/([\d.]+)\]|(square))/g)].map((m) =>
+    m[3] ? 1 : Number(m[1]) / Number(m[2]),
+  );
+  if (shapes.length === 0) return sizes;
+  const frame = Math.min(...shapes) / (parallax ? 1.16 : 1);
+  const factor = Math.max(1, photo.width / photo.height / frame);
+  if (factor < 1.05) return sizes;
+  return sizes.replace(/(\d+(?:\.\d+)?)(vw|px)(?=\s*(?:,|$))/g, (_, n, unit) => `${Math.ceil(Number(n) * factor)}${unit}`);
+}
 
 /** A framed photograph with a slow parallax inside the frame. */
 export function Photo({
@@ -187,7 +205,8 @@ export function Photo({
         src={photo.src}
         alt={photo.alt}
         fill
-        sizes={sizes}
+        sizes={sharpSizes(sizes, photo, className, parallax)}
+        quality={90}
         priority={priority}
         className={cx("sw-photo-img", imgClassName)}
         style={position ? { objectPosition: position } : undefined}
