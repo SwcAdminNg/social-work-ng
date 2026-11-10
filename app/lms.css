@@ -663,6 +663,145 @@ html:has(.lms-root) body {
     background: var(--sw-accent);
   }
 
+  /* ── My Courses ── */
+  .lms-course-bar {
+    background: color-mix(in srgb, var(--sw-paper) 84%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+  }
+  .lms-scroll-x { scrollbar-width: none; }
+  .lms-scroll-x::-webkit-scrollbar { display: none; }
+  /* Segmented control: one inset track, the selected segment raised on it. */
+  .lms-segmented {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--sw-ink) 6.5%, transparent);
+  }
+  .dark .lms-segmented { background: rgba(255, 255, 255, 0.07); }
+  .lms-segment {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    height: 2.25rem;
+    padding: 0 0.85rem;
+    border-radius: 11px;
+    color: var(--sw-ink-2);
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.25s, color 0.25s, box-shadow 0.25s;
+  }
+  @media (pointer: coarse) { .lms-segment { height: 2.5rem; } }
+  .lms-segment > svg { color: var(--sw-ink-3); transition: color 0.25s; }
+  .lms-segment:hover { color: var(--sw-ink); }
+  .lms-segment[aria-selected="true"] {
+    background: var(--sw-card);
+    color: var(--sw-ink);
+    box-shadow: 0 1px 2px rgba(14, 31, 23, 0.1), 0 4px 12px -6px rgba(14, 31, 23, 0.22);
+  }
+  .dark .lms-segment[aria-selected="true"] { background: #3a3e3c; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
+  .lms-segment[aria-selected="true"] > svg { color: var(--sw-accent); }
+  .lms-segment-count {
+    min-width: 1.35rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-ink) 7%, transparent);
+    color: var(--sw-ink-3);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .lms-segment[aria-selected="true"] .lms-segment-count { background: color-mix(in srgb, var(--sw-green) 14%, transparent); color: var(--sw-accent); }
+
+  /* The grid fits as many cards as the width allows, never narrower than a readable card. */
+  .lms-course-grid {
+    display: grid;
+    gap: 0.875rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr));
+  }
+  @media (min-width: 1024px) { .lms-course-grid { gap: 1.125rem; } }
+
+  /* Frosted controls that sit on course artwork. */
+  .lms-glass-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 1.6rem;
+    padding: 0 0.6rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    -webkit-backdrop-filter: blur(14px) saturate(1.8);
+    backdrop-filter: blur(14px) saturate(1.8);
+    box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.6), 0 2px 8px -2px rgba(0, 0, 0, 0.25);
+    color: #1d2a23;
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: -0.005em;
+  }
+  .dark .lms-glass-pill { background: rgba(30, 33, 32, 0.72); color: #eceeed; box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.14), 0 2px 8px -2px rgba(0, 0, 0, 0.5); }
+  .lms-glass-dot { width: 0.4rem; height: 0.4rem; border-radius: 999px; background: #9aa39e; }
+  .lms-glass-pill--live .lms-glass-dot { background: #2d9d6a; box-shadow: 0 0 0 3px rgba(45, 157, 106, 0.2); }
+  .lms-glass-pill--done { color: #1f7a4f; }
+  .dark .lms-glass-pill--done { color: #8fe0b5; }
+  .lms-glass-pill--new { color: #9a5b00; }
+  .dark .lms-glass-pill--new { color: #f3c56b; }
+  .lms-glass-btn {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    -webkit-backdrop-filter: blur(14px) saturate(1.8);
+    backdrop-filter: blur(14px) saturate(1.8);
+    box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.6), 0 2px 8px -2px rgba(0, 0, 0, 0.25);
+    color: #1d2a23;
+    cursor: pointer;
+    transition: transform 0.35s var(--sw-ease), background-color 0.2s, color 0.2s;
+  }
+  .dark .lms-glass-btn { background: rgba(30, 33, 32, 0.72); color: #eceeed; }
+  .lms-glass-btn:hover { transform: scale(1.08); }
+  .lms-glass-btn:active { transform: scale(0.92); }
+  .lms-glass-btn[data-on] { color: var(--sw-clay); }
+  .dark .lms-glass-btn[data-on] { color: var(--sw-clay-light); }
+  .lms-glass-btn:disabled { cursor: wait; opacity: 0.7; }
+  @media (prefers-reduced-transparency: reduce) {
+    .lms-glass-pill, .lms-glass-btn { background: var(--sw-card); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  }
+
+  /* Pagination: one capsule of round page buttons. */
+  .lms-pager {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--lms-milk);
+    box-shadow: inset 0 0 0 1px var(--lms-milk-line);
+  }
+  .lms-page {
+    display: grid;
+    place-items: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.5rem;
+    border-radius: 999px;
+    color: var(--sw-ink-2);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .lms-page:hover:not(:disabled) { background: color-mix(in srgb, var(--sw-ink) 7%, transparent); color: var(--sw-ink); }
+  .lms-page[aria-current="page"] { background: var(--sw-deep); color: #fff; }
+  .dark .lms-page[aria-current="page"] { background: var(--sw-green); }
+  .lms-page:disabled:not([aria-current]) { opacity: 0.35; cursor: default; }
+
   .lms-pop-tile {
     display: grid;
     place-items: center;
@@ -830,7 +969,7 @@ html:has(.lms-root) body {
 
 @media (prefers-reduced-motion: reduce) {
   .lms-rise, .lms-pop, .lms-bar > span { animation: none; }
-  .lms-side-link, .lms-side-btn, .lms-side-chev, .lms-icon-btn, .lms-btn, .lms-tab, .lms-card-hover, .lms-milk-hover { transition: none; }
+  .lms-side-link, .lms-side-btn, .lms-side-chev, .lms-icon-btn, .lms-btn, .lms-tab, .lms-card-hover, .lms-milk-hover, .lms-glass-btn, .lms-segment { transition: none; }
   .lms-milk-hover:hover, .lms-milk-hover:active { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { .lms-rainbow { transition: none; } }

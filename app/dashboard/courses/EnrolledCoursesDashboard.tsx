@@ -3,19 +3,26 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
+  ArrowUpRight,
   Award,
   BadgeCheck,
   BookOpen,
   Bookmark,
-  CalendarDays,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Clock3,
+  CircleDashed,
   CirclePlay,
-  EllipsisVertical,
+  Clock3,
+  Compass,
+  LayoutGrid,
+  Loader2,
+  type LucideIcon,
+  Play,
+  RotateCcw,
   Search,
-  Trophy,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { getCourseDurationLabel } from "@/lib/courseDuration";
 
@@ -112,12 +119,12 @@ const fallbackImages = [
   "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=1200&auto=format&fit=crop",
 ];
 
-const tabs: Array<{ key: CourseView; label: string }> = [
-  { key: "ALL", label: "All Courses" },
-  { key: "IN_PROGRESS", label: "In Progress" },
-  { key: "NOT_STARTED", label: "Not Started" },
-  { key: "COMPLETED", label: "Completed" },
-  { key: "SAVED", label: "Saved" },
+const tabs: Array<{ key: CourseView; label: string; icon: LucideIcon }> = [
+  { key: "ALL", label: "All", icon: LayoutGrid },
+  { key: "IN_PROGRESS", label: "In progress", icon: CirclePlay },
+  { key: "NOT_STARTED", label: "Not started", icon: CircleDashed },
+  { key: "COMPLETED", label: "Completed", icon: BadgeCheck },
+  { key: "SAVED", label: "Saved", icon: Bookmark },
 ];
 
 const PAGE_SIZE = 8;
@@ -225,22 +232,9 @@ function formatDate(value?: string | null) {
 }
 
 function formatStatus(status: ProgressStatus | null) {
-  if (status === "IN_PROGRESS") return "In Progress";
+  if (status === "IN_PROGRESS") return "In progress";
   if (status === "COMPLETED") return "Completed";
-  return "Not Started";
-}
-
-function statusClasses(status: ProgressStatus | null, wishlist = false) {
-  if (wishlist) {
-    return "bg-[#d9603a] text-white";
-  }
-  if (status === "COMPLETED") {
-    return "bg-[#12a150] text-white";
-  }
-  if (status === "IN_PROGRESS") {
-    return "bg-[#2d6a4f] text-white";
-  }
-  return "bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-950";
+  return "Not started";
 }
 
 function actionLabel(
@@ -455,6 +449,16 @@ export function EnrolledCoursesDashboard({
     return () => abortRef.current?.abort();
   }, []);
 
+  // On narrow screens the segmented control scrolls; keep the chosen view in sight.
+  const segmentsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const track = segmentsRef.current?.parentElement;
+    const active = segmentsRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!track || !active || track.scrollWidth <= track.clientWidth) return;
+    const left = active.offsetLeft - (track.clientWidth - active.offsetWidth) / 2;
+    track.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }, [view]);
+
   const counts = {
     ALL: dashboardStats.total_courses_enrolled,
     IN_PROGRESS: dashboardStats.in_process_courses,
@@ -517,212 +521,181 @@ export function EnrolledCoursesDashboard({
   const showingEnd = courses.length ? showingStart + courses.length - 1 : 0;
   const totalItems = listMeta.total_items || courses.length;
 
+  const summary =
+    dashboardStats.total_courses_enrolled === 0
+      ? "Courses you enrol in will live here, with your progress saved as you go."
+      : [
+          plural(dashboardStats.total_courses_enrolled, "course"),
+          dashboardStats.in_process_courses > 0 ? `${dashboardStats.in_process_courses} in progress` : null,
+          dashboardStats.completed_courses > 0 ? `${dashboardStats.completed_courses} completed` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+
   return (
-    <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 pb-8">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-            My Courses
-          </h1>
-          <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
-            View and manage all your enrolled learning in one place.
-          </p>
+    <div className="mx-auto flex w-full max-w-[1440px] flex-col pb-8">
+      {/* Title */}
+      <header className="lms-rise flex flex-col gap-4 pt-1 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="sw-display m-0 text-[clamp(1.9rem,4vw,2.75rem)] leading-[1.02] text-ink">My Courses</h1>
+          <p className="m-0 mt-2 text-[0.98rem] text-ink-2">{summary}</p>
         </div>
-        <Link
-          href="/dashboard/course-catalogue"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#cfe8da] bg-white px-4 text-sm font-bold text-[#1b4332] no-underline shadow-sm transition hover:bg-[#eef5f1] dark:border-[#1b4332] dark:bg-[#252827] dark:text-[#95d5b2] dark:hover:bg-[#222524]"
-        >
-          <BookOpen className="h-4 w-4" />
-          Explore Courses
+        <Link href="/dashboard/course-catalogue" className="lms-btn lms-btn--quiet flex-none self-start sm:self-auto">
+          <Compass className="h-4 w-4" aria-hidden="true" />
+          Browse catalogue
         </Link>
+      </header>
+
+      {/* Toolbar: segmented views and search. Sticks under the top bar while scrolling. */}
+      <div className="lms-course-bar sticky top-[var(--lms-top)] z-20 -mx-3 mt-5 px-3 py-3 sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="lms-scroll-x -mx-1 overflow-x-auto px-1 pb-0.5">
+            <div ref={segmentsRef} role="tablist" aria-label="Show courses" className="lms-segmented">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const active = view === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => loadCourses(tab.key, 1, search)}
+                    className="lms-segment"
+                  >
+                    <Icon className="h-[15px] w-[15px]" strokeWidth={2} aria-hidden="true" />
+                    {tab.label}
+                    <span className="lms-segment-count">{counts[tab.key]}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="lms-search w-full lg:w-[min(340px,32vw)] lg:flex-none">
+            <label htmlFor="my-courses-search" className="sr-only">
+              Search my courses
+            </label>
+            <Search aria-hidden="true" className="lms-search-glyph" strokeWidth={2.2} />
+            <input
+              id="my-courses-search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && search) setSearch("");
+              }}
+              type="search"
+              autoComplete="off"
+              enterKeyHint="search"
+              disabled={view === "SAVED"}
+              placeholder={view === "SAVED" ? "Search is for enrolled courses" : "Search my courses"}
+              className="disabled:cursor-not-allowed disabled:opacity-60"
+            />
+            {isListLoading ? (
+              <Loader2 aria-label="Loading" className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-ink-3" />
+            ) : search ? (
+              <button type="button" aria-label="Clear search" onClick={() => setSearch("")} className="lms-search-clear">
+                <X className="h-3 w-3" strokeWidth={3} />
+              </button>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       {listError && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+        <p
+          role="alert"
+          className="m-0 mt-2 rounded-[18px] bg-clay-wash px-5 py-3.5 text-sm font-medium text-ink shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--sw-clay)_35%,transparent)]"
+        >
           {listError}
-        </div>
+        </p>
       )}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatsCard
-          icon={BookOpen}
-          label="Enrolled Courses"
-          value={dashboardStats.total_courses_enrolled}
-          action="View all"
-          tone="purple"
-          onSelect={() => loadCourses("ALL", 1, search)}
-        />
-        <StatsCard
-          icon={CirclePlay}
-          label="In Progress"
-          value={dashboardStats.in_process_courses}
-          action="View courses"
-          tone="orange"
-          onSelect={() => loadCourses("IN_PROGRESS", 1, search)}
-        />
-        <StatsCard
-          icon={BadgeCheck}
-          label="Completed"
-          value={dashboardStats.completed_courses}
-          action="View certificates"
-          tone="green"
-          onSelect={() => loadCourses("COMPLETED", 1, search)}
-        />
-        <StatsCard
-          icon={Bookmark}
-          label="Saved"
-          value={dashboardStats.bookmarked_courses}
-          action="View saved"
-          tone="pink"
-          onSelect={() => loadCourses("SAVED", 1, search)}
-        />
-      </section>
-
-      <section className="rounded-md border border-[#e3dfd0] bg-white shadow-sm dark:border-[#363a38] dark:bg-[#252827]">
-        <div className="flex flex-col gap-3 border-b border-[#ece8da] px-3 py-3 dark:border-[#363a38] lg:flex-row lg:items-center lg:justify-between">
-          <div className="swcl-sidebar-scroll -mb-3 flex gap-1 overflow-x-auto pb-3">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => loadCourses(tab.key, 1, search)}
-                className={`relative flex h-10 flex-shrink-0 items-center gap-2 px-4 text-sm font-extrabold transition ${
-                  view === tab.key
-                    ? "text-[#1b4332] dark:text-[#95d5b2]"
-                    : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                }`}
-              >
-                {tab.label}
-                <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-500 dark:bg-white/10 dark:text-slate-300">
-                  {counts[tab.key]}
-                </span>
-                {view === tab.key && (
-                  <span className="absolute inset-x-2 -bottom-3 h-0.5 rounded-full bg-[#2d6a4f]" />
-                )}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="relative block min-w-0 sm:w-[320px]">
-              <label>
-                <span className="sr-only">Search my courses</span>
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  type="search"
-                  autoComplete="off"
-
-                  placeholder="Search my courses..."
-                  className="h-10 w-full rounded-md border border-[#e3dfd0] bg-white pl-10 pr-3 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2d6a4f] focus:ring-4 focus:ring-[#2d6a4f]/10 dark:border-[#383c3a] dark:bg-[#1e2120] dark:text-slate-100 dark:focus:border-[#52b788]"
-                />
-              </label>
-              {isListLoading && (
-                <span className="absolute right-3 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[#2d6a4f]" />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {courses.length ? (
-          <>
-            <div
-              className={`grid gap-4 p-3 transition-opacity sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${
-                isListLoading ? "opacity-60" : "opacity-100"
-              }`}
-            >
-              {courses.map((course, index) => (
+      {courses.length ? (
+        <>
+          <ul
+            aria-busy={isListLoading}
+            className={`lms-course-grid m-0 mt-3 list-none p-0 transition-opacity duration-300 ${isListLoading ? "opacity-55" : "opacity-100"}`}
+          >
+            {courses.map((course, index) => (
+              <li key={course.id} className="lms-rise min-w-0" style={{ "--i": Math.min(index, 6) } as React.CSSProperties}>
                 <DashboardCourseCard
-                  key={course.id}
                   course={course}
                   image={course.thumbnail_url || fallbackImages[index % fallbackImages.length]}
                   savedOnly={view === "SAVED"}
                   pending={isPending && pendingCourseId === course.id}
                   onToggleBookmark={toggleBookmark}
                 />
-              ))}
-            </div>
+              </li>
+            ))}
+          </ul>
 
-            <div className="flex flex-col gap-3 border-t border-[#ece8da] px-4 py-4 dark:border-[#363a38] sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-center text-sm font-medium text-slate-600 dark:text-slate-400 sm:text-left">
-                Showing {showingStart} to {showingEnd} of {totalItems} courses
-              </p>
-              <Pagination
-                currentPage={page}
-                disabled={isListLoading}
-                meta={listMeta}
-                onPageChange={(nextPage) => loadCourses(view, nextPage, search)}
-              />
-            </div>
-          </>
-        ) : (
-          <div className="px-6 py-16 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-md bg-[#eef5f1] text-[#2d6a4f] dark:bg-[#2d6a4f]/20 dark:text-[#95d5b2]">
-              <BookOpen className="h-7 w-7" />
-            </div>
-            <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
-              No courses found
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
-              Try another tab or search term. Enrolled and saved courses will
-              appear here as soon as the API returns them.
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+            <p className="m-0 text-sm text-ink-3">
+              {showingStart}–{showingEnd} of {plural(totalItems, "course")}
             </p>
+            <Pagination
+              currentPage={page}
+              disabled={isListLoading}
+              meta={listMeta}
+              onPageChange={(nextPage) => {
+                loadCourses(view, nextPage, search);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
           </div>
-        )}
-      </section>
+        </>
+      ) : (
+        <EmptyCourses view={view} searching={Boolean(search.trim())} onClear={() => setSearch("")} />
+      )}
     </div>
   );
 }
 
-function StatsCard({
-  icon: Icon,
-  label,
-  value,
-  action,
-  tone,
-  onSelect,
+function plural(count: number, word: string) {
+  return `${count} ${word}${count === 1 ? "" : "s"}`;
+}
+
+function EmptyCourses({
+  view,
+  searching,
+  onClear,
 }: {
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  label: string;
-  value: number;
-  action: string;
-  tone: "purple" | "orange" | "green" | "pink";
-  onSelect: () => void;
+  view: CourseView;
+  searching: boolean;
+  onClear: () => void;
 }) {
-  const tones = {
-    purple:
-      "bg-[#dcefe4] text-[#2d6a4f] dark:bg-[#2d6a4f]/20 dark:text-[#95d5b2]",
-    orange:
-      "bg-[#fff0cf] text-[#f08b13] dark:bg-[#f08b13]/18 dark:text-[#ffc46b]",
-    green:
-      "bg-[#dcf7e8] text-[#15945a] dark:bg-[#15945a]/18 dark:text-[#8de5b5]",
-    pink: "bg-[#fbe7dc] text-[#d9603a] dark:bg-[#d9603a]/18 dark:text-[#f39b7a]",
+  const copy: Record<CourseView, { title: string; body: string }> = {
+    ALL: { title: "No courses yet", body: "Enrol in a course and it will appear here, with your progress saved as you learn." },
+    IN_PROGRESS: { title: "Nothing in progress", body: "Start a lesson in any of your courses and it will show up here." },
+    NOT_STARTED: { title: "You’ve started everything", body: "Every course you enrolled in is under way. Nice work." },
+    COMPLETED: { title: "No completed courses yet", body: "Finish every lesson in a course and it will move here, with its certificate if it has one." },
+    SAVED: { title: "Nothing saved", body: "Tap the bookmark on any course to keep it here for later." },
   };
+  const { title, body } = searching
+    ? { title: "No matches", body: "No course in this view matches your search. Try fewer or different words." }
+    : copy[view];
 
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className="group flex min-h-[112px] items-center gap-4 rounded-md border border-[#e3dfd0] bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-md dark:border-[#363a38] dark:bg-[#252827] dark:hover:border-[#35514a]"
-    >
-      <span
-        className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full ${tones[tone]}`}
-      >
-        <Icon className="h-8 w-8" strokeWidth={1.9} />
+    <div className="lms-milk lms-rise mt-3 flex flex-col items-center px-6 py-14 text-center sm:py-20">
+      <span className="grid h-16 w-16 place-items-center rounded-[20px] bg-card text-accent shadow-[inset_0_0_0_1px_var(--sw-line)] dark:bg-white/[0.06]">
+        {searching ? <Search className="h-7 w-7" strokeWidth={1.8} /> : <BookOpen className="h-7 w-7" strokeWidth={1.8} />}
       </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-extrabold text-slate-950 dark:text-white">
-          {label}
-        </span>
-        <span className="mt-1 block text-2xl font-extrabold leading-none text-slate-950 dark:text-white">
-          {Number(value || 0).toLocaleString()}
-        </span>
-        <span className="mt-2 block text-sm font-bold text-[#1b4332] group-hover:underline dark:text-[#95d5b2]">
-          {action}
-        </span>
-      </span>
-    </button>
+      <h2 className="m-0 mt-5 text-[1.25rem] font-bold tracking-[-0.02em] text-ink">{title}</h2>
+      <p className="m-0 mt-2 max-w-md text-[0.95rem] leading-relaxed text-ink-2">{body}</p>
+      <div className="mt-6 flex flex-wrap justify-center gap-2.5">
+        {searching ? (
+          <button type="button" onClick={onClear} className="lms-btn lms-btn--quiet">
+            Clear search
+          </button>
+        ) : (
+          <Link href="/dashboard/course-catalogue" className="lms-btn">
+            <Compass className="h-4 w-4" aria-hidden="true" />
+            Browse the catalogue
+          </Link>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -738,13 +711,14 @@ function Pagination({
   onPageChange: (page: number) => void;
 }) {
   const totalPages = Math.max(1, meta.total_pages || 1);
+  if (totalPages <= 1) return null;
   const pages = Array.from({ length: Math.min(totalPages, 5) }, (_, index) => {
     const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
     return start + index;
   }).filter((page) => page >= 1 && page <= totalPages);
 
   return (
-    <nav className="flex flex-wrap items-center justify-center gap-2" aria-label="Course pages">
+    <nav className="lms-pager" aria-label="Course pages">
       <PageButton
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={disabled || !meta.has_previous}
@@ -763,19 +737,15 @@ function Pagination({
           {page}
         </PageButton>
       ))}
-      {totalPages > 5 && currentPage < totalPages - 2 && (
-        <span className="flex h-9 w-9 items-center justify-center text-sm font-bold text-slate-500">
-          ...
-        </span>
-      )}
       {totalPages > 5 && !pages.includes(totalPages) && (
-        <PageButton
-          onClick={() => onPageChange(totalPages)}
-          disabled={disabled}
-          label={`Page ${totalPages}`}
-        >
-          {totalPages}
-        </PageButton>
+        <>
+          <span aria-hidden="true" className="grid h-9 w-6 place-items-center text-sm text-ink-3">
+            …
+          </span>
+          <PageButton onClick={() => onPageChange(totalPages)} disabled={disabled} label={`Page ${totalPages}`}>
+            {totalPages}
+          </PageButton>
+        </>
       )}
       <PageButton
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
@@ -801,21 +771,14 @@ function PageButton({
   label: string;
   children: React.ReactNode;
 }) {
-  const className = `flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm font-extrabold no-underline transition ${
-    active
-      ? "border-[#2d6a4f] bg-[#2d6a4f] text-white dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#252827]"
-      : disabled
-        ? "pointer-events-none border-[#ece8da] bg-slate-50 text-slate-300 dark:border-[#363a38] dark:bg-[#1e2120] dark:text-slate-700"
-        : "border-[#e3dfd0] bg-white text-slate-700 hover:border-[#74c69d] hover:bg-[#eef5f1] hover:text-[#1b4332] dark:border-[#383c3a] dark:bg-[#1e2120] dark:text-slate-300 dark:hover:border-[#40916c] dark:hover:bg-[#222524] dark:hover:text-[#b7e4c7]"
-  }`;
-
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className={className}
+      aria-current={active ? "page" : undefined}
+      className="lms-page"
     >
       {children}
     </button>
@@ -840,197 +803,153 @@ function DashboardCourseCard({
   const completionDate = formatDate(course.updated_at);
   const status = course.displayStatus;
   const isComplete = status === "COMPLETED";
-  const isStarted = status === "IN_PROGRESS";
   const label = actionLabel(status, savedOnly, course.wishlist);
   const durationLabel = getCourseDurationLabel(course);
   const hasCertificate = course.certificate_enabled === true;
+  const href = actionHref(course);
+  const ActionIcon = course.wishlist ? ArrowUpRight : isComplete ? RotateCcw : Play;
+
+  const footnote = course.wishlist
+    ? "Saved for later. Enrol to start."
+    : isComplete
+      ? `Completed${completionDate ? ` ${completionDate}` : ""}`
+      : accessDate
+        ? `Access until ${accessDate}`
+        : "Lifetime access";
 
   return (
-    <article className="group flex min-h-[366px] flex-col overflow-hidden rounded-md border border-[#e3dfd0] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-lg dark:border-[#363a38] dark:bg-[#1e2120]">
-      <Link
-        href={actionHref(course)}
-        className="relative block aspect-[16/6.8] overflow-hidden bg-slate-100 dark:bg-slate-800"
-      >
-        <img
-          src={image}
-          alt=""
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
-        <div className="absolute right-3 top-3 flex flex-col items-end gap-1.5">
-          <span
-            className={`rounded-md px-2.5 py-1 text-xs font-extrabold shadow-sm ${statusClasses(status, course.wishlist)}`}
-          >
-            {course.wishlist ? "Wishlist" : formatStatus(status)}
+    <article className="lms-milk lms-milk-hover group relative flex h-full flex-col p-2.5">
+      {/* Artwork in a rounded window, with frosted controls on top */}
+      <div className="relative">
+        <Link href={href} tabIndex={-1} aria-hidden="true" className="lms-art relative block aspect-[16/9] overflow-hidden bg-paper-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={image}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="sw-zoom h-full w-full object-cover"
+          />
+        </Link>
+        <div className="pointer-events-none absolute left-2.5 top-2.5 flex flex-wrap gap-1.5">
+          <span className={`lms-glass-pill ${course.wishlist ? "" : statusTone(status)}`}>
+            {course.wishlist ? (
+              <Bookmark className="h-3 w-3 fill-current" aria-hidden="true" />
+            ) : isComplete ? (
+              <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+            ) : (
+              <span aria-hidden="true" className="lms-glass-dot" />
+            )}
+            {course.wishlist ? "Saved" : formatStatus(status)}
           </span>
           {course.has_new_content && !course.wishlist && (
-            <span className="rounded-md bg-[#f08b13] px-2.5 py-1 text-xs font-extrabold text-white shadow-sm">
-              New content
+            <span className="lms-glass-pill lms-glass-pill--new">
+              <Sparkles className="h-3 w-3" aria-hidden="true" />
+              New
             </span>
           )}
         </div>
-        {course.bookmarked && !course.wishlist && (
-          <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1 rounded-md bg-[#d9603a] px-2.5 text-xs font-extrabold text-white shadow-sm">
-            <Bookmark className="h-3.5 w-3.5 fill-current" />
-            Saved
-          </span>
-        )}
-      </Link>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => onToggleBookmark(course)}
+          aria-pressed={course.bookmarked}
+          aria-label={course.bookmarked ? `Remove ${course.title} from saved` : `Save ${course.title}`}
+          title={course.bookmarked ? "Saved" : "Save for later"}
+          className="lms-glass-btn absolute right-2.5 top-2.5 z-[2]"
+          data-on={course.bookmarked || undefined}
+        >
+          <Bookmark className={`h-4 w-4 ${course.bookmarked ? "fill-current" : ""}`} strokeWidth={2} />
+        </button>
+      </div>
 
-      <div className="flex flex-1 flex-col p-4">
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="line-clamp-2 min-h-10 text-base font-extrabold leading-5 text-slate-950 dark:text-white">
-              <Link
-                href={actionHref(course)}
-                className="no-underline transition hover:text-[#1b4332] dark:hover:text-[#95d5b2]"
-              >
-                {course.title}
-              </Link>
-            </h2>
-            <p className="mt-1 line-clamp-1 text-sm font-medium text-slate-500 dark:text-slate-400">
-              {course.description || "Professional social work practice"}
-            </p>
-          </div>
-          <button
-            type="button"
-            aria-label={`More actions for ${course.title}`}
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
-          >
-            <EllipsisVertical className="h-5 w-5" />
-          </button>
-        </div>
+      <div className="flex flex-1 flex-col px-2 pb-2 pt-3.5">
+        <h2 className="sw-title m-0 line-clamp-2 text-[1.08rem] leading-snug text-ink">
+          <Link href={href} className="text-inherit no-underline after:absolute after:inset-0 after:rounded-[24px] after:content-['']">
+            {course.title}
+          </Link>
+        </h2>
 
-        <div className="mb-4 flex min-w-0 items-center gap-2">
+        <div className="mt-2.5 flex min-w-0 items-center gap-2">
           {instructor.avatar_url ? (
-            <img
-              src={instructor.avatar_url}
-              alt=""
-              className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
-            />
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={instructor.avatar_url} alt="" loading="lazy" className="h-6 w-6 flex-none rounded-full object-cover" />
           ) : (
-            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#ffe6d2] text-xs font-extrabold text-[#a24b17] dark:bg-[#a24b17]/25 dark:text-[#ffbd8f]">
+            <span className="grid h-6 w-6 flex-none place-items-center rounded-full bg-card text-[0.68rem] font-bold text-accent shadow-[inset_0_0_0_1px_var(--sw-line)] dark:bg-white/[0.08]">
               {instructor.name.charAt(0).toUpperCase()}
             </span>
           )}
-          <span className="min-w-0 truncate text-sm font-medium text-slate-600 dark:text-slate-300">
-            {instructor.name}
-          </span>
+          <span className="min-w-0 truncate text-[0.85rem] text-ink-2">{instructor.name}</span>
         </div>
 
-        {durationLabel && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            <span className="inline-flex max-w-full items-center gap-1 rounded-md bg-[#f0fbf5] px-2.5 py-1 text-xs font-extrabold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-              <Clock3 className="h-3.5 w-3.5 flex-shrink-0" />
-              <span className="truncate">{durationLabel}</span>
-            </span>
+        {(durationLabel || hasCertificate) && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {durationLabel && (
+              <span className="lms-chip-milk">
+                <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
+                {durationLabel}
+              </span>
+            )}
             {hasCertificate && (
-              <span className="inline-flex max-w-full items-center gap-1 rounded-md bg-[#ecfff4] px-2.5 py-1 text-xs font-extrabold text-[#0f8a46] dark:bg-[#15945a]/15 dark:text-[#8de5b5]">
-                <Trophy className="h-3.5 w-3.5 flex-shrink-0" />
-                <span className="truncate">Certificate</span>
+              <span className="lms-chip-milk">
+                <Award className="h-3.5 w-3.5" aria-hidden="true" />
+                Certificate
               </span>
             )}
           </div>
         )}
-        {!durationLabel && hasCertificate && (
-          <div className="mb-4 flex">
-            <span className="inline-flex max-w-full items-center gap-1 rounded-md bg-[#ecfff4] px-2.5 py-1 text-xs font-extrabold text-[#0f8a46] dark:bg-[#15945a]/15 dark:text-[#8de5b5]">
-              <Trophy className="h-3.5 w-3.5 flex-shrink-0" />
-              <span className="truncate">Certificate</span>
-            </span>
-          </div>
-        )}
 
-        <div className="mt-auto">
-          {course.wishlist ? (
-            <div className="mb-4 rounded-md border border-[#fbe7dc] bg-[#fbe7dc] px-3 py-2 text-xs font-bold text-[#b24424] dark:border-[#d9603a]/30 dark:bg-[#d9603a]/10 dark:text-[#f39b7a]">
-              Saved for later. Enroll to start learning.
-            </div>
-          ) : (
-            <div className="mb-4 flex items-center gap-3">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                <div
-                  className={`h-full rounded-full ${
-                    isComplete ? "bg-[#12a150]" : "bg-[#2d6a4f]"
-                  }`}
-                  style={{ width: `${course.displayProgress}%` }}
-                />
+        <div className="mt-auto pt-4">
+          {!course.wishlist && (
+            <div className="mb-3.5">
+              <div className="mb-1.5 flex items-baseline justify-between gap-3 text-xs text-ink-3">
+                <span>{status === "NOT_STARTED" ? "Not started" : isComplete ? "All lessons done" : "Progress"}</span>
+                <span className="font-semibold tabular-nums text-ink">{course.displayProgress}%</span>
               </div>
-              <span className="w-16 text-right text-xs font-bold text-slate-600 dark:text-slate-300">
-                {status === "NOT_STARTED"
-                  ? "Not started"
-                  : `${course.displayProgress}%`}
+              <span
+                role="progressbar"
+                aria-valuenow={course.displayProgress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${course.title} progress`}
+                className="lms-bar"
+                data-empty={course.displayProgress === 0 || undefined}
+              >
+                <span style={{ width: `${course.displayProgress}%` }} />
               </span>
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-3">
-            <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-              {isComplete ? (
-                <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#12a150]" />
-              ) : course.wishlist ? (
-                <Bookmark className="h-4 w-4 flex-shrink-0 fill-current text-[#d9603a]" />
-              ) : (
-                <CalendarDays className="h-4 w-4 flex-shrink-0" />
-              )}
-              <span className="truncate">
-                {course.wishlist
-                  ? "Wishlist course"
-                  : isComplete
-                  ? `Completed${completionDate ? ` on ${completionDate}` : ""}`
-                  : accessDate
-                    ? `Access until ${accessDate}`
-                    : "Access active"}
-              </span>
-            </span>
-
-            <div className="flex flex-shrink-0 items-center gap-2">
-              <Link
-                href={actionHref(course)}
-                className={`inline-flex h-9 items-center justify-center rounded-md border px-4 text-sm font-extrabold no-underline transition ${
-                  course.wishlist
-                    ? "border-[#d9603a] text-[#b94a28] hover:bg-[#fbe7dc] dark:border-[#d9603a]/60 dark:text-[#f39b7a] dark:hover:bg-[#d9603a]/12"
-                    : isComplete
-                    ? "border-[#12a150] text-[#0f8a46] hover:bg-[#ecfff4] dark:border-[#24c66c] dark:text-[#8de5b5] dark:hover:bg-[#15945a]/15"
-                    : isStarted
-                      ? "border-[#74c69d] bg-[#eef5f1] text-[#1b4332] hover:bg-[#dcefe4] dark:border-[#40916c] dark:bg-[#222524] dark:text-[#b7e4c7] dark:hover:bg-[#222524]"
-                      : "border-[#74c69d] text-[#1b4332] hover:bg-[#eef5f1] dark:border-[#40916c] dark:text-[#b7e4c7] dark:hover:bg-[#222524]"
-                }`}
-              >
-                {label}
-              </Link>
+          <div className="relative z-[1] flex items-center justify-between gap-3">
+            <span className="min-w-0 truncate text-[0.78rem] text-ink-3">{footnote}</span>
+            <div className="flex flex-none items-center gap-1.5">
               {isComplete && hasCertificate && !course.wishlist && (
                 <Link
                   href={`/dashboard/certificates/${course.id}`}
                   aria-label={`View certificate for ${course.title}`}
-                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-[#12a150] text-[#0f8a46] transition hover:bg-[#ecfff4] dark:border-[#24c66c] dark:text-[#8de5b5] dark:hover:bg-[#15945a]/15"
+                  title="View certificate"
+                  className="grid h-9 w-9 place-items-center rounded-full bg-gold text-[#3d2700] transition-transform hover:scale-105"
                 >
                   <Award className="h-4 w-4" />
                 </Link>
               )}
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() => onToggleBookmark(course)}
-                aria-label={
-                  course.bookmarked
-                    ? `Remove ${course.title} from saved courses`
-                    : `Save ${course.title}`
-                }
-                className={`flex h-9 w-9 items-center justify-center rounded-md border transition disabled:cursor-wait disabled:opacity-70 ${
-                  course.bookmarked
-                    ? "border-[#d9603a] bg-[#d9603a] text-white hover:bg-[#b94a28]"
-                    : "border-[#cfe8da] text-[#2d6a4f] hover:bg-[#eef5f1] dark:border-[#35514a] dark:text-[#95d5b2] dark:hover:bg-[#222524]"
-                }`}
+              <Link
+                href={href}
+                className={`lms-btn !min-h-9 !px-4 !text-[0.82rem] ${isComplete || course.wishlist ? "lms-btn--quiet" : ""}`}
               >
-                <Bookmark
-                  className={`h-4 w-4 ${course.bookmarked ? "fill-current" : ""}`}
-                />
-              </button>
+                <ActionIcon className={`h-3.5 w-3.5 ${ActionIcon === Play ? "fill-current" : ""}`} aria-hidden="true" />
+                {label}
+              </Link>
             </div>
           </div>
         </div>
       </div>
     </article>
   );
+}
+
+function statusTone(status: ProgressStatus | null) {
+  if (status === "COMPLETED") return "lms-glass-pill--done";
+  if (status === "IN_PROGRESS") return "lms-glass-pill--live";
+  return "";
 }
