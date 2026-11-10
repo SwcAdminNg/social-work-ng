@@ -136,9 +136,9 @@ export function ScormPlayer({
   return (
     <div
       ref={shellRef}
-      className="flex h-[calc(100dvh-220px)] min-h-[480px] w-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[#232d28] dark:ring-white/10 [&:fullscreen]:h-screen [&:fullscreen]:rounded-none"
+      className="flex h-[calc(100dvh-220px)] min-h-[480px] w-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[#252827] dark:ring-white/10 [&:fullscreen]:h-screen [&:fullscreen]:rounded-none"
     >
-      <div className="flex flex-shrink-0 flex-col gap-3 border-b border-black/[0.06] bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#232d28]/80 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-shrink-0 flex-col gap-3 border-b border-black/[0.06] bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#252827]/80 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <span
             className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
@@ -191,7 +191,7 @@ export function ScormPlayer({
         </div>
       </div>
 
-      <div className="relative w-full flex-1 bg-slate-100 dark:bg-[#19211d]">
+      <div className="relative w-full flex-1 bg-slate-100 dark:bg-[#1a1c1b]">
         {ready ? (
           <>
             {!loaded && (

@@ -58,8 +58,8 @@ export function LinkResourcePanel({
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#232d28]">
-      <div className="border-b border-black/[0.06] bg-[#fdfbf5] px-4 py-3 dark:border-white/10 dark:bg-[#1e2722] sm:px-5">
+    <section className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827]">
+      <div className="border-b border-black/[0.06] bg-[#fdfbf5] px-4 py-3 dark:border-white/10 dark:bg-[#1f2120] sm:px-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
@@ -89,7 +89,7 @@ export function LinkResourcePanel({
             {description}
           </p>
         )}
-        <div className="rounded-xl border border-black/[0.05] bg-[#fbf8f0] p-4 dark:border-white/10 dark:bg-[#1e2722]">
+        <div className="rounded-xl border border-black/[0.05] bg-[#fbf8f0] p-4 dark:border-white/10 dark:bg-[#1f2120]">
           <p className="truncate text-sm font-semibold text-slate-500 dark:text-slate-400">
             {url}
           </p>

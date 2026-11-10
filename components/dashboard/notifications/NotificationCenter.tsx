@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowRight, Bell, BellRing, Check, CheckCheck, Loader2 } from "lucide-react";
+import { ArrowRight, Bell, BellRing, Check, CheckCheck, Loader2, Maximize2, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { getWsBaseUrl } from "@/lib/wsUrl";
 import type { NotificationItem, NotificationListResponse } from "./types";
@@ -430,9 +430,9 @@ export function NotificationCenter() {
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-controls="notification-panel"
-        className={`lms-icon-btn ${open ? "bg-ink/[0.07] text-ink dark:bg-white/[0.08]" : ""}`}
+        className={`lms-icon-btn ${open ? "bg-[color-mix(in_srgb,var(--sw-green)_14%,transparent)] text-accent" : ""}`}
       >
-        <Bell className="h-5 w-5" strokeWidth={1.9} />
+        <Bell className="lms-duo h-5 w-5" strokeWidth={1.9} />
         {unreadCount > 0 && (
           <span className="lms-dot" aria-hidden="true">
             {unreadBadgeLabel(unreadCount)}
@@ -445,13 +445,13 @@ export function NotificationCenter() {
           id="notification-panel"
           role="dialog"
           aria-label="Notifications"
-          className="lms-popover"
-          style={{ "--pop-w": "25.5rem" } as React.CSSProperties}
+          className="lms-popover lms-gpop"
+          style={{ "--pop-w": "26rem" } as React.CSSProperties}
         >
-          <div className="flex-none px-5 pb-3 pt-4">
+          <div className="flex-none px-4 pb-3 pt-3.5">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <p className="sw-title m-0 text-[1.2rem] text-ink">Notifications</p>
+              <div className="flex min-w-0 items-center gap-2.5 pl-1">
+                <p className="m-0 text-[1.15rem] font-semibold tracking-[-0.01em] text-ink">Notifications</p>
                 <span
                   title={
                     live
@@ -467,6 +467,47 @@ export function NotificationCenter() {
                   <span className="sr-only">{live ? "Live" : connection === "connecting" ? "Connecting" : "Offline"}</span>
                 </span>
               </div>
+              <div className="flex flex-none items-center">
+                <Link
+                  href="/dashboard/settings"
+                  onClick={() => setOpen(false)}
+                  aria-label="Notification settings"
+                  title="Notification settings"
+                  className="lms-gpop-x"
+                >
+                  <Settings className="h-[18px] w-[18px]" strokeWidth={1.9} />
+                </Link>
+                <Link
+                  href="/dashboard/notifications"
+                  onClick={() => setOpen(false)}
+                  aria-label="Open all notifications"
+                  title="Open all notifications"
+                  className="lms-gpop-x"
+                >
+                  <Maximize2 className="h-[17px] w-[17px]" strokeWidth={1.9} />
+                </Link>
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <div role="tablist" aria-label="Show" className="flex gap-2">
+                {(["all", "unread"] as const).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="tab"
+                    aria-selected={filter === value}
+                    onClick={() => setFilter(value)}
+                    className="lms-chip"
+                  >
+                    {filter === value && <Check className="-ml-0.5 h-3.5 w-3.5" strokeWidth={2.6} aria-hidden="true" />}
+                    {value === "all" ? "All" : "Unread"}
+                    {value === "unread" && unreadCount > 0 && (
+                      <span className="tabular-nums text-accent">{unreadBadgeLabel(unreadCount)}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
               <button
                 type="button"
                 onClick={markAllRead}
@@ -474,41 +515,17 @@ export function NotificationCenter() {
                 className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[0.8rem] font-semibold text-accent transition-colors hover:bg-[color-mix(in_srgb,var(--sw-green)_10%,transparent)] disabled:cursor-default disabled:text-ink-3 disabled:opacity-60 disabled:hover:bg-transparent"
               >
                 {markingAll ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCheck className="h-3.5 w-3.5" />}
-                Mark all read
+                Mark all as read
               </button>
-            </div>
-
-            <div role="tablist" aria-label="Show" className="mt-3 grid grid-cols-2 rounded-[12px] bg-ink/[0.055] p-[3px] dark:bg-white/[0.07]">
-              {(["all", "unread"] as const).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  role="tab"
-                  aria-selected={filter === value}
-                  onClick={() => setFilter(value)}
-                  className={`flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-[9px] text-[0.82rem] font-semibold transition-[background-color,color,box-shadow] duration-200 ${
-                    filter === value
-                      ? "bg-card text-ink shadow-[0_1px_2px_rgba(14,31,23,0.12),0_4px_12px_-6px_rgba(14,31,23,0.25)] dark:bg-[#36443d]"
-                      : "text-ink-3 hover:text-ink"
-                  }`}
-                >
-                  {value === "all" ? "All" : "Unread"}
-                  {value === "unread" && unreadCount > 0 && (
-                    <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-clay px-1 text-[0.65rem] font-bold tabular-nums text-white">
-                      {unreadBadgeLabel(unreadCount)}
-                    </span>
-                  )}
-                </button>
-              ))}
             </div>
           </div>
 
-          <div className="lms-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-line px-2 pb-2">
+          <div className="lms-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2">
             {loading && !loaded ? (
-              <div aria-hidden="true" className="px-3 py-3">
+              <div aria-hidden="true" className="lms-gpop-group px-4 py-2">
                 {[0, 1, 2, 3].map((i) => (
-                  <div key={i} className="flex gap-3 py-2.5">
-                    <span className="lms-skel h-10 w-10 flex-none rounded-[12px]" />
+                  <div key={i} className="flex gap-3 py-3">
+                    <span className="lms-skel h-9 w-9 flex-none rounded-full" />
                     <span className="flex-1 pt-1">
                       <span className="lms-skel block h-3.5" style={{ width: `${78 - i * 12}%` }} />
                       <span className="lms-skel mt-2 block h-3 w-[90%]" />
@@ -517,11 +534,11 @@ export function NotificationCenter() {
                 ))}
               </div>
             ) : visible.length === 0 ? (
-              <div className="flex flex-col items-center px-6 py-10 text-center">
-                <span className="grid h-14 w-14 place-items-center rounded-[18px] bg-mint text-accent">
-                  <BellRing className="h-6 w-6" strokeWidth={1.8} />
+              <div className="lms-gpop-group flex flex-col items-center px-6 py-10 text-center">
+                <span className="grid h-16 w-16 place-items-center rounded-full bg-[color-mix(in_srgb,var(--sw-green)_12%,transparent)] text-accent">
+                  <BellRing className="h-7 w-7" strokeWidth={1.7} />
                 </span>
-                <p className="m-0 mt-4 font-semibold text-ink">
+                <p className="m-0 mt-4 text-[0.98rem] font-semibold text-ink">
                   {filter === "unread" && items.length > 0 ? "You’re all caught up" : "No notifications yet"}
                 </p>
                 <p className="m-0 mt-1 max-w-[30ch] text-[0.82rem] leading-relaxed text-ink-3">
@@ -530,9 +547,9 @@ export function NotificationCenter() {
               </div>
             ) : (
               groups.map((group) => (
-                <section key={group.label} aria-label={group.label}>
-                  <p className="m-0 px-3 pb-1 pt-3 text-[0.7rem] font-semibold tracking-[0.02em] text-ink-3">{group.label}</p>
-                  <ul className="m-0 list-none p-0">
+                <section key={group.label} aria-label={group.label} className="mt-1 first:mt-0">
+                  <p className="m-0 px-3 pb-2 pt-2 text-[0.75rem] font-semibold text-ink-2">{group.label}</p>
+                  <ul className="lms-gpop-group m-0 list-none p-0">
                     {group.items.map((notification) => {
                       const { icon: Icon, tone } = notificationVisual(notification.type);
                       return (
@@ -540,19 +557,16 @@ export function NotificationCenter() {
                           <button
                             type="button"
                             onClick={() => markReadAndOpen(notification)}
-                            className={`flex w-full cursor-pointer gap-3 rounded-[16px] px-3 py-2.5 text-left transition-colors duration-200 ${
-                              notification.is_read
-                                ? "hover:bg-ink/[0.045] dark:hover:bg-white/[0.05]"
-                                : "bg-[color-mix(in_srgb,var(--sw-green)_6%,transparent)] hover:bg-[color-mix(in_srgb,var(--sw-green)_10%,transparent)]"
-                            }`}
+                            data-unread={notification.is_read ? undefined : ""}
+                            className="lms-notif"
                           >
-                            <span className={`mt-0.5 grid h-10 w-10 flex-none place-items-center rounded-[12px] ${TONES[tone]}`}>
-                              <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} aria-hidden="true" />
+                            <span className={`grid h-9 w-9 flex-none place-items-center rounded-full ${TONES[tone]}`}>
+                              <Icon className="h-[17px] w-[17px]" strokeWidth={1.9} aria-hidden="true" />
                             </span>
                             <span className="min-w-0 flex-1">
-                              <span className="flex items-start gap-2">
+                              <span className="flex items-baseline gap-2">
                                 <span
-                                  className={`min-w-0 flex-1 text-[0.86rem] leading-snug ${
+                                  className={`min-w-0 flex-1 text-[0.875rem] leading-snug ${
                                     notification.is_read ? "font-medium text-ink-2" : "font-semibold text-ink"
                                   }`}
                                 >
@@ -562,26 +576,18 @@ export function NotificationCenter() {
                                   dateTime={notification.created_at}
                                   title={formatNotificationDateTime(notification.created_at)}
                                   suppressHydrationWarning
-                                  className="mt-px flex-none text-[0.7rem] tabular-nums text-ink-3"
+                                  className={`flex-none text-[0.72rem] tabular-nums ${notification.is_read ? "text-ink-3" : "font-semibold text-accent"}`}
                                 >
                                   {formatNotificationTime(notification.created_at)}
                                 </time>
                               </span>
                               {notification.body && (
-                                <span className="mt-0.5 line-clamp-2 block pr-6 text-[0.8rem] leading-[1.45] text-ink-3">
+                                <span className="mt-0.5 line-clamp-2 block pr-7 text-[0.8rem] leading-[1.45] text-ink-3">
                                   {notification.body}
                                 </span>
                               )}
                             </span>
-                            {!notification.is_read && (
-                              <>
-                                <span
-                                  aria-hidden="true"
-                                  className="absolute bottom-4 right-4 h-2 w-2 rounded-full bg-clay transition-opacity group-hover:opacity-0 [@media(hover:none)]:opacity-0"
-                                />
-                                <span className="sr-only">, unread</span>
-                              </>
-                            )}
+                            {!notification.is_read && <span className="sr-only">, unread</span>}
                           </button>
                           {!notification.is_read && (
                             <button
@@ -589,7 +595,7 @@ export function NotificationCenter() {
                               onClick={() => markRead(notification)}
                               aria-label={`Mark “${notification.title}” as read`}
                               title="Mark as read"
-                              className="absolute bottom-2 right-2 grid h-7 w-7 cursor-pointer place-items-center rounded-full bg-card text-accent opacity-0 shadow-[inset_0_0_0_1px_var(--sw-line)] transition-opacity focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+                              className="absolute bottom-2.5 right-2.5 grid h-7 w-7 cursor-pointer place-items-center rounded-full bg-[var(--lms-gpop-bg)] text-accent opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
                             >
                               <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
                             </button>
@@ -607,7 +613,7 @@ export function NotificationCenter() {
                 type="button"
                 onClick={() => loadNotifications(page + 1)}
                 disabled={loadingMore}
-                className="mx-auto mt-2 flex h-9 cursor-pointer items-center justify-center gap-2 rounded-full px-4 text-[0.8rem] font-semibold text-ink-2 transition-colors hover:bg-ink/[0.05] hover:text-ink disabled:opacity-60"
+                className="lms-gpop-outline mx-auto mt-3 flex disabled:opacity-60"
               >
                 {loadingMore && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 Show older
@@ -615,14 +621,14 @@ export function NotificationCenter() {
             )}
           </div>
 
-          <div className="flex-none border-t border-line p-2">
+          <div className="flex-none px-2 pb-2">
             <Link
               href="/dashboard/notifications"
               onClick={() => setOpen(false)}
-              className="group/all flex h-11 items-center justify-center gap-1.5 rounded-[14px] text-[0.86rem] font-semibold text-accent no-underline transition-colors hover:bg-[color-mix(in_srgb,var(--sw-green)_8%,transparent)]"
+              className="lms-gpop-pill !rounded-[20px]"
             >
               See all notifications
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/all:translate-x-0.5" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>

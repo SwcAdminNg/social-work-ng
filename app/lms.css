@@ -71,30 +71,35 @@ html:has(.lms-root) {
   --lms-milk-2: #eee4d2;
   --lms-milk-line: rgba(92, 64, 30, 0.1);
   --lms-gap: 10px;
+  --lms-gpop-bg: #f4efe5;
+  --lms-gpop-card: #ffffff;
   background: var(--sw-paper);
   scrollbar-color: color-mix(in srgb, var(--sw-ink) 22%, transparent) transparent;
 }
-/* Dark: a soft sage-charcoal evening, not near-black. Surfaces step up in light,
-   the warm milk tone carries over as a muted taupe. */
+/* Dark: calm graphite. Neutral greys with a breath of warmth, so the brand
+   greens and golds carry the colour and the cards never look muddy.
+   Each layer is one clear step lighter than the one beneath it. */
 html.dark:has(.lms-root) {
-  --sw-paper: #19211d;
-  --sw-paper-2: #1e2722;
-  --sw-card: #232d28;
-  --sw-mint: #1e2722;
-  --sw-line: rgba(232, 242, 236, 0.1);
-  --sw-ink: #eef3ef;
-  --sw-ink-2: #ccd8d0;
-  --sw-ink-3: #a7b6ad;
-  --sw-clay-wash: #3a2a22;
-  --sw-error-wash: #3a2420;
-  --color-gray-800: #2c3832;
-  --color-gray-900: #232d28;
-  --color-gray-950: #19211d;
-  --lms-side: #1e2722;
+  --sw-paper: #1a1c1b;
+  --sw-paper-2: #1f2120;
+  --sw-card: #252827;
+  --sw-mint: #1f2120;
+  --sw-line: rgba(255, 255, 255, 0.085);
+  --sw-ink: #eceeed;
+  --sw-ink-2: #c6cbc8;
+  --sw-ink-3: #9fa6a2;
+  --sw-clay-wash: #382620;
+  --sw-error-wash: #3a2220;
+  --color-gray-800: #2e3230;
+  --color-gray-900: #252827;
+  --color-gray-950: #1a1c1b;
+  --lms-side: #202322;
   --lms-side-hover: rgba(255, 255, 255, 0.06);
-  --lms-milk: #2a2b24;
-  --lms-milk-2: #302f28;
-  --lms-milk-line: rgba(255, 236, 210, 0.08);
+  --lms-milk: #262928;
+  --lms-milk-2: #2c2f2e;
+  --lms-milk-line: rgba(255, 255, 255, 0.07);
+  --lms-gpop-bg: #222524;
+  --lms-gpop-card: #2c2f2e;
   color-scheme: dark;
 }
 html:has(.lms-root) body {
@@ -151,7 +156,8 @@ html:has(.lms-root) body {
   @media (min-width: 640px) { .lms-search-sheet { background: transparent; } }
 
   /* Search field: filled rounded field, glyph, clear button (Apple search-field anatomy). */
-  .lms-search { position: relative; }
+  /* The field measures itself: hints show only when it has room. */
+  .lms-search { position: relative; container-type: inline-size; min-width: 9.5rem; }
   .lms-search input {
     width: 100%;
     height: 2.5rem;
@@ -161,6 +167,7 @@ html:has(.lms-root) body {
     color: var(--sw-ink);
     font-size: 1rem;
     letter-spacing: -0.01em;
+    text-overflow: ellipsis;
     outline: none;
     transition: background-color 0.2s, box-shadow 0.2s;
   }
@@ -174,7 +181,7 @@ html:has(.lms-root) body {
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--sw-green) 70%, transparent), 0 0 0 4px color-mix(in srgb, var(--sw-green) 20%, transparent);
   }
   .dark .lms-search input { background: rgba(255, 255, 255, 0.075); }
-  .dark .lms-search input:focus-visible { background: #1b241f; }
+  .dark .lms-search input:focus-visible { background: #1e2120; }
   .lms-search-glyph {
     position: absolute;
     left: 0.8rem;
@@ -227,11 +234,13 @@ html:has(.lms-root) body {
     pointer-events: none;
   }
   .dark .lms-search-kbd { background: rgba(255, 255, 255, 0.08); }
-  @media (min-width: 1024px) { .lms-search-kbd { display: grid; } }
+  @container (min-width: 300px) { .lms-search-kbd { display: grid; } }
+  @media (pointer: coarse) { .lms-search-kbd { display: none !important; } }
   .lms-search input:focus-visible ~ .lms-search-kbd { opacity: 0; }
 
   /* ── Sidebar: a floating glass panel, inset from the window edge ── */
   .lms-side {
+    --ring-bg: var(--lms-side);
     background: color-mix(in srgb, var(--lms-side) 86%, transparent);
     -webkit-backdrop-filter: blur(30px) saturate(1.8);
     backdrop-filter: blur(30px) saturate(1.8);
@@ -425,6 +434,8 @@ html:has(.lms-root) body {
   }
   .lms-icon-btn:hover { background: color-mix(in srgb, var(--sw-ink) 8%, transparent); color: var(--sw-ink); }
   .lms-icon-btn:active { transform: scale(0.94); }
+  /* Duotone glyphs: a soft tint inside the outline. */
+  .lms-duo path:first-of-type, .lms-duo rect:first-of-type { fill: color-mix(in srgb, currentColor 13%, transparent); }
   .lms-dot {
     position: absolute;
     top: 0.3rem;
@@ -498,6 +509,145 @@ html:has(.lms-root) body {
   }
   .lms-pop-row:hover,
   .lms-pop-row:focus-visible { background: color-mix(in srgb, var(--sw-ink) 5.5%, transparent); }
+
+  /* ── Rainbow ring around the learner's photo ── */
+  @property --ring-a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+  .lms-rainbow {
+    --ring-w: 2px;
+    --ring-gap: 2px;
+    position: relative;
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    padding: calc(var(--ring-w) + var(--ring-gap));
+    border-radius: 999px;
+    background: conic-gradient(from var(--ring-a), #ff5f6d, #ff9a44, #ffd84d, #4fdc8f, #2fc4f0, #5b7cfa, #a970ff, #f55fc1, #ff5f6d);
+    transition: --ring-a 1.2s var(--sw-ease);
+  }
+  .lms-rainbow > * { box-shadow: 0 0 0 var(--ring-gap) var(--ring-bg, var(--sw-paper)); }
+  :is(button, a):hover > .lms-rainbow,
+  :is(button, a):focus-visible > .lms-rainbow,
+  .lms-rainbow:hover { --ring-a: 180deg; }
+  .lms-rainbow--lg { --ring-w: 3px; --ring-gap: 3px; }
+
+  /* ── Google Workspace-style popovers: tinted surface, white grouped cards, pill actions ── */
+  .lms-gpop { --ring-bg: var(--lms-gpop-bg); background: var(--lms-gpop-bg) !important; border-radius: 28px !important; }
+  .lms-gpop-group {
+    overflow: hidden;
+    border-radius: 20px;
+    background: var(--lms-gpop-card);
+  }
+  .lms-gpop-group + .lms-gpop-group { margin-top: 4px; }
+  .lms-gpop-row {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0 1.1rem;
+    color: var(--sw-ink);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.18s;
+  }
+  .lms-gpop-row > svg { flex: none; width: 1.15rem; height: 1.15rem; color: var(--sw-ink-2); }
+  .lms-gpop-row:hover, .lms-gpop-row:focus-visible { background: color-mix(in srgb, var(--sw-ink) 5%, transparent); }
+  .lms-gpop-row + .lms-gpop-row { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sw-ink) 7%, transparent); }
+  .lms-gpop-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0 1.4rem;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sw-ink) 28%, transparent);
+    color: var(--sw-accent);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.18s;
+  }
+  .lms-gpop-outline:hover { background: color-mix(in srgb, var(--sw-green) 9%, transparent); }
+  .lms-gpop-split { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+  .lms-gpop-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    width: 100%;
+    min-height: 3rem;
+    border-radius: 6px;
+    background: var(--lms-gpop-card);
+    color: var(--sw-ink);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.18s;
+  }
+  .lms-gpop-pill:hover { background: color-mix(in srgb, var(--sw-ink) 5%, var(--lms-gpop-card)); }
+  .lms-gpop-split > :first-child, .lms-gpop-split > :first-child .lms-gpop-pill { border-radius: 24px 6px 6px 24px; }
+  .lms-gpop-split > :last-child .lms-gpop-pill, .lms-gpop-split > .lms-gpop-pill:last-child { border-radius: 6px 24px 24px 6px; }
+  .lms-gpop-x {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    color: var(--sw-ink-2);
+    cursor: pointer;
+    transition: background-color 0.18s;
+  }
+  .lms-gpop-x:hover { background: color-mix(in srgb, var(--sw-ink) 8%, transparent); }
+  /* Filter chips (Material style). */
+  .lms-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 2rem;
+    padding: 0 0.85rem;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sw-ink) 22%, transparent);
+    color: var(--sw-ink-2);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.18s, box-shadow 0.18s, color 0.18s;
+  }
+  .lms-chip:hover { background: color-mix(in srgb, var(--sw-ink) 5%, transparent); }
+  .lms-chip[aria-selected="true"] {
+    background: color-mix(in srgb, var(--sw-green) 16%, var(--lms-gpop-card));
+    box-shadow: none;
+    color: var(--sw-ink);
+  }
+  .lms-notif {
+    position: relative;
+    display: flex;
+    gap: 0.85rem;
+    width: 100%;
+    padding: 0.85rem 1rem 0.85rem 1.1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.18s;
+  }
+  .lms-notif:hover { background: color-mix(in srgb, var(--sw-ink) 4.5%, transparent); }
+  li + li > .lms-notif { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sw-ink) 7%, transparent); }
+  .lms-notif[data-unread]::before {
+    content: "";
+    position: absolute;
+    left: 0.4rem;
+    top: 1.35rem;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 999px;
+    background: var(--sw-accent);
+  }
+
   .lms-pop-tile {
     display: grid;
     place-items: center;
@@ -668,6 +818,7 @@ html:has(.lms-root) body {
   .lms-side-link, .lms-side-btn, .lms-side-chev, .lms-icon-btn, .lms-btn, .lms-tab, .lms-card-hover, .lms-milk-hover { transition: none; }
   .lms-milk-hover:hover, .lms-milk-hover:active { transform: none; }
 }
+@media (prefers-reduced-motion: reduce) { .lms-rainbow { transition: none; } }
 @media (prefers-reduced-transparency: reduce) {
   .lms-side { background: var(--lms-side); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .lms-top { background: var(--sw-paper); -webkit-backdrop-filter: none; backdrop-filter: none; }

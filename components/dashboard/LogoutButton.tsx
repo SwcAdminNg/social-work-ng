@@ -8,7 +8,7 @@ import { IconSpinner } from "@/components/auth/shared/icons";
 interface LogoutButtonProps {
   /** "side" sits in the sidebar account row, "menu" is a labelled row in a
    *  popover menu; the default is a plain icon button. */
-  variant?: "side" | "menu";
+  variant?: "side" | "menu" | "pill";
 }
 
 export function LogoutButton({ variant }: LogoutButtonProps) {
@@ -57,7 +57,9 @@ export function LogoutButton({ variant }: LogoutButtonProps) {
   const buttonClass =
     variant === "side"
       ? "lms-side-btn hover:!bg-[#b42318]/10 hover:!text-[#b42318] dark:hover:!text-[#fda29b] [&>svg]:h-[18px] [&>svg]:w-[18px]"
-      : variant === "menu"
+      : variant === "pill"
+        ? "lms-gpop-pill [&_svg]:h-[17px] [&_svg]:w-[17px]"
+        : variant === "menu"
         ? "lms-pop-row !text-[#b42318] hover:!bg-[#b42318]/[0.07] dark:!text-[#fda29b] [&_svg]:h-[17px] [&_svg]:w-[17px]"
         : "lms-icon-btn text-red-600 dark:text-red-400";
 
@@ -112,7 +114,12 @@ export function LogoutButton({ variant }: LogoutButtonProps) {
 
   return (
     <>
-      {variant === "menu" ? (
+      {variant === "pill" ? (
+        <button type="button" onClick={() => setIsOpen(true)} className={buttonClass}>
+          <IconLogout />
+          Sign out
+        </button>
+      ) : variant === "menu" ? (
         <button type="button" onClick={() => setIsOpen(true)} className={buttonClass}>
           <span className="lms-pop-tile !bg-[#b42318]/10 !text-inherit">
             <IconLogout />

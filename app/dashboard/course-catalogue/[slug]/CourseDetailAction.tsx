@@ -261,7 +261,7 @@ export function CourseDetailAction({
           type="button"
           onClick={addToCart}
           disabled={loading || cartLoading}
-          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-white px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-70 dark:border-[#315244] dark:bg-[#202a25] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35]"
+          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-white px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-70 dark:border-[#315244] dark:bg-[#222524] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35]"
         >
           {cartLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -312,7 +312,7 @@ export function CourseDetailAction({
               )}
             </div>
 
-            <div className="mb-5 rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-3 dark:border-[#35514a] dark:bg-[#202a25]">
+            <div className="mb-5 rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-3 dark:border-[#35514a] dark:bg-[#222524]">
               {checkoutEstimate && (
                 <dl className="mb-4 grid gap-2 border-b border-[#dceee4] pb-4 text-sm dark:border-[#35514a]">
                   <CheckoutRow label="Subtotal" value={formatNaira(price || 0)} />

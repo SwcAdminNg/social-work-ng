@@ -326,7 +326,7 @@ export function ProfileSettings() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-start">
         {/* Left Column: General Info */}
-        <div className="bg-white dark:bg-[#19211d] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm">
+        <div className="bg-white dark:bg-[#1a1c1b] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-100 dark:border-gray-800">
             <div className="w-10 h-10 rounded-full bg-[#2D6A4F]/10 flex items-center justify-center">
               <UserCircle className="w-6 h-6 text-[#2D6A4F]" />
@@ -435,7 +435,7 @@ export function ProfileSettings() {
         <div className="space-y-6">
           <div
             ref={photoSectionRef}
-            className={`bg-white dark:bg-[#19211d] border rounded-3xl p-6 md:p-8 shadow-sm transition ${
+            className={`bg-white dark:bg-[#1a1c1b] border rounded-3xl p-6 md:p-8 shadow-sm transition ${
               profilePhotoPrompt && !hasProfilePicture
                 ? "border-[#2D6A4F] ring-4 ring-[#2D6A4F]/10 dark:border-[#52b788] dark:ring-[#52b788]/10"
                 : "border-gray-200 dark:border-gray-800"

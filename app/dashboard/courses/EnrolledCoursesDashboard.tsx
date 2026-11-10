@@ -530,7 +530,7 @@ export function EnrolledCoursesDashboard({
         </div>
         <Link
           href="/dashboard/course-catalogue"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#cfe8da] bg-white px-4 text-sm font-bold text-[#1b4332] no-underline shadow-sm transition hover:bg-[#eef5f1] dark:border-[#1b4332] dark:bg-[#232d28] dark:text-[#95d5b2] dark:hover:bg-[#202a25]"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#cfe8da] bg-white px-4 text-sm font-bold text-[#1b4332] no-underline shadow-sm transition hover:bg-[#eef5f1] dark:border-[#1b4332] dark:bg-[#252827] dark:text-[#95d5b2] dark:hover:bg-[#222524]"
         >
           <BookOpen className="h-4 w-4" />
           Explore Courses
@@ -578,8 +578,8 @@ export function EnrolledCoursesDashboard({
         />
       </section>
 
-      <section className="rounded-md border border-[#e3dfd0] bg-white shadow-sm dark:border-[#35433c] dark:bg-[#232d28]">
-        <div className="flex flex-col gap-3 border-b border-[#ece8da] px-3 py-3 dark:border-[#35433c] lg:flex-row lg:items-center lg:justify-between">
+      <section className="rounded-md border border-[#e3dfd0] bg-white shadow-sm dark:border-[#363a38] dark:bg-[#252827]">
+        <div className="flex flex-col gap-3 border-b border-[#ece8da] px-3 py-3 dark:border-[#363a38] lg:flex-row lg:items-center lg:justify-between">
           <div className="swcl-sidebar-scroll -mb-3 flex gap-1 overflow-x-auto pb-3">
             {tabs.map((tab) => (
               <button
@@ -615,7 +615,7 @@ export function EnrolledCoursesDashboard({
                   autoComplete="off"
 
                   placeholder="Search my courses..."
-                  className="h-10 w-full rounded-md border border-[#e3dfd0] bg-white pl-10 pr-3 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2d6a4f] focus:ring-4 focus:ring-[#2d6a4f]/10 dark:border-[#36443d] dark:bg-[#1b241f] dark:text-slate-100 dark:focus:border-[#52b788]"
+                  className="h-10 w-full rounded-md border border-[#e3dfd0] bg-white pl-10 pr-3 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2d6a4f] focus:ring-4 focus:ring-[#2d6a4f]/10 dark:border-[#383c3a] dark:bg-[#1e2120] dark:text-slate-100 dark:focus:border-[#52b788]"
                 />
               </label>
               {isListLoading && (
@@ -644,7 +644,7 @@ export function EnrolledCoursesDashboard({
               ))}
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-[#ece8da] px-4 py-4 dark:border-[#35433c] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-t border-[#ece8da] px-4 py-4 dark:border-[#363a38] sm:flex-row sm:items-center sm:justify-between">
               <p className="text-center text-sm font-medium text-slate-600 dark:text-slate-400 sm:text-left">
                 Showing {showingStart} to {showingEnd} of {totalItems} courses
               </p>
@@ -704,7 +704,7 @@ function StatsCard({
     <button
       type="button"
       onClick={onSelect}
-      className="group flex min-h-[112px] items-center gap-4 rounded-md border border-[#e3dfd0] bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-md dark:border-[#35433c] dark:bg-[#232d28] dark:hover:border-[#35514a]"
+      className="group flex min-h-[112px] items-center gap-4 rounded-md border border-[#e3dfd0] bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-md dark:border-[#363a38] dark:bg-[#252827] dark:hover:border-[#35514a]"
     >
       <span
         className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full ${tones[tone]}`}
@@ -803,10 +803,10 @@ function PageButton({
 }) {
   const className = `flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm font-extrabold no-underline transition ${
     active
-      ? "border-[#2d6a4f] bg-[#2d6a4f] text-white dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#232d28]"
+      ? "border-[#2d6a4f] bg-[#2d6a4f] text-white dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#252827]"
       : disabled
-        ? "pointer-events-none border-[#ece8da] bg-slate-50 text-slate-300 dark:border-[#35433c] dark:bg-[#1b241f] dark:text-slate-700"
-        : "border-[#e3dfd0] bg-white text-slate-700 hover:border-[#74c69d] hover:bg-[#eef5f1] hover:text-[#1b4332] dark:border-[#36443d] dark:bg-[#1b241f] dark:text-slate-300 dark:hover:border-[#40916c] dark:hover:bg-[#202a25] dark:hover:text-[#b7e4c7]"
+        ? "pointer-events-none border-[#ece8da] bg-slate-50 text-slate-300 dark:border-[#363a38] dark:bg-[#1e2120] dark:text-slate-700"
+        : "border-[#e3dfd0] bg-white text-slate-700 hover:border-[#74c69d] hover:bg-[#eef5f1] hover:text-[#1b4332] dark:border-[#383c3a] dark:bg-[#1e2120] dark:text-slate-300 dark:hover:border-[#40916c] dark:hover:bg-[#222524] dark:hover:text-[#b7e4c7]"
   }`;
 
   return (
@@ -846,7 +846,7 @@ function DashboardCourseCard({
   const hasCertificate = course.certificate_enabled === true;
 
   return (
-    <article className="group flex min-h-[366px] flex-col overflow-hidden rounded-md border border-[#e3dfd0] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-lg dark:border-[#35433c] dark:bg-[#1b241f]">
+    <article className="group flex min-h-[366px] flex-col overflow-hidden rounded-md border border-[#e3dfd0] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-lg dark:border-[#363a38] dark:bg-[#1e2120]">
       <Link
         href={actionHref(course)}
         className="relative block aspect-[16/6.8] overflow-hidden bg-slate-100 dark:bg-slate-800"
@@ -993,8 +993,8 @@ function DashboardCourseCard({
                     : isComplete
                     ? "border-[#12a150] text-[#0f8a46] hover:bg-[#ecfff4] dark:border-[#24c66c] dark:text-[#8de5b5] dark:hover:bg-[#15945a]/15"
                     : isStarted
-                      ? "border-[#74c69d] bg-[#eef5f1] text-[#1b4332] hover:bg-[#dcefe4] dark:border-[#40916c] dark:bg-[#202a25] dark:text-[#b7e4c7] dark:hover:bg-[#202a25]"
-                      : "border-[#74c69d] text-[#1b4332] hover:bg-[#eef5f1] dark:border-[#40916c] dark:text-[#b7e4c7] dark:hover:bg-[#202a25]"
+                      ? "border-[#74c69d] bg-[#eef5f1] text-[#1b4332] hover:bg-[#dcefe4] dark:border-[#40916c] dark:bg-[#222524] dark:text-[#b7e4c7] dark:hover:bg-[#222524]"
+                      : "border-[#74c69d] text-[#1b4332] hover:bg-[#eef5f1] dark:border-[#40916c] dark:text-[#b7e4c7] dark:hover:bg-[#222524]"
                 }`}
               >
                 {label}
@@ -1020,7 +1020,7 @@ function DashboardCourseCard({
                 className={`flex h-9 w-9 items-center justify-center rounded-md border transition disabled:cursor-wait disabled:opacity-70 ${
                   course.bookmarked
                     ? "border-[#d9603a] bg-[#d9603a] text-white hover:bg-[#b94a28]"
-                    : "border-[#cfe8da] text-[#2d6a4f] hover:bg-[#eef5f1] dark:border-[#35514a] dark:text-[#95d5b2] dark:hover:bg-[#202a25]"
+                    : "border-[#cfe8da] text-[#2d6a4f] hover:bg-[#eef5f1] dark:border-[#35514a] dark:text-[#95d5b2] dark:hover:bg-[#222524]"
                 }`}
               >
                 <Bookmark

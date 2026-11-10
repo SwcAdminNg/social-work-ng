@@ -249,7 +249,8 @@ export function Sidebar() {
                 collapsed ? "lg:flex-none lg:p-0 lg:hover:bg-transparent" : ""
               }`}
             >
-              <span className="grid h-9 w-9 flex-none place-items-center overflow-hidden rounded-full bg-brand text-[0.82rem] font-semibold text-white">
+              <span className="lms-rainbow">
+              <span className="grid h-8 w-8 flex-none place-items-center overflow-hidden rounded-full bg-brand text-[0.8rem] font-semibold text-white">
                 {avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -261,6 +262,7 @@ export function Sidebar() {
                 ) : (
                   displayName.trim().charAt(0).toUpperCase() || "L"
                 )}
+              </span>
               </span>
               <span className={`min-w-0 flex-1 leading-tight ${label}`}>
                 <span className="block truncate text-[0.86rem] font-semibold text-ink">
