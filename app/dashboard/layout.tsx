@@ -1,5 +1,7 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { fetchApi } from "@/lib/fetchApi";
+import { siteFonts } from "@/lib/fonts";
+import "../lms.css";
 
 type DashboardUser = {
   profile_picture_url?: string | null;
@@ -26,6 +28,7 @@ export default async function DashboardLayout({
 
   return (
     <DashboardShell
+      fontClassName={siteFonts}
       userHasProfilePicture={
         user ? Boolean(user.profile_picture_url) : undefined
       }

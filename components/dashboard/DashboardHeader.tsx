@@ -4,246 +4,259 @@ import Link from "next/link";
 import Form from "next/form";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
-  ChevronDown,
-  CircleHelp,
+  Award,
+  CreditCard,
+  LifeBuoy,
+  Menu,
   MessageSquare,
+  Moon,
   Search,
+  Settings,
   ShoppingCart,
+  Sun,
+  X,
 } from "lucide-react";
+import { useTheme } from "@/components/generic/ThemeProvider";
 import { useSidebar } from "./SidebarContext";
-import { IconMenu } from "./icons";
+import { badgeLabel, useBadgeCounts } from "./BadgeCounts";
+import { getPageTitle } from "./nav-items";
 import { NotificationCenter } from "./notifications/NotificationCenter";
 
-type DashboardOverviewCountEvent = CustomEvent<{
-  unread_community_messages_count?: number;
-  cart_item_count?: number;
-  open_support_tickets_count?: number;
-}>;
-
-function badgeLabel(count: number) {
-  return count > 99 ? "99+" : String(count);
-}
+const menuLinks = [
+  { label: "Profile settings", href: "/dashboard/settings", icon: Settings },
+  { label: "Certificates", href: "/dashboard/certificates", icon: Award },
+  { label: "Payment & billing", href: "/dashboard/orders", icon: CreditCard },
+  { label: "Support tickets", href: "/dashboard/support-tickets", icon: LifeBuoy },
+];
 
 export function DashboardHeader() {
   const { data: session } = useSession();
-  const { setMobileOpen, toggleCollapsed } = useSidebar();
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [cartItemCount, setCartItemCount] = useState(0);
-  const [openSupportTicketsCount, setOpenSupportTicketsCount] = useState(0);
-  const profileRef = useRef<HTMLDivElement>(null);
-
+  const { mobileOpen, setMobileOpen } = useSidebar();
+  const counts = useBadgeCounts();
+  const { theme, toggle } = useTheme();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
   const defaultSearch = searchParams.get("search") ?? "";
   const displayName =
-    session?.user?.name ||
-    session?.user?.email?.split("@")[0] ||
-    "Learner";
+    session?.user?.name || session?.user?.email?.split("@")[0] || "Learner";
   const avatarInitial = displayName.trim().charAt(0).toUpperCase() || "L";
   const avatarUrl = session?.user?.image;
   const avatarImageUrl =
     avatarUrl && avatarUrl !== failedAvatarUrl ? avatarUrl : null;
+  const isDark = theme === "dark";
 
+  // The account menu closes on an outside press or Escape.
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        setProfileOpen(false);
-      }
+    if (!profileOpen) return;
+    function onPointer(event: MouseEvent) {
+      if (!profileRef.current?.contains(event.target as Node)) setProfileOpen(false);
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchUnreadCount() {
-      try {
-        const res = await fetch("/api/proxy/community/unread-count");
-        const json = await res.json().catch(() => ({}));
-        if (!cancelled && res.ok) {
-          setUnreadCount(Number(json?.data?.total_unread) || 0);
-        }
-      } catch {
-        // Badge is additive; header should stay usable if this fails.
-      }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setProfileOpen(false);
     }
-
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
-    window.addEventListener("community:unread-refresh", fetchUnreadCount);
-
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
     return () => {
-      cancelled = true;
-      clearInterval(interval);
-      window.removeEventListener("community:unread-refresh", fetchUnreadCount);
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
     };
-  }, []);
+  }, [profileOpen]);
 
+  // "/" jumps to search from anywhere that is not already a text field.
   useEffect(() => {
-    function handleOverviewCounts(event: Event) {
-      const detail = (event as DashboardOverviewCountEvent).detail;
-      if (typeof detail?.unread_community_messages_count === "number") {
-        setUnreadCount(Math.max(0, detail.unread_community_messages_count));
-      }
-      if (typeof detail?.cart_item_count === "number") {
-        setCartItemCount(Math.max(0, detail.cart_item_count));
-      }
-      if (typeof detail?.open_support_tickets_count === "number") {
-        setOpenSupportTicketsCount(
-          Math.max(0, detail.open_support_tickets_count),
-        );
-      }
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      setSearchOpen(true);
+      requestAnimationFrame(() => searchRef.current?.focus());
     }
-
-    window.addEventListener("dashboard:overview-counts", handleOverviewCounts);
-    return () =>
-      window.removeEventListener(
-        "dashboard:overview-counts",
-        handleOverviewCounts,
-      );
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex h-[72px] flex-shrink-0 items-center justify-between gap-3 border-b border-[#e5e3ee] bg-white/90 px-4 backdrop-blur-xl dark:border-[#262a3d] dark:bg-[#111525]/90 sm:px-6">
-      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+    <header className="sticky top-0 z-30 px-3 pt-3 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[calc(100%+0.9rem)] before:bg-gradient-to-b before:from-paper before:from-45% before:to-transparent sm:px-5 lg:px-7">
+      <div className="relative flex h-16 items-center gap-1.5 rounded-full bg-card/85 px-2.5 shadow-[inset_0_0_0_1px_var(--sw-line),0_22px_44px_-34px_rgba(14,31,23,0.7)] backdrop-blur-xl backdrop-saturate-150 sm:gap-2">
         <button
+          type="button"
           onClick={() => setMobileOpen(true)}
-          aria-label="Open sidebar"
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] lg:hidden"
+          aria-label="Open menu"
+          aria-expanded={mobileOpen}
+          aria-controls="dashboard-rail"
+          className="lms-icon-btn lg:hidden"
         >
-          <IconMenu />
+          <Menu className="h-5 w-5" />
         </button>
 
-        <button
-          onClick={toggleCollapsed}
-          aria-label="Toggle sidebar"
-          className="hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] lg:flex"
-        >
-          <IconMenu />
-        </button>
+        <p className="sw-title m-0 min-w-0 flex-1 truncate text-[1.05rem] text-ink sm:hidden">
+          {getPageTitle(pathname)}
+        </p>
 
         <Form
           action="/dashboard/course-catalogue"
-          className="relative w-full max-w-[560px]"
+          role="search"
+          className={`items-center gap-2 sm:relative sm:flex sm:min-w-0 sm:flex-1 lg:max-w-[520px] ${
+            searchOpen
+              ? "absolute inset-0 z-10 flex rounded-full bg-card px-2.5 sm:bg-transparent sm:px-0"
+              : "hidden"
+          }`}
         >
-          <Search className="pointer-events-none absolute left-3 sm:left-4 top-1/2 h-4 w-4 sm:h-5 sm:w-5 -translate-y-1/2 text-slate-400" />
-          <input
-            name="search"
-            type="search"
-            defaultValue={defaultSearch}
-            autoComplete="off"
-
-            placeholder="Search courses, lessons, resources..."
-            className="h-10 sm:h-11 w-full rounded-md border border-[#e2e8ea] bg-white pl-9 sm:pl-12 pr-3 sm:pr-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#273343] dark:bg-[#0f1726] dark:text-slate-100 dark:focus:border-[#52b788]"
-          />
-        </Form>
-      </div>
-
-      <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
-        <NotificationCenter />
-
-        <Link
-          href="/dashboard/community"
-          aria-label="Messages"
-          className="relative hidden h-10 w-10 items-center justify-center rounded-md text-slate-600 no-underline transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] sm:flex"
-        >
-          <MessageSquare className="h-5 w-5" strokeWidth={1.9} />
-          {unreadCount > 0 && (
-            <span className="absolute -right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f43f5e] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:ring-[#111525]">
-              {badgeLabel(unreadCount)}
-            </span>
-          )}
-        </Link>
-
-        <Link
-          href="/dashboard/cart"
-          aria-label="Cart"
-          className="relative hidden h-10 w-10 items-center justify-center rounded-md text-slate-600 no-underline transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] sm:flex"
-        >
-          <ShoppingCart className="h-5 w-5" strokeWidth={1.9} />
-          {cartItemCount > 0 && (
-            <span className="absolute -right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f43f5e] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:ring-[#111525]">
-              {badgeLabel(cartItemCount)}
-            </span>
-          )}
-        </Link>
-
-        <Link
-          href="/dashboard/support-tickets"
-          aria-label="Support tickets"
-          className="relative hidden h-10 w-10 items-center justify-center rounded-md text-slate-600 no-underline transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7] md:flex"
-        >
-          <CircleHelp className="h-5 w-5" strokeWidth={1.9} />
-          {openSupportTicketsCount > 0 && (
-            <span className="absolute -right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f43f5e] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:ring-[#111525]">
-              {badgeLabel(openSupportTicketsCount)}
-            </span>
-          )}
-        </Link>
-
-        <div className="relative ml-1 sm:ml-2" ref={profileRef}>
-          <button
-            onClick={() => setProfileOpen((v) => !v)}
-            aria-expanded={profileOpen}
-            className="flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 text-left outline-none transition-colors hover:bg-[#eef8f2] dark:hover:bg-[#52b788]/12 sm:gap-3 sm:px-2"
-          >
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#2D6A4F] text-sm font-extrabold text-white shadow-[0_10px_22px_-15px_rgba(45,106,79,0.9)] dark:bg-[#52b788] dark:text-[#06130d]">
-              {avatarImageUrl ? (
-                <img
-                  src={avatarImageUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                  onError={() => setFailedAvatarUrl(avatarImageUrl)}
-                />
-              ) : (
-                avatarInitial
-              )}
-            </span>
-            <span className="hidden min-w-0 flex-col leading-tight lg:flex">
-              <span className="max-w-40 truncate text-sm font-extrabold text-slate-950 dark:text-white">
-                {displayName}
-              </span>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Learner
-              </span>
-            </span>
-            <ChevronDown
-              className={`hidden h-4 w-4 flex-shrink-0 text-slate-500 transition-transform duration-200 lg:block ${
-                profileOpen ? "rotate-180" : ""
-              }`}
-              strokeWidth={2}
+          <label htmlFor="dashboard-search" className="sr-only">
+            Search the course catalogue
+          </label>
+          <div className="relative min-w-0 flex-1">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-3"
             />
+            <input
+              ref={searchRef}
+              id="dashboard-search"
+              name="search"
+              type="search"
+              defaultValue={defaultSearch}
+              autoComplete="off"
+              enterKeyHint="search"
+              placeholder="Search courses"
+              className="h-11 w-full rounded-full bg-paper pl-11 pr-12 text-base text-ink shadow-[inset_0_0_0_1.5px_color-mix(in_srgb,var(--sw-ink)_10%,transparent)] outline-none transition-shadow duration-300 placeholder:text-ink-3 focus:shadow-[inset_0_0_0_1.5px_var(--sw-green),0_0_0_4px_color-mix(in_srgb,var(--sw-green)_16%,transparent)] focus-visible:outline-none dark:bg-[#0e1913] sm:text-[0.95rem]"
+            />
+            <kbd
+              aria-hidden="true"
+              className="pointer-events-none absolute right-3.5 top-1/2 hidden h-6 min-w-6 -translate-y-1/2 place-items-center rounded-md border border-line px-1.5 text-xs font-medium text-ink-3 lg:grid"
+            >
+              /
+            </kbd>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSearchOpen(false)}
+            aria-label="Close search"
+            className="lms-icon-btn sm:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </Form>
+
+        <div className="ml-auto flex flex-none items-center gap-0.5 sm:gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              setSearchOpen(true);
+              requestAnimationFrame(() => searchRef.current?.focus());
+            }}
+            aria-label="Search courses"
+            className="lms-icon-btn sm:hidden"
+          >
+            <Search className="h-5 w-5" />
           </button>
 
-          <div
-            hidden={!profileOpen}
-            className={`absolute right-0 mt-2 w-64 z-50 origin-top-right rounded-lg border border-[#e5e3ee] bg-white shadow-xl transition-all duration-150 dark:border-[#262a3d] dark:bg-[#111525] ${
-              profileOpen
-                ? "pointer-events-auto scale-100 opacity-100"
-                : "pointer-events-none scale-95 opacity-0"
-            }`}
+          <NotificationCenter />
+
+          <Link
+            href="/dashboard/community"
+            aria-label={`Community messages${counts.community ? `, ${counts.community} unread` : ""}`}
+            className="lms-icon-btn hidden md:grid"
           >
-            <div className="flex flex-col gap-1 border-b border-[#eceaf4] p-4 dark:border-[#262a3d]">
-              <p className="font-extrabold text-slate-950 dark:text-white truncate">
+            <MessageSquare className="h-5 w-5" strokeWidth={1.9} />
+            {counts.community > 0 && (
+              <span className="lms-dot" aria-hidden="true">
+                {badgeLabel(counts.community)}
+              </span>
+            )}
+          </Link>
+
+          <Link
+            href="/dashboard/cart"
+            aria-label={`Cart${counts.cart ? `, ${counts.cart} item${counts.cart === 1 ? "" : "s"}` : ""}`}
+            className="lms-icon-btn hidden md:grid"
+          >
+            <ShoppingCart className="h-5 w-5" strokeWidth={1.9} />
+            {counts.cart > 0 && (
+              <span className="lms-dot" aria-hidden="true">
+                {badgeLabel(counts.cart)}
+              </span>
+            )}
+          </Link>
+
+          <div className="relative ml-1" ref={profileRef}>
+            <button
+              type="button"
+              onClick={() => setProfileOpen((open) => !open)}
+              aria-expanded={profileOpen}
+              aria-haspopup="menu"
+              aria-label="Account menu"
+              className="flex items-center gap-2.5 rounded-full p-1 text-left transition-colors duration-300 hover:bg-ink/[0.06] xl:pr-4"
+            >
+              <span className="grid h-10 w-10 flex-none place-items-center overflow-hidden rounded-full bg-deep text-sm font-bold text-white dark:bg-brand">
+                {avatarImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarImageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    onError={() => setFailedAvatarUrl(avatarImageUrl)}
+                  />
+                ) : (
+                  avatarInitial
+                )}
+              </span>
+              <span className="hidden max-w-36 truncate text-sm font-semibold text-ink xl:block">
                 {displayName}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                {session?.user?.email || "No email provided"}
-              </p>
-            </div>
-            <div className="p-2">
-              <Link
-                href="/dashboard/settings"
-                onClick={() => setProfileOpen(false)}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-bold text-slate-700 transition-colors hover:bg-[#f7fcf9] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7]"
+              </span>
+            </button>
+
+            {profileOpen && (
+              <div
+                role="menu"
+                className="lms-pop absolute right-0 z-50 mt-3 w-72 max-w-[calc(100vw-1.5rem)] rounded-[24px] bg-card p-2 shadow-[inset_0_0_0_1px_var(--sw-line),0_34px_70px_-24px_rgba(4,18,11,0.45)]"
               >
-                Personalize & Manage Profile
-              </Link>
-            </div>
+                <div className="px-3.5 pb-3 pt-3">
+                  <p className="m-0 truncate text-[0.95rem] font-semibold text-ink">
+                    {displayName}
+                  </p>
+                  <p className="m-0 mt-0.5 truncate text-xs text-ink-3">
+                    {session?.user?.email || "No email provided"}
+                  </p>
+                </div>
+                <div className="border-t border-line pt-1.5">
+                  {menuLinks.map(({ label, href, icon: Icon }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      role="menuitem"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex min-h-11 items-center gap-3 rounded-2xl px-3.5 text-sm font-medium text-ink-2 no-underline transition-colors duration-200 hover:bg-mint hover:text-ink dark:hover:bg-white/[0.07]"
+                    >
+                      <Icon className="h-[18px] w-[18px] text-accent" strokeWidth={1.9} />
+                      {label}
+                    </Link>
+                  ))}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={toggle}
+                    className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-2xl px-3.5 text-left text-sm font-medium text-ink-2 transition-colors duration-200 hover:bg-mint hover:text-ink dark:hover:bg-white/[0.07]"
+                  >
+                    {isDark ? (
+                      <Sun className="h-[18px] w-[18px] text-accent" strokeWidth={1.9} />
+                    ) : (
+                      <Moon className="h-[18px] w-[18px] text-accent" strokeWidth={1.9} />
+                    )}
+                    {isDark ? "Switch to light mode" : "Switch to dark mode"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

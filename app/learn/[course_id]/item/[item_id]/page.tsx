@@ -132,7 +132,7 @@ export default async function LearningItemPage(props: {
                 ? `/learn/${params.course_id}/item/${frontierItem.id}`
                 : `/learn/${params.course_id}`
           }
-          className="mt-2 inline-flex h-10 items-center gap-2 rounded-xl bg-[#2D6A4F] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+          className="mt-2 inline-flex h-11 items-center gap-2 rounded-full bg-[#14402f] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
         >
           {itemRes.status === 403 ? "Back to course" : "Continue where you left off"}
         </Link>
@@ -158,10 +158,10 @@ export default async function LearningItemPage(props: {
     item.item_type === "ASSESSMENT" && item.assessment_type === "QUIZ_GROUP";
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#f5f5f7] dark:bg-[#0a0c11]">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       {item.item_type === "VIDEO" && item.video_url && (
-        <div className="z-20 w-full flex-shrink-0 bg-black">
-          <div className="mx-auto w-full max-w-[1180px]">
+        <div className="z-20 mt-3 w-full flex-shrink-0 bg-black lg:bg-transparent lg:px-5">
+          <div className="mx-auto w-full max-w-[1180px] overflow-hidden lg:rounded-[28px]">
             <VideoPlayer
               url={item.video_url}
               courseId={params.course_id}
@@ -172,10 +172,10 @@ export default async function LearningItemPage(props: {
         </div>
       )}
 
-      <div className="swcl-sidebar-scroll min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[1040px] px-5 pb-32 pt-8 sm:px-8 sm:pt-12 lg:pb-12">
+      <div className="lms-scroll min-h-0 flex-1 overflow-y-auto text-ink">
+        <div className="mx-auto w-full max-w-[1040px] px-5 pb-16 pt-8 sm:px-8 sm:pt-10">
           <header className="mb-8 sm:mb-10">
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-[#2D6A4F] dark:text-[#74c69d]">
+            <p className="lms-kicker m-0 flex-wrap gap-y-1">
               {moduleNumber > 0 ? (
                 <>
                   <span>Module {moduleNumber}</span>
@@ -193,8 +193,8 @@ export default async function LearningItemPage(props: {
               )}
             </p>
 
-            <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
-              <h1 className="max-w-[760px] text-[1.875rem] font-semibold leading-[1.15] tracking-[-0.022em] text-slate-950 dark:text-white sm:text-[2.5rem]">
+            <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+              <h1 className="sw-display m-0 max-w-[760px] text-[clamp(1.9rem,4vw,2.9rem)] text-ink">
                 {item.title}
               </h1>
               <div className="flex flex-shrink-0 flex-wrap items-center gap-2 sm:mt-2">
@@ -223,8 +223,8 @@ export default async function LearningItemPage(props: {
           </header>
 
         {item.item_type === "DOCUMENT" && item.document_url && (
-          <div className="flex h-[calc(100dvh-220px)] min-h-[420px] w-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[#14171f] dark:ring-white/10">
-            <div className="flex flex-shrink-0 flex-col gap-3 border-b border-black/[0.06] bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#14171f]/80 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex h-[calc(100dvh-220px)] min-h-[420px] w-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[#16231c] dark:ring-white/10">
+            <div className="flex flex-shrink-0 flex-col gap-3 border-b border-black/[0.06] bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#16231c]/80 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7] [&>svg]:h-5 [&>svg]:w-5">
                   <IconClipboardCheck />
@@ -246,7 +246,7 @@ export default async function LearningItemPage(props: {
                 />
               </div>
             </div>
-            <div className="w-full flex-1 bg-slate-100 dark:bg-[#0a0c11]">
+            <div className="w-full flex-1 bg-slate-100 dark:bg-[#0b1410]">
               <iframe
                 src={getDocumentViewerUrl(params.course_id, item.id, item.document_url)}
                 title={item.title}
@@ -339,17 +339,17 @@ export default async function LearningItemPage(props: {
         )}
 
         {item.item_type === "ASSESSMENT" && !isQuiz && !isEssay && !isQuizGroup && (
-          <div className="rounded-2xl border border-black/[0.06] bg-white p-5 text-center text-sm font-medium text-slate-600 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f] dark:text-slate-300">
+          <div className="rounded-2xl border border-black/[0.06] bg-white p-5 text-center text-sm font-medium text-slate-600 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#16231c] dark:text-slate-300">
             This assessment type is not available yet.
           </div>
         )}
 
         {/* Course Navigation Footer */}
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <div className="mt-10 grid gap-3 sm:grid-cols-2">
           {prevItem ? (
             <Link 
               href={`/learn/${params.course_id}/item/${prevItem.id}`}
-              className="grid min-h-[68px] grid-cols-[20px_minmax(0,1fr)] items-center gap-3 rounded-2xl bg-white px-5 py-3 text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition-[box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_14px_30px_-14px_rgba(0,0,0,0.18)] dark:bg-[#14171f] dark:text-slate-300 dark:ring-white/10"
+              className="grid min-h-[72px] grid-cols-[20px_minmax(0,1fr)] items-center gap-3 rounded-full bg-white px-6 py-3 text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition-[box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_14px_30px_-14px_rgba(0,0,0,0.18)] dark:bg-[#16231c] dark:text-slate-300 dark:ring-white/10"
             >
               <ChevronLeft className="h-5 w-5" />
               <div className="min-w-0 text-left">
@@ -363,7 +363,7 @@ export default async function LearningItemPage(props: {
             item.is_completed ? (
               <Link
                 href={`/learn/${params.course_id}/item/${nextItem.id}`}
-                className="grid min-h-[68px] grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-2xl bg-[#2D6A4F] px-5 py-3 text-white shadow-[0_10px_24px_-12px_rgba(45,106,79,0.7)] transition-[background-color,transform] duration-150 hover:bg-[#245c43] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+                className="grid min-h-[72px] grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-full bg-[#14402f] px-6 py-3 text-white shadow-[0_10px_24px_-12px_rgba(45,106,79,0.7)] transition-[background-color,transform] duration-150 hover:bg-[#245c43] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
               >
                 <div className="min-w-0 text-right">
                   <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-white/70 dark:text-[#1B4332]/70">Next</div>
@@ -373,7 +373,7 @@ export default async function LearningItemPage(props: {
               </Link>
             ) : (
               <div
-                className="grid min-h-[68px] cursor-not-allowed grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-2xl bg-black/[0.04] px-5 py-3 text-slate-400 dark:bg-white/5 dark:text-slate-500"
+                className="grid min-h-[72px] cursor-not-allowed grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-full px-6 bg-black/[0.04] px-5 py-3 text-slate-400 dark:bg-white/5 dark:text-slate-500"
                 aria-disabled="true"
               >
                 <div className="min-w-0 text-right">
@@ -388,14 +388,14 @@ export default async function LearningItemPage(props: {
           ) : item.is_completed ? (
             <Link
               href={`/dashboard/courses`}
-              className="inline-flex min-h-[68px] items-center justify-center gap-3 rounded-2xl bg-[#2D6A4F] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(45,106,79,0.7)] transition hover:bg-[#245c43] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+              className="inline-flex min-h-[72px] items-center justify-center gap-3 rounded-full bg-[#14402f] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(45,106,79,0.7)] transition hover:bg-[#245c43] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
             >
               <CheckCircle className="h-5 w-5" />
               <span>Finish Course</span>
             </Link>
           ) : (
             <div
-              className="inline-flex min-h-[68px] cursor-not-allowed items-center justify-center gap-3 rounded-2xl bg-black/[0.04] px-5 py-3 text-sm font-semibold text-slate-400 dark:bg-white/5 dark:text-slate-500"
+              className="inline-flex min-h-[72px] cursor-not-allowed items-center justify-center gap-3 rounded-full bg-black/[0.04] px-5 py-3 text-sm font-semibold text-slate-400 dark:bg-white/5 dark:text-slate-500"
               aria-disabled="true"
             >
               <Lock className="h-5 w-5" />

@@ -61,7 +61,7 @@ export default async function DashboardResourcesPage(props: {
 
   return (
     <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 pb-12">
-      <section className="overflow-hidden rounded-xl border border-[#dbeee4] bg-gradient-to-br from-white to-[#f3fbf6] shadow-sm dark:border-[#26384d] dark:from-[#111525] dark:to-[#0f1c17]">
+      <section className="overflow-hidden rounded-xl border border-[#dbeee4] bg-gradient-to-br from-white to-[#f3fbf6] shadow-sm dark:border-[#26372e] dark:from-[#16231c] dark:to-[#0f1c17]">
         <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#e7f6ee] px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
@@ -86,7 +86,7 @@ export default async function DashboardResourcesPage(props: {
         </div>
       </section>
 
-      <section className="flex flex-col gap-4 rounded-xl border border-[#e5e3ee] bg-white p-4 shadow-sm dark:border-[#262a3d] dark:bg-[#111525] sm:p-5">
+      <section className="flex flex-col gap-4 rounded-xl border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#26372e] dark:bg-[#16231c] sm:p-5">
         <div className="grid gap-3 lg:grid-cols-[minmax(240px,380px)_1fr] lg:items-center">
           <ResourceSearchBar initialSearch={search} />
 
@@ -94,7 +94,7 @@ export default async function DashboardResourcesPage(props: {
             <span className="hidden text-xs font-extrabold uppercase tracking-wide text-slate-400 lg:inline">
               Access
             </span>
-            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-[#0f1726]">
+            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-[#0e1913]">
               <AccessTab href={buildFilterUrl({ category, search, access: undefined })} active={!access}>
                 Any
               </AccessTab>
@@ -134,7 +134,7 @@ export default async function DashboardResourcesPage(props: {
           </p>
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-[#111525] sm:p-14">
+        <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-[#16231c] sm:p-14">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
             <FileText className="h-7 w-7" />
           </div>
@@ -147,7 +147,7 @@ export default async function DashboardResourcesPage(props: {
           {hasActiveFilters && (
             <Link
               href="/dashboard/resources"
-              className="mt-5 inline-flex h-10 items-center rounded-md border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-[#0f1726] dark:text-slate-200 dark:hover:bg-slate-900"
+              className="mt-5 inline-flex h-10 items-center rounded-md border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-[#0e1913] dark:text-slate-200 dark:hover:bg-slate-900"
             >
               Clear all filters
             </Link>
@@ -178,7 +178,7 @@ export default async function DashboardResourcesPage(props: {
             <span className="hidden sm:inline">Previous</span>
           </PageLink>
 
-          <span className="inline-flex h-10 items-center rounded-md bg-slate-50 px-4 text-sm font-extrabold text-slate-600 dark:bg-[#0f1726] dark:text-slate-300">
+          <span className="inline-flex h-10 items-center rounded-md bg-slate-50 px-4 text-sm font-extrabold text-slate-600 dark:bg-[#0e1913] dark:text-slate-300">
             Page {page}
             {totalPages > 1 ? ` of ${totalPages}` : ""}
           </span>
@@ -202,8 +202,8 @@ function DashboardResourceCard({ resource }: { resource: ResourceRead }) {
   const href = `/resources/${resource.slug || resource.id}`;
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-[#e5e3ee] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-md dark:border-[#262a3d] dark:bg-[#111525]">
-      <Link href={href} className="relative block aspect-[16/10] overflow-hidden bg-[#e7f6ee] dark:bg-[#0f1726]">
+    <article className="group flex flex-col overflow-hidden rounded-xl border border-[#e3dfd0] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-md dark:border-[#26372e] dark:bg-[#16231c]">
+      <Link href={href} className="relative block aspect-[16/10] overflow-hidden bg-[#e7f6ee] dark:bg-[#0e1913]">
         {resource.thumbnail_url ? (
           <img
             src={resource.thumbnail_url}
@@ -285,7 +285,7 @@ function MetricCard({
   };
 
   return (
-    <div className="flex flex-col rounded-lg border border-slate-200 bg-white/70 p-2.5 backdrop-blur-sm dark:border-slate-800 dark:bg-[#0f1726]/70 sm:p-3">
+    <div className="flex flex-col rounded-lg border border-slate-200 bg-white/70 p-2.5 backdrop-blur-sm dark:border-slate-800 dark:bg-[#0e1913]/70 sm:p-3">
       <span className={`mb-2 flex h-8 w-8 items-center justify-center rounded-md sm:h-9 sm:w-9 ${styles[tone]}`}>
         <Icon className="h-4 w-4" />
       </span>
@@ -314,7 +314,7 @@ function FilterChip({
       className={`inline-flex h-9 flex-shrink-0 items-center whitespace-nowrap rounded-full border px-3.5 text-xs font-extrabold transition ${
         active
           ? "border-[#2D6A4F] bg-[#2D6A4F] text-white dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
-          : "border-slate-200 bg-white text-slate-600 hover:border-[#95d5b2] hover:text-[#2D6A4F] dark:border-slate-800 dark:bg-[#0f1726] dark:text-slate-300 dark:hover:border-[#52b788]/50"
+          : "border-slate-200 bg-white text-slate-600 hover:border-[#95d5b2] hover:text-[#2D6A4F] dark:border-slate-800 dark:bg-[#0e1913] dark:text-slate-300 dark:hover:border-[#52b788]/50"
       }`}
     >
       {children}
@@ -336,7 +336,7 @@ function AccessTab({
       href={href}
       className={`inline-flex h-8 flex-1 items-center justify-center whitespace-nowrap rounded-md px-3 text-xs font-extrabold transition sm:flex-none ${
         active
-          ? "bg-white text-[#2D6A4F] shadow-sm dark:bg-[#1a2133] dark:text-[#b7e4c7]"
+          ? "bg-white text-[#2D6A4F] shadow-sm dark:bg-[#1b2a22] dark:text-[#b7e4c7]"
           : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
       }`}
     >
@@ -371,7 +371,7 @@ function PageLink({
     <Link
       href={href}
       aria-label={label}
-      className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-[#111525] dark:text-slate-300 dark:hover:bg-slate-900"
+      className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-[#16231c] dark:text-slate-300 dark:hover:bg-slate-900"
     >
       {children}
     </Link>

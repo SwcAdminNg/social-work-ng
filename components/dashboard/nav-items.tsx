@@ -15,12 +15,14 @@ import {
   TicketCheck,
   UsersRound,
 } from "lucide-react";
+import type { BadgeCounts } from "./BadgeCounts";
 
 export type NavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
-  disabled?: boolean;
+  /** Which live count, if any, sits beside the label. */
+  badge?: keyof BadgeCounts;
 };
 
 export type NavGroup = {
@@ -30,10 +32,10 @@ export type NavGroup = {
 
 export const dashboardNavGroups: NavGroup[] = [
   {
-    items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }],
-  },
-  {
-    items: [{ label: "Notifications", href: "/dashboard/notifications", icon: Bell }],
+    items: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
+    ],
   },
   {
     label: "My Learning",
@@ -59,7 +61,6 @@ export const dashboardNavGroups: NavGroup[] = [
         href: "/dashboard/course-catalogue",
         icon: LibraryBig,
       },
-      { label: "Cart", href: "/dashboard/cart", icon: ShoppingCart },
       {
         label: "Live Sessions",
         href: "/dashboard/live-sessions",
@@ -70,7 +71,9 @@ export const dashboardNavGroups: NavGroup[] = [
         label: "Community",
         href: "/dashboard/community",
         icon: UsersRound,
+        badge: "community",
       },
+      { label: "Cart", href: "/dashboard/cart", icon: ShoppingCart, badge: "cart" },
     ],
   },
   {
@@ -81,6 +84,7 @@ export const dashboardNavGroups: NavGroup[] = [
         label: "My Support Tickets",
         href: "/dashboard/support-tickets",
         icon: TicketCheck,
+        badge: "support",
       },
     ],
   },
@@ -104,6 +108,24 @@ export const dashboardNavGroups: NavGroup[] = [
 export const dashboardNavItems = dashboardNavGroups.flatMap(
   (group) => group.items,
 );
+
+/** The four destinations kept one tap away on small screens. */
+export const dashboardTabs: NavItem[] = [
+  { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Courses", href: "/dashboard/courses", icon: BookOpen },
+  { label: "Explore", href: "/dashboard/course-catalogue", icon: LibraryBig },
+  {
+    label: "Community",
+    href: "/dashboard/community",
+    icon: UsersRound,
+    badge: "community",
+  },
+];
+
+export function isNavItemActive(pathname: string, href: string) {
+  if (href === "/dashboard") return pathname === "/dashboard";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function getPageTitle(pathname: string): string {
   const exact = dashboardNavItems.find((item) => item.href === pathname);

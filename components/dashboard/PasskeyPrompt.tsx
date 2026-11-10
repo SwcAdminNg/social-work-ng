@@ -79,7 +79,7 @@ export function PasskeyPrompt() {
       role="dialog"
       aria-labelledby="passkey-prompt-title"
       aria-describedby="passkey-prompt-body"
-      className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl dark:border-gray-800 dark:bg-[#121a16] sm:inset-x-auto sm:right-6 sm:bottom-6"
+      className="lms-rise fixed inset-x-3 bottom-24 z-40 mx-auto max-w-md rounded-[28px] border border-gray-200 bg-white p-5 shadow-2xl dark:border-gray-800 dark:bg-[#16231c] sm:inset-x-auto sm:right-6 lg:bottom-6"
     >
       <button type="button" onClick={dismiss} className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800" aria-label="Dismiss">
         <X className="h-4 w-4" />
@@ -100,12 +100,12 @@ export function PasskeyPrompt() {
           type="button"
           onClick={setUp}
           disabled={busy}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] text-sm font-semibold text-white hover:bg-[#1B4332] disabled:opacity-70"
+          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#14402f] text-sm font-semibold text-white hover:bg-[#2D6A4F] disabled:opacity-70 dark:bg-[#2D6A4F]"
         >
           {busy ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Fingerprint className="h-4 w-4" aria-hidden="true" />}
           {busy ? "Follow your device’s prompt…" : "Set up a passkey"}
         </button>
-        <button type="button" onClick={dismiss} className="h-11 rounded-xl border border-gray-200 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+        <button type="button" onClick={dismiss} className="h-11 rounded-full border border-gray-200 px-5 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
           Not now
         </button>
       </div>

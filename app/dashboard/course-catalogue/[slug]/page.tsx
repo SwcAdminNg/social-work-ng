@@ -311,7 +311,7 @@ export default async function DashboardCourseDetailPage(props: {
 
           <InfoGrid course={course} />
 
-          <section className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525] sm:p-5">
+          <section className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#16231c] sm:p-5">
             <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
@@ -339,7 +339,7 @@ export default async function DashboardCourseDetailPage(props: {
                   <details
                     key={section.id}
                     open={index === 0}
-                    className="group overflow-hidden rounded-lg border border-[#e3ede7] bg-[#fbfefd] dark:border-[#27433a] dark:bg-[#0f1726]"
+                    className="group overflow-hidden rounded-lg border border-[#e3ede7] bg-[#fdfbf5] dark:border-[#27433a] dark:bg-[#0e1913]"
                   >
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 transition hover:bg-[#f0fbf5] dark:hover:bg-[#52b788]/10">
                       <div className="min-w-0">
@@ -351,11 +351,11 @@ export default async function DashboardCourseDetailPage(props: {
                         </h3>
                         <GuestLecturerLine guests={section.guest_instructors} />
                       </div>
-                      <span className="flex-shrink-0 rounded-md bg-white px-2.5 py-1 text-xs font-bold text-slate-600 shadow-sm dark:bg-[#111525] dark:text-slate-300">
+                      <span className="flex-shrink-0 rounded-md bg-white px-2.5 py-1 text-xs font-bold text-slate-600 shadow-sm dark:bg-[#16231c] dark:text-slate-300">
                         {(section.items ?? []).length} items
                       </span>
                     </summary>
-                    <div className="border-t border-[#e3ede7] bg-white dark:border-[#27433a] dark:bg-[#111525]">
+                    <div className="border-t border-[#e3ede7] bg-white dark:border-[#27433a] dark:bg-[#16231c]">
                       {(section.items ?? []).map((item) => (
                         <CurriculumItem
                           key={item.id}
@@ -383,7 +383,7 @@ export default async function DashboardCourseDetailPage(props: {
         </div>
 
         <aside className="grid h-max gap-4 xl:sticky xl:top-[92px]">
-          <div className="overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+          <div className="overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#16231c]">
             <div className="aspect-video bg-[#e7f6ee]">
               <img
                 src={course.thumbnail_url || FALLBACK_IMAGE}
@@ -431,7 +431,7 @@ export default async function DashboardCourseDetailPage(props: {
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+          <div className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#16231c]">
             <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
               Course snapshot
             </h2>
@@ -480,7 +480,7 @@ export default async function DashboardCourseDetailPage(props: {
         </aside>
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#dceee4] bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-18px_40px_-28px_rgba(15,23,42,0.45)] backdrop-blur-xl dark:border-[#27433a] dark:bg-[#111525]/95 xl:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#dceee4] bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-18px_40px_-28px_rgba(15,23,42,0.45)] backdrop-blur-xl dark:border-[#27433a] dark:bg-[#16231c]/95 xl:hidden">
         <div className="mx-auto flex max-w-[1540px] items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-[0.68rem] font-black uppercase tracking-normal text-slate-500 dark:text-slate-400">
@@ -521,7 +521,7 @@ function CourseHero({
     typeof course.average_rating === "number" ? course.average_rating : 0;
 
   return (
-    <section className="overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+    <section className="overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#16231c]">
       <div className="relative min-h-[320px]">
         <img
           src={course.thumbnail_url || FALLBACK_IMAGE}
@@ -601,7 +601,7 @@ function InfoGrid({ course }: { course: Course }) {
       {panels.map((panel) => (
         <div
           key={panel.title}
-          className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525]"
+          className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#16231c]"
         >
           <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
             {panel.title}
@@ -718,7 +718,7 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+    <div className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#16231c]">
       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
         {icon}
       </div>

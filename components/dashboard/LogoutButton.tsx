@@ -6,11 +6,11 @@ import { IconLogout } from "./icons";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
 interface LogoutButtonProps {
-  isSidebar?: boolean;
-  collapsed?: boolean;
+  /** "rail" sits on the dark side rail; the default is a plain icon button. */
+  variant?: "rail";
 }
 
-export function LogoutButton({ isSidebar, collapsed }: LogoutButtonProps) {
+export function LogoutButton({ variant }: LogoutButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
@@ -53,9 +53,10 @@ export function LogoutButton({ isSidebar, collapsed }: LogoutButtonProps) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, loading]);
 
-  const buttonClass = isSidebar
-    ? `w-full flex h-9 items-center gap-3 rounded-md px-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors duration-150 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${collapsed ? "lg:justify-center lg:px-0" : ""}`
-    : "w-10 h-10 flex items-center justify-center rounded-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500";
+  const buttonClass =
+    variant === "rail"
+      ? "lms-rail-btn hover:!bg-[#b42318] hover:!text-white"
+      : "lms-icon-btn text-red-600 dark:text-red-400";
 
   const modalContent = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -66,7 +67,7 @@ export function LogoutButton({ isSidebar, collapsed }: LogoutButtonProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="logout-title"
-        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-[360px] overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-gray-800"
+        className="relative bg-white dark:bg-gray-900 rounded-[28px] shadow-2xl w-full max-w-[360px] overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-gray-800"
       >
         <div className="p-6 text-center pt-8">
           <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-5 [&>svg]:w-8 [&>svg]:h-8">
@@ -82,7 +83,7 @@ export function LogoutButton({ isSidebar, collapsed }: LogoutButtonProps) {
             ref={cancelButtonRef}
             onClick={() => setIsOpen(false)}
             disabled={loading}
-            className="px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 cursor-pointer"
+            className="px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 cursor-pointer"
           >
             Cancel
           </button>
@@ -90,7 +91,7 @@ export function LogoutButton({ isSidebar, collapsed }: LogoutButtonProps) {
             ref={confirmButtonRef}
             onClick={handleLogout}
             disabled={loading}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 dark:hover:bg-red-500 rounded-xl shadow-lg shadow-red-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 dark:hover:bg-red-500 rounded-full transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 cursor-pointer"
           >
             {loading ? (
               <>
@@ -111,11 +112,10 @@ export function LogoutButton({ isSidebar, collapsed }: LogoutButtonProps) {
       <button
         onClick={() => setIsOpen(true)}
         className={buttonClass}
-        title={collapsed ? "Logout" : undefined}
-        aria-label="Logout"
+        title="Sign out"
+        aria-label="Sign out"
       >
-        <span className="flex-shrink-0"><IconLogout /></span>
-        {isSidebar && <span className={`whitespace-nowrap transition-opacity ${collapsed ? "lg:hidden" : ""}`}>Logout</span>}
+        <IconLogout />
       </button>
 
       {isOpen &&

@@ -26,17 +26,17 @@ type SavedCardDisplayProps = {
 
 const cardStyles: Record<string, string> = {
   visa:
-    "from-[#112d4e] via-[#2d6a4f] to-[#03a9a6] text-white shadow-[#112d4e]/20",
+    "from-[#14402f] via-[#2d6a4f] to-[#03a9a6] text-white shadow-[#14402f]/20",
   mastercard:
-    "from-[#231942] via-[#7f5539] to-[#f77f00] text-white shadow-[#7f5539]/20",
+    "from-[#13231d] via-[#7f5539] to-[#f77f00] text-white shadow-[#7f5539]/20",
   verve:
     "from-[#132a13] via-[#31572c] to-[#90a955] text-white shadow-[#31572c]/20",
   amex:
     "from-[#073b4c] via-[#118ab2] to-[#8ecae6] text-white shadow-[#118ab2]/20",
   discover:
-    "from-[#2b2d42] via-[#ef476f] to-[#ffd166] text-white shadow-[#ef476f]/20",
+    "from-[#2b2d42] via-[#d9603a] to-[#ffd166] text-white shadow-[#d9603a]/20",
   default:
-    "from-[#111827] via-[#334155] to-[#2D6A4F] text-white shadow-slate-900/20",
+    "from-[#16231c] via-[#344a3f] to-[#2D6A4F] text-white shadow-slate-900/20",
 };
 
 export function normalizeCardBrand(card: SavedCard) {

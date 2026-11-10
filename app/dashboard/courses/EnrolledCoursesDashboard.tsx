@@ -232,13 +232,13 @@ function formatStatus(status: ProgressStatus | null) {
 
 function statusClasses(status: ProgressStatus | null, wishlist = false) {
   if (wishlist) {
-    return "bg-[#f43f7f] text-white";
+    return "bg-[#d9603a] text-white";
   }
   if (status === "COMPLETED") {
     return "bg-[#12a150] text-white";
   }
   if (status === "IN_PROGRESS") {
-    return "bg-[#5b2dcc] text-white";
+    return "bg-[#2d6a4f] text-white";
   }
   return "bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-950";
 }
@@ -530,7 +530,7 @@ export function EnrolledCoursesDashboard({
         </div>
         <Link
           href="/dashboard/course-catalogue"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#d8cffa] bg-white px-4 text-sm font-bold text-[#4c2db8] no-underline shadow-sm transition hover:bg-[#f6f2ff] dark:border-[#3d3271] dark:bg-[#121527] dark:text-[#c9bbff] dark:hover:bg-[#211a42]"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#cfe8da] bg-white px-4 text-sm font-bold text-[#1b4332] no-underline shadow-sm transition hover:bg-[#eef5f1] dark:border-[#1b4332] dark:bg-[#16231c] dark:text-[#95d5b2] dark:hover:bg-[#13231d]"
         >
           <BookOpen className="h-4 w-4" />
           Explore Courses
@@ -578,8 +578,8 @@ export function EnrolledCoursesDashboard({
         />
       </section>
 
-      <section className="rounded-md border border-[#e5e3ee] bg-white shadow-sm dark:border-[#262a3d] dark:bg-[#111525]">
-        <div className="flex flex-col gap-3 border-b border-[#eceaf4] px-3 py-3 dark:border-[#262a3d] lg:flex-row lg:items-center lg:justify-between">
+      <section className="rounded-md border border-[#e3dfd0] bg-white shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
+        <div className="flex flex-col gap-3 border-b border-[#ece8da] px-3 py-3 dark:border-[#26372e] lg:flex-row lg:items-center lg:justify-between">
           <div className="swcl-sidebar-scroll -mb-3 flex gap-1 overflow-x-auto pb-3">
             {tabs.map((tab) => (
               <button
@@ -588,7 +588,7 @@ export function EnrolledCoursesDashboard({
                 onClick={() => loadCourses(tab.key, 1, search)}
                 className={`relative flex h-10 flex-shrink-0 items-center gap-2 px-4 text-sm font-extrabold transition ${
                   view === tab.key
-                    ? "text-[#4c2db8] dark:text-[#c9bbff]"
+                    ? "text-[#1b4332] dark:text-[#95d5b2]"
                     : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
                 }`}
               >
@@ -597,7 +597,7 @@ export function EnrolledCoursesDashboard({
                   {counts[tab.key]}
                 </span>
                 {view === tab.key && (
-                  <span className="absolute inset-x-2 -bottom-3 h-0.5 rounded-full bg-[#5b2dcc]" />
+                  <span className="absolute inset-x-2 -bottom-3 h-0.5 rounded-full bg-[#2d6a4f]" />
                 )}
               </button>
             ))}
@@ -615,11 +615,11 @@ export function EnrolledCoursesDashboard({
                   autoComplete="off"
 
                   placeholder="Search my courses..."
-                  className="h-10 w-full rounded-md border border-[#dedcea] bg-white pl-10 pr-3 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#5b2dcc] focus:ring-4 focus:ring-[#5b2dcc]/10 dark:border-[#2b3044] dark:bg-[#0f1726] dark:text-slate-100 dark:focus:border-[#8f79ff]"
+                  className="h-10 w-full rounded-md border border-[#e3dfd0] bg-white pl-10 pr-3 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2d6a4f] focus:ring-4 focus:ring-[#2d6a4f]/10 dark:border-[#2a3b32] dark:bg-[#0e1913] dark:text-slate-100 dark:focus:border-[#52b788]"
                 />
               </label>
               {isListLoading && (
-                <span className="absolute right-3 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[#5b2dcc]" />
+                <span className="absolute right-3 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[#2d6a4f]" />
               )}
             </div>
           </div>
@@ -644,7 +644,7 @@ export function EnrolledCoursesDashboard({
               ))}
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-[#eceaf4] px-4 py-4 dark:border-[#262a3d] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-t border-[#ece8da] px-4 py-4 dark:border-[#26372e] sm:flex-row sm:items-center sm:justify-between">
               <p className="text-center text-sm font-medium text-slate-600 dark:text-slate-400 sm:text-left">
                 Showing {showingStart} to {showingEnd} of {totalItems} courses
               </p>
@@ -658,7 +658,7 @@ export function EnrolledCoursesDashboard({
           </>
         ) : (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-md bg-[#f2edff] text-[#5b2dcc] dark:bg-[#5b2dcc]/20 dark:text-[#c9bbff]">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-md bg-[#eef5f1] text-[#2d6a4f] dark:bg-[#2d6a4f]/20 dark:text-[#95d5b2]">
               <BookOpen className="h-7 w-7" />
             </div>
             <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
@@ -692,19 +692,19 @@ function StatsCard({
 }) {
   const tones = {
     purple:
-      "bg-[#eee8ff] text-[#5b2dcc] dark:bg-[#5b2dcc]/20 dark:text-[#c9bbff]",
+      "bg-[#dcefe4] text-[#2d6a4f] dark:bg-[#2d6a4f]/20 dark:text-[#95d5b2]",
     orange:
       "bg-[#fff0cf] text-[#f08b13] dark:bg-[#f08b13]/18 dark:text-[#ffc46b]",
     green:
       "bg-[#dcf7e8] text-[#15945a] dark:bg-[#15945a]/18 dark:text-[#8de5b5]",
-    pink: "bg-[#ffe1ed] text-[#f43f7f] dark:bg-[#f43f7f]/18 dark:text-[#ff9abb]",
+    pink: "bg-[#fbe7dc] text-[#d9603a] dark:bg-[#d9603a]/18 dark:text-[#f39b7a]",
   };
 
   return (
     <button
       type="button"
       onClick={onSelect}
-      className="group flex min-h-[112px] items-center gap-4 rounded-md border border-[#e5e3ee] bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfc7ef] hover:shadow-md dark:border-[#262a3d] dark:bg-[#111525] dark:hover:border-[#4a426e]"
+      className="group flex min-h-[112px] items-center gap-4 rounded-md border border-[#e3dfd0] bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-md dark:border-[#26372e] dark:bg-[#16231c] dark:hover:border-[#27433a]"
     >
       <span
         className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full ${tones[tone]}`}
@@ -718,7 +718,7 @@ function StatsCard({
         <span className="mt-1 block text-2xl font-extrabold leading-none text-slate-950 dark:text-white">
           {Number(value || 0).toLocaleString()}
         </span>
-        <span className="mt-2 block text-sm font-bold text-[#4c2db8] group-hover:underline dark:text-[#c9bbff]">
+        <span className="mt-2 block text-sm font-bold text-[#1b4332] group-hover:underline dark:text-[#95d5b2]">
           {action}
         </span>
       </span>
@@ -803,10 +803,10 @@ function PageButton({
 }) {
   const className = `flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm font-extrabold no-underline transition ${
     active
-      ? "border-[#5b2dcc] bg-[#5b2dcc] text-white dark:border-[#8f79ff] dark:bg-[#8f79ff] dark:text-[#111525]"
+      ? "border-[#2d6a4f] bg-[#2d6a4f] text-white dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#16231c]"
       : disabled
-        ? "pointer-events-none border-[#eceaf4] bg-slate-50 text-slate-300 dark:border-[#262a3d] dark:bg-[#0f1726] dark:text-slate-700"
-        : "border-[#dedcea] bg-white text-slate-700 hover:border-[#9b86e8] hover:bg-[#f7f4ff] hover:text-[#4c2db8] dark:border-[#2b3044] dark:bg-[#0f1726] dark:text-slate-300 dark:hover:border-[#6f5cc7] dark:hover:bg-[#211a42] dark:hover:text-[#d7ceff]"
+        ? "pointer-events-none border-[#ece8da] bg-slate-50 text-slate-300 dark:border-[#26372e] dark:bg-[#0e1913] dark:text-slate-700"
+        : "border-[#e3dfd0] bg-white text-slate-700 hover:border-[#74c69d] hover:bg-[#eef5f1] hover:text-[#1b4332] dark:border-[#2a3b32] dark:bg-[#0e1913] dark:text-slate-300 dark:hover:border-[#40916c] dark:hover:bg-[#13231d] dark:hover:text-[#b7e4c7]"
   }`;
 
   return (
@@ -846,7 +846,7 @@ function DashboardCourseCard({
   const hasCertificate = course.certificate_enabled === true;
 
   return (
-    <article className="group flex min-h-[366px] flex-col overflow-hidden rounded-md border border-[#e5e3ee] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#c9c1eb] hover:shadow-lg dark:border-[#262a3d] dark:bg-[#0f1726]">
+    <article className="group flex min-h-[366px] flex-col overflow-hidden rounded-md border border-[#e3dfd0] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-lg dark:border-[#26372e] dark:bg-[#0e1913]">
       <Link
         href={actionHref(course)}
         className="relative block aspect-[16/6.8] overflow-hidden bg-slate-100 dark:bg-slate-800"
@@ -870,7 +870,7 @@ function DashboardCourseCard({
           )}
         </div>
         {course.bookmarked && !course.wishlist && (
-          <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1 rounded-md bg-[#f43f7f] px-2.5 text-xs font-extrabold text-white shadow-sm">
+          <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-1 rounded-md bg-[#d9603a] px-2.5 text-xs font-extrabold text-white shadow-sm">
             <Bookmark className="h-3.5 w-3.5 fill-current" />
             Saved
           </span>
@@ -883,7 +883,7 @@ function DashboardCourseCard({
             <h2 className="line-clamp-2 min-h-10 text-base font-extrabold leading-5 text-slate-950 dark:text-white">
               <Link
                 href={actionHref(course)}
-                className="no-underline transition hover:text-[#4c2db8] dark:hover:text-[#c9bbff]"
+                className="no-underline transition hover:text-[#1b4332] dark:hover:text-[#95d5b2]"
               >
                 {course.title}
               </Link>
@@ -943,7 +943,7 @@ function DashboardCourseCard({
 
         <div className="mt-auto">
           {course.wishlist ? (
-            <div className="mb-4 rounded-md border border-[#ffd1e1] bg-[#fff3f8] px-3 py-2 text-xs font-bold text-[#b91d57] dark:border-[#f43f7f]/30 dark:bg-[#f43f7f]/10 dark:text-[#ff9abb]">
+            <div className="mb-4 rounded-md border border-[#fbe7dc] bg-[#fbe7dc] px-3 py-2 text-xs font-bold text-[#b24424] dark:border-[#d9603a]/30 dark:bg-[#d9603a]/10 dark:text-[#f39b7a]">
               Saved for later. Enroll to start learning.
             </div>
           ) : (
@@ -951,7 +951,7 @@ function DashboardCourseCard({
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                 <div
                   className={`h-full rounded-full ${
-                    isComplete ? "bg-[#12a150]" : "bg-[#5b2dcc]"
+                    isComplete ? "bg-[#12a150]" : "bg-[#2d6a4f]"
                   }`}
                   style={{ width: `${course.displayProgress}%` }}
                 />
@@ -969,7 +969,7 @@ function DashboardCourseCard({
               {isComplete ? (
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#12a150]" />
               ) : course.wishlist ? (
-                <Bookmark className="h-4 w-4 flex-shrink-0 fill-current text-[#f43f7f]" />
+                <Bookmark className="h-4 w-4 flex-shrink-0 fill-current text-[#d9603a]" />
               ) : (
                 <CalendarDays className="h-4 w-4 flex-shrink-0" />
               )}
@@ -989,12 +989,12 @@ function DashboardCourseCard({
                 href={actionHref(course)}
                 className={`inline-flex h-9 items-center justify-center rounded-md border px-4 text-sm font-extrabold no-underline transition ${
                   course.wishlist
-                    ? "border-[#f43f7f] text-[#d82d69] hover:bg-[#fff3f8] dark:border-[#f43f7f]/60 dark:text-[#ff9abb] dark:hover:bg-[#f43f7f]/12"
+                    ? "border-[#d9603a] text-[#b94a28] hover:bg-[#fbe7dc] dark:border-[#d9603a]/60 dark:text-[#f39b7a] dark:hover:bg-[#d9603a]/12"
                     : isComplete
                     ? "border-[#12a150] text-[#0f8a46] hover:bg-[#ecfff4] dark:border-[#24c66c] dark:text-[#8de5b5] dark:hover:bg-[#15945a]/15"
                     : isStarted
-                      ? "border-[#9b86e8] bg-[#f7f4ff] text-[#4c2db8] hover:bg-[#efe9ff] dark:border-[#6f5cc7] dark:bg-[#211a42] dark:text-[#d7ceff] dark:hover:bg-[#2b2257]"
-                      : "border-[#9b86e8] text-[#4c2db8] hover:bg-[#f7f4ff] dark:border-[#6f5cc7] dark:text-[#d7ceff] dark:hover:bg-[#211a42]"
+                      ? "border-[#74c69d] bg-[#eef5f1] text-[#1b4332] hover:bg-[#dcefe4] dark:border-[#40916c] dark:bg-[#13231d] dark:text-[#b7e4c7] dark:hover:bg-[#13231d]"
+                      : "border-[#74c69d] text-[#1b4332] hover:bg-[#eef5f1] dark:border-[#40916c] dark:text-[#b7e4c7] dark:hover:bg-[#13231d]"
                 }`}
               >
                 {label}
@@ -1019,8 +1019,8 @@ function DashboardCourseCard({
                 }
                 className={`flex h-9 w-9 items-center justify-center rounded-md border transition disabled:cursor-wait disabled:opacity-70 ${
                   course.bookmarked
-                    ? "border-[#f43f7f] bg-[#f43f7f] text-white hover:bg-[#df2c6c]"
-                    : "border-[#d8cffa] text-[#5b2dcc] hover:bg-[#f7f4ff] dark:border-[#4a426e] dark:text-[#c9bbff] dark:hover:bg-[#211a42]"
+                    ? "border-[#d9603a] bg-[#d9603a] text-white hover:bg-[#b94a28]"
+                    : "border-[#cfe8da] text-[#2d6a4f] hover:bg-[#eef5f1] dark:border-[#27433a] dark:text-[#95d5b2] dark:hover:bg-[#13231d]"
                 }`}
               >
                 <Bookmark

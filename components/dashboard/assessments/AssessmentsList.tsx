@@ -198,15 +198,15 @@ export default function AssessmentsList({
           Manage upcoming, completed and graded assessments.
         </p>
         {dateRange && (
-          <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-md border border-[#d9d4e8] bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm dark:border-[#30364d] dark:bg-[#111525] dark:text-slate-200">
-            <CalendarDays className="h-4 w-4 flex-shrink-0 text-[#4f2ccf] dark:text-[#b9a8ff]" />
+          <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-md border border-[#d8d4c3] bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm dark:border-[#2f4238] dark:bg-[#16231c] dark:text-slate-200">
+            <CalendarDays className="h-4 w-4 flex-shrink-0 text-[#2d6a4f] dark:text-[#74c69d]" />
             <span className="min-w-0 truncate">
               Showing assessments due on {dateRange.label}
             </span>
             <button
               type="button"
               onClick={clearDateRange}
-              className="flex-shrink-0 rounded-md px-2 py-1 text-xs font-extrabold text-[#4f2ccf] transition hover:bg-[#f6f3ff] dark:text-[#b9a8ff] dark:hover:bg-[#171d31]"
+              className="flex-shrink-0 rounded-md px-2 py-1 text-xs font-extrabold text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#1b2a22]"
             >
               Clear
             </button>
@@ -254,8 +254,8 @@ export default function AssessmentsList({
       </section>
 
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="overflow-hidden rounded-lg border border-[#e5e3ee] bg-white shadow-sm dark:border-[#262a3d] dark:bg-[#111525]">
-          <div className="flex flex-col gap-3 border-b border-[#e8e6f0] px-4 py-3 dark:border-[#262a3d] lg:flex-row lg:items-center lg:justify-between">
+        <section className="overflow-hidden rounded-lg border border-[#e3dfd0] bg-white shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
+          <div className="flex flex-col gap-3 border-b border-[#e9e5d6] px-4 py-3 dark:border-[#26372e] lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 gap-5 overflow-x-auto swcl-sidebar-scroll">
               {TABS.map((tab) => {
                 const active = currentTab === tab.id;
@@ -266,13 +266,13 @@ export default function AssessmentsList({
                     onClick={() => changeTab(tab.id)}
                     className={`relative h-10 flex-shrink-0 px-1 text-sm font-extrabold transition-colors ${
                       active
-                        ? "text-[#4f2ccf] dark:text-[#b9a8ff]"
+                        ? "text-[#2d6a4f] dark:text-[#74c69d]"
                         : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
                     }`}
                   >
                     {tab.label}
                     {active && (
-                      <span className="absolute inset-x-0 -bottom-3 h-0.5 rounded-full bg-[#5b2ed4]" />
+                      <span className="absolute inset-x-0 -bottom-3 h-0.5 rounded-full bg-[#2d6a4f]" />
                     )}
                   </button>
                 );
@@ -288,7 +288,7 @@ export default function AssessmentsList({
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search assessments..."
-                  className="h-10 w-full rounded-md border border-[#e1deec] bg-white pl-10 pr-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#5b2ed4] focus:ring-4 focus:ring-[#5b2ed4]/10 dark:border-[#30364d] dark:bg-[#0f1726] dark:text-slate-100"
+                  className="h-10 w-full rounded-md border border-[#e3dfd0] bg-white pl-10 pr-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2d6a4f] focus:ring-4 focus:ring-[#2d6a4f]/10 dark:border-[#2f4238] dark:bg-[#0e1913] dark:text-slate-100"
                 />
               </label>
 
@@ -296,14 +296,14 @@ export default function AssessmentsList({
                 <button
                   type="button"
                   onClick={() => setFiltersOpen((value) => !value)}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#d9d4e8] bg-white px-3 text-sm font-extrabold text-[#4f2ccf] transition hover:bg-[#f6f3ff] dark:border-[#30364d] dark:bg-[#0f1726] dark:text-[#b9a8ff] dark:hover:bg-[#171d31] sm:w-auto"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#d8d4c3] bg-white px-3 text-sm font-extrabold text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:border-[#2f4238] dark:bg-[#0e1913] dark:text-[#74c69d] dark:hover:bg-[#1b2a22] sm:w-auto"
                 >
                   <Filter className="h-4 w-4" />
                   Filters
                 </button>
 
                 {filtersOpen && (
-                  <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-[#e5e3ee] bg-white p-2 shadow-xl dark:border-[#262a3d] dark:bg-[#111525]">
+                  <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-[#e3dfd0] bg-white p-2 shadow-xl dark:border-[#26372e] dark:bg-[#16231c]">
                     <FilterOption
                       label="All types"
                       active={!assessmentType}
@@ -351,7 +351,7 @@ export default function AssessmentsList({
               <div className="hidden overflow-x-auto swcl-sidebar-scroll xl:block">
                 <table className="w-full min-w-[980px] border-collapse">
                   <thead>
-                    <tr className="border-b border-[#e8e6f0] bg-[#fbfbfd] text-left text-xs font-extrabold text-slate-600 dark:border-[#262a3d] dark:bg-[#0f1726] dark:text-slate-400">
+                    <tr className="border-b border-[#e9e5d6] bg-[#fdfbf5] text-left text-xs font-extrabold text-slate-600 dark:border-[#26372e] dark:bg-[#0e1913] dark:text-slate-400">
                       <th className="px-4 py-3">Assessment</th>
                       <th className="px-4 py-3">Course</th>
                       <th className="px-4 py-3">Due Date</th>
@@ -387,7 +387,7 @@ export default function AssessmentsList({
 
               <div className="grid gap-3 p-3 xl:hidden">
                 {visibleAssessments.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-[#d9d4e8] bg-[#fbfaff] px-4 py-10 text-center text-sm font-semibold text-slate-500 dark:border-[#30364d] dark:bg-[#0f1726] dark:text-slate-400">
+                  <div className="rounded-lg border border-dashed border-[#d8d4c3] bg-[#f7fcf9] px-4 py-10 text-center text-sm font-semibold text-slate-500 dark:border-[#2f4238] dark:bg-[#0e1913] dark:text-slate-400">
                     No assessments match this view.
                   </div>
                 ) : (
@@ -400,7 +400,7 @@ export default function AssessmentsList({
                 )}
               </div>
 
-              <div className="flex flex-col gap-3 border-t border-[#e8e6f0] px-3 py-3 dark:border-[#262a3d] sm:px-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-3 border-t border-[#e9e5d6] px-3 py-3 dark:border-[#26372e] sm:px-4 lg:flex-row lg:items-center lg:justify-between">
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                   Showing {showingStart} to {showingEnd} of {totalItems}{" "}
                   assessments
@@ -413,11 +413,11 @@ export default function AssessmentsList({
                       onClick={() => changePage(currentPage - 1)}
                       disabled={currentPage <= 1}
                       aria-label="Previous page"
-                      className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e1deec] text-slate-600 transition hover:bg-[#f6f3ff] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#30364d] dark:text-slate-300 dark:hover:bg-[#171d31]"
+                      className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e3dfd0] text-slate-600 transition hover:bg-[#eef5f1] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#2f4238] dark:text-slate-300 dark:hover:bg-[#1b2a22]"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
-                    <span className="flex h-9 min-w-9 items-center justify-center rounded-md bg-[#5b2ed4] px-3 text-sm font-extrabold text-white">
+                    <span className="flex h-9 min-w-9 items-center justify-center rounded-md bg-[#2d6a4f] px-3 text-sm font-extrabold text-white">
                       {currentPage}
                     </span>
                     <button
@@ -425,7 +425,7 @@ export default function AssessmentsList({
                       onClick={() => changePage(currentPage + 1)}
                       disabled={currentPage >= Math.max(totalPages, 1)}
                       aria-label="Next page"
-                      className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e1deec] text-slate-600 transition hover:bg-[#f6f3ff] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#30364d] dark:text-slate-300 dark:hover:bg-[#171d31]"
+                      className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e3dfd0] text-slate-600 transition hover:bg-[#eef5f1] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#2f4238] dark:text-slate-300 dark:hover:bg-[#1b2a22]"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>
@@ -438,7 +438,7 @@ export default function AssessmentsList({
                       onChange={(event) =>
                         updateParam({ rows: event.target.value, page: "1" })
                       }
-                      className="h-9 rounded-md border border-[#e1deec] bg-white px-3 text-sm font-extrabold text-slate-800 outline-none dark:border-[#30364d] dark:bg-[#0f1726] dark:text-slate-100"
+                      className="h-9 rounded-md border border-[#e3dfd0] bg-white px-3 text-sm font-extrabold text-slate-800 outline-none dark:border-[#2f4238] dark:bg-[#0e1913] dark:text-slate-100"
                     >
                       <option value="10">10</option>
                       <option value="20">20</option>
@@ -495,7 +495,7 @@ function SummaryCard({
 }) {
   const tones = {
     violet:
-      "bg-violet-100 text-[#5b2ed4] dark:bg-violet-400/15 dark:text-violet-200",
+      "bg-violet-100 text-[#2d6a4f] dark:bg-violet-400/15 dark:text-violet-200",
     emerald:
       "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200",
     blue: "bg-blue-100 text-blue-700 dark:bg-blue-400/15 dark:text-blue-200",
@@ -505,7 +505,7 @@ function SummaryCard({
   return (
     <Link
       href={href}
-      className="grid min-h-[116px] grid-cols-[56px_minmax(0,1fr)] items-center gap-4 rounded-lg border border-[#e5e3ee] bg-white p-4 text-slate-950 no-underline shadow-sm transition hover:-translate-y-0.5 hover:border-[#c7bdf4] hover:shadow-md dark:border-[#262a3d] dark:bg-[#111525] dark:text-white"
+      className="grid min-h-[116px] grid-cols-[56px_minmax(0,1fr)] items-center gap-4 rounded-lg border border-[#e3dfd0] bg-white p-4 text-slate-950 no-underline shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-md dark:border-[#26372e] dark:bg-[#16231c] dark:text-white"
     >
       <span
         className={`flex h-14 w-14 items-center justify-center rounded-full ${tones[tone]}`}
@@ -515,7 +515,7 @@ function SummaryCard({
       <span className="min-w-0">
         <span className="block truncate text-sm font-extrabold">{title}</span>
         <span className="mt-1 block text-2xl font-extrabold">{value}</span>
-        <span className="mt-1 block text-xs font-extrabold text-[#4f2ccf] dark:text-[#b9a8ff]">
+        <span className="mt-1 block text-xs font-extrabold text-[#2d6a4f] dark:text-[#74c69d]">
           {action}
         </span>
       </span>
@@ -528,14 +528,14 @@ function AssessmentRow({ assessment }: { assessment: UserAssessment }) {
   const status = getStatusDisplay(assessment);
 
   return (
-    <tr className="border-b border-[#eeeaf5] transition hover:bg-[#fbfaff] dark:border-[#262a3d] dark:hover:bg-[#151a2b]">
+    <tr className="border-b border-[#f1eee2] transition hover:bg-[#f7fcf9] dark:border-[#26372e] dark:hover:bg-[#16231c]">
       <td className="px-4 py-4">
         <div className="flex min-w-0 items-center gap-3">
           <AssessmentIcon assessment={assessment} />
           <div className="min-w-0">
             <Link
               href={href}
-              className="line-clamp-2 text-sm font-extrabold text-slate-950 no-underline hover:text-[#4f2ccf] dark:text-white dark:hover:text-[#b9a8ff]"
+              className="line-clamp-2 text-sm font-extrabold text-slate-950 no-underline hover:text-[#2d6a4f] dark:text-white dark:hover:text-[#74c69d]"
             >
               {assessment.title}
             </Link>
@@ -602,7 +602,7 @@ function MobileAssessmentCard({ assessment }: { assessment: UserAssessment }) {
   const status = getStatusDisplay(assessment);
 
   return (
-    <article className="rounded-lg border border-[#eeeaf5] bg-white p-3 shadow-sm dark:border-[#262a3d] dark:bg-[#0f1726]">
+    <article className="rounded-lg border border-[#f1eee2] bg-white p-3 shadow-sm dark:border-[#26372e] dark:bg-[#0e1913]">
       <div className="flex min-w-0 items-start gap-3">
         <AssessmentIcon assessment={assessment} />
         <div className="min-w-0 flex-1">
@@ -610,7 +610,7 @@ function MobileAssessmentCard({ assessment }: { assessment: UserAssessment }) {
             <div className="min-w-0">
               <Link
                 href={href}
-                className="line-clamp-2 text-sm font-extrabold leading-5 text-slate-950 no-underline hover:text-[#4f2ccf] dark:text-white dark:hover:text-[#b9a8ff]"
+                className="line-clamp-2 text-sm font-extrabold leading-5 text-slate-950 no-underline hover:text-[#2d6a4f] dark:text-white dark:hover:text-[#74c69d]"
               >
                 {assessment.title}
               </Link>
@@ -700,7 +700,7 @@ function AssessmentActionButton({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 text-sm font-extrabold no-underline shadow-sm ring-1 ring-inset transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#111525] ${
+      className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 text-sm font-extrabold no-underline shadow-sm ring-1 ring-inset transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#16231c] ${
         fullWidth ? "mt-3 h-10 w-full" : "h-9 min-w-[118px] whitespace-nowrap"
       } ${action.className}`}
     >
@@ -746,7 +746,7 @@ function MobileMetric({
 }) {
   return (
     <div
-      className={`min-w-0 rounded-md bg-[#fbfbfd] p-2 dark:bg-[#111525] ${
+      className={`min-w-0 rounded-md bg-[#fdfbf5] p-2 dark:bg-[#16231c] ${
         fullWidth ? "col-span-2" : ""
       }`}
     >
@@ -772,7 +772,7 @@ function AssessmentIcon({ assessment }: { assessment: UserAssessment }) {
   const submitted = status === "SUBMITTED";
 
   let className =
-    "bg-violet-100 text-[#5b2ed4] dark:bg-violet-400/15 dark:text-violet-200";
+    "bg-violet-100 text-[#2d6a4f] dark:bg-violet-400/15 dark:text-violet-200";
   let Icon = type === "ESSAY" ? FilePenLine : type === "QUIZ_GROUP" ? Layers : BookOpenCheck;
 
   if (completed) {
@@ -895,7 +895,7 @@ function AssessmentCalendar({
   }
 
   return (
-    <section className="w-full rounded-lg border border-[#e5e3ee] bg-white p-4 shadow-sm dark:border-[#262a3d] dark:bg-[#111525]">
+    <section className="w-full rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CalendarDays className="h-5 w-5 text-slate-600 dark:text-slate-300" />
@@ -910,7 +910,7 @@ function AssessmentCalendar({
           type="button"
           onClick={() => setMonthOffset((value) => value - 1)}
           aria-label="Previous month"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-[#4f2ccf] transition hover:bg-[#f6f3ff] dark:text-[#b9a8ff] dark:hover:bg-[#171d31]"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#1b2a22]"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -924,7 +924,7 @@ function AssessmentCalendar({
           type="button"
           onClick={() => setMonthOffset((value) => value + 1)}
           aria-label="Next month"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-[#4f2ccf] transition hover:bg-[#f6f3ff] dark:text-[#b9a8ff] dark:hover:bg-[#171d31]"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#1b2a22]"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -956,23 +956,23 @@ function AssessmentCalendar({
                   ? `${itemsCount} assessment${itemsCount === 1 ? "" : "s"} due`
                   : "Filter assessments by this date"
               }
-              className={`relative flex h-9 w-9 items-center justify-center justify-self-center rounded-full text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5b2ed4] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#111525] ${
+              className={`relative flex h-9 w-9 items-center justify-center justify-self-center rounded-full text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6a4f] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#16231c] ${
                 isActive
-                  ? "bg-slate-950 text-white ring-2 ring-[#5b2ed4] dark:bg-white dark:text-slate-950"
+                  ? "bg-slate-950 text-white ring-2 ring-[#2d6a4f] dark:bg-white dark:text-slate-950"
                   : isDue
-                    ? "bg-[#5b2ed4] text-white hover:bg-[#4820b8]"
+                    ? "bg-[#2d6a4f] text-white hover:bg-[#1b4332]"
                     : isDueThisWeek
                       ? "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-400/15 dark:text-amber-200"
                       : isComplete
                         ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-400/15 dark:text-emerald-200"
                         : day.inCurrentMonth
-                          ? "text-slate-700 hover:bg-[#f6f3ff] hover:text-[#4f2ccf] dark:text-slate-300 dark:hover:bg-[#171d31] dark:hover:text-[#b9a8ff]"
+                          ? "text-slate-700 hover:bg-[#eef5f1] hover:text-[#2d6a4f] dark:text-slate-300 dark:hover:bg-[#1b2a22] dark:hover:text-[#74c69d]"
                           : "text-slate-400 hover:bg-slate-50 dark:text-slate-600 dark:hover:bg-white/5"
               }`}
             >
               {day.date.getDate()}
               {itemsCount > 0 && !isDue && !isComplete && !isDueThisWeek && (
-                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#5b2ed4]" />
+                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#2d6a4f]" />
               )}
             </button>
           );
@@ -980,7 +980,7 @@ function AssessmentCalendar({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-3 text-xs font-medium text-slate-600 dark:text-slate-400">
-        <Legend color="bg-[#5b2ed4]" label={`Due soon (${dueSoonDates.size})`} />
+        <Legend color="bg-[#2d6a4f]" label={`Due soon (${dueSoonDates.size})`} />
         <Legend color="bg-amber-500" label="Due this week" />
         <Legend color="bg-emerald-500" label={`Completed (${completedDates.size})`} />
       </div>
@@ -1000,21 +1000,21 @@ function SideList({
   empty: string;
 }) {
   return (
-    <section className="rounded-lg border border-[#e5e3ee] bg-white p-4 shadow-sm dark:border-[#262a3d] dark:bg-[#111525]">
+    <section className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
           {title}
         </h2>
         <Link
           href={href}
-          className="text-xs font-extrabold text-[#4f2ccf] no-underline dark:text-[#b9a8ff]"
+          className="text-xs font-extrabold text-[#2d6a4f] no-underline dark:text-[#74c69d]"
         >
           View all
         </Link>
       </div>
 
       {items.length === 0 ? (
-        <p className="rounded-md bg-slate-50 p-3 text-sm font-medium text-slate-500 dark:bg-[#0f1726] dark:text-slate-400">
+        <p className="rounded-md bg-slate-50 p-3 text-sm font-medium text-slate-500 dark:bg-[#0e1913] dark:text-slate-400">
           {empty}
         </p>
       ) : (
@@ -1023,7 +1023,7 @@ function SideList({
             <li key={item.item_id}>
               <Link
                 href={`/learn/${item.course_id}/item/${item.item_id}`}
-                className="grid grid-cols-[38px_minmax(0,1fr)] gap-3 rounded-md p-1.5 text-slate-950 no-underline transition hover:bg-[#fbfaff] dark:text-white dark:hover:bg-[#151a2b]"
+                className="grid grid-cols-[38px_minmax(0,1fr)] gap-3 rounded-md p-1.5 text-slate-950 no-underline transition hover:bg-[#f7fcf9] dark:text-white dark:hover:bg-[#16231c]"
               >
                 <AssessmentIcon assessment={item} />
                 <span className="min-w-0">
@@ -1048,21 +1048,21 @@ function SideList({
 
 function FeedbackList({ assessments }: { assessments: UserAssessment[] }) {
   return (
-    <section className="rounded-lg border border-[#e5e3ee] bg-white p-4 shadow-sm dark:border-[#262a3d] dark:bg-[#111525]">
+    <section className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
           Recent Feedback
         </h2>
         <Link
           href="/dashboard/assessments?tab=results"
-          className="text-xs font-extrabold text-[#4f2ccf] no-underline dark:text-[#b9a8ff]"
+          className="text-xs font-extrabold text-[#2d6a4f] no-underline dark:text-[#74c69d]"
         >
           View all
         </Link>
       </div>
 
       {assessments.length === 0 ? (
-        <p className="rounded-md bg-slate-50 p-3 text-sm font-medium text-slate-500 dark:bg-[#0f1726] dark:text-slate-400">
+        <p className="rounded-md bg-slate-50 p-3 text-sm font-medium text-slate-500 dark:bg-[#0e1913] dark:text-slate-400">
           Published scores and feedback will appear here.
         </p>
       ) : (
@@ -1077,7 +1077,7 @@ function FeedbackList({ assessments }: { assessments: UserAssessment[] }) {
                 <div className="flex items-start justify-between gap-2">
                   <Link
                     href={`/learn/${assessment.course_id}/item/${assessment.item_id}`}
-                    className="line-clamp-1 text-sm font-extrabold text-slate-950 no-underline hover:text-[#4f2ccf] dark:text-white dark:hover:text-[#b9a8ff]"
+                    className="line-clamp-1 text-sm font-extrabold text-slate-950 no-underline hover:text-[#2d6a4f] dark:text-white dark:hover:text-[#74c69d]"
                   >
                     {assessment.title}
                   </Link>
@@ -1123,10 +1123,10 @@ function FilterOption({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-[#f6f3ff] dark:text-slate-200 dark:hover:bg-[#171d31]"
+      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-[#eef5f1] dark:text-slate-200 dark:hover:bg-[#1b2a22]"
     >
       {label}
-      {active && <Check className="h-4 w-4 text-[#4f2ccf] dark:text-[#b9a8ff]" />}
+      {active && <Check className="h-4 w-4 text-[#2d6a4f] dark:text-[#74c69d]" />}
     </button>
   );
 }
@@ -1171,7 +1171,7 @@ function getActionConfig(assessment: UserAssessment): {
       label: "Start",
       icon: PlayCircle,
       className:
-        "bg-[#5b2ed4] text-white ring-[#5b2ed4] hover:bg-[#4820b8] focus-visible:ring-[#5b2ed4]",
+        "bg-[#2d6a4f] text-white ring-[#2d6a4f] hover:bg-[#1b4332] focus-visible:ring-[#2d6a4f]",
     };
   }
 
@@ -1215,7 +1215,7 @@ function getActionConfig(assessment: UserAssessment): {
     label: "Open",
     icon: FilePenLine,
     className:
-      "bg-white text-[#4f2ccf] ring-[#c7bdf4] hover:bg-[#f6f3ff] dark:bg-[#0f1726] dark:text-[#c9beff] dark:ring-[#51477d] dark:hover:bg-[#171d31] focus-visible:ring-[#5b2ed4]",
+      "bg-white text-[#2d6a4f] ring-[#cfe8da] hover:bg-[#eef5f1] dark:bg-[#0e1913] dark:text-[#95d5b2] dark:ring-[#27433a] dark:hover:bg-[#1b2a22] focus-visible:ring-[#2d6a4f]",
   };
 }
 

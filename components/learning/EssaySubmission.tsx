@@ -203,19 +203,19 @@ export function EssaySubmission({
         </section>
       )}
 
-      <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
+      <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#16231c]">
         <div className="border-b border-black/[0.06] px-4 py-3 dark:border-white/10 sm:px-5">
           <div className="flex flex-wrap gap-2 text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
+            <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#101b15]">
               {mode === "DOCUMENT" ? "Document upload" : "Text response"}
             </span>
             {deadline && (
-              <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
+              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#101b15]">
                 Due {deadline.toLocaleDateString()}
               </span>
             )}
             {typeof estimatedMinutes === "number" && estimatedMinutes > 0 && (
-              <span className="rounded-xl bg-[#f5f5f7] px-2 py-1 dark:bg-[#0f1218]">
+              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#101b15]">
                 {formatMinutes(estimatedMinutes)}
               </span>
             )}
@@ -235,7 +235,7 @@ export function EssaySubmission({
       </section>
 
       {hasSubmission && (
-        <section className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f] sm:p-5">
+        <section className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#16231c] sm:p-5">
           <div className="flex items-start gap-3">
             <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
               <CheckCircle className="h-5 w-5" />
@@ -284,7 +284,7 @@ export function EssaySubmission({
                 </div>
               )}
               {submission?.is_published && submission.feedback && (
-                <p className="mt-3 whitespace-pre-line rounded-xl bg-[#f5f5f7] p-3 text-sm leading-6 text-slate-700 dark:bg-[#0f1218] dark:text-slate-200">
+                <p className="mt-3 whitespace-pre-line rounded-xl bg-[#fbf8f0] p-3 text-sm leading-6 text-slate-700 dark:bg-[#101b15] dark:text-slate-200">
                   {submission.feedback}
                 </p>
               )}
@@ -317,7 +317,7 @@ export function EssaySubmission({
         </section>
       )}
 
-      <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
+      <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#16231c]">
         <div className="border-b border-black/[0.06] px-4 py-3 dark:border-white/10 sm:px-5">
           <h3 className="text-base font-semibold text-slate-950 dark:text-white">
             {hasSubmission ? "Resubmit Essay" : "Submit Essay"}
@@ -333,14 +333,14 @@ export function EssaySubmission({
               onChange={(event) => setContentText(event.target.value)}
               disabled={!canSubmit || submitting}
               rows={10}
-              className="min-h-[260px] w-full resize-y rounded-xl border border-black/[0.06] bg-[#fbfbfd] p-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 dark:border-white/10 dark:bg-[#0f1218] dark:text-white dark:focus:border-[#52b788] dark:focus:ring-[#52b788]/10 dark:disabled:bg-[#111525]"
+              className="min-h-[260px] w-full resize-y rounded-xl border border-black/[0.06] bg-[#fdfbf5] p-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 dark:border-white/10 dark:bg-[#101b15] dark:text-white dark:focus:border-[#52b788] dark:focus:ring-[#52b788]/10 dark:disabled:bg-[#16231c]"
               placeholder="Write your response here..."
             />
           ) : (
             <label className={`flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 text-center transition ${
               canSubmit
-                ? "border-[#2D6A4F]/25 bg-[#f5f5f7] hover:bg-[#eef8f2] dark:border-white/10 dark:bg-[#13231d] dark:hover:bg-white/[0.06]"
-                : "cursor-not-allowed border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-[#0f1218]"
+                ? "border-[#2D6A4F]/25 bg-[#fbf8f0] hover:bg-[#eef8f2] dark:border-white/10 dark:bg-[#13231d] dark:hover:bg-white/[0.06]"
+                : "cursor-not-allowed border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-[#101b15]"
             }`}>
               <Upload className="mb-3 h-7 w-7 text-[#2D6A4F] dark:text-[#52b788]" />
               <span className="font-semibold text-slate-950 dark:text-white">

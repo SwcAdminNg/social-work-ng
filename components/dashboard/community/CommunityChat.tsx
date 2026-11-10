@@ -1242,7 +1242,7 @@ export default function CommunityChat({
         </div>
 
         {mobileScreen === "chat" && (
-          <div className="fixed inset-0 z-40 flex flex-col bg-[#f8faf9] dark:bg-slate-950">
+          <div className="fixed inset-0 z-40 flex flex-col bg-[#fbf8f0] dark:bg-slate-950">
             <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-2 dark:border-slate-800 dark:bg-slate-950">
               <button
                 type="button"
@@ -1329,7 +1329,7 @@ export default function CommunityChat({
           </div>
         </aside>
 
-        <main className="flex min-w-0 flex-col bg-[#f8faf9] dark:bg-slate-950 xl:min-h-0">
+        <main className="flex min-w-0 flex-col bg-[#fbf8f0] dark:bg-slate-950 xl:min-h-0">
           <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950">
             <div className="min-w-0">
               <div className="flex items-center gap-2">

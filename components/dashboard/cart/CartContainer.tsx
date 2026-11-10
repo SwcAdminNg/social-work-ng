@@ -217,7 +217,7 @@ export default function CartContainer({
             {sortedItems.map((item) => (
               <article
                 key={item.course_id}
-                className="grid gap-4 rounded-lg border border-[#dceee4] bg-white p-3 shadow-sm dark:border-[#27433a] dark:bg-[#111525] sm:grid-cols-[160px_minmax(0,1fr)]"
+                className="grid gap-4 rounded-lg border border-[#dceee4] bg-white p-3 shadow-sm dark:border-[#27433a] dark:bg-[#16231c] sm:grid-cols-[160px_minmax(0,1fr)]"
               >
                 <Link
                   href={`/dashboard/course-catalogue/${item.course_slug}`}
@@ -252,7 +252,7 @@ export default function CartContainer({
                     type="button"
                     onClick={() => removeItem(item.course_id)}
                     disabled={pendingCourseId === item.course_id}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-red-200 bg-white px-3 text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-60 dark:border-red-500/30 dark:bg-[#111525] dark:text-red-300 dark:hover:bg-red-500/10"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-red-200 bg-white px-3 text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-60 dark:border-red-500/30 dark:bg-[#16231c] dark:text-red-300 dark:hover:bg-red-500/10"
                   >
                     {pendingCourseId === item.course_id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -267,7 +267,7 @@ export default function CartContainer({
           </div>
 
           <aside className="grid h-max gap-4 xl:sticky xl:top-[92px]">
-            <div className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
+            <div className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#16231c]">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-lg font-black text-slate-950 dark:text-white">
                   Order summary
@@ -307,7 +307,7 @@ export default function CartContainer({
                   <input
                     value={couponCode}
                     onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
-                    className="h-11 min-w-0 flex-1 rounded-md border border-[#dceee4] bg-white px-3 text-sm font-bold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#27433a] dark:bg-[#0f1726] dark:text-slate-100 dark:focus:border-[#52b788]"
+                    className="h-11 min-w-0 flex-1 rounded-md border border-[#dceee4] bg-white px-3 text-sm font-bold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#27433a] dark:bg-[#0e1913] dark:text-slate-100 dark:focus:border-[#52b788]"
                     placeholder="WELCOME20"
                   />
                   <button
@@ -377,7 +377,7 @@ export default function CartContainer({
                 type="button"
                 onClick={clearCart}
                 disabled={clearing || checkingOut}
-                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-[#111525] dark:text-slate-300 dark:hover:bg-slate-800"
+                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-[#16231c] dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Clear cart
@@ -386,7 +386,7 @@ export default function CartContainer({
           </aside>
         </section>
       ) : (
-        <div className="rounded-lg border border-dashed border-[#cfe8da] bg-white px-6 py-16 text-center dark:border-[#27433a] dark:bg-[#111525]">
+        <div className="rounded-lg border border-dashed border-[#cfe8da] bg-white px-6 py-16 text-center dark:border-[#27433a] dark:bg-[#16231c]">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
             <ShoppingCart className="h-7 w-7" />
           </div>

@@ -360,7 +360,7 @@ export default async function CourseCataloguePage(props: {
                 autoComplete="off"
 
                 placeholder="Search by course title or description..."
-                className="h-12 w-full rounded-md border border-[#dceee4] bg-white pl-12 pr-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-100 dark:focus:border-[#52b788]"
+                className="h-12 w-full rounded-md border border-[#dceee4] bg-white pl-12 pr-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#27433a] dark:bg-[#16231c] dark:text-slate-100 dark:focus:border-[#52b788]"
               />
             </label>
             <div className="flex gap-3 w-full sm:w-auto">
@@ -373,7 +373,7 @@ export default async function CourseCataloguePage(props: {
               </button>
               <a
                 href="#catalogue-filters"
-                className="inline-flex h-12 flex-1 sm:flex-none items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-5 text-sm font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:bg-[#111525] dark:text-[#b7e4c7] dark:hover:bg-[#183026] xl:hidden"
+                className="inline-flex h-12 flex-1 sm:flex-none items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-5 text-sm font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:bg-[#16231c] dark:text-[#b7e4c7] dark:hover:bg-[#183026] xl:hidden"
               >
                 <Filter className="h-4 w-4" />
                 Filters
@@ -417,7 +417,7 @@ export default async function CourseCataloguePage(props: {
                   )}
                 </div>
                 <div className="flex flex-shrink-0 flex-wrap gap-2 text-xs font-bold">
-                  <span className="rounded-md bg-white px-2.5 py-1 text-[#2D6A4F] shadow-sm dark:bg-[#111525] dark:text-[#b7e4c7]">
+                  <span className="rounded-md bg-white px-2.5 py-1 text-[#2D6A4F] shadow-sm dark:bg-[#16231c] dark:text-[#b7e4c7]">
                     {Number(selectedCatalog.total_courses || 0).toLocaleString()} courses
                   </span>
                   {(selectedCatalog.categories ?? []).slice(0, 2).map((item) => (
@@ -465,7 +465,7 @@ export default async function CourseCataloguePage(props: {
               </div>
             </>
           ) : (
-            <div className="rounded-lg border border-dashed border-[#cfe8da] bg-white px-6 py-16 text-center dark:border-[#27433a] dark:bg-[#111525]">
+            <div className="rounded-lg border border-dashed border-[#cfe8da] bg-white px-6 py-16 text-center dark:border-[#27433a] dark:bg-[#16231c]">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
                 <BookOpen className="h-7 w-7" />
               </div>
@@ -507,7 +507,7 @@ export default async function CourseCataloguePage(props: {
             ]}
           />
           <div className="rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-4 dark:border-[#27433a] dark:bg-[#13231d]">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-white text-[#2D6A4F] shadow-sm dark:bg-[#111525] dark:text-[#b7e4c7]">
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-white text-[#2D6A4F] shadow-sm dark:bg-[#16231c] dark:text-[#b7e4c7]">
               <Sparkles className="h-5 w-5" />
             </div>
             <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
@@ -540,7 +540,7 @@ function FilterChip({
       className={`inline-flex h-10 flex-shrink-0 items-center gap-2 rounded-md border px-4 text-sm font-bold no-underline transition ${
         active
           ? "border-[#2D6A4F] bg-[#2D6A4F] text-white shadow-[0_10px_24px_-18px_rgba(45,106,79,0.9)] dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
-          : "border-[#dceee4] bg-white text-slate-700 hover:border-[#95d5b2] hover:bg-[#f7fcf9] hover:text-[#2D6A4F] dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-300 dark:hover:border-[#52b788] dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7]"
+          : "border-[#dceee4] bg-white text-slate-700 hover:border-[#95d5b2] hover:bg-[#f7fcf9] hover:text-[#2D6A4F] dark:border-[#27433a] dark:bg-[#16231c] dark:text-slate-300 dark:hover:border-[#52b788] dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7]"
       }`}
     >
       {children}
@@ -561,7 +561,7 @@ function FilterPanel({
 }) {
   return (
     <details
-      className="group rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#111525] [&_summary::-webkit-details-marker]:hidden"
+      className="group rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#27433a] dark:bg-[#16231c] [&_summary::-webkit-details-marker]:hidden"
       open={true}
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 outline-none select-none">
@@ -636,7 +636,7 @@ function CourseTile({ course }: { course: Course }) {
 
   return (
     <article
-      className={`group flex min-h-full flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-lg dark:bg-[#111525] ${
+      className={`group flex min-h-full flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-lg dark:bg-[#16231c] ${
         canViewCourse
           ? "border-[#2D6A4F]/55 ring-1 ring-[#2D6A4F]/20 dark:border-[#52b788]/60 dark:ring-[#52b788]/20"
           : "border-[#e3ede7] dark:border-[#27433a]"
@@ -661,7 +661,7 @@ function CourseTile({ course }: { course: Course }) {
             )}
           </div>
           {canViewCourse && (
-            <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-[#2D6A4F] shadow-sm dark:bg-[#111525]/95 dark:text-[#b7e4c7]">
+            <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-[#2D6A4F] shadow-sm dark:bg-[#16231c]/95 dark:text-[#b7e4c7]">
               <Check className="h-3 w-3" strokeWidth={3} />
               {isCompleted ? "Completed" : isEnrolled ? "Enrolled" : "Access"}
             </span>
@@ -873,7 +873,7 @@ function PageButton({
       ? "border-[#2D6A4F] bg-[#2D6A4F] text-white dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
       : disabled
         ? "pointer-events-none border-[#e8eee9] bg-[#f8faf8] text-slate-300 dark:border-[#223329] dark:bg-[#111a14] dark:text-slate-700"
-        : "border-[#dceee4] bg-white text-slate-700 hover:border-[#95d5b2] hover:bg-[#f7fcf9] hover:text-[#2D6A4F] dark:border-[#27433a] dark:bg-[#111525] dark:text-slate-300 dark:hover:border-[#52b788] dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7]"
+        : "border-[#dceee4] bg-white text-slate-700 hover:border-[#95d5b2] hover:bg-[#f7fcf9] hover:text-[#2D6A4F] dark:border-[#27433a] dark:bg-[#16231c] dark:text-slate-300 dark:hover:border-[#52b788] dark:hover:bg-[#183026] dark:hover:text-[#b7e4c7]"
   }`;
 
   return (

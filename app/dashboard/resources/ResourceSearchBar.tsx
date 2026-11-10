@@ -46,7 +46,7 @@ export function ResourceSearchBar({ initialSearch }: { initialSearch: string }) 
         value={value}
         onChange={(event) => setValue(event.target.value)}
         placeholder="Search resources by title or topic..."
-        className="h-11 w-full rounded-lg border border-[#e2e8ea] bg-white pl-10 pr-9 text-sm font-semibold text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#273343] dark:bg-[#0f1726] dark:text-white dark:focus:border-[#52b788]"
+        className="h-11 w-full rounded-lg border border-[#e3dfd0] bg-white pl-10 pr-9 text-sm font-semibold text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#26372e] dark:bg-[#0e1913] dark:text-white dark:focus:border-[#52b788]"
       />
       {value && (
         <button

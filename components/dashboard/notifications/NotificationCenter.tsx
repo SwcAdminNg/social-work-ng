@@ -367,11 +367,11 @@ export function NotificationCenter() {
         onClick={() => setOpen((value) => !value)}
         aria-label="Notifications"
         aria-expanded={open}
-        className="relative flex h-10 w-10 items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-[#eef8f2] hover:text-[#2D6A4F] dark:text-slate-300 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7]"
+        className="lms-icon-btn"
       >
         <Bell className="h-5 w-5" strokeWidth={1.9} />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f43f5e] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:ring-[#111525]">
+          <span className="lms-dot">
             {unreadBadgeLabel(unreadCount)}
           </span>
         )}
@@ -379,13 +379,11 @@ export function NotificationCenter() {
 
       <div
         hidden={!open}
-        className={`absolute right-0 z-50 mt-2 w-[23rem] max-w-[calc(100vw-2rem)] origin-top-right rounded-lg border border-[#e5e3ee] bg-white shadow-xl transition-all duration-150 dark:border-[#262a3d] dark:bg-[#111525] ${
-          open
-            ? "pointer-events-auto scale-100 opacity-100"
-            : "pointer-events-none scale-95 opacity-0"
+        className={`fixed inset-x-3 top-[5.25rem] z-50 rounded-[24px] bg-card shadow-[inset_0_0_0_1px_var(--sw-line),0_34px_70px_-24px_rgba(4,18,11,0.45)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-3 sm:w-[24rem] ${
+          open ? "lms-pop" : ""
         }`}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-[#eceaf4] px-4 py-3 dark:border-[#262a3d]">
+        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-950 dark:text-white">
               Notifications
@@ -406,7 +404,7 @@ export function NotificationCenter() {
               type="button"
               onClick={() => loadNotifications(1)}
               disabled={loading}
-              className="grid h-8 w-8 place-items-center rounded-md text-slate-500 transition hover:bg-[#eef8f2] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7]"
+              className="lms-icon-btn h-9 w-9 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Refresh notifications"
               title="Refresh"
             >
@@ -416,7 +414,7 @@ export function NotificationCenter() {
               type="button"
               onClick={markAllRead}
               disabled={markingAll || unreadCount === 0}
-              className="grid h-8 w-8 place-items-center rounded-md text-slate-500 transition hover:bg-[#eef8f2] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-[#52b788]/12 dark:hover:text-[#b7e4c7]"
+              className="lms-icon-btn h-9 w-9 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Mark all as read"
               title="Mark all as read"
             >
@@ -429,7 +427,7 @@ export function NotificationCenter() {
           </div>
         </div>
 
-        <div className="max-h-96 overflow-y-auto p-2">
+        <div className="lms-scroll max-h-[min(24rem,60dvh)] overflow-y-auto p-2">
           {loading && items.length === 0 ? (
             <div className="flex items-center justify-center gap-2 px-4 py-10 text-sm font-semibold text-slate-500 dark:text-slate-400">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -452,7 +450,7 @@ export function NotificationCenter() {
                   <button
                     type="button"
                     onClick={() => markReadAndOpen(notification)}
-                    className="flex w-full cursor-pointer gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-[#f7fcf9] dark:hover:bg-[#52b788]/12"
+                    className="flex w-full cursor-pointer gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-mint dark:hover:bg-white/[0.07]"
                   >
                     <span
                       className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
@@ -493,14 +491,14 @@ export function NotificationCenter() {
           )}
         </div>
 
-        <div className="border-t border-[#eceaf4] p-2 dark:border-[#262a3d]">
+        <div className="border-t border-line p-2">
           <button
             type="button"
             onClick={() => {
               setOpen(false);
               router.push("/dashboard/notifications");
             }}
-            className="flex h-10 w-full items-center justify-center rounded-md text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f7fcf9] dark:text-[#b7e4c7] dark:hover:bg-[#52b788]/12"
+            className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full text-sm font-semibold text-accent transition-colors hover:bg-mint dark:hover:bg-white/[0.07]"
           >
             Open notification inbox
           </button>

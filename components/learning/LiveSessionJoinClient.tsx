@@ -75,8 +75,8 @@ export function LiveSessionJoinClient({
   }, [join]);
 
   return (
-    <div className="flex min-h-[70dvh] items-center justify-center bg-[#f5f5f7] px-4 py-12 dark:bg-[#0a0c11]">
-      <div className="w-full max-w-md rounded-2xl border border-black/[0.06] bg-white p-6 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
+    <div className="flex min-h-[70dvh] items-center justify-center bg-[#fbf8f0] px-4 py-12 dark:bg-[#0b1410]">
+      <div className="w-full max-w-md rounded-2xl border border-black/[0.06] bg-white p-6 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#16231c]">
         <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
           {loading ? (
             <IconSpinner className="h-6 w-6 animate-spin" />

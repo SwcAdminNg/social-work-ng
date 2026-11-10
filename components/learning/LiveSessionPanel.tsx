@@ -67,7 +67,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
 
   if (recordingReady && item.live_session_recording_url) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
+      <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#16231c]">
         <VideoPlayer
           url={item.live_session_recording_url}
           courseId={courseId}
@@ -79,7 +79,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#14171f]">
+    <section className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#16231c]">
       <div className="bg-slate-950 px-4 py-5 text-white sm:px-5 lg:px-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
@@ -138,7 +138,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
           />
         </div>
 
-        <div className="rounded-2xl border border-black/[0.06] bg-[#f5f5f7] p-4 dark:border-white/10 dark:bg-[#13231d] sm:p-5">
+        <div className="rounded-2xl border border-black/[0.06] bg-[#fbf8f0] p-4 dark:border-white/10 dark:bg-[#13231d] sm:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-950 dark:text-white">
@@ -159,7 +159,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
                   if (meetingWindow) {
                     meetingWindow.document.title = "Opening live session";
                     meetingWindow.document.body.innerHTML =
-                      '<div style="font-family: system-ui, sans-serif; min-height: 100vh; display: grid; place-items: center; color: #0f172a;"><div><strong>Opening live session...</strong><p style="color: #475569;">Please wait while we create your secure Daily link.</p></div></div>';
+                      '<div style="font-family: system-ui, sans-serif; min-height: 100vh; display: grid; place-items: center; color: #0b1410;"><div><strong>Opening live session...</strong><p style="color: #4a5c52;">Please wait while we create your secure Daily link.</p></div></div>';
                   }
 
                   try {
@@ -289,7 +289,7 @@ function InfoTile({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-[#14171f]">
+    <div className="rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-[#16231c]">
       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
         {icon}
       </div>
@@ -313,7 +313,7 @@ function PreparationItem({
   text: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-[#14171f]">
+    <div className="rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-[#16231c]">
       <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
         {icon}
       </div>

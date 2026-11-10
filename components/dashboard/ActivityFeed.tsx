@@ -242,7 +242,7 @@ export function ActivityFeed({
 
   if (loading && activities.length === 0) {
     return (
-      <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 sm:p-8 min-h-[300px] flex items-center justify-center shadow-sm">
+      <div className="lms-card p-6 sm:p-8 min-h-[300px] flex items-center justify-center">
         <IconSpinner className="w-8 h-8 animate-spin text-[#2D6A4F]" />
       </div>
     );
@@ -250,7 +250,7 @@ export function ActivityFeed({
 
   if (error && activities.length === 0) {
     return (
-      <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-sm">
+      <div className="lms-card p-6 sm:p-8">
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Recent Activity</h3>
         <p className="text-sm text-red-500">Failed to load activity feed. Please try again later.</p>
       </div>
@@ -258,13 +258,10 @@ export function ActivityFeed({
   }
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden relative">
-      <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Recent Activity</h3>
-        <span className="text-xs font-semibold px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5" />
-          Timeline
-        </span>
+    <div className="lms-card overflow-hidden relative">
+      <div className="px-5 pb-4 pt-5 sm:px-7 sm:pt-7">
+        <p className="lms-kicker m-0">Timeline</p>
+        <h2 className="sw-title m-0 mt-2.5 text-[1.45rem] text-ink sm:text-[1.6rem]">Recent activity</h2>
       </div>
 
       {isFetching && !isPending && (
@@ -291,7 +288,7 @@ export function ActivityFeed({
               return (
                 <li
                   key={item.id}
-                  className={`relative p-5 sm:px-6 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
+                  className={`relative px-5 py-4 sm:px-7 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
                     !isLast ? "border-b border-gray-100 dark:border-gray-800/80" : ""
                   }`}
                 >
@@ -317,7 +314,7 @@ export function ActivityFeed({
           </ul>
 
           {(page > 1 || page < totalPages) && (
-            <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/30 flex items-center justify-between">
+            <div className="px-5 py-4 sm:px-7 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
               <span
                 aria-live="polite"
                 role="status"
@@ -329,7 +326,7 @@ export function ActivityFeed({
                 <button
                   onClick={handlePrev}
                   disabled={page === 1 || loading}
-                  className="inline-flex h-9 items-center justify-center gap-1 rounded-lg bg-white dark:bg-gray-800 px-3 text-sm font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  className="inline-flex h-10 items-center justify-center gap-1 rounded-full bg-white dark:bg-gray-800 px-4 text-sm font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Prev
@@ -337,7 +334,7 @@ export function ActivityFeed({
                 <button
                   onClick={handleNext}
                   disabled={page >= totalPages || loading}
-                  className="inline-flex h-9 items-center justify-center gap-1 rounded-lg bg-white dark:bg-gray-800 px-3 text-sm font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  className="inline-flex h-10 items-center justify-center gap-1 rounded-full bg-white dark:bg-gray-800 px-4 text-sm font-semibold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />
