@@ -26,6 +26,16 @@ import { getPageTitle } from "./nav-items";
 import { NotificationCenter } from "./notifications/NotificationCenter";
 import { LogoutButton } from "./LogoutButton";
 
+/** Example searches the placeholder types out, in turn. */
+const TYPING_PHRASES = [
+  "Search courses, topics, instructors",
+  "Try “child protection”",
+  "Try “case management”",
+  "Try “mental health first aid”",
+  "Try “ethics in social work”",
+  "Try “counselling skills”",
+];
+
 const menuLinks = [
   { label: "Certificates", href: "/dashboard/certificates", icon: Award },
   { label: "Payment & billing", href: "/dashboard/orders", icon: CreditCard },
@@ -115,6 +125,59 @@ export function DashboardHeader() {
     };
   }, [profileOpen]);
 
+  // The placeholder types out example searches, then erases them, like a
+  // person typing. It is written straight to the input (no re-renders), rests
+  // while the field is focused or the tab is hidden, and stays still for
+  // people who ask for reduced motion. The field's name comes from its label.
+  useEffect(() => {
+    const input = searchRef.current;
+    if (!input) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let phrase = 0;
+    let length = TYPING_PHRASES[0].length;
+    let deleting = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const step = () => {
+      const resting = document.activeElement === input || document.hidden;
+      if (resting) {
+        input.placeholder = TYPING_PHRASES[0];
+        phrase = 0;
+        length = TYPING_PHRASES[0].length;
+        deleting = false;
+        timer = setTimeout(step, 1500);
+        return;
+      }
+      const text = TYPING_PHRASES[phrase];
+      let delay: number;
+      if (!deleting) {
+        if (length < text.length) {
+          length += 1;
+          delay = 45 + Math.random() * 55;
+        } else {
+          deleting = true;
+          delay = phrase === 0 ? 2600 : 1700;
+        }
+      } else if (length > 0) {
+        length -= 1;
+        delay = 22;
+      } else {
+        deleting = false;
+        phrase = (phrase + 1) % TYPING_PHRASES.length;
+        delay = 350;
+      }
+      input.placeholder = TYPING_PHRASES[phrase].slice(0, length) || " ";
+      timer = setTimeout(step, delay);
+    };
+
+    timer = setTimeout(step, 2600);
+    return () => {
+      clearTimeout(timer);
+      input.placeholder = TYPING_PHRASES[0];
+    };
+  }, []);
+
   // "/" jumps to search from anywhere that is not already a text field.
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -178,7 +241,7 @@ export function DashboardHeader() {
               }}
               autoComplete="off"
               enterKeyHint="search"
-              placeholder="Search courses, topics, instructors"
+              placeholder={TYPING_PHRASES[0]}
             />
             {query ? (
               <button
