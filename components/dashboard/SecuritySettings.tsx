@@ -49,7 +49,7 @@ export function SecuritySettings() {
 
   return (
     <div className="max-w-4xl">
-      <div className="bg-white dark:bg-[#0b1410] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#19211d] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-100 dark:border-gray-800">
           <div className="w-10 h-10 rounded-full bg-[#2D6A4F]/10 flex items-center justify-center">
             <ShieldCheck className="w-6 h-6 text-[#2D6A4F]" />

@@ -261,7 +261,7 @@ export function CourseDetailAction({
           type="button"
           onClick={addToCart}
           disabled={loading || cartLoading}
-          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-white px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-70 dark:border-[#315244] dark:bg-[#13231d] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-white px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-70 dark:border-[#315244] dark:bg-[#202a25] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35]"
         >
           {cartLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -301,7 +301,7 @@ export function CourseDetailAction({
                 </p>
               </div>
               {typeof price === "number" && (
-                <div className="rounded-lg bg-[#f1fbf6] px-4 py-3 dark:bg-[#10261c] sm:text-right">
+                <div className="rounded-lg bg-[#f1fbf6] px-4 py-3 dark:bg-[#22352c] sm:text-right">
                   <p className="text-xs font-bold uppercase text-[#2D6A4F] dark:text-[#95d5b2]">
                     Total
                   </p>
@@ -312,9 +312,9 @@ export function CourseDetailAction({
               )}
             </div>
 
-            <div className="mb-5 rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-3 dark:border-[#27433a] dark:bg-[#13231d]">
+            <div className="mb-5 rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-3 dark:border-[#35514a] dark:bg-[#202a25]">
               {checkoutEstimate && (
-                <dl className="mb-4 grid gap-2 border-b border-[#dceee4] pb-4 text-sm dark:border-[#27433a]">
+                <dl className="mb-4 grid gap-2 border-b border-[#dceee4] pb-4 text-sm dark:border-[#35514a]">
                   <CheckoutRow label="Subtotal" value={formatNaira(price || 0)} />
                   {discountAmount > 0 && (
                     <CheckoutRow
@@ -339,7 +339,7 @@ export function CourseDetailAction({
                   value={couponCode}
                   onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
                   placeholder="Coupon code"
-                  className="h-10 min-w-0 flex-1 rounded-md border border-[#dceee4] bg-white px-3 text-sm font-bold text-gray-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#27433a] dark:bg-gray-950 dark:text-white dark:focus:border-[#52b788]"
+                  className="h-10 min-w-0 flex-1 rounded-md border border-[#dceee4] bg-white px-3 text-sm font-bold text-gray-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#35514a] dark:bg-gray-950 dark:text-white dark:focus:border-[#52b788]"
                 />
                 <button
                   type="button"

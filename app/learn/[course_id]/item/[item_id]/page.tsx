@@ -223,8 +223,8 @@ export default async function LearningItemPage(props: {
           </header>
 
         {item.item_type === "DOCUMENT" && item.document_url && (
-          <div className="flex h-[calc(100dvh-220px)] min-h-[420px] w-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[#16231c] dark:ring-white/10">
-            <div className="flex flex-shrink-0 flex-col gap-3 border-b border-black/[0.06] bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#16231c]/80 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex h-[calc(100dvh-220px)] min-h-[420px] w-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[#232d28] dark:ring-white/10">
+            <div className="flex flex-shrink-0 flex-col gap-3 border-b border-black/[0.06] bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#232d28]/80 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7] [&>svg]:h-5 [&>svg]:w-5">
                   <IconClipboardCheck />
@@ -246,7 +246,7 @@ export default async function LearningItemPage(props: {
                 />
               </div>
             </div>
-            <div className="w-full flex-1 bg-slate-100 dark:bg-[#0b1410]">
+            <div className="w-full flex-1 bg-slate-100 dark:bg-[#19211d]">
               <iframe
                 src={getDocumentViewerUrl(params.course_id, item.id, item.document_url)}
                 title={item.title}
@@ -339,7 +339,7 @@ export default async function LearningItemPage(props: {
         )}
 
         {item.item_type === "ASSESSMENT" && !isQuiz && !isEssay && !isQuizGroup && (
-          <div className="rounded-2xl border border-black/[0.06] bg-white p-5 text-center text-sm font-medium text-slate-600 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#16231c] dark:text-slate-300">
+          <div className="rounded-2xl border border-black/[0.06] bg-white p-5 text-center text-sm font-medium text-slate-600 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#232d28] dark:text-slate-300">
             This assessment type is not available yet.
           </div>
         )}
@@ -349,7 +349,7 @@ export default async function LearningItemPage(props: {
           {prevItem ? (
             <Link 
               href={`/learn/${params.course_id}/item/${prevItem.id}`}
-              className="grid min-h-[72px] grid-cols-[20px_minmax(0,1fr)] items-center gap-3 rounded-full bg-white px-6 py-3 text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition-[box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_14px_30px_-14px_rgba(0,0,0,0.18)] dark:bg-[#16231c] dark:text-slate-300 dark:ring-white/10"
+              className="grid min-h-[72px] grid-cols-[20px_minmax(0,1fr)] items-center gap-3 rounded-full bg-white px-6 py-3 text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition-[box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_14px_30px_-14px_rgba(0,0,0,0.18)] dark:bg-[#232d28] dark:text-slate-300 dark:ring-white/10"
             >
               <ChevronLeft className="h-5 w-5" />
               <div className="min-w-0 text-left">

@@ -228,7 +228,7 @@ export function NotificationInbox({
             type="button"
             onClick={() => fetchNotifications(1)}
             disabled={loading}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-3 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#27433a] dark:bg-[#16231c] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-3 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#35514a] dark:bg-[#232d28] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35]"
           >
             <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -251,8 +251,8 @@ export function NotificationInbox({
         <SummaryCard label="Total In View" value={totalItems} />
       </section>
 
-      <section className="overflow-hidden rounded-lg border border-[#e3dfd0] bg-white shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
-        <div className="flex flex-col gap-3 border-b border-[#e9e5d6] px-4 py-3 dark:border-[#26372e] sm:flex-row sm:items-center sm:justify-between">
+      <section className="overflow-hidden rounded-lg border border-[#e3dfd0] bg-white shadow-sm dark:border-[#35433c] dark:bg-[#232d28]">
+        <div className="flex flex-col gap-3 border-b border-[#e9e5d6] px-4 py-3 dark:border-[#35433c] sm:flex-row sm:items-center sm:justify-between">
           <div className="flex gap-2">
             <FilterButton active={filter === "all"} onClick={() => changeFilter("all")}>
               All
@@ -284,13 +284,13 @@ export function NotificationInbox({
             </p>
           </div>
         ) : (
-          <ul className="m-0 list-none divide-y divide-[#f1eee2] p-0 dark:divide-[#26372e]">
+          <ul className="m-0 list-none divide-y divide-[#f1eee2] p-0 dark:divide-[#35433c]">
             {items.map((notification) => (
               <li key={notification.id}>
                 <button
                   type="button"
                   onClick={() => openNotification(notification)}
-                  className="grid w-full gap-3 px-4 py-4 text-left transition hover:bg-[#fdfbf5] dark:hover:bg-[#16231c] sm:grid-cols-[44px_minmax(0,1fr)_auto] sm:items-start"
+                  className="grid w-full gap-3 px-4 py-4 text-left transition hover:bg-[#fdfbf5] dark:hover:bg-[#232d28] sm:grid-cols-[44px_minmax(0,1fr)_auto] sm:items-start"
                 >
                   <span className={`grid h-11 w-11 place-items-center rounded-md ${iconTone(notification.type)}`}>
                     {notificationIcon(notification.type)}
@@ -317,7 +317,7 @@ export function NotificationInbox({
                       {!getSafeNotificationPath(notification.link) && <span>No link</span>}
                     </span>
                   </span>
-                  <span className="hidden rounded-md border border-[#dceee4] px-2.5 py-1 text-xs font-bold text-slate-500 dark:border-[#27433a] dark:text-slate-400 sm:inline-flex">
+                  <span className="hidden rounded-md border border-[#dceee4] px-2.5 py-1 text-xs font-bold text-slate-500 dark:border-[#35514a] dark:text-slate-400 sm:inline-flex">
                     {notification.is_read ? "Read" : "Unread"}
                   </span>
                 </button>
@@ -327,12 +327,12 @@ export function NotificationInbox({
         )}
 
         {hasNext && (
-          <div className="border-t border-[#e9e5d6] p-4 dark:border-[#26372e]">
+          <div className="border-t border-[#e9e5d6] p-4 dark:border-[#35433c]">
             <button
               type="button"
               onClick={() => fetchNotifications(page + 1)}
               disabled={loadingMore}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#27433a] dark:bg-[#16231c] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#35514a] dark:bg-[#232d28] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35]"
             >
               {loadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
               Load more notifications
@@ -346,7 +346,7 @@ export function NotificationInbox({
 
 function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
+    <div className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#35433c] dark:bg-[#232d28]">
       <p className="text-2xl font-extrabold text-slate-950 dark:text-white">
         {value.toLocaleString()}
       </p>
@@ -373,7 +373,7 @@ function FilterButton({
       className={`inline-flex h-9 items-center rounded-md px-3 text-sm font-extrabold transition ${
         active
           ? "bg-[#2D6A4F] text-white dark:bg-[#52b788] dark:text-[#06130d]"
-          : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-[#0e1913] dark:text-slate-300 dark:hover:bg-[#1b2a22]"
+          : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-[#1b241f] dark:text-slate-300 dark:hover:bg-[#2a3530]"
       }`}
     >
       {children}

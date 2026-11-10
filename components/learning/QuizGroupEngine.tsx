@@ -384,7 +384,7 @@ export function QuizGroupEngine({
           aria-live="polite"
           className={`rounded-2xl border p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] sm:p-5 ${
             result.result_visible && result.passed
-              ? "border-[#2D6A4F]/25 bg-[#f0fbf5] dark:border-white/10 dark:bg-[#13231d]"
+              ? "border-[#2D6A4F]/25 bg-[#f0fbf5] dark:border-white/10 dark:bg-[#202a25]"
               : result.result_visible && result.passed === false
                 ? "border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20"
                 : "border-blue-200 bg-blue-50 dark:border-blue-900/40 dark:bg-blue-950/20"
@@ -436,7 +436,7 @@ export function QuizGroupEngine({
               <button
                 onClick={handleStart}
                 disabled={starting}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#2D6A4F]/25 bg-white px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-[#16231c] dark:text-[#b7e4c7] dark:hover:bg-white/[0.06] sm:w-auto"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#2D6A4F]/25 bg-white px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-[#232d28] dark:text-[#b7e4c7] dark:hover:bg-white/[0.06] sm:w-auto"
               >
                 {starting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
                 {result.passed ? "Retake" : "Try Again"}
@@ -463,38 +463,38 @@ export function QuizGroupEngine({
       )}
 
       {!attempt && !result && (
-        <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#16231c]">
+        <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#232d28]">
           <div className="border-b border-black/[0.06] px-4 py-3 dark:border-white/10 sm:px-5">
             <h2 className="text-base font-semibold text-slate-950 dark:text-white">Quiz Group</h2>
             <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#101b15]">
+              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1e2722]">
                 {quizGroup.sections.length} sections
               </span>
               {typeof quizGroup.pass_mark_percentage === "number" && (
-                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#101b15]">
+                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1e2722]">
                   {quizGroup.pass_mark_percentage}% pass mark
                 </span>
               )}
               {typeof estimatedMinutes === "number" && estimatedMinutes > 0 && (
-                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#101b15]">
+                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1e2722]">
                   {formatMinutes(estimatedMinutes)}
                 </span>
               )}
               {quizGroup.time_limit_seconds ? (
-                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#101b15]">
+                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1e2722]">
                   {formatSeconds(quizGroup.time_limit_seconds)} time limit
                 </span>
               ) : null}
-              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#101b15]">{attemptLabel}</span>
+              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1e2722]">{attemptLabel}</span>
               {deadline && (
-                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#101b15]">
+                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1e2722]">
                   Due {deadline.toLocaleDateString()}
                 </span>
               )}
             </div>
           </div>
 
-          <div className="divide-y divide-[#edf5f0] dark:divide-[#24372e]">
+          <div className="divide-y divide-[#edf5f0] dark:divide-[#33433b]">
             {quizGroup.sections.map((sec, idx) => (
               <div key={sec.id} className="flex items-center justify-between px-4 py-3 sm:px-5">
                 <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
@@ -534,8 +534,8 @@ export function QuizGroupEngine({
       )}
 
       {attempt && (
-        <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#16231c]">
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/[0.06] bg-white/95 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#16231c]/95 sm:px-5">
+        <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#232d28]">
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/[0.06] bg-white/95 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#232d28]/95 sm:px-5">
             <h2 className="text-base font-semibold text-slate-950 dark:text-white">Quiz Group</h2>
             {remainingMs != null && (
               <span
@@ -579,7 +579,7 @@ export function QuizGroupEngine({
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-label="Quiz progress"
-                    className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#101b15] sm:w-52"
+                    className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#1e2722] sm:w-52"
                   >
                     <div
                       className="h-full rounded-full bg-[#2D6A4F] transition-all dark:bg-[#52b788]"
@@ -602,10 +602,10 @@ export function QuizGroupEngine({
                         className={`relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border text-sm font-semibold transition ${
                           isAnswered
                             ? "border-[#2D6A4F] bg-[#2D6A4F] text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
-                            : "border-slate-200 bg-slate-100 text-slate-500 hover:border-[#2D6A4F]/25 hover:bg-black/[0.04] hover:text-[#2D6A4F] dark:border-white/10 dark:bg-[#101b15] dark:text-slate-400 dark:hover:border-[#40916c] dark:hover:bg-white/[0.06] dark:hover:text-[#b7e4c7]"
+                            : "border-slate-200 bg-slate-100 text-slate-500 hover:border-[#2D6A4F]/25 hover:bg-black/[0.04] hover:text-[#2D6A4F] dark:border-white/10 dark:bg-[#1e2722] dark:text-slate-400 dark:hover:border-[#40916c] dark:hover:bg-white/[0.06] dark:hover:text-[#b7e4c7]"
                         } ${
                           isCurrent
-                            ? "ring-2 ring-[#F4A261] ring-offset-2 ring-offset-white dark:ring-[#f7c88f] dark:ring-offset-[#16231c]"
+                            ? "ring-2 ring-[#F4A261] ring-offset-2 ring-offset-white dark:ring-[#f7c88f] dark:ring-offset-[#232d28]"
                             : ""
                         }`}
                       >
@@ -642,7 +642,7 @@ export function QuizGroupEngine({
                           className={`grid cursor-pointer grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-xl border px-3 py-3 transition hover:border-[#2D6A4F]/25 hover:bg-black/[0.04] dark:hover:border-[#40916c] dark:hover:bg-white/[0.06] ${
                             isSelected
                               ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
-                              : "border-black/[0.06] bg-[#fdfbf5] dark:border-white/10 dark:bg-[#101b15]"
+                              : "border-black/[0.06] bg-[#fdfbf5] dark:border-white/10 dark:bg-[#1e2722]"
                           }`}
                         >
                           <input
@@ -656,7 +656,7 @@ export function QuizGroupEngine({
                                 currentQuestionItem.question.allow_multiple_answers === true,
                               )
                             }
-                            className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#2D6A4F]/25 text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-white/15 dark:bg-[#16231c] dark:text-[#52b788] ${currentQuestionItem.question.allow_multiple_answers ? "rounded" : ""}`}
+                            className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#2D6A4F]/25 text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-white/15 dark:bg-[#232d28] dark:text-[#52b788] ${currentQuestionItem.question.allow_multiple_answers ? "rounded" : ""}`}
                           />
                           <span className="text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
                             {opt.text}
@@ -673,7 +673,7 @@ export function QuizGroupEngine({
                   type="button"
                   onClick={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
                   disabled={!canGoPrevious}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-black/[0.06] bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-black/[0.04] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#16231c] dark:text-slate-200 dark:hover:bg-white/[0.06] dark:hover:text-[#b7e4c7] sm:w-auto"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-black/[0.06] bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-black/[0.04] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#232d28] dark:text-slate-200 dark:hover:bg-white/[0.06] dark:hover:text-[#b7e4c7] sm:w-auto"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Previous
@@ -682,7 +682,7 @@ export function QuizGroupEngine({
                   type="button"
                   onClick={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, attemptQuestions.length - 1))}
                   disabled={!canGoNext}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#2D6A4F]/25 bg-[#fbf8f0] px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#101b15] dark:text-[#b7e4c7] dark:hover:bg-white/[0.06] sm:w-auto"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#2D6A4F]/25 bg-[#fbf8f0] px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#1e2722] dark:text-[#b7e4c7] dark:hover:bg-white/[0.06] sm:w-auto"
                 >
                   Next
                   <ChevronRight className="h-4 w-4" />

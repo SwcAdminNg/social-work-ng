@@ -41,7 +41,7 @@ export function ConfirmSubmitDialog({
             event.preventDefault();
             cancelRef.current?.focus();
           }}
-          className="fixed left-1/2 top-1/2 z-[61] w-[calc(100vw-2rem)] max-w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-[22px] bg-white p-6 text-center shadow-[0_24px_60px_-20px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.05] outline-none dark:bg-[#16231c] dark:ring-white/10"
+          className="fixed left-1/2 top-1/2 z-[61] w-[calc(100vw-2rem)] max-w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-[22px] bg-white p-6 text-center shadow-[0_24px_60px_-20px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.05] outline-none dark:bg-[#232d28] dark:ring-white/10"
         >
           <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-300">
             <AlertTriangle className="h-6 w-6" aria-hidden />

@@ -260,7 +260,7 @@ export default async function LiveSessionsPage({
 
   return (
     <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 pb-12">
-      <section className="rounded-xl border border-[#dbeee4] bg-white p-5 shadow-sm dark:border-[#26372e] dark:bg-[#16231c] sm:p-6">
+      <section className="rounded-xl border border-[#dbeee4] bg-white p-5 shadow-sm dark:border-[#35433c] dark:bg-[#232d28] sm:p-6">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#e7f6ee] px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
@@ -276,7 +276,7 @@ export default async function LiveSessionsPage({
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-[#0e1913]">
+          <div className="grid grid-cols-3 gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-[#1b241f]">
             <ViewTab href={buildPageUrl({ view: "upcoming", courseId })} active={view === "upcoming"}>
               Upcoming
             </ViewTab>
@@ -290,7 +290,7 @@ export default async function LiveSessionsPage({
         </div>
       </section>
 
-      <section className="rounded-xl border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
+      <section className="rounded-xl border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#35433c] dark:bg-[#232d28]">
         <Form
           action="/dashboard/live-sessions"
           className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center"
@@ -302,7 +302,7 @@ export default async function LiveSessionsPage({
               name="course_id"
               defaultValue={courseId}
               placeholder="Filter by course ID"
-              className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-slate-800 dark:bg-[#0e1913] dark:text-slate-100 dark:focus:border-[#52b788]"
+              className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-slate-800 dark:bg-[#1b241f] dark:text-slate-100 dark:focus:border-[#52b788]"
             />
           </label>
           <button
@@ -327,7 +327,7 @@ export default async function LiveSessionsPage({
           {error}
         </div>
       ) : items.length === 0 ? (
-        <section className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-[#16231c] sm:p-14">
+        <section className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-[#232d28] sm:p-14">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
             <CalendarDays className="h-7 w-7" />
           </div>
@@ -359,7 +359,7 @@ export default async function LiveSessionsPage({
             <span className="hidden sm:inline">Previous</span>
           </PageLink>
 
-          <span className="inline-flex h-10 items-center rounded-md bg-slate-50 px-4 text-sm font-extrabold text-slate-600 dark:bg-[#0e1913] dark:text-slate-300">
+          <span className="inline-flex h-10 items-center rounded-md bg-slate-50 px-4 text-sm font-extrabold text-slate-600 dark:bg-[#1b241f] dark:text-slate-300">
             Page {page}
             {totalPages > 1 ? ` of ${totalPages}` : ""}
           </span>
@@ -392,7 +392,7 @@ function ViewTab({
       href={href}
       className={`inline-flex h-9 items-center justify-center rounded-md px-3 text-xs font-extrabold no-underline transition ${
         active
-          ? "bg-white text-[#2D6A4F] shadow-sm dark:bg-[#16231c] dark:text-[#74c69d]"
+          ? "bg-white text-[#2D6A4F] shadow-sm dark:bg-[#232d28] dark:text-[#74c69d]"
           : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
       }`}
     >
@@ -406,7 +406,7 @@ function LiveSessionCard({ session }: { session: LiveSession }) {
   const guest = [session.guest_name, session.guest_title].filter(Boolean).join(", ");
 
   return (
-    <article className="flex min-h-72 flex-col justify-between rounded-xl border border-[#e3dfd0] bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-md dark:border-[#26372e] dark:bg-[#16231c]">
+    <article className="flex min-h-72 flex-col justify-between rounded-xl border border-[#e3dfd0] bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-md dark:border-[#35433c] dark:bg-[#232d28]">
       <div>
         <div className="flex items-start justify-between gap-3">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
@@ -481,7 +481,7 @@ function PageLink({
     return (
       <span
         aria-disabled="true"
-        className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-extrabold text-slate-300 dark:border-slate-800 dark:bg-[#16231c] dark:text-slate-700"
+        className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-extrabold text-slate-300 dark:border-slate-800 dark:bg-[#232d28] dark:text-slate-700"
       >
         {children}
       </span>
@@ -492,7 +492,7 @@ function PageLink({
     <Link
       href={href}
       aria-label={label}
-      className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-extrabold text-slate-700 no-underline transition hover:border-[#2D6A4F]/40 hover:text-[#2D6A4F] dark:border-slate-800 dark:bg-[#16231c] dark:text-slate-300 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
+      className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-extrabold text-slate-700 no-underline transition hover:border-[#2D6A4F]/40 hover:text-[#2D6A4F] dark:border-slate-800 dark:bg-[#232d28] dark:text-slate-300 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
     >
       {children}
     </Link>

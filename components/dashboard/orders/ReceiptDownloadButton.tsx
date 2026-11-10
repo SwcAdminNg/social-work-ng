@@ -49,7 +49,7 @@ export function ReceiptDownloadButton({ reference }: ReceiptDownloadButtonProps)
         type="button"
         onClick={handleDownload}
         disabled={isLoading}
-        className="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-[#b7e4c7] px-3 text-xs font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-wait disabled:opacity-70 dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+        className="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-[#b7e4c7] px-3 text-xs font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-wait disabled:opacity-70 dark:border-[#35514a] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35]"
       >
         <Download className="h-4 w-4" />
         {isLoading ? "Preparing..." : "Download receipt"}

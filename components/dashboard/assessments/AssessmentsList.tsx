@@ -198,7 +198,7 @@ export default function AssessmentsList({
           Manage upcoming, completed and graded assessments.
         </p>
         {dateRange && (
-          <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-md border border-[#d8d4c3] bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm dark:border-[#2f4238] dark:bg-[#16231c] dark:text-slate-200">
+          <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-md border border-[#d8d4c3] bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm dark:border-[#3d4c44] dark:bg-[#232d28] dark:text-slate-200">
             <CalendarDays className="h-4 w-4 flex-shrink-0 text-[#2d6a4f] dark:text-[#74c69d]" />
             <span className="min-w-0 truncate">
               Showing assessments due on {dateRange.label}
@@ -206,7 +206,7 @@ export default function AssessmentsList({
             <button
               type="button"
               onClick={clearDateRange}
-              className="flex-shrink-0 rounded-md px-2 py-1 text-xs font-extrabold text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#1b2a22]"
+              className="flex-shrink-0 rounded-md px-2 py-1 text-xs font-extrabold text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#2a3530]"
             >
               Clear
             </button>
@@ -254,8 +254,8 @@ export default function AssessmentsList({
       </section>
 
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="overflow-hidden rounded-lg border border-[#e3dfd0] bg-white shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
-          <div className="flex flex-col gap-3 border-b border-[#e9e5d6] px-4 py-3 dark:border-[#26372e] lg:flex-row lg:items-center lg:justify-between">
+        <section className="overflow-hidden rounded-lg border border-[#e3dfd0] bg-white shadow-sm dark:border-[#35433c] dark:bg-[#232d28]">
+          <div className="flex flex-col gap-3 border-b border-[#e9e5d6] px-4 py-3 dark:border-[#35433c] lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 gap-5 overflow-x-auto swcl-sidebar-scroll">
               {TABS.map((tab) => {
                 const active = currentTab === tab.id;
@@ -288,7 +288,7 @@ export default function AssessmentsList({
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search assessments..."
-                  className="h-10 w-full rounded-md border border-[#e3dfd0] bg-white pl-10 pr-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2d6a4f] focus:ring-4 focus:ring-[#2d6a4f]/10 dark:border-[#2f4238] dark:bg-[#0e1913] dark:text-slate-100"
+                  className="h-10 w-full rounded-md border border-[#e3dfd0] bg-white pl-10 pr-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2d6a4f] focus:ring-4 focus:ring-[#2d6a4f]/10 dark:border-[#3d4c44] dark:bg-[#1b241f] dark:text-slate-100"
                 />
               </label>
 
@@ -296,14 +296,14 @@ export default function AssessmentsList({
                 <button
                   type="button"
                   onClick={() => setFiltersOpen((value) => !value)}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#d8d4c3] bg-white px-3 text-sm font-extrabold text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:border-[#2f4238] dark:bg-[#0e1913] dark:text-[#74c69d] dark:hover:bg-[#1b2a22] sm:w-auto"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#d8d4c3] bg-white px-3 text-sm font-extrabold text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:border-[#3d4c44] dark:bg-[#1b241f] dark:text-[#74c69d] dark:hover:bg-[#2a3530] sm:w-auto"
                 >
                   <Filter className="h-4 w-4" />
                   Filters
                 </button>
 
                 {filtersOpen && (
-                  <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-[#e3dfd0] bg-white p-2 shadow-xl dark:border-[#26372e] dark:bg-[#16231c]">
+                  <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-[#e3dfd0] bg-white p-2 shadow-xl dark:border-[#35433c] dark:bg-[#232d28]">
                     <FilterOption
                       label="All types"
                       active={!assessmentType}
@@ -351,7 +351,7 @@ export default function AssessmentsList({
               <div className="hidden overflow-x-auto swcl-sidebar-scroll xl:block">
                 <table className="w-full min-w-[980px] border-collapse">
                   <thead>
-                    <tr className="border-b border-[#e9e5d6] bg-[#fdfbf5] text-left text-xs font-extrabold text-slate-600 dark:border-[#26372e] dark:bg-[#0e1913] dark:text-slate-400">
+                    <tr className="border-b border-[#e9e5d6] bg-[#fdfbf5] text-left text-xs font-extrabold text-slate-600 dark:border-[#35433c] dark:bg-[#1b241f] dark:text-slate-400">
                       <th className="px-4 py-3">Assessment</th>
                       <th className="px-4 py-3">Course</th>
                       <th className="px-4 py-3">Due Date</th>
@@ -387,7 +387,7 @@ export default function AssessmentsList({
 
               <div className="grid gap-3 p-3 xl:hidden">
                 {visibleAssessments.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-[#d8d4c3] bg-[#f7fcf9] px-4 py-10 text-center text-sm font-semibold text-slate-500 dark:border-[#2f4238] dark:bg-[#0e1913] dark:text-slate-400">
+                  <div className="rounded-lg border border-dashed border-[#d8d4c3] bg-[#f7fcf9] px-4 py-10 text-center text-sm font-semibold text-slate-500 dark:border-[#3d4c44] dark:bg-[#1b241f] dark:text-slate-400">
                     No assessments match this view.
                   </div>
                 ) : (
@@ -400,7 +400,7 @@ export default function AssessmentsList({
                 )}
               </div>
 
-              <div className="flex flex-col gap-3 border-t border-[#e9e5d6] px-3 py-3 dark:border-[#26372e] sm:px-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-3 border-t border-[#e9e5d6] px-3 py-3 dark:border-[#35433c] sm:px-4 lg:flex-row lg:items-center lg:justify-between">
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                   Showing {showingStart} to {showingEnd} of {totalItems}{" "}
                   assessments
@@ -413,7 +413,7 @@ export default function AssessmentsList({
                       onClick={() => changePage(currentPage - 1)}
                       disabled={currentPage <= 1}
                       aria-label="Previous page"
-                      className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e3dfd0] text-slate-600 transition hover:bg-[#eef5f1] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#2f4238] dark:text-slate-300 dark:hover:bg-[#1b2a22]"
+                      className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e3dfd0] text-slate-600 transition hover:bg-[#eef5f1] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#3d4c44] dark:text-slate-300 dark:hover:bg-[#2a3530]"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
@@ -425,7 +425,7 @@ export default function AssessmentsList({
                       onClick={() => changePage(currentPage + 1)}
                       disabled={currentPage >= Math.max(totalPages, 1)}
                       aria-label="Next page"
-                      className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e3dfd0] text-slate-600 transition hover:bg-[#eef5f1] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#2f4238] dark:text-slate-300 dark:hover:bg-[#1b2a22]"
+                      className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e3dfd0] text-slate-600 transition hover:bg-[#eef5f1] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#3d4c44] dark:text-slate-300 dark:hover:bg-[#2a3530]"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>
@@ -438,7 +438,7 @@ export default function AssessmentsList({
                       onChange={(event) =>
                         updateParam({ rows: event.target.value, page: "1" })
                       }
-                      className="h-9 rounded-md border border-[#e3dfd0] bg-white px-3 text-sm font-extrabold text-slate-800 outline-none dark:border-[#2f4238] dark:bg-[#0e1913] dark:text-slate-100"
+                      className="h-9 rounded-md border border-[#e3dfd0] bg-white px-3 text-sm font-extrabold text-slate-800 outline-none dark:border-[#3d4c44] dark:bg-[#1b241f] dark:text-slate-100"
                     >
                       <option value="10">10</option>
                       <option value="20">20</option>
@@ -505,7 +505,7 @@ function SummaryCard({
   return (
     <Link
       href={href}
-      className="grid min-h-[116px] grid-cols-[56px_minmax(0,1fr)] items-center gap-4 rounded-lg border border-[#e3dfd0] bg-white p-4 text-slate-950 no-underline shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-md dark:border-[#26372e] dark:bg-[#16231c] dark:text-white"
+      className="grid min-h-[116px] grid-cols-[56px_minmax(0,1fr)] items-center gap-4 rounded-lg border border-[#e3dfd0] bg-white p-4 text-slate-950 no-underline shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-md dark:border-[#35433c] dark:bg-[#232d28] dark:text-white"
     >
       <span
         className={`flex h-14 w-14 items-center justify-center rounded-full ${tones[tone]}`}
@@ -528,7 +528,7 @@ function AssessmentRow({ assessment }: { assessment: UserAssessment }) {
   const status = getStatusDisplay(assessment);
 
   return (
-    <tr className="border-b border-[#f1eee2] transition hover:bg-[#f7fcf9] dark:border-[#26372e] dark:hover:bg-[#16231c]">
+    <tr className="border-b border-[#f1eee2] transition hover:bg-[#f7fcf9] dark:border-[#35433c] dark:hover:bg-[#232d28]">
       <td className="px-4 py-4">
         <div className="flex min-w-0 items-center gap-3">
           <AssessmentIcon assessment={assessment} />
@@ -602,7 +602,7 @@ function MobileAssessmentCard({ assessment }: { assessment: UserAssessment }) {
   const status = getStatusDisplay(assessment);
 
   return (
-    <article className="rounded-lg border border-[#f1eee2] bg-white p-3 shadow-sm dark:border-[#26372e] dark:bg-[#0e1913]">
+    <article className="rounded-lg border border-[#f1eee2] bg-white p-3 shadow-sm dark:border-[#35433c] dark:bg-[#1b241f]">
       <div className="flex min-w-0 items-start gap-3">
         <AssessmentIcon assessment={assessment} />
         <div className="min-w-0 flex-1">
@@ -700,7 +700,7 @@ function AssessmentActionButton({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 text-sm font-extrabold no-underline shadow-sm ring-1 ring-inset transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#16231c] ${
+      className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 text-sm font-extrabold no-underline shadow-sm ring-1 ring-inset transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#232d28] ${
         fullWidth ? "mt-3 h-10 w-full" : "h-9 min-w-[118px] whitespace-nowrap"
       } ${action.className}`}
     >
@@ -746,7 +746,7 @@ function MobileMetric({
 }) {
   return (
     <div
-      className={`min-w-0 rounded-md bg-[#fdfbf5] p-2 dark:bg-[#16231c] ${
+      className={`min-w-0 rounded-md bg-[#fdfbf5] p-2 dark:bg-[#232d28] ${
         fullWidth ? "col-span-2" : ""
       }`}
     >
@@ -895,7 +895,7 @@ function AssessmentCalendar({
   }
 
   return (
-    <section className="w-full rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
+    <section className="w-full rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#35433c] dark:bg-[#232d28]">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CalendarDays className="h-5 w-5 text-slate-600 dark:text-slate-300" />
@@ -910,7 +910,7 @@ function AssessmentCalendar({
           type="button"
           onClick={() => setMonthOffset((value) => value - 1)}
           aria-label="Previous month"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#1b2a22]"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#2a3530]"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -924,7 +924,7 @@ function AssessmentCalendar({
           type="button"
           onClick={() => setMonthOffset((value) => value + 1)}
           aria-label="Next month"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#1b2a22]"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#2a3530]"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -956,7 +956,7 @@ function AssessmentCalendar({
                   ? `${itemsCount} assessment${itemsCount === 1 ? "" : "s"} due`
                   : "Filter assessments by this date"
               }
-              className={`relative flex h-9 w-9 items-center justify-center justify-self-center rounded-full text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6a4f] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#16231c] ${
+              className={`relative flex h-9 w-9 items-center justify-center justify-self-center rounded-full text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6a4f] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#232d28] ${
                 isActive
                   ? "bg-slate-950 text-white ring-2 ring-[#2d6a4f] dark:bg-white dark:text-slate-950"
                   : isDue
@@ -966,7 +966,7 @@ function AssessmentCalendar({
                       : isComplete
                         ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-400/15 dark:text-emerald-200"
                         : day.inCurrentMonth
-                          ? "text-slate-700 hover:bg-[#eef5f1] hover:text-[#2d6a4f] dark:text-slate-300 dark:hover:bg-[#1b2a22] dark:hover:text-[#74c69d]"
+                          ? "text-slate-700 hover:bg-[#eef5f1] hover:text-[#2d6a4f] dark:text-slate-300 dark:hover:bg-[#2a3530] dark:hover:text-[#74c69d]"
                           : "text-slate-400 hover:bg-slate-50 dark:text-slate-600 dark:hover:bg-white/5"
               }`}
             >
@@ -1000,7 +1000,7 @@ function SideList({
   empty: string;
 }) {
   return (
-    <section className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
+    <section className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#35433c] dark:bg-[#232d28]">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
           {title}
@@ -1014,7 +1014,7 @@ function SideList({
       </div>
 
       {items.length === 0 ? (
-        <p className="rounded-md bg-slate-50 p-3 text-sm font-medium text-slate-500 dark:bg-[#0e1913] dark:text-slate-400">
+        <p className="rounded-md bg-slate-50 p-3 text-sm font-medium text-slate-500 dark:bg-[#1b241f] dark:text-slate-400">
           {empty}
         </p>
       ) : (
@@ -1023,7 +1023,7 @@ function SideList({
             <li key={item.item_id}>
               <Link
                 href={`/learn/${item.course_id}/item/${item.item_id}`}
-                className="grid grid-cols-[38px_minmax(0,1fr)] gap-3 rounded-md p-1.5 text-slate-950 no-underline transition hover:bg-[#f7fcf9] dark:text-white dark:hover:bg-[#16231c]"
+                className="grid grid-cols-[38px_minmax(0,1fr)] gap-3 rounded-md p-1.5 text-slate-950 no-underline transition hover:bg-[#f7fcf9] dark:text-white dark:hover:bg-[#232d28]"
               >
                 <AssessmentIcon assessment={item} />
                 <span className="min-w-0">
@@ -1048,7 +1048,7 @@ function SideList({
 
 function FeedbackList({ assessments }: { assessments: UserAssessment[] }) {
   return (
-    <section className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#26372e] dark:bg-[#16231c]">
+    <section className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#35433c] dark:bg-[#232d28]">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
           Recent Feedback
@@ -1062,7 +1062,7 @@ function FeedbackList({ assessments }: { assessments: UserAssessment[] }) {
       </div>
 
       {assessments.length === 0 ? (
-        <p className="rounded-md bg-slate-50 p-3 text-sm font-medium text-slate-500 dark:bg-[#0e1913] dark:text-slate-400">
+        <p className="rounded-md bg-slate-50 p-3 text-sm font-medium text-slate-500 dark:bg-[#1b241f] dark:text-slate-400">
           Published scores and feedback will appear here.
         </p>
       ) : (
@@ -1123,7 +1123,7 @@ function FilterOption({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-[#eef5f1] dark:text-slate-200 dark:hover:bg-[#1b2a22]"
+      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-[#eef5f1] dark:text-slate-200 dark:hover:bg-[#2a3530]"
     >
       {label}
       {active && <Check className="h-4 w-4 text-[#2d6a4f] dark:text-[#74c69d]" />}
@@ -1215,7 +1215,7 @@ function getActionConfig(assessment: UserAssessment): {
     label: "Open",
     icon: FilePenLine,
     className:
-      "bg-white text-[#2d6a4f] ring-[#cfe8da] hover:bg-[#eef5f1] dark:bg-[#0e1913] dark:text-[#95d5b2] dark:ring-[#27433a] dark:hover:bg-[#1b2a22] focus-visible:ring-[#2d6a4f]",
+      "bg-white text-[#2d6a4f] ring-[#cfe8da] hover:bg-[#eef5f1] dark:bg-[#1b241f] dark:text-[#95d5b2] dark:ring-[#35514a] dark:hover:bg-[#2a3530] focus-visible:ring-[#2d6a4f]",
   };
 }
 

@@ -79,7 +79,7 @@ export function InstructorSummary({
           </Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-            <Dialog.Content className="fixed left-1/2 top-1/2 z-50 grid max-h-[85vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-5 overflow-hidden rounded-lg border border-[#dceee4] bg-white p-5 shadow-2xl dark:border-[#27433a] dark:bg-[#16231c] sm:p-6">
+            <Dialog.Content className="fixed left-1/2 top-1/2 z-50 grid max-h-[85vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-5 overflow-hidden rounded-lg border border-[#dceee4] bg-white p-5 shadow-2xl dark:border-[#35514a] dark:bg-[#232d28] sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <Dialog.Title className="text-xl font-extrabold text-slate-950 dark:text-white">
@@ -104,9 +104,9 @@ export function InstructorSummary({
                 {instructors.map((instructor) => (
                   <div
                     key={instructor.id || instructor.name}
-                    className="flex flex-col items-center text-center gap-3 rounded-xl border border-[#edf5f0] bg-[#fdfbf5] p-5 shadow-sm dark:border-[#27433a] dark:bg-[#0e1913]"
+                    className="flex flex-col items-center text-center gap-3 rounded-xl border border-[#edf5f0] bg-[#fdfbf5] p-5 shadow-sm dark:border-[#35514a] dark:bg-[#1b241f]"
                   >
-                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e7f6ee] text-xl font-extrabold text-[#2D6A4F] ring-4 ring-white dark:ring-[#16231c] shadow-sm dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e7f6ee] text-xl font-extrabold text-[#2D6A4F] ring-4 ring-white dark:ring-[#232d28] shadow-sm dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
                       {instructor.avatar_url ? (
                         <img
                           src={instructor.avatar_url}

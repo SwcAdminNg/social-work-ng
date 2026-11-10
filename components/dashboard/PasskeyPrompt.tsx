@@ -79,7 +79,7 @@ export function PasskeyPrompt() {
       role="dialog"
       aria-labelledby="passkey-prompt-title"
       aria-describedby="passkey-prompt-body"
-      className="lms-rise fixed inset-x-3 bottom-24 z-40 mx-auto max-w-md rounded-[28px] border border-gray-200 bg-white p-5 shadow-2xl dark:border-gray-800 dark:bg-[#16231c] sm:inset-x-auto sm:right-6 lg:bottom-6"
+      className="lms-rise fixed inset-x-3 bottom-24 z-40 mx-auto max-w-md rounded-[28px] border border-gray-200 bg-white p-5 shadow-2xl dark:border-gray-800 dark:bg-[#232d28] sm:inset-x-auto sm:right-6 lg:bottom-6"
     >
       <button type="button" onClick={dismiss} className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800" aria-label="Dismiss">
         <X className="h-4 w-4" />

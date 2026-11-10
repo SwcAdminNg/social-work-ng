@@ -123,7 +123,7 @@ export default function PaymentMethodsPanel() {
               </p>
             </div>
           </div>
-          <div className="inline-flex w-fit items-center gap-2 rounded-md border border-[#b7e4c7] bg-[#f1fbf6] px-3 py-2 text-xs font-extrabold text-[#2D6A4F] dark:border-[#2f6f55] dark:bg-[#10261c] dark:text-[#95d5b2]">
+          <div className="inline-flex w-fit items-center gap-2 rounded-md border border-[#b7e4c7] bg-[#f1fbf6] px-3 py-2 text-xs font-extrabold text-[#2D6A4F] dark:border-[#2f6f55] dark:bg-[#22352c] dark:text-[#95d5b2]">
             <ShieldCheck className="h-4 w-4" />
             Tokenized by Paystack
           </div>
@@ -166,7 +166,7 @@ export default function PaymentMethodsPanel() {
                       {cardCountLabel}
                     </p>
                     {defaultCard && (
-                      <span className="rounded-md bg-[#d8f3dc] px-2 py-1 text-[0.68rem] font-black uppercase text-[#1B4332] dark:bg-[#173326] dark:text-[#b7e4c7]">
+                      <span className="rounded-md bg-[#d8f3dc] px-2 py-1 text-[0.68rem] font-black uppercase text-[#1B4332] dark:bg-[#284035] dark:text-[#b7e4c7]">
                         Default: {formatCardBrand(defaultCard)} ••••{" "}
                         {defaultCard.last4 || "----"}
                       </span>
@@ -263,7 +263,7 @@ export default function PaymentMethodsPanel() {
                     </p>
                   </div>
                   {cardToDelete.is_default && (
-                    <span className="flex-shrink-0 rounded-md bg-[#d8f3dc] px-2 py-1 text-[0.68rem] font-black uppercase text-[#1B4332] dark:bg-[#173326] dark:text-[#b7e4c7]">
+                    <span className="flex-shrink-0 rounded-md bg-[#d8f3dc] px-2 py-1 text-[0.68rem] font-black uppercase text-[#1B4332] dark:bg-[#284035] dark:text-[#b7e4c7]">
                       Default
                     </span>
                   )}

@@ -74,12 +74,28 @@ html:has(.lms-root) {
   background: var(--sw-paper);
   scrollbar-color: color-mix(in srgb, var(--sw-ink) 22%, transparent) transparent;
 }
+/* Dark: a soft sage-charcoal evening, not near-black. Surfaces step up in light,
+   the warm milk tone carries over as a muted taupe. */
 html.dark:has(.lms-root) {
-  --lms-side: #0f1914;
+  --sw-paper: #19211d;
+  --sw-paper-2: #1e2722;
+  --sw-card: #232d28;
+  --sw-mint: #1e2722;
+  --sw-line: rgba(232, 242, 236, 0.1);
+  --sw-ink: #eef3ef;
+  --sw-ink-2: #ccd8d0;
+  --sw-ink-3: #a7b6ad;
+  --sw-clay-wash: #3a2a22;
+  --sw-error-wash: #3a2420;
+  --color-gray-800: #2c3832;
+  --color-gray-900: #232d28;
+  --color-gray-950: #19211d;
+  --lms-side: #1e2722;
   --lms-side-hover: rgba(255, 255, 255, 0.06);
-  --lms-milk: #141f19;
-  --lms-milk-2: #18251e;
-  --lms-milk-line: rgba(255, 255, 255, 0.08);
+  --lms-milk: #2a2b24;
+  --lms-milk-2: #302f28;
+  --lms-milk-line: rgba(255, 236, 210, 0.08);
+  color-scheme: dark;
 }
 html:has(.lms-root) body {
   background: var(--sw-paper);
@@ -158,7 +174,7 @@ html:has(.lms-root) body {
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--sw-green) 70%, transparent), 0 0 0 4px color-mix(in srgb, var(--sw-green) 20%, transparent);
   }
   .dark .lms-search input { background: rgba(255, 255, 255, 0.075); }
-  .dark .lms-search input:focus-visible { background: #0e1913; }
+  .dark .lms-search input:focus-visible { background: #1b241f; }
   .lms-search-glyph {
     position: absolute;
     left: 0.8rem;
@@ -359,7 +375,7 @@ html:has(.lms-root) body {
   }
   .lms-card-hover:hover .sw-zoom { transform: scale(1.06); }
   .lms-well { border-radius: 20px; background: var(--sw-paper); box-shadow: inset 0 0 0 1px var(--sw-line); }
-  .dark .lms-well { background: #101b15; }
+  .dark .lms-well { background: var(--sw-paper-2); }
 
   /* Milk: the warm brown-cream the dashboard is built on, one step deeper than paper. */
   .lms-milk {
@@ -451,7 +467,7 @@ html:has(.lms-root) body {
     animation: lms-popover-in 0.32s var(--sw-ease);
   }
   .dark .lms-popover {
-    background: #16231c;
+    background: var(--sw-card);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09), 0 40px 80px -24px rgba(0, 0, 0, 0.7);
   }
   @media (min-width: 640px) {

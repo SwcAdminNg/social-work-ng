@@ -335,7 +335,7 @@ export function DashboardHeader() {
                             onClick={() => setTheme(value)}
                             className={`flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-[9px] text-[0.8rem] font-semibold transition-[background-color,color,box-shadow] duration-200 ${
                               active
-                                ? "bg-card text-ink shadow-[0_1px_2px_rgba(14,31,23,0.12),0_4px_12px_-6px_rgba(14,31,23,0.25)] dark:bg-[#2a3a31]"
+                                ? "bg-card text-ink shadow-[0_1px_2px_rgba(14,31,23,0.12),0_4px_12px_-6px_rgba(14,31,23,0.25)] dark:bg-[#36443d]"
                                 : "text-ink-3 hover:text-ink"
                             }`}
                           >

@@ -100,7 +100,7 @@ export function PasskeySettings() {
 
   return (
     <div className="max-w-4xl">
-      <div className="bg-white dark:bg-[#0b1410] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#19211d] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-full bg-[#2D6A4F]/10 flex items-center justify-center flex-shrink-0">
