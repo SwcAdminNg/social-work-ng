@@ -158,10 +158,9 @@ export default function MotionEngine() {
       const waited = performance.now() - startedAt > HYDRATION_WAIT_MS;
       let pending = false;
       const ready = (el: Element) => {
-        if (waited) return true;
-        // A HydrationGate says exactly when its contents are safe to touch.
+        // A HydrationGate says exactly when its contents are safe to touch, however long that takes.
         const gate = el.closest<HTMLElement>("[data-hydrate-gate]");
-        if (gate ? gate.dataset.hydrated === "1" : isHydrated(el)) return true;
+        if (gate ? gate.dataset.hydrated === "1" : waited || isHydrated(el)) return true;
         pending = true;
         return false;
       };

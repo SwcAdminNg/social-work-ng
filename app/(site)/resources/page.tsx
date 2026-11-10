@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import JsonLd from "@/components/site/JsonLd";
+import { breadcrumbNode, pageMetadata, webPageNode } from "@/lib/site";
 import ResourcesLibrary, { type LibraryQuery } from "@/components/resources/library/ResourcesLibrary";
 import {
   RESOURCE_ACCESS_OPTIONS,
@@ -11,18 +12,7 @@ const title = "Resources | Social Work Consultancy Ltd";
 const description =
   "Practice tools, guidance, videos and reading from Social Work Consultancy Ltd to support reflection and professional development in Nigeria and the Global South.";
 
-export const metadata: Metadata = {
-  title,
-  description,
-  alternates: { canonical: "/resources" },
-  openGraph: {
-    type: "website",
-    url: "/resources",
-    title,
-    description,
-    images: ["/images/ng/reading-tea.webp"],
-  },
-};
+export const metadata = pageMetadata({ title, description, path: "/resources", image: "resources" });
 
 const PAGE_SIZE = 12;
 
@@ -55,5 +45,15 @@ export default async function ResourcesPage(props: {
     getResourceCategoryCounts(),
   ]);
 
-  return <ResourcesLibrary query={query} result={result} counts={counts} pageSize={PAGE_SIZE} />;
+  return (
+    <>
+      <JsonLd
+        nodes={[
+          webPageNode({ type: "CollectionPage", path: "/resources", name: title, description }),
+          breadcrumbNode("/resources", [{ name: "Resources", path: "/resources" }]),
+        ]}
+      />
+      <ResourcesLibrary query={query} result={result} counts={counts} pageSize={PAGE_SIZE} />
+    </>
+  );
 }

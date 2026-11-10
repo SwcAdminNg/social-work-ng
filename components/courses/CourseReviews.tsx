@@ -9,33 +9,44 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Dialog from "@radix-ui/react-dialog";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
+type Review = {
+  id: string;
+  rating: number;
+  review_text?: string;
+  created_at?: string;
+  reply_text?: string | null;
+  reply_created_at?: string | null;
+  user?: { first_name?: string; last_name?: string } | null;
+};
+
 interface CourseReviewsProps {
   courseId: string;
+  /** Only a signed-in learner can have a review of their own to look up. */
+  signedIn?: boolean;
 }
 
-export function CourseReviews({ courseId }: CourseReviewsProps) {
-  const [reviews, setReviews] = useState<any[]>([]);
+export function CourseReviews({ courseId, signedIn = false }: CourseReviewsProps) {
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [userReview, setUserReview] = useState<any>(null);
+  const [userReview, setUserReview] = useState<Review | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
   const router = useRouter();
 
   const fetchReviews = useCallback(async (pageNumber: number) => {
-    setLoading(true);
     try {
       const res = await fetch(
         `/api/proxy/courses/${courseId}/reviews?page=${pageNumber}&limit=10`
       );
       if (res.ok) {
         const data = await res.json();
-        // Assuming pagination structure matches standard Fastapi/SQLAlchemy pagination
+        // The API sends the list in `data` and the page count in `meta`.
         const items = Array.isArray(data?.data) ? data.data : data?.data?.items || [];
         setReviews(items);
-        setTotalPages(data?.data?.pages || 1);
+        setTotalPages(data?.meta?.total_pages || data?.data?.pages || 1);
       }
     } catch (error) {
       console.error("Failed to fetch reviews", error);
@@ -45,6 +56,7 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
   }, [courseId]);
 
   const fetchUserReview = useCallback(async () => {
+    if (!signedIn) return;
     try {
       const res = await fetch(`/api/proxy/courses/${courseId}/reviews/me`);
       if (res.ok) {
@@ -60,11 +72,15 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
     } catch (e) {
       console.error("Failed to fetch user review", e);
     }
-  }, [courseId]);
+  }, [courseId, signedIn]);
 
+  // Load once the page has painted, and again whenever the page of reviews changes.
   useEffect(() => {
-    fetchReviews(page);
-    fetchUserReview();
+    const timer = window.setTimeout(() => {
+      fetchReviews(page);
+      fetchUserReview();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [page, fetchReviews, fetchUserReview]);
 
   const handleDelete = async () => {
@@ -87,7 +103,7 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
       } else {
         toast.error("Failed to delete review");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while deleting the review.");
     } finally {
       setDeletingId(null);
@@ -147,7 +163,7 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
                         ))}
                       </div>
                       <span className="text-xs text-ink-3">
-                        {new Date(review.created_at).toLocaleDateString(undefined, {
+                        {new Date(review.created_at ?? "").toLocaleDateString(undefined, {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric'

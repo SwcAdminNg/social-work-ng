@@ -1,11 +1,12 @@
 import Form from "next/form";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, RotateCw, Search, UsersRound, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, RotateCw, UsersRound, X } from "lucide-react";
 import CatalogueCard from "./CatalogueCard";
 import FiltersPanel from "./FiltersPanel";
 import { COSTS, LEVELS, type CatalogueCourse, type CourseCatalog } from "./courseFormat";
 import PageHero from "@/components/site/PageHero";
+import { SearchBar } from "@/components/site/form";
 import { Btn } from "@/components/site/ui";
 import { photos } from "@/lib/photos";
 import lib from "@/components/resources/library/Library.module.css";
@@ -38,7 +39,6 @@ function buildHref(query: CatalogueQuery, changes: Partial<CatalogueQuery>) {
 export default function CourseCatalogue({ query, courses, ok, total, totalPages, topics, enrolledIds }: Props) {
   const filtered = Boolean(query.search || query.topic || query.level || query.cost);
   const catalogueEmpty = ok && !filtered && total === 0;
-  const activeCount = [query.topic, query.level, query.cost].filter(Boolean).length;
   const enrolled = new Set(enrolledIds);
 
   const topicName = topics.find((t) => t.slug === query.topic)?.name;
@@ -53,11 +53,28 @@ export default function CourseCatalogue({ query, courses, ok, total, totalPages,
           label: "Topic",
           value: query.topic,
           allLabel: "All topics",
+          title: "Choose a topic",
+          help: "Show courses about one area of practice.",
           options: topics.map((t) => ({ value: t.slug, label: t.name })),
         }]
       : []),
-    { name: "level", label: "Level", value: query.level, allLabel: "All levels", options: LEVELS.map((l) => ({ value: l.value, label: l.label })) },
-    { name: "cost", label: "Cost", value: query.cost, allLabel: "Free and paid", options: COSTS.map((c) => ({ value: c.value, label: c.label })) },
+    {
+      name: "level",
+      label: "Level",
+      value: query.level,
+      allLabel: "All levels",
+      title: "Choose a level",
+      help: "Pick the level that matches your study or practice experience.",
+      options: LEVELS.map((l) => ({ value: l.value, label: l.label, description: l.description })),
+    },
+    {
+      name: "cost",
+      label: "Cost",
+      value: query.cost,
+      allLabel: "Free and paid",
+      title: "Free or paid",
+      options: COSTS.map((c) => ({ value: c.value, label: c.label })),
+    },
   ];
 
   return (
@@ -79,35 +96,14 @@ export default function CourseCatalogue({ query, courses, ok, total, totalPages,
       {!catalogueEmpty && ok && (
         <section className={`${lib.toolbar} ${lib.container}`} aria-label="Search and filter courses">
           <Form action="/courses" scroll={false} className={lib.searchForm} role="search">
-            <label htmlFor="course-search" className="sr-only">
-              Search courses
-            </label>
-            <div className="swf-search">
-              <Search size={20} aria-hidden="true" />
-              <input
-                key={query.search}
-                id="course-search"
-                name="search"
-                type="search"
-                placeholder="Search by course title or topic"
-                defaultValue={query.search}
-                autoComplete="off"
-                enterKeyHint="search"
-              />
-              <button type="submit" className="sw-btn">
-                <span>Search</span>
-                <span className="sw-btn-dot" aria-hidden="true">
-                  <Search size={16} />
-                </span>
-              </button>
-            </div>
-            <FiltersPanel filters={filters} activeCount={activeCount} clearHref="/courses#catalogue" />
-            {query.level && (
-              <p className={s.levelHelp}>
-                {LEVELS.find((l) => l.value === query.level)?.label}:{" "}
-                {LEVELS.find((l) => l.value === query.level)?.description}
-              </p>
-            )}
+            <SearchBar
+              key={query.search}
+              id="course-search"
+              label="Search courses"
+              placeholder="Search by course title or topic"
+              defaultValue={query.search}
+            />
+            <FiltersPanel filters={filters} />
           </Form>
         </section>
       )}

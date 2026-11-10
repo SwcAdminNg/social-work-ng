@@ -1,14 +1,28 @@
-import { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
+import { site } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://socialworknigeria.org";
-
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/dashboard/", "/api/"],
+      // Signed-in areas, sign-in pages and personal pages stay out of search.
+      disallow: [
+        "/api/",
+        "/dashboard/",
+        "/learn/",
+        "/login",
+        "/register",
+        "/forgot-password",
+        "/reset-password",
+        "/logout",
+        "/payment-confirmation",
+        "/live-session/",
+        "/certificates/verify/",
+        "/maintenance",
+      ],
     },
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${site.url}/sitemap.xml`,
+    host: site.url,
   };
 }

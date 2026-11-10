@@ -8,8 +8,9 @@ import { PasswordChecklist, PASSWORD_MIN } from "./shared/PasswordChecklist";
 import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
 import { IconArrowRight, IconLock, IconSpinner } from "./shared/icons";
+import { errorMessage, type HomeStats } from "./shared/types";
 
-function ResetPasswordForm({ statsData }: { statsData?: any }) {
+function ResetPasswordForm({ statsData }: { statsData?: HomeStats }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -80,8 +81,8 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
       }
 
       setDone(true);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(errorMessage(err, "Something went wrong. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -236,7 +237,7 @@ function ResetPasswordForm({ statsData }: { statsData?: any }) {
   );
 }
 
-export default function ResetPassword({ statsData }: { statsData?: any }) {
+export default function ResetPassword({ statsData }: { statsData?: HomeStats }) {
   return (
     <Suspense fallback={
       <AuthPageShell variant="reset-password" statsData={statsData}>

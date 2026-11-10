@@ -3,7 +3,8 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Info } from "lucide-react";
-import { ChoiceGroup, FormAlert, FormNote, FormSuccess, RequiredNote, SelectField, SpamTrap, SubmitButton, TextArea, TextField } from "@/components/site/form";
+import { ChoiceGroup, FormAlert, FormNote, FormSuccess, PhoneField, RequiredNote, SelectField, SpamTrap, SubmitButton, TextArea, TextField } from "@/components/site/form";
+import { phoneProblem } from "@/lib/phone";
 
 const SUPPORT_EMAIL = "support@socialworknigeria.org";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -59,6 +60,8 @@ function initialValues(fields: FieldDef[]): Values {
 function validateField(field: FieldDef, raw: string): string | undefined {
   const value = raw.trim();
   const lower = field.label.toLowerCase();
+  // The phone field hands over the international form, such as +2348034471063.
+  if (field.kind === "tel") return phoneProblem(value, { required: field.required });
   if (!value) {
     if (!field.required) return undefined;
     if (field.kind === "radio" || field.kind === "select") return `Choose your ${lower}.`;
@@ -66,12 +69,6 @@ function validateField(field: FieldDef, raw: string): string | undefined {
     return `Enter your ${lower}.`;
   }
   if (field.kind === "email" && !EMAIL_PATTERN.test(value)) return "Enter a valid email address so we can reply.";
-  if (field.kind === "tel") {
-    const digits = value.replace(/\D/g, "");
-    if (!/^\+?[\d\s().-]+$/.test(value) || digits.length < 7 || digits.length > 15) {
-      return "Enter a phone number with country code, for example +234 803 447 1063, or leave it blank.";
-    }
-  }
   if (field.kind === "textarea") {
     if (field.min && value.length < field.min) return `Add a little more detail (at least ${field.min} characters).`;
     if (value.length > field.max) return `Keep this under ${field.max} characters.`;
@@ -289,6 +286,19 @@ export default function EnquiryForm({ config }: { config: FormConfig }) {
             onBlur={() => onBlur(field)}
           />
         </div>
+      );
+    }
+
+    if (field.kind === "tel") {
+      return (
+        <PhoneField
+          key={field.name}
+          {...shared}
+          label={field.label}
+          value={value}
+          onChange={(next) => update(field.name, next)}
+          onBlur={() => onBlur(field)}
+        />
       );
     }
 

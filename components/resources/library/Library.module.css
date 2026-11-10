@@ -51,7 +51,8 @@
 .page h1, .page h2, .page h3, .page p { margin: 0; }
 .page h1, .page h2, .page h3 { color: var(--heading); font-family: var(--sw-font-display); font-variation-settings: "wdth" 90; font-weight: 700; letter-spacing: -0.03em; }
 .page a { color: inherit; }
-.page :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 8px; }
+/* Site form controls draw their own focus ring. */
+.page :focus-visible:not(:global(.swf-input)):not(:global(.swf-search-input)) { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 8px; }
 .container { width: min(var(--page-width), 100% - 2 * var(--gutter)); margin-inline: auto; }
 
 /* Search and filters */

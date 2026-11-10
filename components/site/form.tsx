@@ -1,8 +1,20 @@
 "use client";
 
-import { forwardRef, useEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
-import * as Select from "@radix-ui/react-select";
-import { AlertCircle, Check, ChevronDown, Loader2 } from "lucide-react";
+import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import Image from "next/image";
+import { AlertCircle, Check, ChevronDown, Loader2, Search, X } from "lucide-react";
+import {
+  DEFAULT_COUNTRY,
+  countryName,
+  dialCode,
+  formatInternational,
+  listCountries,
+  readPhone,
+  readStoredPhone,
+  type CountryCode,
+  type PhoneReading,
+} from "@/lib/phone";
+import { OptionPicker, type PickerOption } from "./Sheet";
 
 /**
  * The form controls used by every public form. Each one draws the same
@@ -192,7 +204,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 
 /* ── Select ── */
 
-export type Option = { value: string; label: string };
+export type Option = { value: string; label: string; description?: string };
 
 type SelectFieldProps = Shared & {
   name?: string;
@@ -204,65 +216,71 @@ type SelectFieldProps = Shared & {
   placeholder?: string;
   /** A choosable first entry that stands for "no value", such as "All topics". */
   emptyLabel?: string;
-  /** A shorter, pill-shaped field for filter bars. */
+  /** A shorter, pill-shaped field for filter bars; it fills in while a value is chosen. */
   compact?: boolean;
+  /** Heading of the chooser; defaults to the label. */
+  sheetTitle?: string;
+  sheetDescription?: string;
 };
 
-// Radix does not allow an empty string as an item value.
-const NONE = "__none__";
-
+/**
+ * A select that opens a chooser: a dialog in the middle of the screen on
+ * wide screens, a sheet that rises from the bottom on phones.
+ */
 export function SelectField({
-  id, name, label, value, onChange, onBlur, options, placeholder = "Choose one", emptyLabel, compact, required, optional, error, hint, disabled, describedBy,
+  id, name, label, value, onChange, onBlur, options, placeholder = "Choose one", emptyLabel, compact, sheetTitle, sheetDescription, required, optional, error, hint, disabled, describedBy,
 }: SelectFieldProps) {
   const hydrated = useHydrated();
+  const [open, setOpen] = useState(false);
   const shell = `swf-shell${compact ? " swf-shell--compact" : ""}`;
   const described = join(Boolean(hint) && !error && `${id}-hint`, describedBy, error && `${id}-error`);
+  const chosen = options.find((option) => option.value === value);
   const labelEl = (
     <label htmlFor={id} className="swf-label">
       <LabelText label={label} required={required} optional={optional} />
     </label>
   );
+  const chevron = (
+    <span className="swf-chevron" aria-hidden="true">
+      <ChevronDown size={17} />
+    </span>
+  );
 
   return (
     <div className="swf" data-invalid={error ? "" : undefined} data-disabled={disabled ? "" : undefined}>
       {hydrated ? (
-        <Select.Root
-          value={value || (emptyLabel ? NONE : "")}
-          onValueChange={(next) => onChange(next === NONE ? "" : next)}
-          onOpenChange={(open) => {
-            if (!open) onBlur?.();
-          }}
-          disabled={disabled}
-        >
-          <SelectShell className={shell}>
-            <Select.Trigger
+        <>
+          <div className={shell} data-lifted="" data-open={open ? "" : undefined} data-active={compact && value ? "" : undefined}>
+            <button
+              type="button"
               id={id}
               className="swf-input swf-select"
-              aria-required={required || undefined}
-              aria-invalid={!!error || undefined}
+              data-placeholder={!chosen && !emptyLabel ? "" : undefined}
+              aria-haspopup="dialog"
+              aria-expanded={open}
               aria-describedby={described}
+              disabled={disabled}
+              onClick={() => setOpen(true)}
             >
-              <Select.Value placeholder={placeholder} />
-            </Select.Trigger>
+              <span>{chosen?.label ?? emptyLabel ?? placeholder}</span>
+            </button>
             {labelEl}
-            <span className="swf-chevron" aria-hidden="true">
-              <ChevronDown size={17} />
-            </span>
-          </SelectShell>
+            {chevron}
+          </div>
           {name && <input type="hidden" name={name} value={value} />}
-          <Select.Portal>
-            <Select.Content className="swf-menu" position="popper" sideOffset={8} collisionPadding={12} data-lenis-prevent>
-              <Select.Viewport className="swf-menu-view">
-                {emptyLabel && <Item value={NONE}>{emptyLabel}</Item>}
-                {options.map((option) => (
-                  <Item key={option.value} value={option.value}>
-                    {option.label}
-                  </Item>
-                ))}
-              </Select.Viewport>
-            </Select.Content>
-          </Select.Portal>
-        </Select.Root>
+          <OptionPicker
+            open={open}
+            onOpenChange={(next) => {
+              setOpen(next);
+              if (!next) onBlur?.();
+            }}
+            title={sheetTitle ?? label}
+            description={sheetDescription}
+            options={[...(emptyLabel ? [{ value: "", label: emptyLabel }] : []), ...options]}
+            value={value}
+            onSelect={onChange}
+          />
+        </>
       ) : (
         // Before the page is interactive (or without JavaScript) a native select does the job.
         <div className={shell} data-lifted="">
@@ -285,9 +303,7 @@ export function SelectField({
             ))}
           </select>
           {labelEl}
-          <span className="swf-chevron" aria-hidden="true">
-            <ChevronDown size={17} />
-          </span>
+          {chevron}
         </div>
       )}
       <Below id={id} error={error} hint={hint} />
@@ -295,36 +311,275 @@ export function SelectField({
   );
 }
 
-/** The shell needs to know when its menu is open, to turn the chevron. */
-function SelectShell({ className, children }: { className: string; children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const shell = ref.current;
-    const trigger = shell?.querySelector("[data-state]");
-    if (!shell || !trigger) return;
-    const sync = () => {
-      if (trigger.getAttribute("data-state") === "open") shell.setAttribute("data-open", "");
-      else shell.removeAttribute("data-open");
-    };
-    const observer = new MutationObserver(sync);
-    observer.observe(trigger, { attributes: true, attributeFilter: ["data-state"] });
-    return () => observer.disconnect();
-  }, []);
+/* ── Phone number ── */
+
+type PhoneFieldProps = Shared & {
+  name?: string;
+  /** The number in international form, such as "+2348034471063". */
+  value: string;
+  /** Always called with the international form, or "" when the field is empty. */
+  onChange: (e164: string) => void;
+  onBlur?: () => void;
+  defaultCountry?: CountryCode;
+};
+
+function Flag({ country, className }: { country: CountryCode; className?: string }) {
   return (
-    <div ref={ref} className={className} data-lifted="">
-      {children}
-    </div>
+    <Image
+      src={`/images/flags/${country.toLowerCase()}.svg`}
+      alt=""
+      width={30}
+      height={20}
+      unoptimized
+      className={className ?? "swf-flag"}
+    />
   );
 }
 
-function Item({ value, children }: { value: string; children: ReactNode }) {
+const digitsBefore = (text: string, caret: number) => text.slice(0, caret).replace(/\D/g, "").length;
+
+/**
+ * A phone number field that understands however the number arrives. Type
+ * it the local way ("0803 447 1063"), with the country code ("234 803…",
+ * "+234…", "00234…") or paste it in any of those shapes: the country
+ * switches to match and the form always receives "+2348034471063".
+ */
+export const PhoneField = forwardRef<HTMLInputElement, PhoneFieldProps>(function PhoneField(
+  { id, name, label, value, onChange, onBlur, defaultCountry = DEFAULT_COUNTRY, required, optional, error, hint, disabled, describedBy },
+  ref,
+) {
+  const [reading, setReading] = useState<PhoneReading>(() => readStoredPhone(value, defaultCountry));
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const caret = useRef<number | null>(null);
+
+  // The form changed the value itself (a reset, a prefill): read it afresh.
+  const [lastValue, setLastValue] = useState(value);
+  if (value !== lastValue) {
+    setLastValue(value);
+    if (value !== reading.e164) setReading(readStoredPhone(value, reading.country));
+  }
+
+  const apply = (next: PhoneReading) => {
+    setReading(next);
+    setLastValue(next.e164);
+    if (next.e164 !== value) onChange(next.e164);
+  };
+
+  const onInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const el = event.target;
+    const next = readPhone(el.value, reading.country);
+    // Put the caret back after the same digit it was after before the tidy-up.
+    const typedBefore = digitsBefore(el.value, el.selectionStart ?? el.value.length);
+    const dropped = el.value.replace(/\D/g, "").length - next.display.replace(/\D/g, "").length;
+    let seen = 0;
+    let position = next.display.length;
+    const target = Math.max(0, typedBefore - Math.max(0, dropped));
+    for (let i = 0; i < next.display.length && target > 0; i++) {
+      if (/\d/.test(next.display[i]) && ++seen === target) {
+        position = i + 1;
+        break;
+      }
+    }
+    caret.current = target === 0 ? 0 : position;
+    apply(next);
+  };
+
+  // A whole number pasted in replaces what is there, whatever shape it is in.
+  const onPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = event.clipboardData.getData("text");
+    const digits = pasted.replace(/\D/g, "");
+    if (digits.length < 7 && !/^\s*(\+|00)/.test(pasted)) return;
+    event.preventDefault();
+    caret.current = null;
+    let next = readPhone(pasted, reading.country);
+    // A local number that does not fit the chosen country may be one from the
+    // default country, pasted after another country was picked.
+    if (!next.valid && reading.country !== defaultCountry) {
+      const local = readPhone(pasted, defaultCountry);
+      if (local.valid) next = local;
+    }
+    apply(next);
+  };
+
+  useLayoutEffect(() => {
+    const el = inputRef.current;
+    if (el && caret.current !== null && document.activeElement === el) {
+      el.setSelectionRange(caret.current, caret.current);
+    }
+    caret.current = null;
+  }, [reading.display]);
+
+  const pickCountry = (code: string) => {
+    const country = code as CountryCode;
+    // Keep the digits already typed and read them for the new country.
+    const digits = reading.display.replace(/\D/g, "");
+    apply(digits ? readPhone(digits, country) : { country, display: "", e164: "", valid: false });
+    window.setTimeout(() => inputRef.current?.focus(), 60);
+  };
+
+  const countries = useMemo<PickerOption[]>(
+    () =>
+      listCountries().map((entry) => ({
+        value: entry.code,
+        label: entry.name,
+        trailing: entry.dial,
+        keywords: entry.code,
+        leading: <Flag country={entry.code} className="swm-flag" />,
+      })),
+    [],
+  );
+
+  const hasDigits = /\d/.test(reading.display);
+  const status = error ? "invalid" : reading.valid ? "valid" : undefined;
+  const preview = reading.valid && !error ? `${formatInternational(reading.e164)} · ${countryName(reading.country)}` : null;
+
   return (
-    <Select.Item value={value} className="swf-option">
-      <Select.ItemText>{children}</Select.ItemText>
-      <Select.ItemIndicator className="swf-option-tick">
-        <Check size={13} strokeWidth={3} />
-      </Select.ItemIndicator>
-    </Select.Item>
+    <div className="swf" data-invalid={error ? "" : undefined} data-disabled={disabled ? "" : undefined}>
+      <div className="swf-shell swf-shell--phone" data-status={status ? "" : undefined}>
+        <button
+          type="button"
+          className="swf-country"
+          onClick={() => setPickerOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={pickerOpen}
+          aria-label={`Country code: ${countryName(reading.country)}, ${dialCode(reading.country)}. Change country`}
+          disabled={disabled}
+        >
+          <Flag country={reading.country} />
+          <span className="swf-dial">{dialCode(reading.country)}</span>
+          <ChevronDown size={15} aria-hidden="true" />
+        </button>
+        <div className="swf-phone-main">
+          <input
+            ref={(node) => {
+              inputRef.current = node;
+              if (typeof ref === "function") ref(node);
+              else if (ref) ref.current = node;
+            }}
+            id={id}
+            type="tel"
+            inputMode="tel"
+            className="swf-input"
+            placeholder=" "
+            value={reading.display}
+            autoComplete="tel"
+            required={required}
+            aria-required={required || undefined}
+            aria-invalid={!!error || undefined}
+            aria-describedby={join((preview || (Boolean(hint) && !error)) && `${id}-hint`, describedBy, error && `${id}-error`)}
+            disabled={disabled}
+            onChange={onInput}
+            onPaste={onPaste}
+            onBlur={onBlur}
+          />
+          <label htmlFor={id} className="swf-label">
+            <LabelText label={label} required={required} optional={optional} />
+          </label>
+          {status && (
+            <span key={status} className="swf-status" data-kind={status} aria-hidden="true">
+              {status === "valid" ? <Check size={14} strokeWidth={3} /> : <AlertCircle size={15} />}
+            </span>
+          )}
+        </div>
+      </div>
+      {name && <input type="hidden" name={name} value={reading.e164} />}
+      <Below id={id} error={error} hint={preview ? <span className="swf-phone-preview">{preview}</span> : hasDigits ? null : hint} />
+      <OptionPicker
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        eyebrow="Country code"
+        title="Where is this number from?"
+        options={countries}
+        value={reading.country}
+        onSelect={pickCountry}
+        searchPlaceholder="Search by country or code"
+        searchable
+      />
+    </div>
+  );
+});
+
+/* ── Search ── */
+
+/**
+ * A search box for the top of a list. It sits inside a form and submits
+ * with it; "/" jumps to it from anywhere on the page.
+ */
+export function SearchBar({
+  id,
+  name = "search",
+  label,
+  placeholder,
+  defaultValue = "",
+}: {
+  id: string;
+  name?: string;
+  label: string;
+  placeholder: string;
+  defaultValue?: string;
+}) {
+  const [value, setValue] = useState(defaultValue);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']")) return;
+      event.preventDefault();
+      inputRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  return (
+    <div className="swf-search">
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
+      <span className="swf-search-icon" aria-hidden="true">
+        <Search size={19} />
+      </span>
+      <input
+        ref={inputRef}
+        id={id}
+        name={name}
+        type="text"
+        inputMode="search"
+        className="swf-search-input"
+        placeholder={placeholder}
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        autoComplete="off"
+        enterKeyHint="search"
+      />
+      {value ? (
+        <button
+          type="button"
+          className="swf-search-clear"
+          aria-label="Clear search"
+          onClick={() => {
+            setValue("");
+            // Submit the cleared search once the empty value is in the form.
+            const form = inputRef.current?.form;
+            window.setTimeout(() => (defaultValue ? form?.requestSubmit() : inputRef.current?.focus()), 0);
+          }}
+        >
+          <X size={16} aria-hidden="true" />
+        </button>
+      ) : (
+        <kbd className="swf-search-key" aria-hidden="true">/</kbd>
+      )}
+      <button type="submit" className="sw-btn swf-search-go">
+        <span>Search</span>
+        <span className="sw-btn-dot" aria-hidden="true">
+          <SendArrow />
+          <SendArrow />
+        </span>
+      </button>
+    </div>
   );
 }
 

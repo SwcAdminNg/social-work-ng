@@ -1,7 +1,7 @@
 import Form from "next/form";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, Info, Search, Sprout, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Info, Sprout, X } from "lucide-react";
 import {
   RESOURCE_ACCESS_OPTIONS,
   RESOURCE_CATEGORIES,
@@ -10,6 +10,7 @@ import {
 } from "@/lib/resources";
 import AccessSelect from "./AccessSelect";
 import LibraryCard, { categoryLabel } from "./LibraryCard";
+import { SearchBar } from "@/components/site/form";
 import PageHero from "@/components/site/PageHero";
 import { photos } from "@/lib/photos";
 import s from "./Library.module.css";
@@ -88,28 +89,13 @@ export default function ResourcesLibrary({ query, result, counts, pageSize }: Pr
       {!libraryEmpty && (
         <section className={`${s.toolbar} ${s.container}`} aria-label="Search and filter resources">
           <Form action="/resources" scroll={false} className={s.searchForm} role="search">
-            <label htmlFor="resource-search" className="sr-only">
-              Search the resource library
-            </label>
-            <div className="swf-search">
-              <Search size={20} aria-hidden="true" />
-              <input
-                key={query.search}
-                id="resource-search"
-                name="search"
-                type="search"
-                placeholder="Search by title or topic"
-                defaultValue={query.search}
-                autoComplete="off"
-                enterKeyHint="search"
-              />
-              <button type="submit" className="sw-btn">
-                <span>Search</span>
-                <span className="sw-btn-dot" aria-hidden="true">
-                  <Search size={16} />
-                </span>
-              </button>
-            </div>
+            <SearchBar
+              key={query.search}
+              id="resource-search"
+              label="Search the resource library"
+              placeholder="Search by title or topic"
+              defaultValue={query.search}
+            />
             {query.category && <input type="hidden" name="category" value={query.category} />}
 
             <div className={s.filterRow}>

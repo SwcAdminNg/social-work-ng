@@ -2,8 +2,9 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { Info, Mail, Phone, ShieldAlert, UserRound } from "lucide-react";
-import { ChoiceGroup, FormAlert, FormNote, FormSuccess, RequiredNote, SpamTrap, SubmitButton, TextArea, TextField } from "@/components/site/form";
+import { Info, Mail, ShieldAlert, UserRound } from "lucide-react";
+import { ChoiceGroup, FormAlert, FormNote, FormSuccess, PhoneField, RequiredNote, SpamTrap, SubmitButton, TextArea, TextField } from "@/components/site/form";
+import { phoneProblem } from "@/lib/phone";
 
 // `category` is the API's contact category for each enquiry type.
 export const TOPICS = [
@@ -52,13 +53,9 @@ function validate(values: Values): Errors {
 
   if (!values.topic) errors.topic = "Choose the topic that best matches your enquiry.";
 
-  const phone = values.phone.trim();
-  if (phone) {
-    const digits = phone.replace(/\D/g, "");
-    if (!/^\+?[\d\s().-]+$/.test(phone) || digits.length < 7 || digits.length > 15) {
-      errors.phone = "Enter a phone number with country code, for example +234 803 447 1063, or leave it blank.";
-    }
-  }
+  // The phone field hands over the international form, such as +2348034471063.
+  const phoneError = phoneProblem(values.phone);
+  if (phoneError) errors.phone = phoneError;
 
   const message = values.message.trim();
   if (!message) errors.message = "Tell us what you need help with.";
@@ -292,20 +289,16 @@ export default function ContactForm({ initialTopic }: { initialTopic?: string })
         </FormNote>
       )}
 
-      <TextField
+      <PhoneField
         id={id("phone")}
         name="phone"
-        type="tel"
         label="Telephone number"
-        icon={<Phone size={19} />}
-        autoComplete="tel"
         optional
-        hint="Include your country code if you are outside Nigeria."
+        hint="Outside Nigeria? Choose your country, or paste the number with its code."
         value={values.phone}
         onChange={(value) => update("phone", value)}
         onBlur={() => revalidateOnBlur("phone")}
         error={errors.phone}
-        valid={isValid("phone")}
         disabled={sending}
       />
 

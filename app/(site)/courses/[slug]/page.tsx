@@ -16,14 +16,17 @@ import {
   RotateCw,
   Star,
 } from "lucide-react";
+import { auth } from "@/auth";
 import { fetchApi } from "@/lib/fetchApi";
 import { getCourseDurationLabel } from "@/lib/courseDuration";
 import { estimateTotalWithTax, formatNaira } from "@/lib/paymentTax";
 import { CourseReviews } from "@/components/courses/CourseReviews";
 import { CourseResourcesSection } from "@/components/resources/CourseResourcesSection";
 import { fallbackImage, levelLabel, priceLabel, type CatalogueCourse } from "@/components/courses/catalogue/courseFormat";
+import JsonLd from "@/components/site/JsonLd";
 import SectionNav, { type SectionLink } from "@/components/site/SectionNav";
 import { Btn, Contours, Eyebrow, Heading, TextLink, type Vars } from "@/components/site/ui";
+import { absoluteUrl, breadcrumbNode, organizationId, pageMetadata, webPageNode } from "@/lib/site";
 import { CourseCurriculum } from "./CourseCurriculum";
 import { EnrollButton } from "./EnrollButton";
 
@@ -43,8 +46,6 @@ type CourseDetail = CatalogueCourse & {
   sections?: unknown;
 };
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://socialworknigeria.org";
-
 async function loadCourse(slug: string) {
   const res = await fetchApi(`/courses/${encodeURIComponent(slug)}`, { next: { revalidate: 60 } }).catch(() => null);
   if (!res) return { status: 0, course: null as CourseDetail | null };
@@ -59,17 +60,14 @@ function plainText(text?: string | null) {
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await props.params;
   const { course } = await loadCourse(slug);
-  if (!course) return { title: "Course not found | Social Work Consultancy Ltd" };
+  if (!course) return { title: "Course not found | Social Work Consultancy Ltd", robots: { index: false, follow: true } };
   const description = plainText(course.description).slice(0, 160) || `${course.title} from Social Work Consultancy Ltd.`;
-  const url = `/courses/${course.slug || course.id}`;
-  const image = course.thumbnail_url || fallbackImage(course.id);
-  return {
+  return pageMetadata({
     title: `${course.title} | Social Work Consultancy Ltd`,
     description,
-    alternates: { canonical: url },
-    openGraph: { type: "website", url, title: course.title, description, images: [image] },
-    twitter: { card: "summary_large_image", title: course.title, description, images: [image] },
-  };
+    path: `/courses/${course.slug || course.id}`,
+    image: course.thumbnail_url || "courses",
+  });
 }
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" });
@@ -106,6 +104,7 @@ export default async function CourseDetailsPage(props: { params: Promise<{ slug:
     );
   }
 
+  const signedIn = Boolean(await auth());
   const level = levelLabel(course.level);
   const price = priceLabel(course);
   const duration = getCourseDurationLabel(course);
@@ -160,38 +159,39 @@ export default async function CourseDetailsPage(props: { params: Promise<{ slug:
     course.certificate_enabled && { icon: Award, label: "Certificate", value: "On completion" },
   ].filter(Boolean) as { icon: typeof Award; label: string; value: string }[];
 
-  const courseUrl = `${BASE_URL}/courses/${course.slug || course.id}`;
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Course",
-        name: course.title,
-        description: description || course.title,
-        url: courseUrl,
-        provider: { "@type": "Organization", name: "Social Work Consultancy Ltd", sameAs: BASE_URL },
-        ...(course.thumbnail_url ? { image: course.thumbnail_url } : {}),
-        ...(price
-          ? { offers: { "@type": "Offer", category: course.is_free ? "Free" : "Paid", price: course.is_free ? 0 : course.price, priceCurrency: "NGN" } }
-          : {}),
+  const coursePath = `/courses/${course.slug || course.id}`;
+  const nodes = [
+    webPageNode({
+      path: coursePath,
+      name: course.title,
+      description: description || course.title,
+      extra: {
+        mainEntity: {
+          "@type": "Course",
+          name: course.title,
+          description: description || course.title,
+          url: absoluteUrl(coursePath),
+          provider: { "@id": organizationId },
+          ...(course.thumbnail_url ? { image: course.thumbnail_url } : {}),
+          ...(level ? { educationalLevel: level } : {}),
+          ...(reviewCount > 0
+            ? { aggregateRating: { "@type": "AggregateRating", ratingValue: Number(course.average_rating || 0).toFixed(1), reviewCount } }
+            : {}),
+          ...(price
+            ? { offers: { "@type": "Offer", category: course.is_free ? "Free" : "Paid", price: course.is_free ? 0 : course.price, priceCurrency: "NGN" } }
+            : {}),
+        },
       },
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "Courses", item: `${BASE_URL}/courses` },
-          { "@type": "ListItem", position: 3, name: course.title, item: courseUrl },
-        ],
-      },
-    ],
-  };
+    }),
+    breadcrumbNode(coursePath, [
+      { name: "Courses", path: "/courses" },
+      { name: course.title, path: coursePath },
+    ]),
+  ];
 
   return (
     <div>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
-      />
+      <JsonLd nodes={nodes} />
 
       {/* ── Opening ── */}
       <section
@@ -435,7 +435,7 @@ export default async function CourseDetailsPage(props: { params: Promise<{ slug:
               <CourseResourcesSection courseId={course.id} />
 
               <div id="reviews" className="scroll-mt-40 empty:hidden">
-                <CourseReviews courseId={course.id} />
+                <CourseReviews courseId={course.id} signedIn={signedIn} />
               </div>
             </div>
           </div>

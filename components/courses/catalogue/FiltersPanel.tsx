@@ -1,61 +1,38 @@
 "use client";
 
-import Link from "next/link";
-import { useRef, useState, useSyncExternalStore } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { useRef, useState } from "react";
 import { SelectField } from "@/components/site/form";
 import s from "./Catalogue.module.css";
 
-type Option = { value: string; label: string };
-type Filter = { name: string; label: string; value: string; allLabel: string; options: Option[] };
-
-const noopSubscribe = () => () => {};
+type Option = { value: string; label: string; description?: string };
+type Filter = {
+  name: string;
+  label: string;
+  value: string;
+  allLabel: string;
+  options: Option[];
+  /** Heading and help shown in the chooser. */
+  title?: string;
+  help?: string;
+};
 
 /**
- * Topic, level and cost filters. On wide screens a change applies at once; on
- * phones they sit in a labelled panel with Apply and Clear. Without JavaScript
- * the panel stays open and the search form's button applies them.
+ * Topic, level and cost filters. Each opens a chooser (centred on wide
+ * screens, a sheet from the bottom on phones) and applies as soon as an
+ * option is picked. Without JavaScript they are ordinary selects, applied
+ * by the Search button.
  */
-export default function FiltersPanel({ filters, activeCount, clearHref }: { filters: Filter[]; activeCount: number; clearHref: string }) {
-  const [open, setOpen] = useState(false);
-  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+export default function FiltersPanel({ filters }: { filters: Filter[] }) {
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // Runs after the chosen value has been written into the form.
-  const applyOnWideScreens = () => {
-    window.setTimeout(() => {
-      if (window.matchMedia("(min-width: 768px)").matches) wrapRef.current?.closest("form")?.requestSubmit();
-    }, 0);
-  };
+  const apply = () => window.setTimeout(() => wrapRef.current?.closest("form")?.requestSubmit(), 0);
 
   return (
-    <div ref={wrapRef} className={hydrated ? undefined : s.noJs}>
-      <button
-        type="button"
-        className={s.panelToggle}
-        aria-expanded={open}
-        aria-controls="course-filters"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-          <SlidersHorizontal size={18} aria-hidden="true" /> Filters
-        </span>
-        {activeCount > 0 && (
-          <span className={s.panelCount}>
-            {activeCount}
-            <span className="sr-only"> active</span>
-          </span>
-        )}
-      </button>
-      <div id="course-filters" className={`${s.filters} ${open ? s.filtersOpen : ""}`}>
-        {filters.map((filter) => (
-          <FilterSelect key={`${filter.name}:${filter.value}`} filter={filter} onPicked={applyOnWideScreens} />
-        ))}
-        <div className={s.panelActions}>
-          <button type="submit" className={s.applyButton}>Apply</button>
-          <Link href={clearHref} className={s.clearButton} scroll={false}>Clear</Link>
-        </div>
-      </div>
+    <div ref={wrapRef} className={s.filters} role="group" aria-label="Filter courses">
+      {filters.map((filter) => (
+        <FilterSelect key={`${filter.name}:${filter.value}`} filter={filter} onPicked={apply} />
+      ))}
     </div>
   );
 }
@@ -71,6 +48,8 @@ function FilterSelect({ filter, onPicked }: { filter: Filter; onPicked: () => vo
         emptyLabel={filter.allLabel}
         options={filter.options}
         value={value}
+        sheetTitle={filter.title}
+        sheetDescription={filter.help}
         onChange={(next) => {
           setValue(next);
           onPicked();

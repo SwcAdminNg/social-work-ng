@@ -5,61 +5,21 @@
 
 /* The opening is the shared PageHero. */
 
-/* Filters: inline on wide screens, a labelled panel on phones */
-.filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
-.filterField { min-width: 210px; }
-.panelToggle {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  min-height: 48px;
-  padding: 10px 16px;
-  border: 1.5px solid var(--field-line);
-  border-radius: 999px;
-  background: var(--field);
-  color: var(--ink);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
+/* Filters: a row of pills that scrolls sideways on phones */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.filterField { min-width: 200px; }
+@media (max-width: 639px) {
+  .filters {
+    flex-wrap: nowrap;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 2px var(--gutter) 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .filterField { flex: none; min-width: 168px; scroll-snap-align: start; }
 }
-.panelCount { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; background: var(--chip-on-bg); color: var(--chip-on-ink); font-size: 0.8rem; }
-.panelActions { display: none; gap: 10px; width: 100%; }
-.applyButton {
-  flex: 1;
-  min-height: 48px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--green);
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-:global(.dark) .applyButton { background: #2d6a4f; }
-.clearButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  min-height: 48px;
-  border: 1.5px solid var(--field-line);
-  border-radius: 999px;
-  color: var(--ink) !important;
-  font-weight: 600;
-  text-decoration: none;
-}
-@media (max-width: 767px) {
-  .panelToggle { display: flex; }
-  .filters { display: none; flex-direction: column; align-items: stretch; padding: 14px; border: 1px solid var(--line); border-radius: 24px; background: var(--card); }
-  .filtersOpen { display: flex; }
-  .filterField { min-width: 0; }
-  .panelActions { display: flex; }
-}
-/* Without JavaScript the panel cannot open, so keep it visible. */
-.noJs .filters { display: flex; }
-.noJs .panelToggle { display: none; }
 
 /* Course cards */
 .card {
@@ -125,7 +85,6 @@
 .action svg { color: var(--sw-gold-light); transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
 .action:hover svg { transform: translate(3px, -3px); }
 
-.levelHelp { margin-top: 10px !important; color: var(--muted); font-size: 0.84rem; }
 
 @media (prefers-reduced-motion: reduce) {
   .card, .action svg, .media img { transition: none; }
