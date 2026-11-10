@@ -7,6 +7,7 @@ import {
   FileText,
   GraduationCap,
   Hourglass,
+  KeyRound,
   LifeBuoy,
   type LucideIcon,
   MessageSquareReply,
@@ -108,7 +109,7 @@ export function notificationTypeLabel(type: string) {
     .join(" ");
 }
 
-export type NotificationTone = "green" | "gold" | "clay" | "deep" | "quiet";
+export type NotificationTone = "green" | "gold" | "clay" | "deep" | "quiet" | "key";
 
 /** The icon and colour a notification is shown with, by its type. */
 export function notificationVisual(type: string): { icon: LucideIcon; tone: NotificationTone } {
@@ -151,12 +152,17 @@ export function notificationVisual(type: string): { icon: LucideIcon; tone: Noti
     case "PASSWORD_RESET_REQUESTED":
     case "PASSWORD_RESET_COMPLETED":
     case "TWO_FACTOR_ENABLED":
+    case "PASSKEY_ADDED":
+      return { icon: KeyRound, tone: "key" };
     case "ACCOUNT_UNSUSPENDED":
     case "ROLE_CHANGED":
       return { icon: ShieldCheck, tone: "quiet" };
     case "PROFILE_PICTURE_UPDATED":
       return { icon: UserRound, tone: "quiet" };
     default:
+      if (/LOGIN|PASSWORD|TWO_FACTOR|PASSKEY|SIGN_IN/.test(type)) {
+        return { icon: KeyRound, tone: "key" };
+      }
       if (type.startsWith("REVISION_") || type.startsWith("REVIEW_") || type.startsWith("MARKS_")) {
         return { icon: FileText, tone: "quiet" };
       }

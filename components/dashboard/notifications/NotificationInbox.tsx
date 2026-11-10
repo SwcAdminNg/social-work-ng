@@ -11,6 +11,7 @@ import {
   Loader2,
   MessageSquare,
   RefreshCcw,
+  KeyRound,
   ShieldCheck,
   TicketCheck,
 } from "lucide-react";
@@ -381,8 +382,15 @@ function FilterButton({
   );
 }
 
+function isAuthNotice(type: string) {
+  return /LOGIN|PASSWORD|TWO_FACTOR|PASSKEY|SIGN_IN/.test(type.toUpperCase());
+}
+
 function notificationIcon(type: string) {
   const normalized = type.toUpperCase();
+  if (isAuthNotice(normalized)) {
+    return <KeyRound className="h-5 w-5" strokeWidth={2.1} />;
+  }
   if (normalized.includes("COURSE") || normalized.includes("CERTIFICATE")) {
     return <BookOpen className="h-5 w-5" />;
   }
@@ -406,6 +414,7 @@ function notificationIcon(type: string) {
 
 function iconTone(type: string) {
   const normalized = type.toUpperCase();
+  if (isAuthNotice(normalized)) return "lms-key-tile !rounded-full";
   if (normalized.includes("PAYMENT") || normalized.includes("CERTIFICATE") || normalized.includes("COMPLETED")) {
     return "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200";
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ArrowRight, Bell, BellRing, Check, CheckCheck, Loader2, Maximize2, Settings } from "lucide-react";
@@ -29,6 +29,8 @@ type DashboardOverviewCountEvent = CustomEvent<{
 }>;
 
 const PAGE_SIZE = 10;
+/** How many notifications the panel shows; the full page holds the rest. */
+const PANEL_LIMIT = 4;
 /** A list older than this is refreshed quietly when the panel opens. */
 const STALE_MS = 30_000;
 
@@ -38,36 +40,28 @@ const TONES: Record<NotificationTone, string> = {
   clay: "bg-clay-wash text-clay-ink",
   deep: "bg-deep text-white dark:bg-brand",
   quiet: "bg-ink/[0.06] text-ink-2 dark:bg-white/[0.08]",
+  key: "lms-key-tile",
 };
 
-const lagosDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos", year: "numeric", month: "2-digit", day: "2-digit" });
-function dayGroup(value: string, now: number) {
-  const key = lagosDay.format(new Date(value));
-  if (key === lagosDay.format(now)) return "Today";
-  if (key === lagosDay.format(now - 86_400_000)) return "Yesterday";
-  return "Earlier";
-}
 const RECONNECT_BASE_DELAY_MS = 2000;
 const RECONNECT_MAX_DELAY_MS = 30000;
 
 export function NotificationCenter() {
   const router = useRouter();
+  const pathname = usePathname();
   const { data: session } = useSession();
   const accessToken = (session as AppSession | null)?.accessToken;
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [page, setPage] = useState(1);
+  const [, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(false);
   // Whether page 1 has ever arrived, and when: the panel never opens with
   // only the one live notification that happened to land first.
   const [loaded, setLoaded] = useState(false);
   const loadedAtRef = useRef(0);
-  const [filter, setFilter] = useState<"all" | "unread">("all");
-  const [now, setNow] = useState(() => Date.now());
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
   const [connection, setConnection] = useState<ConnectionState>("closed");
   const rootRef = useRef<HTMLDivElement>(null);
@@ -96,11 +90,7 @@ export function NotificationCenter() {
   }, []);
 
   const loadNotifications = useCallback(async (nextPage = 1, quiet = false) => {
-    if (nextPage === 1) {
-      if (!quiet) setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
+    if (nextPage === 1 && !quiet) setLoading(true);
 
     try {
       const res = await fetch(
@@ -138,7 +128,6 @@ export function NotificationCenter() {
       );
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   }, []);
 
@@ -150,27 +139,51 @@ export function NotificationCenter() {
     loadNotifications(1, true);
   }, [fetchUnreadCount, loadNotifications]);
 
+  // Any press or focus outside the panel closes it, as does the window losing
+  // focus (a click into an embedded frame) or moving to another page.
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
+    if (!open) return;
+    function outside(target: EventTarget | null) {
+      const node = target as Node | null;
+      if (!node || !rootRef.current || rootRef.current.contains(node)) return false;
+      // The sign-out confirmation and similar dialogs portal out of the panel.
+      return !(node instanceof Element && node.closest("[data-keep-popover]"));
     }
-
-    function handleKey(event: KeyboardEvent) {
-      if (event.key === "Escape" && openRef.current) {
+    function onPress(event: PointerEvent | TouchEvent) {
+      if (outside(event.target)) setOpen(false);
+    }
+    function onFocus(event: FocusEvent) {
+      if (outside(event.target)) setOpen(false);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
         setOpen(false);
         buttonRef.current?.focus();
       }
     }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKey);
+    function onBlur() {
+      setOpen(false);
+    }
+    document.addEventListener("pointerdown", onPress, true);
+    document.addEventListener("touchstart", onPress, true);
+    document.addEventListener("focusin", onFocus);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("blur", onBlur);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKey);
+      document.removeEventListener("pointerdown", onPress, true);
+      document.removeEventListener("touchstart", onPress, true);
+      document.removeEventListener("focusin", onFocus);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("blur", onBlur);
     };
-  }, []);
+  }, [open]);
+
+  // A new page closes the panel.
+  const [openedOn, setOpenedOn] = useState(pathname);
+  if (openedOn !== pathname) {
+    setOpenedOn(pathname);
+    if (open) setOpen(false);
+  }
 
   // First mount: the count and the first page, so the bell is right at once
   // and the panel opens with its list already there.
@@ -202,7 +215,6 @@ export function NotificationCenter() {
   useEffect(() => {
     if (!open) return;
     const timeout = setTimeout(() => {
-      setNow(Date.now());
       if (!loaded) loadNotifications(1);
       else if (Date.now() - loadedAtRef.current > STALE_MS) loadNotifications(1, true);
     }, 0);
@@ -410,14 +422,7 @@ export function NotificationCenter() {
     }
   }, [items, unreadCount]);
 
-  const visible = filter === "unread" ? items.filter((item) => !item.is_read) : items;
-  const groups: { label: string; items: NotificationItem[] }[] = [];
-  for (const item of visible) {
-    const label = dayGroup(item.created_at, now);
-    const last = groups[groups.length - 1];
-    if (last?.label === label) last.items.push(item);
-    else groups.push({ label, items: [item] });
-  }
+  const visible = items.slice(0, PANEL_LIMIT);
   const live = connection === "open";
 
   return (
@@ -489,25 +494,10 @@ export function NotificationCenter() {
               </div>
             </div>
 
-            <div className="mt-3 flex items-center justify-between gap-2">
-              <div role="tablist" aria-label="Show" className="flex gap-2">
-                {(["all", "unread"] as const).map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    role="tab"
-                    aria-selected={filter === value}
-                    onClick={() => setFilter(value)}
-                    className="lms-chip"
-                  >
-                    {filter === value && <Check className="-ml-0.5 h-3.5 w-3.5" strokeWidth={2.6} aria-hidden="true" />}
-                    {value === "all" ? "All" : "Unread"}
-                    {value === "unread" && unreadCount > 0 && (
-                      <span className="tabular-nums text-accent">{unreadBadgeLabel(unreadCount)}</span>
-                    )}
-                  </button>
-                ))}
-              </div>
+            <div className="mt-1 flex items-center justify-between gap-2 pl-1">
+              <p className="m-0 text-[0.8rem] text-ink-3">
+                {unreadCount > 0 ? `${unreadBadgeLabel(unreadCount)} unread` : "You’re all caught up"}
+              </p>
               <button
                 type="button"
                 onClick={markAllRead}
@@ -539,85 +529,68 @@ export function NotificationCenter() {
                   <BellRing className="h-7 w-7" strokeWidth={1.7} />
                 </span>
                 <p className="m-0 mt-4 text-[0.98rem] font-semibold text-ink">
-                  {filter === "unread" && items.length > 0 ? "You’re all caught up" : "No notifications yet"}
+                  No notifications yet
                 </p>
                 <p className="m-0 mt-1 max-w-[30ch] text-[0.82rem] leading-relaxed text-ink-3">
                   Updates about your courses, live sessions, payments and support tickets will appear here.
                 </p>
               </div>
             ) : (
-              groups.map((group) => (
-                <section key={group.label} aria-label={group.label} className="mt-1 first:mt-0">
-                  <p className="m-0 px-3 pb-2 pt-2 text-[0.75rem] font-semibold text-ink-2">{group.label}</p>
-                  <ul className="lms-gpop-group m-0 list-none p-0">
-                    {group.items.map((notification) => {
-                      const { icon: Icon, tone } = notificationVisual(notification.type);
-                      return (
-                        <li key={notification.id} className="group relative">
-                          <button
-                            type="button"
-                            onClick={() => markReadAndOpen(notification)}
-                            data-unread={notification.is_read ? undefined : ""}
-                            className="lms-notif"
-                          >
-                            <span className={`grid h-9 w-9 flex-none place-items-center rounded-full ${TONES[tone]}`}>
-                              <Icon className="h-[17px] w-[17px]" strokeWidth={1.9} aria-hidden="true" />
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="flex items-baseline gap-2">
-                                <span
-                                  className={`min-w-0 flex-1 text-[0.875rem] leading-snug ${
-                                    notification.is_read ? "font-medium text-ink-2" : "font-semibold text-ink"
-                                  }`}
-                                >
-                                  {notification.title}
-                                </span>
-                                <time
-                                  dateTime={notification.created_at}
-                                  title={formatNotificationDateTime(notification.created_at)}
-                                  suppressHydrationWarning
-                                  className={`flex-none text-[0.72rem] tabular-nums ${notification.is_read ? "text-ink-3" : "font-semibold text-accent"}`}
-                                >
-                                  {formatNotificationTime(notification.created_at)}
-                                </time>
-                              </span>
-                              {notification.body && (
-                                <span className="mt-0.5 line-clamp-2 block pr-7 text-[0.8rem] leading-[1.45] text-ink-3">
-                                  {notification.body}
-                                </span>
-                              )}
-                            </span>
-                            {!notification.is_read && <span className="sr-only">, unread</span>}
-                          </button>
-                          {!notification.is_read && (
-                            <button
-                              type="button"
-                              onClick={() => markRead(notification)}
-                              aria-label={`Mark “${notification.title}” as read`}
-                              title="Mark as read"
-                              className="absolute bottom-2.5 right-2.5 grid h-7 w-7 cursor-pointer place-items-center rounded-full bg-[var(--lms-gpop-bg)] text-accent opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+              <ul className="lms-gpop-group m-0 list-none p-0">
+                {visible.map((notification) => {
+                  const { icon: Icon, tone } = notificationVisual(notification.type);
+                  return (
+                    <li key={notification.id} className="group relative">
+                      <button
+                        type="button"
+                        onClick={() => markReadAndOpen(notification)}
+                        data-unread={notification.is_read ? undefined : ""}
+                        className="lms-notif"
+                      >
+                        <span className={`grid h-9 w-9 flex-none place-items-center rounded-full ${TONES[tone]}`}>
+                          <Icon className="h-[17px] w-[17px]" strokeWidth={tone === "key" ? 2.2 : 1.9} aria-hidden="true" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-baseline gap-2">
+                            <span
+                              className={`min-w-0 flex-1 text-[0.875rem] leading-snug ${
+                                notification.is_read ? "font-medium text-ink-2" : "font-semibold text-ink"
+                              }`}
                             >
-                              <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
-                            </button>
+                              {notification.title}
+                            </span>
+                            <time
+                              dateTime={notification.created_at}
+                              title={formatNotificationDateTime(notification.created_at)}
+                              suppressHydrationWarning
+                              className={`flex-none text-[0.72rem] tabular-nums ${notification.is_read ? "text-ink-3" : "font-semibold text-accent"}`}
+                            >
+                              {formatNotificationTime(notification.created_at)}
+                            </time>
+                          </span>
+                          {notification.body && (
+                            <span className="mt-0.5 line-clamp-2 block pr-7 text-[0.8rem] leading-[1.45] text-ink-3">
+                              {notification.body}
+                            </span>
                           )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </section>
-              ))
-            )}
-
-            {hasNext && filter === "all" && visible.length > 0 && (
-              <button
-                type="button"
-                onClick={() => loadNotifications(page + 1)}
-                disabled={loadingMore}
-                className="lms-gpop-outline mx-auto mt-3 flex disabled:opacity-60"
-              >
-                {loadingMore && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                Show older
-              </button>
+                        </span>
+                        {!notification.is_read && <span className="sr-only">, unread</span>}
+                      </button>
+                      {!notification.is_read && (
+                        <button
+                          type="button"
+                          onClick={() => markRead(notification)}
+                          aria-label={`Mark “${notification.title}” as read`}
+                          title="Mark as read"
+                          className="absolute bottom-2.5 right-2.5 grid h-7 w-7 cursor-pointer place-items-center rounded-full bg-[var(--lms-gpop-bg)] text-accent opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+                        >
+                          <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
 
@@ -627,7 +600,7 @@ export function NotificationCenter() {
               onClick={() => setOpen(false)}
               className="lms-gpop-pill !rounded-[20px]"
             >
-              See all notifications
+              {items.length > PANEL_LIMIT || hasNext ? "See all notifications" : "Open notifications"}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
