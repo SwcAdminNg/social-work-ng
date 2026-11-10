@@ -8,14 +8,10 @@ import { useSession } from "next-auth/react";
 import {
   ArrowUpRight,
   ChevronRight,
-  Globe,
-  Moon,
   PanelLeftClose,
   PanelLeftOpen,
-  Sun,
   X,
 } from "lucide-react";
-import { useTheme } from "@/components/generic/ThemeProvider";
 import { dashboardNavGroups, isNavItemActive, type NavItem } from "./nav-items";
 import { useSidebar } from "./SidebarContext";
 import { badgeLabel, useBadgeCounts } from "./BadgeCounts";
@@ -63,7 +59,6 @@ export function Sidebar() {
   const { data: session } = useSession();
   const { mobileOpen, setMobileOpen, collapsed, toggleCollapsed } = useSidebar();
   const counts = useBadgeCounts();
-  const { theme, toggle } = useTheme();
   const [failedAvatar, setFailedAvatar] = useState<string | null>(null);
   // Section headers fold their links away, as in a macOS sidebar. Remembered per browser.
   const foldedRaw = useSyncExternalStore(
@@ -75,7 +70,6 @@ export function Sidebar() {
     () => "[]",
   );
   const folded = parseFolded(foldedRaw);
-  const isDark = theme === "dark";
   // Labels are hidden on the narrow desktop rail, never in the mobile drawer.
   const label = collapsed ? "lg:hidden" : "";
 
@@ -122,13 +116,13 @@ export function Sidebar() {
         id="dashboard-rail"
         aria-label="Dashboard"
         data-collapsed={collapsed || undefined}
-        className={`lms-side fixed inset-y-0 left-0 z-50 flex w-[min(86vw,300px)] flex-col transition-[width,translate,visibility] duration-500 ease-sw motion-reduce:transition-none ${
+        className={`lms-side fixed bottom-[var(--lms-gap)] left-[var(--lms-gap)] top-[var(--lms-gap)] z-50 flex w-[min(86vw,300px)] flex-col transition-[width,translate,visibility] duration-500 ease-sw motion-reduce:transition-none ${
           collapsed ? "lg:w-[var(--lms-rail-min)]" : "lg:w-[var(--lms-rail)]"
-        } ${mobileOpen ? "translate-x-0" : "-translate-x-[105%] max-lg:invisible"} lg:translate-x-0`}
+        } ${mobileOpen ? "translate-x-0" : "-translate-x-[110%] max-lg:invisible"} lg:translate-x-0`}
       >
         {/* Brand and sidebar toggle */}
         <div
-          className={`flex h-[var(--lms-top)] flex-none items-center justify-between gap-2 pl-5 pr-3 ${
+          className={`mb-1 flex h-[calc(var(--lms-top)-var(--lms-gap)*2)] flex-none items-center justify-between gap-2 pl-4 pr-2.5 ${
             collapsed ? "lg:justify-center lg:px-0" : ""
           }`}
         >
@@ -242,40 +236,10 @@ export function Sidebar() {
         </nav>
 
         {/* Preferences and account */}
-        <div className="flex-none border-t border-line px-3 pb-3 pt-2">
-          <div className={`flex flex-col gap-px ${collapsed ? "lg:items-center" : ""}`}>
-            <button
-              type="button"
-              onClick={toggle}
-              title={collapsed ? (isDark ? "Light mode" : "Dark mode") : undefined}
-              className={`lms-side-link ${collapsed ? "lg:w-11 lg:justify-center lg:px-0" : ""}`}
-            >
-              <span className="lms-side-icon">
-                {isDark ? (
-                  <Sun className="h-[18px] w-[18px]" strokeWidth={1.8} />
-                ) : (
-                  <Moon className="h-[18px] w-[18px]" strokeWidth={1.8} />
-                )}
-              </span>
-              <span className={`min-w-0 flex-1 truncate ${label}`}>
-                {isDark ? "Light mode" : "Dark mode"}
-              </span>
-            </button>
-            <Link
-              href="/"
-              title={collapsed ? "Back to website" : undefined}
-              className={`lms-side-link ${collapsed ? "lg:w-11 lg:justify-center lg:px-0" : ""}`}
-            >
-              <span className="lms-side-icon">
-                <Globe className="h-[18px] w-[18px]" strokeWidth={1.8} />
-              </span>
-              <span className={`min-w-0 flex-1 truncate ${label}`}>Back to website</span>
-            </Link>
-          </div>
-
+        <div className="flex-none px-3 pb-3 pt-1">
           <div
-            className={`mt-2 flex items-center gap-1 rounded-[14px] p-1.5 ${
-              collapsed ? "lg:flex-col lg:p-0" : "bg-ink/[0.04] dark:bg-white/[0.05]"
+            className={`flex items-center gap-1 rounded-[16px] p-1.5 ${
+              collapsed ? "lg:flex-col lg:p-0" : "bg-card/70 shadow-[inset_0_0_0_1px_var(--sw-line)] dark:bg-white/[0.05]"
             }`}
           >
             <Link

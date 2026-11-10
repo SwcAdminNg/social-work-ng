@@ -62,6 +62,13 @@ export function DashboardHeader() {
   const searchRef = useRef<HTMLInputElement>(null);
 
   const defaultSearch = searchParams.get("search") ?? "";
+  const [query, setQuery] = useState(defaultSearch);
+  const [syncedSearch, setSyncedSearch] = useState(defaultSearch);
+  // Follow the URL when it changes (a new search, or leaving the catalogue).
+  if (syncedSearch !== defaultSearch) {
+    setSyncedSearch(defaultSearch);
+    setQuery(defaultSearch);
+  }
   const displayName = session?.user?.name || session?.user?.email?.split("@")[0] || "Learner";
   const email = session?.user?.email || "";
   const avatarInitial = displayName.trim().charAt(0).toUpperCase() || "L";
@@ -110,60 +117,84 @@ export function DashboardHeader() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-paper/80 px-2 backdrop-blur-xl backdrop-saturate-150 sm:px-4 lg:px-6">
-      <div className="relative flex h-[var(--lms-top)] items-center gap-1.5 sm:gap-3">
-        <button
-          type="button"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open menu"
-          aria-expanded={mobileOpen}
-          aria-controls="dashboard-rail"
-          className="lms-icon-btn lg:hidden"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-
-        <p className="sw-title m-0 min-w-0 flex-1 truncate text-[1.05rem] text-ink sm:hidden">{getPageTitle(pathname)}</p>
+    <header className="lms-top sticky top-0 z-30 px-2 sm:px-4 lg:px-6">
+      {/* Three columns: leading controls, the centred search field, trailing actions. */}
+      <div className="relative grid h-[var(--lms-top)] grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,34rem)_minmax(0,1fr)] sm:gap-4">
+        <div className="flex min-w-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={mobileOpen}
+            aria-controls="dashboard-rail"
+            className="lms-icon-btn lg:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <p className="m-0 min-w-0 truncate text-[1.05rem] font-semibold tracking-[-0.01em] text-ink sm:hidden">
+            {getPageTitle(pathname)}
+          </p>
+        </div>
 
         <Form
           action="/dashboard/course-catalogue"
           role="search"
-          className={`items-center gap-2 sm:relative sm:flex sm:min-w-0 sm:flex-1 lg:max-w-[480px] ${
-            searchOpen ? "absolute inset-0 z-10 flex bg-paper px-1 sm:bg-transparent sm:px-0" : "hidden"
+          className={`min-w-0 items-center gap-1 sm:static sm:flex ${
+            searchOpen ? "lms-search-sheet absolute inset-0 z-10 flex px-1" : "hidden"
           }`}
         >
           <label htmlFor="dashboard-search" className="sr-only">
             Search the course catalogue
           </label>
-          <div className="relative min-w-0 flex-1">
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute left-3.5 top-1/2 h-[17px] w-[17px] -translate-y-1/2 text-ink-3"
-            />
+          <div className="lms-search min-w-0 flex-1">
+            <Search aria-hidden="true" className="lms-search-glyph" strokeWidth={2.2} />
             <input
               ref={searchRef}
               id="dashboard-search"
               name="search"
               type="search"
-              defaultValue={defaultSearch}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key !== "Escape") return;
+                if (query) setQuery("");
+                else {
+                  setSearchOpen(false);
+                  event.currentTarget.blur();
+                }
+              }}
               autoComplete="off"
               enterKeyHint="search"
-              placeholder="Search courses"
-              className="h-10 w-full rounded-[12px] bg-ink/[0.055] pl-10 pr-12 text-base text-ink outline-none transition-[box-shadow,background-color] duration-200 placeholder:text-ink-3 hover:bg-ink/[0.075] focus:bg-card focus:shadow-[inset_0_0_0_1px_var(--sw-green),0_0_0_4px_color-mix(in_srgb,var(--sw-green)_18%,transparent)] focus-visible:outline-none dark:bg-white/[0.07] dark:focus:bg-[#0e1913] sm:text-[0.9rem] [&::-webkit-search-cancel-button]:hidden"
+              placeholder="Search courses, topics, instructors"
             />
-            <kbd
-              aria-hidden="true"
-              className="pointer-events-none absolute right-3 top-1/2 hidden h-[22px] min-w-[22px] -translate-y-1/2 place-items-center rounded-[6px] bg-card px-1.5 font-sans text-[0.7rem] font-semibold text-ink-3 shadow-[inset_0_0_0_1px_var(--sw-line),0_1px_0_var(--sw-line)] lg:grid"
-            >
-              /
-            </kbd>
+            {query ? (
+              <button
+                type="button"
+                aria-label="Clear search"
+                onClick={() => {
+                  setQuery("");
+                  searchRef.current?.focus();
+                }}
+                className="lms-search-clear"
+              >
+                <X className="h-3 w-3" strokeWidth={3} />
+              </button>
+            ) : (
+              <kbd aria-hidden="true" className="lms-search-kbd">
+                /
+              </kbd>
+            )}
           </div>
-          <button type="button" onClick={() => setSearchOpen(false)} aria-label="Close search" className="lms-icon-btn sm:hidden">
-            <X className="h-5 w-5" />
+          <button
+            type="button"
+            onClick={() => setSearchOpen(false)}
+            className="h-11 flex-none cursor-pointer px-2.5 text-[0.95rem] font-medium text-accent sm:hidden"
+          >
+            Cancel
           </button>
         </Form>
 
-        <div className="ml-auto flex flex-none items-center gap-0.5 sm:gap-1">
+        <div className="flex flex-none items-center justify-end gap-0.5 sm:gap-1">
           <button
             type="button"
             onClick={() => {
