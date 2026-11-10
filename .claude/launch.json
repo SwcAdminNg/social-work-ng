@@ -4,14 +4,39 @@
     {
       "name": "social-workers-ng",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000
     },
     {
       "name": "social-workers-admin",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "../admin", "run", "dev", "--", "-p", "3002"],
+      "runtimeArgs": [
+        "--prefix",
+        "../admin",
+        "run",
+        "dev",
+        "--",
+        "-p",
+        "3002"
+      ],
       "port": 3002
+    },
+    {
+      "name": "social-workers-instructor",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "../instructor",
+        "run",
+        "dev",
+        "--",
+        "-p",
+        "3003"
+      ],
+      "port": 3003
     }
   ]
 }
