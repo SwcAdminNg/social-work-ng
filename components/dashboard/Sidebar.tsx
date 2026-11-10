@@ -2,20 +2,23 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   ArrowUpRight,
   ChevronRight,
+  ChevronsUpDown,
+  LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  UserRound,
   X,
 } from "lucide-react";
 import { dashboardNavGroups, isNavItemActive, type NavItem } from "./nav-items";
 import { useSidebar } from "./SidebarContext";
 import { badgeLabel, useBadgeCounts } from "./BadgeCounts";
-import { LogoutButton } from "./LogoutButton";
+import { LogoutDialog } from "./LogoutButton";
 
 const FOLDED_KEY = "swcl:side-folded";
 
@@ -87,6 +90,57 @@ export function Sidebar() {
     );
   };
 
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const accountButtonRef = useRef<HTMLButtonElement>(null);
+
+  // The account menu closes on any press outside it, on Escape and on navigation;
+  // opening it moves focus to its first item.
+  useEffect(() => {
+    if (!accountOpen) return;
+    const frame = requestAnimationFrame(() =>
+      accountRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus(),
+    );
+    const onPress = (event: PointerEvent) => {
+      if (!accountRef.current?.contains(event.target as Node)) setAccountOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        setAccountOpen(false);
+        accountButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", onPress, true);
+    document.addEventListener("keydown", onKey, true);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener("pointerdown", onPress, true);
+      document.removeEventListener("keydown", onKey, true);
+    };
+  }, [accountOpen]);
+
+  const [menuPath, setMenuPath] = useState(pathname);
+  if (menuPath !== pathname) {
+    setMenuPath(pathname);
+    if (accountOpen) setAccountOpen(false);
+  }
+
+  // Arrow keys move between the menu's items.
+  const onMenuKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp" && event.key !== "Home" && event.key !== "End") return;
+    event.preventDefault();
+    const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+    const index = items.indexOf(document.activeElement as HTMLElement);
+    const next =
+      event.key === "Home" ? 0
+      : event.key === "End" ? items.length - 1
+      : event.key === "ArrowDown" ? (index + 1) % items.length
+      : (index - 1 + items.length) % items.length;
+    items[next]?.focus();
+  };
+
   // The drawer closes on Escape and holds the page still while it is open.
   useEffect(() => {
     if (!mobileOpen) return;
@@ -116,13 +170,13 @@ export function Sidebar() {
         id="dashboard-rail"
         aria-label="Dashboard"
         data-collapsed={collapsed || undefined}
-        className={`lms-side fixed bottom-[var(--lms-gap)] left-[var(--lms-gap)] top-[var(--lms-gap)] z-50 flex w-[min(86vw,300px)] flex-col transition-[width,translate,visibility] duration-500 ease-sw motion-reduce:transition-none ${
+        className={`lms-side fixed inset-y-0 left-0 z-50 flex w-[min(86vw,300px)] flex-col transition-[width,translate,visibility] duration-500 ease-sw motion-reduce:transition-none ${
           collapsed ? "lg:w-[var(--lms-rail-min)]" : "lg:w-[var(--lms-rail)]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-[110%] max-lg:invisible"} lg:translate-x-0`}
       >
         {/* Brand and sidebar toggle */}
         <div
-          className={`mb-1 flex h-[calc(var(--lms-top)-var(--lms-gap)*2)] flex-none items-center justify-between gap-2 pl-4 pr-2.5 ${
+          className={`flex h-[var(--lms-top)] flex-none items-center justify-between gap-2 pl-4 pr-2.5 ${
             collapsed ? "lg:justify-center lg:px-0" : ""
           }`}
         >
@@ -235,21 +289,57 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Preferences and account */}
-        <div className="flex-none px-3 pb-3 pt-1">
-          <div
-            className={`flex items-center gap-1 rounded-[16px] p-1.5 ${
-              collapsed ? "lg:flex-col lg:p-0" : "bg-card/70 shadow-[inset_0_0_0_1px_var(--sw-line)] dark:bg-white/[0.05]"
-            }`}
-          >
-            <Link
-              href="/dashboard/settings"
-              title={collapsed ? "Profile settings" : undefined}
-              className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-[10px] p-1 text-inherit no-underline transition-colors duration-200 hover:bg-ink/[0.05] dark:hover:bg-white/[0.06] ${
-                collapsed ? "lg:flex-none lg:p-0 lg:hover:bg-transparent" : ""
-              }`}
+        {/* Account: the profile row opens a small menu above it */}
+        <div ref={accountRef} className="relative flex-none px-3 pb-3 pt-1">
+          {accountOpen && (
+            <div
+              id="side-account-menu"
+              role="menu"
+              aria-label="Account"
+              onKeyDown={onMenuKey}
+              className={`lms-menu ${collapsed ? "lg:!bottom-3 lg:!left-[calc(100%+8px)] lg:!right-auto lg:!w-56" : ""}`}
             >
-              <span className="lms-rainbow">
+              <div className="px-2.5 pb-1.5 pt-1">
+                <p className="m-0 truncate text-[0.8rem] font-semibold text-ink">{displayName}</p>
+                <p className="m-0 truncate text-[0.72rem] text-ink-3">{email}</p>
+              </div>
+              <div role="separator" className="lms-menu-sep" />
+              <Link
+                href="/dashboard/settings"
+                role="menuitem"
+                onClick={() => setAccountOpen(false)}
+                className="lms-menu-item"
+              >
+                <UserRound className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                View profile
+              </Link>
+              <div role="separator" className="lms-menu-sep" />
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setAccountOpen(false);
+                  setLogoutOpen(true);
+                }}
+                className="lms-menu-item lms-menu-item--destructive"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                Log out
+              </button>
+            </div>
+          )}
+
+          <button
+            ref={accountButtonRef}
+            type="button"
+            onClick={() => setAccountOpen((value) => !value)}
+            aria-haspopup="menu"
+            aria-expanded={accountOpen}
+            aria-controls="side-account-menu"
+            title={collapsed ? displayName : undefined}
+            className={`lms-side-account ${collapsed ? "lg:mx-auto lg:w-auto lg:justify-center lg:p-1" : ""}`}
+          >
+            <span className="lms-rainbow">
               <span className="grid h-8 w-8 flex-none place-items-center overflow-hidden rounded-full bg-brand text-[0.8rem] font-semibold text-white">
                 {avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -263,20 +353,23 @@ export function Sidebar() {
                   displayName.trim().charAt(0).toUpperCase() || "L"
                 )}
               </span>
-              </span>
-              <span className={`min-w-0 flex-1 leading-tight ${label}`}>
-                <span className="block truncate text-[0.86rem] font-semibold text-ink">
-                  {displayName}
-                </span>
-                <span className="mt-0.5 block truncate text-[0.74rem] text-ink-3">
-                  {email}
-                </span>
-              </span>
-            </Link>
-            <LogoutButton variant="side" />
-          </div>
+            </span>
+            <span className={`min-w-0 flex-1 text-left leading-tight ${label}`}>
+              <span className="block truncate text-[0.86rem] font-semibold text-ink">{displayName}</span>
+              <span className="mt-0.5 block truncate text-[0.74rem] text-ink-3">{email}</span>
+            </span>
+            <ChevronsUpDown aria-hidden="true" className={`h-4 w-4 flex-none text-ink-3 ${label}`} />
+          </button>
         </div>
       </aside>
+      <LogoutDialog
+        open={logoutOpen}
+        onClose={() => {
+          setLogoutOpen(false);
+          // The menu item that opened it is gone; return focus to the profile row.
+          requestAnimationFrame(() => accountButtonRef.current?.focus());
+        }}
+      />
     </>
   );
 }

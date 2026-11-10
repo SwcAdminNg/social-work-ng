@@ -101,8 +101,8 @@ function Content({
     <div
       className={`flex min-h-dvh min-w-0 flex-col transition-[padding] duration-500 ease-sw motion-reduce:transition-none ${
         collapsed
-          ? "lg:pl-[calc(var(--lms-rail-min)+var(--lms-gap))]"
-          : "lg:pl-[calc(var(--lms-rail)+var(--lms-gap))]"
+          ? "lg:pl-[var(--lms-rail-min)]"
+          : "lg:pl-[var(--lms-rail)]"
       }`}
     >
       <DashboardHeader />
