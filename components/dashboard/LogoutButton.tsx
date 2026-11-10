@@ -6,8 +6,8 @@ import { IconLogout } from "./icons";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
 interface LogoutButtonProps {
-  /** "rail" sits on the dark side rail; the default is a plain icon button. */
-  variant?: "rail";
+  /** "side" sits in the sidebar account row; the default is a plain icon button. */
+  variant?: "side";
 }
 
 export function LogoutButton({ variant }: LogoutButtonProps) {
@@ -54,8 +54,8 @@ export function LogoutButton({ variant }: LogoutButtonProps) {
   }, [isOpen, loading]);
 
   const buttonClass =
-    variant === "rail"
-      ? "lms-rail-btn hover:!bg-[#b42318] hover:!text-white"
+    variant === "side"
+      ? "lms-side-btn hover:!bg-[#b42318]/10 hover:!text-[#b42318] dark:hover:!text-[#fda29b] [&>svg]:h-[18px] [&>svg]:w-[18px]"
       : "lms-icon-btn text-red-600 dark:text-red-400";
 
   const modalContent = (

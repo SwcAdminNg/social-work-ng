@@ -85,8 +85,8 @@ export function DashboardHeader() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 px-3 pt-3 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[calc(100%+0.9rem)] before:bg-gradient-to-b before:from-paper before:from-45% before:to-transparent sm:px-5 lg:px-7">
-      <div className="relative flex h-16 items-center gap-1.5 rounded-full bg-card/85 px-2.5 shadow-[inset_0_0_0_1px_var(--sw-line),0_22px_44px_-34px_rgba(14,31,23,0.7)] backdrop-blur-xl backdrop-saturate-150 sm:gap-2">
+    <header className="sticky top-0 z-30 border-b border-line bg-paper/80 px-2 backdrop-blur-xl backdrop-saturate-150 sm:px-4 lg:px-6">
+      <div className="relative flex h-[var(--lms-top)] items-center gap-1.5 sm:gap-2">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -107,7 +107,7 @@ export function DashboardHeader() {
           role="search"
           className={`items-center gap-2 sm:relative sm:flex sm:min-w-0 sm:flex-1 lg:max-w-[520px] ${
             searchOpen
-              ? "absolute inset-0 z-10 flex rounded-full bg-card px-2.5 sm:bg-transparent sm:px-0"
+              ? "absolute inset-0 z-10 flex bg-paper px-1 sm:bg-transparent sm:px-0"
               : "hidden"
           }`}
         >
@@ -128,7 +128,7 @@ export function DashboardHeader() {
               autoComplete="off"
               enterKeyHint="search"
               placeholder="Search courses"
-              className="h-11 w-full rounded-full bg-paper pl-11 pr-12 text-base text-ink shadow-[inset_0_0_0_1.5px_color-mix(in_srgb,var(--sw-ink)_10%,transparent)] outline-none transition-shadow duration-300 placeholder:text-ink-3 focus:shadow-[inset_0_0_0_1.5px_var(--sw-green),0_0_0_4px_color-mix(in_srgb,var(--sw-green)_16%,transparent)] focus-visible:outline-none dark:bg-[#0e1913] sm:text-[0.95rem]"
+              className="h-10 w-full rounded-[12px] bg-ink/[0.055] pl-11 pr-12 text-base text-ink outline-none transition-[box-shadow,background-color] duration-200 placeholder:text-ink-3 focus:bg-card focus:shadow-[inset_0_0_0_1px_var(--sw-green),0_0_0_4px_color-mix(in_srgb,var(--sw-green)_18%,transparent)] focus-visible:outline-none dark:bg-white/[0.07] dark:focus:bg-[#0e1913] sm:text-[0.92rem] [&::-webkit-search-cancel-button]:hidden"
             />
             <kbd
               aria-hidden="true"

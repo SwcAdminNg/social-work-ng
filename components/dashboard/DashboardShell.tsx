@@ -48,7 +48,7 @@ function MobileTabBar() {
   if (/^\/dashboard\/course-catalogue\/[^/]+/.test(pathname)) return null;
 
   return (
-    <nav aria-label="Quick navigation" className="lms-tabbar lms-panel lg:hidden">
+    <nav aria-label="Quick navigation" className="lms-tabbar lg:hidden">
       {dashboardTabs.map((tab) => {
         const Icon = tab.icon;
         const count = tab.badge ? counts[tab.badge] : 0;
