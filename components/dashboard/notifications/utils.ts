@@ -1,3 +1,23 @@
+import {
+  Award,
+  Bell,
+  BookOpenCheck,
+  CalendarClock,
+  CreditCard,
+  FileText,
+  GraduationCap,
+  Hourglass,
+  LifeBuoy,
+  type LucideIcon,
+  MessageSquareReply,
+  MessagesSquare,
+  PartyPopper,
+  ReceiptText,
+  ShieldAlert,
+  ShieldCheck,
+  UserRound,
+  Video,
+} from "lucide-react";
 import type { NotificationItem } from "./types";
 
 export function unreadBadgeLabel(count: number) {
@@ -86,4 +106,60 @@ export function notificationTypeLabel(type: string) {
     .split("_")
     .map((part) => part.charAt(0) + part.slice(1).toLowerCase())
     .join(" ");
+}
+
+export type NotificationTone = "green" | "gold" | "clay" | "deep" | "quiet";
+
+/** The icon and colour a notification is shown with, by its type. */
+export function notificationVisual(type: string): { icon: LucideIcon; tone: NotificationTone } {
+  switch (type) {
+    case "COURSE_ENROLLED":
+      return { icon: BookOpenCheck, tone: "green" };
+    case "COURSE_COMPLETED":
+      return { icon: GraduationCap, tone: "green" };
+    case "CERTIFICATE_ISSUED":
+      return { icon: Award, tone: "gold" };
+    case "LIVE_SESSION_SCHEDULED":
+    case "LIVE_SESSION_RESCHEDULED":
+      return { icon: CalendarClock, tone: "clay" };
+    case "LIVE_SESSION_REMINDER":
+      return { icon: Video, tone: "clay" };
+    case "COURSE_REVIEW_REPLIED":
+    case "REVIEW_COMMENT_ADDED":
+      return { icon: MessageSquareReply, tone: "gold" };
+    case "COMMUNITY_NEW_MESSAGE":
+      return { icon: MessagesSquare, tone: "green" };
+    case "SUPPORT_TICKET_MESSAGE":
+    case "SUPPORT_TICKET_STATUS_CHANGED":
+    case "SUPPORT_TICKET_ASSIGNED":
+    case "NEW_SUPPORT_TICKET":
+      return { icon: LifeBuoy, tone: "gold" };
+    case "PAYMENT_SUCCESSFUL":
+    case "SUBSCRIPTION_RENEWED":
+    case "NEW_PAYMENT":
+      return { icon: ReceiptText, tone: "deep" };
+    case "SUBSCRIPTION_RENEWAL_FAILED":
+    case "SUBSCRIPTION_EXPIRED":
+      return { icon: CreditCard, tone: "clay" };
+    case "SUBSCRIPTION_EXPIRING_SOON":
+      return { icon: Hourglass, tone: "gold" };
+    case "SIGNUP_WELCOME":
+      return { icon: PartyPopper, tone: "green" };
+    case "ACCOUNT_SUSPENDED":
+      return { icon: ShieldAlert, tone: "clay" };
+    case "LOGIN":
+    case "PASSWORD_RESET_REQUESTED":
+    case "PASSWORD_RESET_COMPLETED":
+    case "TWO_FACTOR_ENABLED":
+    case "ACCOUNT_UNSUSPENDED":
+    case "ROLE_CHANGED":
+      return { icon: ShieldCheck, tone: "quiet" };
+    case "PROFILE_PICTURE_UPDATED":
+      return { icon: UserRound, tone: "quiet" };
+    default:
+      if (type.startsWith("REVISION_") || type.startsWith("REVIEW_") || type.startsWith("MARKS_")) {
+        return { icon: FileText, tone: "quiet" };
+      }
+      return { icon: Bell, tone: "quiet" };
+  }
 }

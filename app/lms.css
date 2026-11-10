@@ -285,6 +285,71 @@ html:has(.lms-root) body {
     font-variant-numeric: tabular-nums;
   }
 
+  /* ── Top bar popovers (notifications, account) ──
+     A card under the bar; on phones it spans the screen width. */
+  .lms-popover {
+    position: fixed;
+    top: calc(var(--lms-top) + 0.5rem);
+    left: 0.5rem;
+    right: 0.5rem;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - var(--lms-top) - 1.5rem);
+    overflow: hidden;
+    border-radius: 24px;
+    /* Solid: the top bar is blurred already, and a blur inside it only sees the bar. */
+    background: var(--sw-card);
+    box-shadow:
+      inset 0 0 0 1px var(--sw-line),
+      0 1px 2px rgba(4, 18, 11, 0.06),
+      0 40px 80px -28px rgba(4, 18, 11, 0.42);
+    transform-origin: top right;
+    animation: lms-popover-in 0.32s var(--sw-ease);
+  }
+  .dark .lms-popover {
+    background: #16231c;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09), 0 40px 80px -24px rgba(0, 0, 0, 0.7);
+  }
+  @media (min-width: 640px) {
+    .lms-popover {
+      position: absolute;
+      top: calc(100% + 0.6rem);
+      left: auto;
+      right: 0;
+      width: var(--pop-w, 24rem);
+      max-height: min(40rem, calc(100dvh - var(--lms-top) - 2rem));
+    }
+  }
+  .lms-pop-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0 0.7rem;
+    border-radius: 12px;
+    color: var(--sw-ink);
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.18s;
+  }
+  .lms-pop-row:hover,
+  .lms-pop-row:focus-visible { background: color-mix(in srgb, var(--sw-ink) 5.5%, transparent); }
+  .lms-pop-tile {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--sw-green) 11%, transparent);
+    color: var(--sw-accent);
+  }
+
   /* Compact pill buttons for use inside cards; .sw-btn stays the main call to action. */
   .lms-btn {
     display: inline-flex;
@@ -434,6 +499,10 @@ html:has(.lms-root) body {
 @keyframes lms-grow { from { transform: scaleX(0); } }
 @keyframes lms-pop { from { opacity: 0; transform: translate3d(0, -6px, 0) scale(0.97); } }
 .lms-pop { transform-origin: top right; animation: lms-pop 0.28s var(--sw-ease); }
+@keyframes lms-popover-in { from { opacity: 0; transform: translate3d(0, -8px, 0) scale(0.96); } }
+@keyframes lms-live { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sw-leaf) 60%, transparent); } 100% { box-shadow: 0 0 0 7px transparent; } }
+.lms-live-dot { animation: lms-live 2s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .lms-popover, .lms-live-dot { animation: none; } }
 
 @media (prefers-reduced-motion: reduce) {
   .lms-rise, .lms-pop, .lms-bar > span { animation: none; }

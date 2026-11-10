@@ -88,6 +88,7 @@ export default function CartContainer({
       if (!res.ok) throw new Error(data?.message || "Unable to remove item.");
 
       setCart(normalizeCart(data?.data));
+      window.dispatchEvent(new Event("cart:changed"));
       setCoupon(null);
       setCouponError("");
       router.refresh();
@@ -108,6 +109,7 @@ export default function CartContainer({
       if (!res.ok) throw new Error(data?.message || "Unable to clear cart.");
 
       setCart({ items: [], item_count: 0, subtotal_amount: 0 });
+      window.dispatchEvent(new Event("cart:changed"));
       setCoupon(null);
       setCouponCode("");
       setCouponError("");

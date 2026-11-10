@@ -113,6 +113,7 @@ export function CourseDetailAction({
       }
 
       toast.success("Course added to cart");
+      window.dispatchEvent(new Event("cart:changed"));
       router.refresh();
     } catch (err) {
       const message =

@@ -6,8 +6,9 @@ import { IconLogout } from "./icons";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
 interface LogoutButtonProps {
-  /** "side" sits in the sidebar account row; the default is a plain icon button. */
-  variant?: "side";
+  /** "side" sits in the sidebar account row, "menu" is a labelled row in a
+   *  popover menu; the default is a plain icon button. */
+  variant?: "side" | "menu";
 }
 
 export function LogoutButton({ variant }: LogoutButtonProps) {
@@ -56,10 +57,12 @@ export function LogoutButton({ variant }: LogoutButtonProps) {
   const buttonClass =
     variant === "side"
       ? "lms-side-btn hover:!bg-[#b42318]/10 hover:!text-[#b42318] dark:hover:!text-[#fda29b] [&>svg]:h-[18px] [&>svg]:w-[18px]"
-      : "lms-icon-btn text-red-600 dark:text-red-400";
+      : variant === "menu"
+        ? "lms-pop-row !text-[#b42318] hover:!bg-[#b42318]/[0.07] dark:!text-[#fda29b] [&_svg]:h-[17px] [&_svg]:w-[17px]"
+        : "lms-icon-btn text-red-600 dark:text-red-400";
 
   const modalContent = (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div data-keep-popover className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       {/* Backdrop click dismiss */}
       <div className="absolute inset-0" onClick={() => !loading && setIsOpen(false)} />
 
@@ -109,14 +112,24 @@ export function LogoutButton({ variant }: LogoutButtonProps) {
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className={buttonClass}
-        title="Sign out"
-        aria-label="Sign out"
-      >
-        <IconLogout />
-      </button>
+      {variant === "menu" ? (
+        <button type="button" onClick={() => setIsOpen(true)} className={buttonClass}>
+          <span className="lms-pop-tile !bg-[#b42318]/10 !text-inherit">
+            <IconLogout />
+          </span>
+          Sign out
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className={buttonClass}
+          title="Sign out"
+          aria-label="Sign out"
+        >
+          <IconLogout />
+        </button>
+      )}
 
       {isOpen &&
         typeof document !== "undefined" &&

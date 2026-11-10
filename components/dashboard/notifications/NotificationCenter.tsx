@@ -3,19 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import {
-  Bell,
-  CheckCheck,
-  Loader2,
-  RefreshCcw,
-  Wifi,
-  WifiOff,
-} from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Bell, BellRing, Check, CheckCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getWsBaseUrl } from "@/lib/wsUrl";
 import type { NotificationItem, NotificationListResponse } from "./types";
 import {
+  formatNotificationDateTime,
   formatNotificationTime,
+  notificationVisual,
+  type NotificationTone,
   getSafeNotificationPath,
   mergeNewest,
   normalizeNotification,
@@ -32,6 +29,24 @@ type DashboardOverviewCountEvent = CustomEvent<{
 }>;
 
 const PAGE_SIZE = 10;
+/** A list older than this is refreshed quietly when the panel opens. */
+const STALE_MS = 30_000;
+
+const TONES: Record<NotificationTone, string> = {
+  green: "bg-[color-mix(in_srgb,var(--sw-green)_12%,transparent)] text-accent",
+  gold: "bg-[color-mix(in_srgb,var(--sw-gold)_20%,transparent)] text-gold-ink",
+  clay: "bg-clay-wash text-clay-ink",
+  deep: "bg-deep text-white dark:bg-brand",
+  quiet: "bg-ink/[0.06] text-ink-2 dark:bg-white/[0.08]",
+};
+
+const lagosDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos", year: "numeric", month: "2-digit", day: "2-digit" });
+function dayGroup(value: string, now: number) {
+  const key = lagosDay.format(new Date(value));
+  if (key === lagosDay.format(now)) return "Today";
+  if (key === lagosDay.format(now - 86_400_000)) return "Yesterday";
+  return "Earlier";
+}
 const RECONNECT_BASE_DELAY_MS = 2000;
 const RECONNECT_MAX_DELAY_MS = 30000;
 
@@ -45,6 +60,13 @@ export function NotificationCenter() {
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Whether page 1 has ever arrived, and when: the panel never opens with
+  // only the one live notification that happened to land first.
+  const [loaded, setLoaded] = useState(false);
+  const loadedAtRef = useRef(0);
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [now, setNow] = useState(() => Date.now());
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
   const [connection, setConnection] = useState<ConnectionState>("closed");
@@ -73,9 +95,9 @@ export function NotificationCenter() {
     }
   }, []);
 
-  const loadNotifications = useCallback(async (nextPage = 1) => {
+  const loadNotifications = useCallback(async (nextPage = 1, quiet = false) => {
     if (nextPage === 1) {
-      setLoading(true);
+      if (!quiet) setLoading(true);
     } else {
       setLoadingMore(true);
     }
@@ -103,7 +125,12 @@ export function NotificationCenter() {
       );
       setPage(nextPage);
       setHasNext(Boolean(json.meta?.has_next));
+      if (nextPage === 1) {
+        setLoaded(true);
+        loadedAtRef.current = Date.now();
+      }
     } catch (error) {
+      if (quiet) return;
       toast.error(
         error instanceof Error
           ? error.message
@@ -116,10 +143,11 @@ export function NotificationCenter() {
   }, []);
 
   const reconcile = useCallback(() => {
+    // The socket opens moments after the first-mount load; skip a repeat.
+    if (Date.now() - loadedAtRef.current < 5000) return;
     fetchUnreadCount();
-    if (openRef.current) {
-      loadNotifications(1);
-    }
+    // Keep page 1 current whether or not the panel is open.
+    loadNotifications(1, true);
   }, [fetchUnreadCount, loadNotifications]);
 
   useEffect(() => {
@@ -129,14 +157,30 @@ export function NotificationCenter() {
       }
     }
 
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === "Escape" && openRef.current) {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    }
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKey);
+    };
   }, []);
 
+  // First mount: the count and the first page, so the bell is right at once
+  // and the panel opens with its list already there.
   useEffect(() => {
-    const timeout = setTimeout(fetchUnreadCount, 0);
+    const timeout = setTimeout(() => {
+      fetchUnreadCount();
+      loadNotifications(1, true);
+    }, 0);
     return () => clearTimeout(timeout);
-  }, [fetchUnreadCount]);
+  }, [fetchUnreadCount, loadNotifications]);
 
   useEffect(() => {
     function handleOverviewCounts(event: Event) {
@@ -154,11 +198,16 @@ export function NotificationCenter() {
       );
   }, []);
 
+  // Opening: load if nothing has arrived yet, otherwise refresh quietly when stale.
   useEffect(() => {
-    if (!open || items.length > 0) return;
-    const timeout = setTimeout(() => loadNotifications(1), 0);
+    if (!open) return;
+    const timeout = setTimeout(() => {
+      setNow(Date.now());
+      if (!loaded) loadNotifications(1);
+      else if (Date.now() - loadedAtRef.current > STALE_MS) loadNotifications(1, true);
+    }, 0);
     return () => clearTimeout(timeout);
-  }, [items.length, loadNotifications, open]);
+  }, [loaded, loadNotifications, open]);
 
   useEffect(() => {
     if (!accessToken) {
@@ -361,149 +410,223 @@ export function NotificationCenter() {
     }
   }, [items, unreadCount]);
 
+  const visible = filter === "unread" ? items.filter((item) => !item.is_read) : items;
+  const groups: { label: string; items: NotificationItem[] }[] = [];
+  for (const item of visible) {
+    const label = dayGroup(item.created_at, now);
+    const last = groups[groups.length - 1];
+    if (last?.label === label) last.items.push(item);
+    else groups.push({ label, items: [item] });
+  }
+  const live = connection === "open";
+
   return (
     <div className="relative" ref={rootRef}>
       <button
+        ref={buttonRef}
+        type="button"
         onClick={() => setOpen((value) => !value)}
-        aria-label="Notifications"
+        aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}
         aria-expanded={open}
-        className="lms-icon-btn"
+        aria-haspopup="dialog"
+        aria-controls="notification-panel"
+        className={`lms-icon-btn ${open ? "bg-ink/[0.07] text-ink dark:bg-white/[0.08]" : ""}`}
       >
         <Bell className="h-5 w-5" strokeWidth={1.9} />
         {unreadCount > 0 && (
-          <span className="lms-dot">
+          <span className="lms-dot" aria-hidden="true">
             {unreadBadgeLabel(unreadCount)}
           </span>
         )}
       </button>
 
-      <div
-        hidden={!open}
-        className={`fixed inset-x-3 top-[5.25rem] z-50 rounded-[24px] bg-card shadow-[inset_0_0_0_1px_var(--sw-line),0_34px_70px_-24px_rgba(4,18,11,0.45)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-3 sm:w-[24rem] ${
-          open ? "lms-pop" : ""
-        }`}
-      >
-        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-950 dark:text-white">
-              Notifications
-            </p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-              {connection === "open" ? (
-                <Wifi className="h-3.5 w-3.5 text-[#2D6A4F] dark:text-[#74c69d]" />
-              ) : connection === "connecting" ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <WifiOff className="h-3.5 w-3.5" />
-              )}
-              {unreadCount} unread
-            </p>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => loadNotifications(1)}
-              disabled={loading}
-              className="lms-icon-btn h-9 w-9 disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label="Refresh notifications"
-              title="Refresh"
-            >
-              <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            </button>
-            <button
-              type="button"
-              onClick={markAllRead}
-              disabled={markingAll || unreadCount === 0}
-              className="lms-icon-btn h-9 w-9 disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label="Mark all as read"
-              title="Mark all as read"
-            >
-              {markingAll ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCheck className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-        </div>
+      {open && (
+        <div
+          id="notification-panel"
+          role="dialog"
+          aria-label="Notifications"
+          className="lms-popover"
+          style={{ "--pop-w": "25.5rem" } as React.CSSProperties}
+        >
+          <div className="flex-none px-5 pb-3 pt-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <p className="sw-title m-0 text-[1.2rem] text-ink">Notifications</p>
+                <span
+                  title={
+                    live
+                      ? "Live: new notifications arrive instantly"
+                      : connection === "connecting"
+                        ? "Connecting"
+                        : "Offline: refreshes when you reopen"
+                  }
+                  className={`h-2 w-2 flex-none rounded-full ${
+                    live ? "lms-live-dot bg-leaf" : connection === "connecting" ? "bg-gold" : "bg-ink/25"
+                  }`}
+                >
+                  <span className="sr-only">{live ? "Live" : connection === "connecting" ? "Connecting" : "Offline"}</span>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={markAllRead}
+                disabled={markingAll || unreadCount === 0}
+                className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[0.8rem] font-semibold text-accent transition-colors hover:bg-[color-mix(in_srgb,var(--sw-green)_10%,transparent)] disabled:cursor-default disabled:text-ink-3 disabled:opacity-60 disabled:hover:bg-transparent"
+              >
+                {markingAll ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCheck className="h-3.5 w-3.5" />}
+                Mark all read
+              </button>
+            </div>
 
-        <div className="lms-scroll max-h-[min(24rem,60dvh)] overflow-y-auto p-2">
-          {loading && items.length === 0 ? (
-            <div className="flex items-center justify-center gap-2 px-4 py-10 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading notifications
-            </div>
-          ) : items.length === 0 ? (
-            <div className="px-4 py-10 text-center">
-              <p className="text-sm font-bold text-slate-900 dark:text-white">
-                Nothing new yet
-              </p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Updates from courses, payments, support, and your account will
-                appear here.
-              </p>
-            </div>
-          ) : (
-            <ul className="m-0 list-none p-0">
-              {items.map((notification) => (
-                <li key={notification.id}>
-                  <button
-                    type="button"
-                    onClick={() => markReadAndOpen(notification)}
-                    className="flex w-full cursor-pointer gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-mint dark:hover:bg-white/[0.07]"
-                  >
-                    <span
-                      className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
-                        notification.is_read
-                          ? "bg-slate-300 dark:bg-slate-700"
-                          : "bg-[#2D6A4F] dark:bg-[#74c69d]"
-                      }`}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-bold text-slate-950 dark:text-gray-100">
-                        {notification.title}
-                      </span>
-                      {notification.body && (
-                        <span className="mt-0.5 line-clamp-2 block text-xs leading-5 text-gray-500 dark:text-gray-400">
-                          {notification.body}
-                        </span>
-                      )}
-                      <span className="mt-1 block text-[0.7rem] font-medium text-gray-400 dark:text-gray-600">
-                        {formatNotificationTime(notification.created_at)}
-                      </span>
+            <div role="tablist" aria-label="Show" className="mt-3 grid grid-cols-2 rounded-[12px] bg-ink/[0.055] p-[3px] dark:bg-white/[0.07]">
+              {(["all", "unread"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === value}
+                  onClick={() => setFilter(value)}
+                  className={`flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-[9px] text-[0.82rem] font-semibold transition-[background-color,color,box-shadow] duration-200 ${
+                    filter === value
+                      ? "bg-card text-ink shadow-[0_1px_2px_rgba(14,31,23,0.12),0_4px_12px_-6px_rgba(14,31,23,0.25)] dark:bg-[#2a3a31]"
+                      : "text-ink-3 hover:text-ink"
+                  }`}
+                >
+                  {value === "all" ? "All" : "Unread"}
+                  {value === "unread" && unreadCount > 0 && (
+                    <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-clay px-1 text-[0.65rem] font-bold tabular-nums text-white">
+                      {unreadBadgeLabel(unreadCount)}
                     </span>
-                  </button>
-                </li>
+                  )}
+                </button>
               ))}
-            </ul>
-          )}
+            </div>
+          </div>
 
-          {hasNext && (
-            <button
-              type="button"
-              onClick={() => loadNotifications(page + 1)}
-              disabled={loadingMore}
-              className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-md border border-slate-200 text-xs font-bold text-slate-600 transition hover:border-[#2D6A4F]/50 hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-300 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
+          <div className="lms-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-line px-2 pb-2">
+            {loading && !loaded ? (
+              <div aria-hidden="true" className="px-3 py-3">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="flex gap-3 py-2.5">
+                    <span className="lms-skel h-10 w-10 flex-none rounded-[12px]" />
+                    <span className="flex-1 pt-1">
+                      <span className="lms-skel block h-3.5" style={{ width: `${78 - i * 12}%` }} />
+                      <span className="lms-skel mt-2 block h-3 w-[90%]" />
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : visible.length === 0 ? (
+              <div className="flex flex-col items-center px-6 py-10 text-center">
+                <span className="grid h-14 w-14 place-items-center rounded-[18px] bg-mint text-accent">
+                  <BellRing className="h-6 w-6" strokeWidth={1.8} />
+                </span>
+                <p className="m-0 mt-4 font-semibold text-ink">
+                  {filter === "unread" && items.length > 0 ? "You’re all caught up" : "No notifications yet"}
+                </p>
+                <p className="m-0 mt-1 max-w-[30ch] text-[0.82rem] leading-relaxed text-ink-3">
+                  Updates about your courses, live sessions, payments and support tickets will appear here.
+                </p>
+              </div>
+            ) : (
+              groups.map((group) => (
+                <section key={group.label} aria-label={group.label}>
+                  <p className="m-0 px-3 pb-1 pt-3 text-[0.7rem] font-semibold tracking-[0.02em] text-ink-3">{group.label}</p>
+                  <ul className="m-0 list-none p-0">
+                    {group.items.map((notification) => {
+                      const { icon: Icon, tone } = notificationVisual(notification.type);
+                      return (
+                        <li key={notification.id} className="group relative">
+                          <button
+                            type="button"
+                            onClick={() => markReadAndOpen(notification)}
+                            className={`flex w-full cursor-pointer gap-3 rounded-[16px] px-3 py-2.5 text-left transition-colors duration-200 ${
+                              notification.is_read
+                                ? "hover:bg-ink/[0.045] dark:hover:bg-white/[0.05]"
+                                : "bg-[color-mix(in_srgb,var(--sw-green)_6%,transparent)] hover:bg-[color-mix(in_srgb,var(--sw-green)_10%,transparent)]"
+                            }`}
+                          >
+                            <span className={`mt-0.5 grid h-10 w-10 flex-none place-items-center rounded-[12px] ${TONES[tone]}`}>
+                              <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} aria-hidden="true" />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="flex items-start gap-2">
+                                <span
+                                  className={`min-w-0 flex-1 text-[0.86rem] leading-snug ${
+                                    notification.is_read ? "font-medium text-ink-2" : "font-semibold text-ink"
+                                  }`}
+                                >
+                                  {notification.title}
+                                </span>
+                                <time
+                                  dateTime={notification.created_at}
+                                  title={formatNotificationDateTime(notification.created_at)}
+                                  suppressHydrationWarning
+                                  className="mt-px flex-none text-[0.7rem] tabular-nums text-ink-3"
+                                >
+                                  {formatNotificationTime(notification.created_at)}
+                                </time>
+                              </span>
+                              {notification.body && (
+                                <span className="mt-0.5 line-clamp-2 block pr-6 text-[0.8rem] leading-[1.45] text-ink-3">
+                                  {notification.body}
+                                </span>
+                              )}
+                            </span>
+                            {!notification.is_read && (
+                              <>
+                                <span
+                                  aria-hidden="true"
+                                  className="absolute bottom-4 right-4 h-2 w-2 rounded-full bg-clay transition-opacity group-hover:opacity-0 [@media(hover:none)]:opacity-0"
+                                />
+                                <span className="sr-only">, unread</span>
+                              </>
+                            )}
+                          </button>
+                          {!notification.is_read && (
+                            <button
+                              type="button"
+                              onClick={() => markRead(notification)}
+                              aria-label={`Mark “${notification.title}” as read`}
+                              title="Mark as read"
+                              className="absolute bottom-2 right-2 grid h-7 w-7 cursor-pointer place-items-center rounded-full bg-card text-accent opacity-0 shadow-[inset_0_0_0_1px_var(--sw-line)] transition-opacity focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+                            >
+                              <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ))
+            )}
+
+            {hasNext && filter === "all" && visible.length > 0 && (
+              <button
+                type="button"
+                onClick={() => loadNotifications(page + 1)}
+                disabled={loadingMore}
+                className="mx-auto mt-2 flex h-9 cursor-pointer items-center justify-center gap-2 rounded-full px-4 text-[0.8rem] font-semibold text-ink-2 transition-colors hover:bg-ink/[0.05] hover:text-ink disabled:opacity-60"
+              >
+                {loadingMore && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Show older
+              </button>
+            )}
+          </div>
+
+          <div className="flex-none border-t border-line p-2">
+            <Link
+              href="/dashboard/notifications"
+              onClick={() => setOpen(false)}
+              className="group/all flex h-11 items-center justify-center gap-1.5 rounded-[14px] text-[0.86rem] font-semibold text-accent no-underline transition-colors hover:bg-[color-mix(in_srgb,var(--sw-green)_8%,transparent)]"
             >
-              {loadingMore && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              Load more
-            </button>
-          )}
+              See all notifications
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/all:translate-x-0.5" />
+            </Link>
+          </div>
         </div>
-
-        <div className="border-t border-line p-2">
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              router.push("/dashboard/notifications");
-            }}
-            className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full text-sm font-semibold text-accent transition-colors hover:bg-mint dark:hover:bg-white/[0.07]"
-          >
-            Open notification inbox
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
