@@ -42,7 +42,17 @@ html:has(.lms-root) {
   --color-violet-700: #245c43;
   --color-violet-800: #1b4332;
   --color-violet-900: #14402f;
+  --color-indigo-50: #eef5f1;
+  --color-indigo-100: #dcefe4;
+  --color-indigo-200: #b7e4c7;
+  --color-indigo-300: #95d5b2;
+  --color-indigo-400: #74c69d;
   --color-indigo-500: #2d6a4f;
+  --color-indigo-600: #2d6a4f;
+  --color-indigo-700: #245c43;
+  --color-indigo-800: #1b4332;
+  --color-indigo-900: #1f3d30;
+  --color-indigo-950: #13231d;
 
   /* Softer corners, in step with the public pages. */
   --radius-md: 0.75rem;
