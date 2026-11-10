@@ -83,12 +83,22 @@ export function IconSettings() {
   );
 }
 
-export function IconLogout() {
+/** After SF Symbols "rectangle.portrait.and.arrow.right": a door with an arrow leaving it. */
+export function IconLogout({ className = "", size = 18 }: { className?: string; size?: number }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <path d="M16 17l5-5-5-5" />
-      <path d="M21 12H9" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
+      <path d="M13.5 4H8a2.5 2.5 0 0 0-2.5 2.5v11A2.5 2.5 0 0 0 8 20h5.5" />
+      <path d="M10.5 12H20" />
+      <path d="M16.75 8.5 20.25 12l-3.5 3.5" />
+    </svg>
+  );
+}
+
+/** After SF Symbols "message": a rounded speech bubble with a soft tail, as in Messages. */
+export function IconChatBubble({ className = "", size = 20 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
+      <path d="M12 3.75c-4.83 0-8.75 3.23-8.75 7.22 0 2.25 1.25 4.26 3.2 5.58-.12 1.15-.6 2.22-1.43 3.06a.35.35 0 0 0 .27.6c1.86-.12 3.4-.8 4.5-1.74.71.14 1.45.22 2.21.22 4.83 0 8.75-3.23 8.75-7.22S16.83 3.75 12 3.75Z" />
     </svg>
   );
 }

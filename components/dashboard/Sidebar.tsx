@@ -9,7 +9,6 @@ import {
   ArrowUpRight,
   ChevronRight,
   ChevronsUpDown,
-  LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   UserRound,
@@ -19,6 +18,7 @@ import { dashboardNavGroups, isNavItemActive, type NavItem } from "./nav-items";
 import { useSidebar } from "./SidebarContext";
 import { badgeLabel, useBadgeCounts } from "./BadgeCounts";
 import { LogoutDialog } from "./LogoutButton";
+import { IconLogout } from "./icons";
 
 const FOLDED_KEY = "swcl:side-folded";
 
@@ -323,7 +323,7 @@ export function Sidebar() {
                 }}
                 className="lms-menu-item lms-menu-item--destructive"
               >
-                <LogOut className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                <IconLogout size={16} />
                 Log out
               </button>
             </div>

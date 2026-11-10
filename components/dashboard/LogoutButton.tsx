@@ -86,9 +86,8 @@ export function LogoutDialog({ open, onClose }: { open: boolean; onClose: () => 
         aria-describedby="logout-message"
         className="lms-alert"
       >
-        <span className="lms-alert-icon" aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.png" alt="" width={64} height={64} />
+        <span className="lms-alert-symbol" aria-hidden="true">
+          <IconLogout size={26} />
         </span>
         <h2 id="logout-title" className="lms-alert-title">
           Log out of Social Work Nigeria?

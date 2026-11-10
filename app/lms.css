@@ -246,11 +246,10 @@ html:has(.lms-root) body {
     color: var(--sw-ink);
     box-shadow: inset -1px 0 0 var(--sw-line);
   }
-  /* As a drawer on smaller screens it rounds its open edge and casts a shadow. */
+  /* As a drawer on smaller screens it casts a shadow over the page. */
   @media (max-width: 1023.98px) {
     .lms-side {
       background: var(--lms-side);
-      border-radius: 0 24px 24px 0;
       box-shadow: inset -1px 0 0 var(--sw-line), 0 30px 80px -20px rgba(4, 18, 11, 0.45);
     }
   }
@@ -853,6 +852,171 @@ html:has(.lms-root) body {
   .dark .lms-page[aria-current="page"] { background: var(--sw-green); }
   .lms-page:disabled:not([aria-current]) { opacity: 0.35; cursor: default; }
 
+  /* ── Assessments ── */
+  .lms-tile[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--sw-accent); }
+  /* SF-style symbol tile: a coloured rounded square with a white glyph (as in Reminders). */
+  .lms-sym {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 10px;
+    color: #fff;
+    background: var(--sym, #8e8e93);
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  .lms-sym--green { --sym: #2d9d6a; }
+  .lms-sym--gold { --sym: #e0a12c; }
+  .lms-sym--orange { --sym: #f08a24; }
+  .lms-sym--red { --sym: #ef4b3f; }
+  .lms-sym--blue { --sym: #2f80ed; }
+  .lms-sym--indigo { --sym: #5b5fd6; }
+  .lms-sym--gray { --sym: #8e8e93; }
+
+  /* Inset grouped list: one rounded card, rows split by hairlines that start after the icon. */
+  .lms-group {
+    overflow: hidden;
+    border-radius: 22px;
+    background: var(--sw-card);
+    box-shadow: inset 0 0 0 1px var(--sw-line), 0 1px 2px rgba(14, 31, 23, 0.04);
+  }
+  .lms-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.85rem 1rem;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 0.15s;
+  }
+  @media (min-width: 640px) { .lms-row { padding: 0.9rem 1.15rem; gap: 1.1rem; } }
+  .lms-row:hover { background: color-mix(in srgb, var(--sw-ink) 3.5%, transparent); }
+  .lms-row:active { background: color-mix(in srgb, var(--sw-ink) 6%, transparent); }
+  li + li > .lms-row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 4.15rem;
+    height: 1px;
+    background: var(--sw-line);
+  }
+  @media (min-width: 640px) { li + li > .lms-row::before { left: 4.5rem; } }
+  .lms-status { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; }
+  .lms-status::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 999px; background: currentColor; }
+  .lms-status--green { color: #1f8a57; }
+  .lms-status--orange, .lms-status--gold { color: #c46a12; }
+  .lms-status--red { color: #d92d20; }
+  .lms-status--blue { color: #2f6fd6; }
+  .lms-status--gray, .lms-status--indigo { color: var(--sw-ink-3); }
+  .dark .lms-status--green { color: #5fd49a; }
+  .dark .lms-status--orange, .dark .lms-status--gold { color: #ffb35c; }
+  .dark .lms-status--red { color: #ff6961; }
+  .dark .lms-status--blue { color: #6aa8ff; }
+  .lms-row-action {
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 5.5rem;
+    height: 2rem;
+    padding: 0 0.9rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-ink) 7%, transparent);
+    color: var(--sw-accent);
+    font-size: 0.82rem;
+    font-weight: 650;
+    white-space: nowrap;
+    transition: background-color 0.15s, transform 0.2s var(--sw-ease);
+  }
+  .dark .lms-row-action { background: rgba(255, 255, 255, 0.09); }
+  .lms-row:hover .lms-row-action { background: color-mix(in srgb, var(--sw-ink) 11%, transparent); }
+  .lms-row:active .lms-row-action { transform: scale(0.96); }
+  .lms-row-action--primary, .lms-row:hover .lms-row-action--primary { background: var(--sw-green); color: #fff; }
+  .lms-row-action--red { color: #d92d20; }
+  .dark .lms-row-action--red { color: #ff6961; }
+
+  /* Pull-down button and the menu it opens downwards. */
+  .lms-pulldown {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 2.375rem;
+    padding: 0 0.8rem;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--sw-ink) 6%, transparent);
+    color: var(--sw-ink);
+    font-size: 0.86rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.18s;
+  }
+  .dark .lms-pulldown { background: rgba(255, 255, 255, 0.075); }
+  .lms-pulldown:hover, .lms-pulldown[aria-expanded="true"] { background: color-mix(in srgb, var(--sw-ink) 10%, transparent); }
+  .lms-pulldown--on { color: var(--sw-accent); background: color-mix(in srgb, var(--sw-green) 13%, transparent); }
+  .lms-menu--down { top: calc(100% + 6px); bottom: auto; left: auto; right: 0; width: 12rem; transform-origin: top right; }
+  .lms-menu--down .lms-menu-item > svg { color: var(--sw-accent); }
+  .lms-menu--down .lms-menu-item:hover > svg, .lms-menu--down .lms-menu-item:focus-visible > svg { color: #fff; }
+  .lms-filter-token {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 1.9rem;
+    padding: 0 0.3rem 0 0.7rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-green) 13%, transparent);
+    color: var(--sw-accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .lms-filter-token-x { display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 999px; color: inherit; cursor: pointer; }
+  .lms-filter-token-x:hover { background: color-mix(in srgb, var(--sw-green) 18%, transparent); }
+  .lms-popup {
+    height: 2.25rem;
+    padding: 0 1.9rem 0 0.8rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--sw-ink) 6%, transparent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2366766d' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 9 5-5 5 5M7 15l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+    color: var(--sw-ink);
+    font-size: 0.86rem;
+    font-weight: 600;
+    appearance: none;
+    cursor: pointer;
+  }
+  .dark .lms-popup { background-color: rgba(255, 255, 255, 0.075); }
+
+  /* Month view, after Calendar: initials, today in colour, a dot under days with work. */
+  .lms-cal-day {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 3px 0 4px;
+    border-radius: 12px;
+    color: var(--sw-ink);
+    cursor: pointer;
+  }
+  .lms-cal-num {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .lms-cal-day:hover .lms-cal-num { background: color-mix(in srgb, var(--sw-ink) 7%, transparent); }
+  .lms-cal-day[data-out] { color: var(--sw-ink-3); opacity: 0.55; }
+  .lms-cal-day[data-today] .lms-cal-num { color: var(--sw-clay-ink); font-weight: 700; }
+  .lms-cal-day[aria-pressed="true"] .lms-cal-num { background: var(--sw-clay); color: #fff; font-weight: 700; }
+  .lms-cal-day[data-today][aria-pressed="true"] .lms-cal-num { background: var(--sw-clay); color: #fff; }
+  .lms-cal-dot { display: inline-block; width: 0.35rem; height: 0.35rem; border-radius: 999px; background: var(--sw-ink-3); }
+  .lms-cal-dot--soon { background: #ef4b3f; }
+  .lms-cal-dot--due { background: #2f80ed; }
+  .lms-cal-dot--done { background: #2d9d6a; }
+
   .lms-pop-tile {
     display: grid;
     place-items: center;
@@ -1021,7 +1185,7 @@ html:has(.lms-root) body {
 
 @media (prefers-reduced-motion: reduce) {
   .lms-rise, .lms-pop, .lms-bar > span { animation: none; }
-  .lms-side-link, .lms-side-btn, .lms-side-chev, .lms-icon-btn, .lms-btn, .lms-tab, .lms-card-hover, .lms-milk-hover, .lms-glass-btn, .lms-segment { transition: none; }
+  .lms-side-link, .lms-side-btn, .lms-side-chev, .lms-icon-btn, .lms-btn, .lms-tab, .lms-card-hover, .lms-milk-hover, .lms-glass-btn, .lms-segment, .lms-row, .lms-row-action, .lms-cal-num { transition: none; }
   .lms-milk-hover:hover, .lms-milk-hover:active { transform: none; }
   .lms-menu { animation: none; }
 }
@@ -1096,17 +1260,18 @@ html.dark .lms-alert {
   color: #f5f5f7;
 }
 .lms-alert-scrim[data-closing] .lms-alert { animation: lms-alert-out 0.18s ease-in both; }
-.lms-alert-icon {
-  display: block;
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 14px;
-  overflow: hidden;
-  border-radius: 15px;
-  background: #fff;
-  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.1), 0 6px 14px -6px rgba(0, 0, 0, 0.3);
+/* The alert's symbol: an SF-style glyph in a softly tinted circle. */
+.lms-alert-symbol {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 2px auto 14px;
+  border-radius: 999px;
+  background: rgba(255, 59, 48, 0.12);
+  color: #ff3b30;
 }
-.lms-alert-icon img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.18); }
+html.dark .lms-alert-symbol { background: rgba(255, 69, 58, 0.18); color: #ff453a; }
 .lms-alert-title {
   margin: 0;
   font-family: inherit;

@@ -12,7 +12,6 @@ import {
   Globe,
   LifeBuoy,
   Menu,
-  MessageCircleMore,
   Moon,
   Search,
   ShoppingBag,
@@ -25,6 +24,7 @@ import { badgeLabel, useBadgeCounts } from "./BadgeCounts";
 import { getPageTitle } from "./nav-items";
 import { NotificationCenter } from "./notifications/NotificationCenter";
 import { LogoutButton } from "./LogoutButton";
+import { IconChatBubble } from "./icons";
 
 /** Example searches the placeholder types out, in turn. */
 const TYPING_PHRASES = [
@@ -289,7 +289,7 @@ export function DashboardHeader() {
             title="Community chat"
             className="lms-icon-btn hidden md:grid"
           >
-            <MessageCircleMore className="lms-duo h-5 w-5" strokeWidth={1.9} />
+            <IconChatBubble className="lms-duo h-[21px] w-[21px]" size={21} />
             {counts.community > 0 && (
               <span className="lms-dot" aria-hidden="true">
                 {badgeLabel(counts.community)}

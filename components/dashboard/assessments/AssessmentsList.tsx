@@ -1,26 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3,
-  BookOpenCheck,
+  CalendarClock,
   CalendarDays,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Eye,
+  ClipboardCheck,
   FilePenLine,
-  Filter,
+  Hourglass,
   Layers,
-  MoreVertical,
-  PlayCircle,
+  ListChecks,
   RotateCcw,
   Search,
-  TimerReset,
+  SlidersHorizontal,
+  X,
 } from "lucide-react";
 
 export type AssessmentTab =
@@ -64,43 +64,12 @@ export type UserAssessment = {
 };
 
 const TABS: { id: AssessmentTab; label: string }[] = [
-  { id: "completed", label: "Completed" },
   { id: "upcoming", label: "Upcoming" },
+  { id: "completed", label: "Completed" },
   { id: "submitted", label: "Submitted" },
   { id: "results", label: "Results" },
   { id: "retakes", label: "Retakes" },
 ];
-
-const STATUS_STYLES: Record<
-  string,
-  { label: string; className: string }
-> = {
-  NOT_STARTED: {
-    label: "Upcoming",
-    className:
-      "bg-violet-50 text-violet-700 border-violet-100 dark:bg-violet-400/10 dark:text-violet-200 dark:border-violet-400/20",
-  },
-  SUBMITTED: {
-    label: "Submitted",
-    className:
-      "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-400/10 dark:text-amber-200 dark:border-amber-400/20",
-  },
-  PASSED: {
-    label: "Completed",
-    className:
-      "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-400/10 dark:text-emerald-200 dark:border-emerald-400/20",
-  },
-  GRADED: {
-    label: "Graded",
-    className:
-      "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-400/10 dark:text-emerald-200 dark:border-emerald-400/20",
-  },
-  FAILED: {
-    label: "Requires Retake",
-    className:
-      "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-400/10 dark:text-rose-200 dark:border-rose-400/20",
-  },
-};
 
 export default function AssessmentsList({
   assessments,
@@ -132,7 +101,6 @@ export default function AssessmentsList({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const visibleAssessments = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -188,270 +156,200 @@ export default function AssessmentsList({
     updateParam({ start_date: null, end_date: null, page: "1" });
   }
 
+  const average =
+    stats.average_score_percentage === null ? null : Math.round(stats.average_score_percentage);
+  const summary = [
+    stats.upcoming_count > 0 ? `${stats.upcoming_count} coming up` : "Nothing due",
+    `${stats.completed_count} completed`,
+    average !== null ? `${average}% average` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <div className="mx-auto flex w-full max-w-[1540px] flex-col gap-5 pb-8">
-      <div>
-        <h1 className="text-2xl font-extrabold tracking-normal text-slate-950 dark:text-white sm:text-3xl">
-          Assessments
-        </h1>
-        <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
-          Manage upcoming, completed and graded assessments.
-        </p>
+    <div className="mx-auto flex w-full max-w-[1440px] flex-col pb-8">
+      <header className="lms-rise pt-1">
+        <h1 className="sw-display m-0 text-[clamp(1.9rem,4vw,2.75rem)] leading-[1.02] text-ink">Assessments</h1>
+        <p className="m-0 mt-2 text-[0.98rem] text-ink-2">{summary}</p>
+      </header>
+
+      {/* Overview */}
+      <ul className="lms-rise m-0 mt-5 grid list-none grid-cols-2 gap-3 p-0 lg:grid-cols-4 lg:gap-4" style={{ "--i": 1 } as React.CSSProperties}>
+        <OverviewTile
+          label="Coming up"
+          value={String(stats.upcoming_count)}
+          icon={CalendarClock}
+          tone="blue"
+          active={currentTab === "upcoming"}
+          onClick={() => changeTab("upcoming")}
+        />
+        <OverviewTile
+          label="Completed"
+          value={String(stats.completed_count)}
+          icon={CheckCircle2}
+          tone="green"
+          active={currentTab === "completed"}
+          onClick={() => changeTab("completed")}
+        />
+        <OverviewTile
+          label="Average score"
+          value={average === null ? "–" : `${average}%`}
+          ring={average}
+          tone="gold"
+          active={currentTab === "results"}
+          onClick={() => changeTab("results")}
+        />
+        <OverviewTile
+          label="Retakes available"
+          value={String(stats.retakes_available_count)}
+          icon={RotateCcw}
+          tone="red"
+          active={currentTab === "retakes"}
+          onClick={() => changeTab("retakes")}
+        />
+      </ul>
+
+      {/* Toolbar */}
+      <div className="lms-course-bar sticky top-[var(--lms-top)] z-20 -mx-3 mt-5 px-3 py-3 sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="lms-scroll-x -mx-1 overflow-x-auto px-1 pb-0.5">
+            <div role="tablist" aria-label="Show assessments" className="lms-segmented">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={currentTab === tab.id}
+                  onClick={() => changeTab(tab.id)}
+                  className="lms-segment"
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 lg:flex-none">
+            <div className="lms-search min-w-0 flex-1 lg:w-[min(300px,26vw)] lg:flex-none">
+              <label htmlFor="assessment-search" className="sr-only">
+                Search assessments
+              </label>
+              <Search aria-hidden="true" className="lms-search-glyph" strokeWidth={2.2} />
+              <input
+                id="assessment-search"
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape" && query) setQuery("");
+                }}
+                autoComplete="off"
+                placeholder="Search"
+              />
+              {query && (
+                <button type="button" aria-label="Clear search" onClick={() => setQuery("")} className="lms-search-clear">
+                  <X className="h-3 w-3" strokeWidth={3} />
+                </button>
+              )}
+            </div>
+            <TypeMenu
+              value={assessmentType}
+              onChange={(value) => updateParam({ assessment_type: value, page: "1" })}
+            />
+          </div>
+        </div>
+
         {dateRange && (
-          <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-md border border-[#d8d4c3] bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm dark:border-[#3f4441] dark:bg-[#252827] dark:text-slate-200">
-            <CalendarDays className="h-4 w-4 flex-shrink-0 text-[#2d6a4f] dark:text-[#74c69d]" />
-            <span className="min-w-0 truncate">
-              Showing assessments due on {dateRange.label}
+          <div className="mt-3 flex">
+            <span className="lms-filter-token">
+              <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+              Due {dateRange.label}
+              <button type="button" onClick={clearDateRange} aria-label="Clear date filter" className="lms-filter-token-x">
+                <X className="h-3 w-3" strokeWidth={2.6} />
+              </button>
             </span>
-            <button
-              type="button"
-              onClick={clearDateRange}
-              className="flex-shrink-0 rounded-md px-2 py-1 text-xs font-extrabold text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#2c302e]"
-            >
-              Clear
-            </button>
           </div>
         )}
       </div>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard
-          title="Upcoming Assessments"
-          value={stats.upcoming_count}
-          href="/dashboard/assessments?tab=upcoming"
-          action="View upcoming"
-          icon={<CalendarDays className="h-6 w-6" />}
-          tone="violet"
-        />
-        <SummaryCard
-          title="Completed"
-          value={stats.completed_count}
-          href="/dashboard/assessments?tab=completed"
-          action="View completed"
-          icon={<CheckCircle2 className="h-6 w-6" />}
-          tone="emerald"
-        />
-        <SummaryCard
-          title="Average Score"
-          value={
-            stats.average_score_percentage === null
-              ? "-"
-              : `${Math.round(stats.average_score_percentage)}%`
-          }
-          href="/dashboard/assessments?tab=results"
-          action="View performance"
-          icon={<BarChart3 className="h-6 w-6" />}
-          tone="blue"
-        />
-        <SummaryCard
-          title="Retakes Available"
-          value={stats.retakes_available_count}
-          href="/dashboard/assessments?tab=retakes"
-          action="View retakes"
-          icon={<RotateCcw className="h-6 w-6" />}
-          tone="rose"
-        />
-      </section>
-
-      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="overflow-hidden rounded-lg border border-[#e3dfd0] bg-white shadow-sm dark:border-[#363a38] dark:bg-[#252827]">
-          <div className="flex flex-col gap-3 border-b border-[#e9e5d6] px-4 py-3 dark:border-[#363a38] lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-w-0 gap-5 overflow-x-auto swcl-sidebar-scroll">
-              {TABS.map((tab) => {
-                const active = currentTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => changeTab(tab.id)}
-                    className={`relative h-10 flex-shrink-0 px-1 text-sm font-extrabold transition-colors ${
-                      active
-                        ? "text-[#2d6a4f] dark:text-[#74c69d]"
-                        : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                    }`}
-                  >
-                    {tab.label}
-                    {active && (
-                      <span className="absolute inset-x-0 -bottom-3 h-0.5 rounded-full bg-[#2d6a4f]" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,18rem)_auto] sm:items-center">
-              <label className="relative block min-w-0">
-                <span className="sr-only">Search assessments</span>
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search assessments..."
-                  className="h-10 w-full rounded-md border border-[#e3dfd0] bg-white pl-10 pr-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2d6a4f] focus:ring-4 focus:ring-[#2d6a4f]/10 dark:border-[#3f4441] dark:bg-[#1e2120] dark:text-slate-100"
-                />
-              </label>
-
-              <div className="relative">
+      <div className="mt-3 grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px]">
+        <section aria-label="Assessments" className="min-w-0">
+          {error ? (
+            <p role="alert" className="m-0 rounded-[18px] bg-clay-wash px-5 py-3.5 text-sm font-medium text-ink shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--sw-clay)_35%,transparent)]">
+              {error}
+            </p>
+          ) : visibleAssessments.length === 0 ? (
+            <div className="lms-milk flex flex-col items-center px-6 py-14 text-center sm:py-20">
+              <span className="grid h-16 w-16 place-items-center rounded-[20px] bg-card text-accent shadow-[inset_0_0_0_1px_var(--sw-line)] dark:bg-white/[0.06]">
+                {query ? <Search className="h-7 w-7" strokeWidth={1.8} /> : <ClipboardCheck className="h-7 w-7" strokeWidth={1.8} />}
+              </span>
+              <h2 className="m-0 mt-5 text-[1.2rem] font-bold tracking-[-0.02em] text-ink">
+                {query ? "No matches" : EMPTY_COPY[currentTab].title}
+              </h2>
+              <p className="m-0 mt-2 max-w-md text-[0.95rem] leading-relaxed text-ink-2">
+                {query ? "Nothing on this page matches your search." : EMPTY_COPY[currentTab].body}
+              </p>
+              {(query || assessmentType || dateRange) && (
                 <button
                   type="button"
-                  onClick={() => setFiltersOpen((value) => !value)}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#d8d4c3] bg-white px-3 text-sm font-extrabold text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:border-[#3f4441] dark:bg-[#1e2120] dark:text-[#74c69d] dark:hover:bg-[#2c302e] sm:w-auto"
+                  onClick={() => {
+                    setQuery("");
+                    if (assessmentType || dateRange) {
+                      updateParam({ assessment_type: null, start_date: null, end_date: null, page: "1" });
+                    }
+                  }}
+                  className="lms-btn lms-btn--quiet mt-6"
                 >
-                  <Filter className="h-4 w-4" />
-                  Filters
+                  Clear filters
                 </button>
-
-                {filtersOpen && (
-                  <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-[#e3dfd0] bg-white p-2 shadow-xl dark:border-[#363a38] dark:bg-[#252827]">
-                    <FilterOption
-                      label="All types"
-                      active={!assessmentType}
-                      onClick={() => {
-                        updateParam({ assessment_type: null, page: "1" });
-                        setFiltersOpen(false);
-                      }}
-                    />
-                    <FilterOption
-                      label="Quizzes"
-                      active={assessmentType === "QUIZ"}
-                      onClick={() => {
-                        updateParam({ assessment_type: "QUIZ", page: "1" });
-                        setFiltersOpen(false);
-                      }}
-                    />
-                    <FilterOption
-                      label="Essays"
-                      active={assessmentType === "ESSAY"}
-                      onClick={() => {
-                        updateParam({ assessment_type: "ESSAY", page: "1" });
-                        setFiltersOpen(false);
-                      }}
-                    />
-                    <FilterOption
-                      label="Quiz Groups"
-                      active={assessmentType === "QUIZ_GROUP"}
-                      onClick={() => {
-                        updateParam({ assessment_type: "QUIZ_GROUP", page: "1" });
-                        setFiltersOpen(false);
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {error ? (
-            <div className="m-4 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200">
-              {error}
+              )}
             </div>
           ) : (
-            <>
-              <div className="hidden overflow-x-auto swcl-sidebar-scroll xl:block">
-                <table className="w-full min-w-[980px] border-collapse">
-                  <thead>
-                    <tr className="border-b border-[#e9e5d6] bg-[#fdfbf5] text-left text-xs font-extrabold text-slate-600 dark:border-[#363a38] dark:bg-[#1e2120] dark:text-slate-400">
-                      <th className="px-4 py-3">Assessment</th>
-                      <th className="px-4 py-3">Course</th>
-                      <th className="px-4 py-3">Due Date</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Score</th>
-                      <th className="px-4 py-3">Rules</th>
-                      <th className="px-4 py-3">Attempts</th>
-                      <th className="px-4 py-3">Action</th>
-                      <th className="px-4 py-3">Last Activity</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibleAssessments.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={9}
-                          className="px-4 py-14 text-center text-sm font-semibold text-slate-500 dark:text-slate-400"
-                        >
-                          No assessments match this view.
-                        </td>
-                      </tr>
-                    ) : (
-                      visibleAssessments.map((assessment) => (
-                        <AssessmentRow
-                          key={assessment.item_id}
-                          assessment={assessment}
-                        />
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+            <ul className="lms-group m-0 list-none p-0">
+              {visibleAssessments.map((assessment) => (
+                <AssessmentRow key={assessment.item_id} assessment={assessment} />
+              ))}
+            </ul>
+          )}
 
-              <div className="grid gap-3 p-3 xl:hidden">
-                {visibleAssessments.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-[#d8d4c3] bg-[#f7fcf9] px-4 py-10 text-center text-sm font-semibold text-slate-500 dark:border-[#3f4441] dark:bg-[#1e2120] dark:text-slate-400">
-                    No assessments match this view.
-                  </div>
-                ) : (
-                  visibleAssessments.map((assessment) => (
-                    <MobileAssessmentCard
-                      key={assessment.item_id}
-                      assessment={assessment}
-                    />
-                  ))
-                )}
-              </div>
-
-              <div className="flex flex-col gap-3 border-t border-[#e9e5d6] px-3 py-3 dark:border-[#363a38] sm:px-4 lg:flex-row lg:items-center lg:justify-between">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                  Showing {showingStart} to {showingEnd} of {totalItems}{" "}
-                  assessments
-                </p>
-
-                <div className="grid gap-3 sm:grid-cols-[auto_auto] sm:items-center sm:justify-between lg:justify-end">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => changePage(currentPage - 1)}
-                      disabled={currentPage <= 1}
-                      aria-label="Previous page"
-                      className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e3dfd0] text-slate-600 transition hover:bg-[#eef5f1] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#3f4441] dark:text-slate-300 dark:hover:bg-[#2c302e]"
-                    >
+          {!error && totalItems > 0 && (
+            <div className="mt-5 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+              <p className="m-0 text-sm text-ink-3">
+                {showingStart}–{showingEnd} of {totalItems}
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                {totalPages > 1 && (
+                  <nav className="lms-pager" aria-label="Assessment pages">
+                    <button type="button" onClick={() => changePage(currentPage - 1)} disabled={currentPage <= 1} aria-label="Previous page" className="lms-page">
                       <ChevronLeft className="h-4 w-4" />
                     </button>
-                    <span className="flex h-9 min-w-9 items-center justify-center rounded-md bg-[#2d6a4f] px-3 text-sm font-extrabold text-white">
+                    <span className="lms-page" aria-current="page">
                       {currentPage}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => changePage(currentPage + 1)}
-                      disabled={currentPage >= Math.max(totalPages, 1)}
-                      aria-label="Next page"
-                      className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e3dfd0] text-slate-600 transition hover:bg-[#eef5f1] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#3f4441] dark:text-slate-300 dark:hover:bg-[#2c302e]"
-                    >
+                    <span className="px-1 text-sm text-ink-3">of {totalPages}</span>
+                    <button type="button" onClick={() => changePage(currentPage + 1)} disabled={currentPage >= Math.max(totalPages, 1)} aria-label="Next page" className="lms-page">
                       <ChevronRight className="h-4 w-4" />
                     </button>
-                  </div>
-
-                  <label className="flex items-center justify-between gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 sm:justify-start">
-                    Rows per page
-                    <select
-                      value={pageSize}
-                      onChange={(event) =>
-                        updateParam({ rows: event.target.value, page: "1" })
-                      }
-                      className="h-9 rounded-md border border-[#e3dfd0] bg-white px-3 text-sm font-extrabold text-slate-800 outline-none dark:border-[#3f4441] dark:bg-[#1e2120] dark:text-slate-100"
-                    >
-                      <option value="10">10</option>
-                      <option value="20">20</option>
-                      <option value="50">50</option>
-                    </select>
-                  </label>
-                </div>
+                  </nav>
+                )}
+                <label className="flex items-center gap-2 text-sm text-ink-3">
+                  Show
+                  <select
+                    value={pageSize}
+                    onChange={(event) => updateParam({ rows: event.target.value, page: "1" })}
+                    className="lms-popup"
+                  >
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                  </select>
+                </label>
               </div>
-            </>
+            </div>
           )}
         </section>
 
-        <aside className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:flex 2xl:flex-col">
+        <aside aria-label="Calendar and highlights" className="grid min-w-0 gap-4 md:grid-cols-2 xl:sticky xl:top-[calc(var(--lms-top)+5rem)] xl:grid-cols-1">
           <AssessmentCalendar
             assessments={calendarItems}
             activeDateRange={dateRange}
@@ -465,335 +363,242 @@ export default function AssessmentsList({
               });
             }}
           />
-          <SideList
-            title="Upcoming Deadlines"
-            href="/dashboard/assessments?tab=upcoming"
-            items={upcomingAssessments.slice(0, 3)}
-            empty="No upcoming deadlines."
-          />
-          <FeedbackList assessments={completedAssessments.slice(0, 3)} />
+          <div className="grid gap-4">
+            <SideList
+              title="Up next"
+              href="/dashboard/assessments?tab=upcoming"
+              items={upcomingAssessments.slice(0, 3)}
+              empty="Nothing due. You’re all caught up."
+            />
+            <FeedbackList assessments={completedAssessments.slice(0, 3)} />
+          </div>
         </aside>
       </div>
     </div>
   );
 }
 
-function SummaryCard({
-  title,
+const EMPTY_COPY: Record<AssessmentTab, { title: string; body: string }> = {
+  upcoming: { title: "Nothing coming up", body: "When a course opens a quiz or essay for you, it will appear here with its due date." },
+  completed: { title: "No completed assessments", body: "Quizzes and essays you finish will be kept here, with their scores." },
+  submitted: { title: "Nothing waiting for review", body: "Essays you submit stay here until your instructor releases a result." },
+  results: { title: "No results yet", body: "Scores appear here as soon as they are published." },
+  retakes: { title: "No retakes needed", body: "If a quiz needs another try and attempts remain, it will be listed here." },
+};
+
+type Tone = "green" | "gold" | "red" | "blue" | "gray" | "orange" | "indigo";
+
+function OverviewTile({
+  label,
   value,
-  action,
-  href,
-  icon,
+  icon: Icon,
+  ring,
   tone,
+  active,
+  onClick,
 }: {
-  title: string;
-  value: number | string;
-  action: string;
-  href: string;
-  icon: React.ReactNode;
-  tone: "violet" | "emerald" | "blue" | "rose";
+  label: string;
+  value: string;
+  icon?: LucideIcon;
+  ring?: number | null;
+  tone: Tone;
+  active: boolean;
+  onClick: () => void;
 }) {
-  const tones = {
-    violet:
-      "bg-violet-100 text-[#2d6a4f] dark:bg-violet-400/15 dark:text-violet-200",
-    emerald:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200",
-    blue: "bg-blue-100 text-blue-700 dark:bg-blue-400/15 dark:text-blue-200",
-    rose: "bg-rose-100 text-rose-700 dark:bg-rose-400/15 dark:text-rose-200",
-  };
+  return (
+    <li className="min-w-0">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={active}
+        className="lms-milk lms-milk-hover lms-tile flex h-full w-full cursor-pointer flex-col gap-3 p-4 text-left sm:p-5"
+      >
+        <span className="flex items-center justify-between gap-2">
+          {ring !== undefined ? (
+            <ScoreRing value={ring ?? 0} empty={ring === null} />
+          ) : (
+            Icon && (
+              <span className={`lms-sym lms-sym--${tone}`}>
+                <Icon className="h-[18px] w-[18px]" strokeWidth={2.2} aria-hidden="true" />
+              </span>
+            )
+          )}
+          <ChevronRight className="h-4 w-4 text-ink-3" aria-hidden="true" />
+        </span>
+        <span>
+          <span className="lms-num block text-[1.9rem] text-ink sm:text-[2.2rem]">{value}</span>
+          <span className="mt-1 block truncate text-[0.85rem] text-ink-2">{label}</span>
+        </span>
+      </button>
+    </li>
+  );
+}
+
+function ScoreRing({ value, empty, size = 36 }: { value: number; empty?: boolean; size?: number }) {
+  const stroke = 4;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - Math.max(0, Math.min(100, value)) / 100);
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="lms-ring flex-none" aria-hidden="true">
+      <circle cx={size / 2} cy={size / 2} r={radius} strokeWidth={stroke} className="text-ink" />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        strokeWidth={stroke}
+        strokeDasharray={circumference}
+        strokeDashoffset={empty ? circumference : offset}
+        style={{ "--ring": value >= 50 ? "var(--sw-accent)" : "var(--sw-clay)" } as React.CSSProperties}
+      />
+    </svg>
+  );
+}
+
+function TypeMenu({
+  value,
+  onChange,
+}: {
+  value: "QUIZ" | "ESSAY" | "QUIZ_GROUP" | null;
+  onChange: (value: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const options: { value: string | null; label: string }[] = [
+    { value: null, label: "All types" },
+    { value: "QUIZ", label: "Quizzes" },
+    { value: "ESSAY", label: "Essays" },
+    { value: "QUIZ_GROUP", label: "Quiz groups" },
+  ];
+  const current = options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const onPress = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPress, true);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPress, true);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   return (
-    <Link
-      href={href}
-      className="grid min-h-[116px] grid-cols-[56px_minmax(0,1fr)] items-center gap-4 rounded-lg border border-[#e3dfd0] bg-white p-4 text-slate-950 no-underline shadow-sm transition hover:-translate-y-0.5 hover:border-[#cfe8da] hover:shadow-md dark:border-[#363a38] dark:bg-[#252827] dark:text-white"
-    >
-      <span
-        className={`flex h-14 w-14 items-center justify-center rounded-full ${tones[tone]}`}
+    <div ref={rootRef} className="relative flex-none">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={`lms-pulldown ${value ? "lms-pulldown--on" : ""}`}
       >
-        {icon}
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate text-sm font-extrabold">{title}</span>
-        <span className="mt-1 block text-2xl font-extrabold">{value}</span>
-        <span className="mt-1 block text-xs font-extrabold text-[#2d6a4f] dark:text-[#74c69d]">
-          {action}
-        </span>
-      </span>
-    </Link>
+        <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+        <span className="hidden sm:inline">{value ? current.label : "Type"}</span>
+        <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
+      </button>
+      {open && (
+        <div role="menu" aria-label="Assessment type" className="lms-menu lms-menu--down">
+          {options.map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              role="menuitemradio"
+              aria-checked={option.value === value}
+              onClick={() => {
+                setOpen(false);
+                onChange(option.value);
+              }}
+              className="lms-menu-item"
+            >
+              <Check className={`h-4 w-4 ${option.value === value ? "" : "invisible"}`} strokeWidth={2.4} aria-hidden="true" />
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
 function AssessmentRow({ assessment }: { assessment: UserAssessment }) {
   const href = `/learn/${assessment.course_id}/item/${assessment.item_id}`;
   const status = getStatusDisplay(assessment);
-
-  return (
-    <tr className="border-b border-[#f1eee2] transition hover:bg-[#f7fcf9] dark:border-[#363a38] dark:hover:bg-[#252827]">
-      <td className="px-4 py-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <AssessmentIcon assessment={assessment} />
-          <div className="min-w-0">
-            <Link
-              href={href}
-              className="line-clamp-2 text-sm font-extrabold text-slate-950 no-underline hover:text-[#2d6a4f] dark:text-white dark:hover:text-[#74c69d]"
-            >
-              {assessment.title}
-            </Link>
-            <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-              {getAssessmentMetaLabel(assessment)}
-            </p>
-          </div>
-        </div>
-      </td>
-      <td className="max-w-[220px] px-4 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">
-        <span className="line-clamp-2">{assessment.course_title}</span>
-      </td>
-      <td className="px-4 py-4 text-sm font-medium text-slate-800 dark:text-slate-200">
-        {assessment.due_date ? (
-          <span className="whitespace-nowrap">{formatDueDate(assessment.due_date)}</span>
-        ) : (
-          <span className="text-slate-400">No due date</span>
-        )}
-      </td>
-      <td className="px-4 py-4">
-        <span
-          className={`inline-flex whitespace-nowrap rounded-md border px-2.5 py-1 text-xs font-extrabold ${status.className}`}
-        >
-          {status.label}
-        </span>
-      </td>
-      <td className="px-4 py-4 text-sm font-extrabold">
-        {typeof assessment.score === "number" ? (
-          <span
-            className={
-              assessment.status?.toUpperCase() === "FAILED"
-                ? "text-rose-600 dark:text-rose-300"
-                : "text-slate-950 dark:text-white"
-            }
-          >
-            {Math.round(assessment.score)}%
-          </span>
-        ) : (
-          <span className="text-slate-400">-</span>
-        )}
-      </td>
-      <td className="px-4 py-4 text-sm font-extrabold text-slate-700 dark:text-slate-300">
-        {getRulesLabel(assessment)}
-      </td>
-      <td className="px-4 py-4">
-        <AttemptsSummary assessment={assessment} />
-      </td>
-      <td className="px-4 py-4">
-        <AssessmentActionButton assessment={assessment} />
-      </td>
-      <td className="px-4 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">
-        {assessment.last_activity_at ? (
-          <span className="whitespace-nowrap">{formatShortDate(assessment.last_activity_at)}</span>
-        ) : (
-          <span className="text-slate-400">Not started</span>
-        )}
-      </td>
-    </tr>
-  );
-}
-
-function MobileAssessmentCard({ assessment }: { assessment: UserAssessment }) {
-  const href = `/learn/${assessment.course_id}/item/${assessment.item_id}`;
-  const status = getStatusDisplay(assessment);
-
-  return (
-    <article className="rounded-lg border border-[#f1eee2] bg-white p-3 shadow-sm dark:border-[#363a38] dark:bg-[#1e2120]">
-      <div className="flex min-w-0 items-start gap-3">
-        <AssessmentIcon assessment={assessment} />
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-start justify-between gap-2">
-            <div className="min-w-0">
-              <Link
-                href={href}
-                className="line-clamp-2 text-sm font-extrabold leading-5 text-slate-950 no-underline hover:text-[#2d6a4f] dark:text-white dark:hover:text-[#74c69d]"
-              >
-                {assessment.title}
-              </Link>
-              <p className="mt-1 line-clamp-2 text-xs font-semibold leading-4 text-slate-500 dark:text-slate-400">
-                {assessment.course_title}
-              </p>
-            </div>
-            <button
-              type="button"
-              aria-label={`More actions for ${assessment.title}`}
-              className="-mr-1 -mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span
-              className={`inline-flex rounded-md border px-2 py-1 text-xs font-extrabold ${status.className}`}
-            >
-              {status.label}
-            </span>
-            <span className="inline-flex rounded-md bg-slate-100 px-2 py-1 text-xs font-extrabold text-slate-600 dark:bg-white/10 dark:text-slate-300">
-              {getAssessmentMetaLabel(assessment)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <dl className="mt-4 grid grid-cols-2 gap-2">
-        <MobileMetric
-          label="Due Date"
-          value={
-            assessment.due_date ? formatDueDate(assessment.due_date) : "No due date"
-          }
-          fullWidth
-        />
-        <MobileMetric
-          label="Score"
-          value={
-            typeof assessment.score === "number"
-              ? `${Math.round(assessment.score)}%`
-              : "-"
-          }
-          valueClassName={
-            assessment.status?.toUpperCase() === "FAILED"
-              ? "text-rose-600 dark:text-rose-300"
-              : undefined
-          }
-        />
-        <MobileMetric
-          label="Pass Mark"
-          value={getRulesLabel(assessment)}
-        />
-        <MobileMetric
-          label="Attempts"
-          value={formatAttempts(assessment)}
-          fullWidth
-        />
-        <MobileMetric
-          label="Last Activity"
-          value={
-            assessment.last_activity_at
-              ? formatShortDate(assessment.last_activity_at)
-              : "Not started"
-          }
-          fullWidth
-        />
-      </dl>
-
-      <AssessmentActionButton assessment={assessment} fullWidth />
-    </article>
-  );
-}
-
-function AssessmentActionButton({
-  assessment,
-  fullWidth = false,
-}: {
-  assessment: UserAssessment;
-  fullWidth?: boolean;
-}) {
-  const href = `/learn/${assessment.course_id}/item/${assessment.item_id}`;
   const action = getActionConfig(assessment);
-  const Icon = action.icon;
+  const failed = assessment.status?.toUpperCase() === "FAILED";
+  const hasScore = typeof assessment.score === "number";
 
   return (
-    <Link
-      href={href}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 text-sm font-extrabold no-underline shadow-sm ring-1 ring-inset transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#252827] ${
-        fullWidth ? "mt-3 h-10 w-full" : "h-9 min-w-[118px] whitespace-nowrap"
-      } ${action.className}`}
-    >
-      <Icon className="h-4 w-4 flex-shrink-0" strokeWidth={2.2} />
-      <span>{action.label}</span>
-    </Link>
-  );
-}
+    <li>
+      <Link href={href} className="lms-row group">
+        <AssessmentIcon assessment={assessment} />
 
-function AttemptsSummary({ assessment }: { assessment: UserAssessment }) {
-  const type = assessment.assessment_type?.toUpperCase();
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[0.95rem] font-semibold tracking-[-0.01em] text-ink">{assessment.title}</span>
+          <span className="mt-0.5 block truncate text-[0.8rem] text-ink-3">
+            {assessment.course_title} · {getAssessmentMetaLabel(assessment)}
+          </span>
+          <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.8rem]">
+            <span className={`lms-status lms-status--${status.tone}`}>{status.label}</span>
+            <span className="text-ink-3 md:hidden">
+              {assessment.due_date ? `Due ${formatShortDate(assessment.due_date)}` : null}
+              {hasScore ? ` · ${Math.round(assessment.score as number)}%` : null}
+            </span>
+            {getAttemptsLine(assessment) && (
+              <span className="hidden text-ink-3 sm:inline">{getAttemptsLine(assessment)}</span>
+            )}
+          </span>
+        </span>
 
-  if (type !== "QUIZ" && type !== "QUIZ_GROUP") {
-    return (
-      <span className="text-sm font-semibold text-slate-400">
-        Not applicable
-      </span>
-    );
-  }
+        <span className="hidden w-36 flex-none text-right md:block">
+          <span className="block text-[0.72rem] text-ink-3">{assessment.due_date ? "Due" : "Last activity"}</span>
+          <span className="block text-[0.85rem] font-medium tabular-nums text-ink-2">
+            {assessment.due_date
+              ? formatDueDate(assessment.due_date)
+              : assessment.last_activity_at
+                ? formatShortDate(assessment.last_activity_at)
+                : "Not started"}
+          </span>
+        </span>
 
-  return (
-    <div className="min-w-[112px]">
-      <p className="whitespace-nowrap text-sm font-extrabold text-slate-800 dark:text-slate-100">
-        {formatAttemptsUsed(assessment)}
-      </p>
-      <p className="mt-0.5 whitespace-nowrap text-xs font-semibold text-slate-500 dark:text-slate-400">
-        {formatAttemptsRemaining(assessment)}
-      </p>
-    </div>
-  );
-}
+        <span className="hidden w-16 flex-none text-right lg:block">
+          <span className="block text-[0.72rem] text-ink-3">Score</span>
+          <span className={`block text-[1rem] font-semibold tabular-nums ${failed ? "text-[#d92d20] dark:text-[#ff6961]" : "text-ink"}`}>
+            {hasScore ? `${Math.round(assessment.score as number)}%` : "–"}
+          </span>
+        </span>
 
-function MobileMetric({
-  label,
-  value,
-  valueClassName,
-  fullWidth,
-}: {
-  label: string;
-  value: string;
-  valueClassName?: string;
-  fullWidth?: boolean;
-}) {
-  return (
-    <div
-      className={`min-w-0 rounded-md bg-[#fdfbf5] p-2 dark:bg-[#252827] ${
-        fullWidth ? "col-span-2" : ""
-      }`}
-    >
-      <dt className="text-[0.68rem] font-extrabold uppercase text-slate-400 dark:text-slate-500">
-        {label}
-      </dt>
-      <dd
-        className={`mt-1 min-w-0 break-words text-xs font-extrabold leading-4 text-slate-800 dark:text-slate-200 ${
-          valueClassName || ""
-        }`}
-      >
-        {value}
-      </dd>
-    </div>
+        <span className={`lms-row-action lms-row-action--${action.tone} hidden sm:inline-flex`}>{action.label}</span>
+        <ChevronRight className="h-4 w-4 flex-none text-ink-3 sm:hidden" aria-hidden="true" />
+      </Link>
+    </li>
   );
 }
 
 function AssessmentIcon({ assessment }: { assessment: UserAssessment }) {
   const status = assessment.status?.toUpperCase();
   const type = assessment.assessment_type?.toUpperCase();
-  const failed = status === "FAILED";
-  const completed = status === "PASSED" || status === "GRADED";
-  const submitted = status === "SUBMITTED";
+  let tone: Tone = type === "ESSAY" ? "orange" : type === "QUIZ_GROUP" ? "indigo" : "blue";
+  let Icon: LucideIcon = type === "ESSAY" ? FilePenLine : type === "QUIZ_GROUP" ? Layers : ListChecks;
 
-  let className =
-    "bg-violet-100 text-[#2d6a4f] dark:bg-violet-400/15 dark:text-violet-200";
-  let Icon = type === "ESSAY" ? FilePenLine : type === "QUIZ_GROUP" ? Layers : BookOpenCheck;
-
-  if (completed) {
-    className =
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200";
-    Icon = CheckCircle2;
-  } else if (failed) {
-    className =
-      "bg-rose-100 text-rose-700 dark:bg-rose-400/15 dark:text-rose-200";
-    Icon = TimerReset;
-  } else if (submitted) {
-    className =
-      "bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-200";
-    Icon = FilePenLine;
+  if (status === "PASSED" || status === "GRADED") {
+    tone = "green";
+    Icon = Check;
+  } else if (status === "FAILED") {
+    tone = "red";
+    Icon = RotateCcw;
+  } else if (status === "SUBMITTED") {
+    tone = "gold";
+    Icon = Hourglass;
   }
 
   return (
-    <span
-      className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${className}`}
-    >
-      <Icon className="h-5 w-5" />
+    <span className={`lms-sym lms-sym--${tone}`}>
+      <Icon className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden="true" />
     </span>
   );
 }
@@ -808,181 +613,98 @@ function AssessmentCalendar({
   onSelectDate: (date: Date, preferredTab: AssessmentTab) => void;
 }) {
   const [monthOffset, setMonthOffset] = useState(0);
-  const baseDate = useMemo(() => {
-    const firstDue = assessments.find((item) => item.due_date)?.due_date;
-    return firstDue ? new Date(firstDue) : new Date();
-  }, [assessments]);
-  const monthDate = new Date(
-    baseDate.getFullYear(),
-    baseDate.getMonth() + monthOffset,
-    1,
-  );
+  const [today] = useState(() => new Date());
+  const monthDate = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
   const days = getCalendarDays(monthDate);
-  const activeDateKey = activeDateRange
-    ? toDateKey(activeDateRange.startDate)
-    : null;
-  const itemsByDate = useMemo(() => {
-    const map = new Map<string, UserAssessment[]>();
+  const todayKey = toDateKey(today);
+  const activeDateKey = activeDateRange ? toDateKey(activeDateRange.startDate) : null;
 
-    assessments.forEach((item) => {
-      if (!item.due_date) return;
-
-      const key = toDateKey(item.due_date);
-      const items = map.get(key) || [];
-      items.push(item);
-      map.set(key, items);
-    });
-
+  const marks = useMemo(() => {
+    const map = new Map<string, { count: number; tone: "due" | "soon" | "done" }>();
+    const now = today.getTime();
+    for (const item of assessments) {
+      const status = item.status?.toUpperCase();
+      const when = item.due_date || (status !== "NOT_STARTED" ? item.last_activity_at : null);
+      if (!when) continue;
+      const key = toDateKey(when);
+      const done = ["PASSED", "FAILED", "GRADED", "SUBMITTED"].includes(status);
+      const soon = !done && new Date(when).getTime() - now <= 2 * 86_400_000;
+      const tone = done ? "done" : soon ? "soon" : "due";
+      const existing = map.get(key);
+      const rank = { soon: 3, due: 2, done: 1 } as const;
+      map.set(key, {
+        count: (existing?.count ?? 0) + 1,
+        tone: existing && rank[existing.tone] > rank[tone] ? existing.tone : tone,
+      });
+    }
     return map;
-  }, [assessments]);
-  const dueSoonDates = new Set(
-    assessments
-      .filter((item) => {
-        if (!item.due_date || item.status?.toUpperCase() !== "NOT_STARTED") {
-          return false;
-        }
-
-        const due = new Date(item.due_date);
-        const now = new Date();
-        const twoDaysFromNow = new Date(now);
-        twoDaysFromNow.setDate(now.getDate() + 2);
-
-        return due <= twoDaysFromNow;
-      })
-      .map((item) => toDateKey(item.due_date as string)),
-  );
-  const dueThisWeekDates = new Set(
-    assessments
-      .filter((item) => {
-        if (!item.due_date || item.status?.toUpperCase() !== "NOT_STARTED") {
-          return false;
-        }
-
-        const due = new Date(item.due_date);
-        const now = new Date();
-        const sevenDaysFromNow = new Date(now);
-        sevenDaysFromNow.setDate(now.getDate() + 7);
-
-        return due >= now && due <= sevenDaysFromNow;
-      })
-      .map((item) => toDateKey(item.due_date as string)),
-  );
-  const completedDates = new Set(
-    assessments
-      .filter((item) =>
-        ["PASSED", "FAILED", "GRADED", "SUBMITTED"].includes(
-          item.status?.toUpperCase(),
-        ),
-      )
-      .map((item) =>
-        item.due_date
-          ? toDateKey(item.due_date)
-          : item.last_activity_at
-            ? toDateKey(item.last_activity_at)
-            : "",
-      )
-      .filter(Boolean),
-  );
+  }, [assessments, today]);
 
   function handleDateClick(date: Date) {
     const key = toDateKey(date);
-    const itemsForDate = itemsByDate.get(key) || [];
-    const hasUpcoming = itemsForDate.some(
-      (item) => item.status?.toUpperCase() === "NOT_STARTED",
+    const hasUpcoming = assessments.some(
+      (item) => item.due_date && toDateKey(item.due_date) === key && item.status?.toUpperCase() === "NOT_STARTED",
     );
-
     onSelectDate(date, hasUpcoming ? "upcoming" : "completed");
   }
 
   return (
-    <section className="w-full rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#363a38] dark:bg-[#252827]">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-5 w-5 text-slate-600 dark:text-slate-300" />
-          <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
-            Assessment Calendar
-          </h2>
+    <section aria-label="Calendar" className="lms-card !rounded-[24px] p-4 sm:p-5">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="m-0 text-[1.05rem] font-bold tracking-[-0.015em] text-ink">
+          {new Intl.DateTimeFormat("en-GB", { month: "long" }).format(monthDate)}{" "}
+          <span className="text-clay-ink">{monthDate.getFullYear()}</span>
+        </h2>
+        <div className="flex items-center">
+          <button type="button" onClick={() => setMonthOffset((v) => v - 1)} aria-label="Previous month" className="lms-gpop-x !h-9 !w-9 text-accent">
+            <ChevronLeft className="h-[18px] w-[18px]" strokeWidth={2.4} />
+          </button>
+          {monthOffset !== 0 && (
+            <button type="button" onClick={() => setMonthOffset(0)} className="h-8 rounded-full px-2.5 text-[0.8rem] font-semibold text-accent hover:bg-ink/[0.06]">
+              Today
+            </button>
+          )}
+          <button type="button" onClick={() => setMonthOffset((v) => v + 1)} aria-label="Next month" className="lms-gpop-x !h-9 !w-9 text-accent">
+            <ChevronRight className="h-[18px] w-[18px]" strokeWidth={2.4} />
+          </button>
         </div>
       </div>
 
-      <div className="mb-3 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => setMonthOffset((value) => value - 1)}
-          aria-label="Previous month"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#2c302e]"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <p className="text-sm font-extrabold text-slate-950 dark:text-white">
-          {new Intl.DateTimeFormat("en-US", {
-            month: "long",
-            year: "numeric",
-          }).format(monthDate)}
-        </p>
-        <button
-          type="button"
-          onClick={() => setMonthOffset((value) => value + 1)}
-          aria-label="Next month"
-          className="flex h-8 w-8 items-center justify-center rounded-md text-[#2d6a4f] transition hover:bg-[#eef5f1] dark:text-[#74c69d] dark:hover:bg-[#2c302e]"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="mx-auto grid w-full max-w-[320px] grid-cols-7 gap-1 text-center 2xl:max-w-none">
-        {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
-          <span
-            key={day}
-            className="py-1 text-xs font-extrabold text-slate-500 dark:text-slate-400"
-          >
+      <div className="grid grid-cols-7 text-center">
+        {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => (
+          <span key={index} className="pb-1.5 text-[0.68rem] font-semibold uppercase text-ink-3">
             {day}
           </span>
         ))}
         {days.map((day) => {
           const key = toDateKey(day.date);
-          const isDue = dueSoonDates.has(key);
-          const isDueThisWeek = dueThisWeekDates.has(key);
-          const isComplete = completedDates.has(key);
+          const mark = marks.get(key);
+          const isToday = key === todayKey;
           const isActive = activeDateKey === key;
-          const itemsCount = itemsByDate.get(key)?.length || 0;
           return (
             <button
-              key={`${key}-${day.inCurrentMonth}`}
+              key={key}
               type="button"
               onClick={() => handleDateClick(day.date)}
-              title={
-                itemsCount
-                  ? `${itemsCount} assessment${itemsCount === 1 ? "" : "s"} due`
-                  : "Filter assessments by this date"
-              }
-              className={`relative flex h-9 w-9 items-center justify-center justify-self-center rounded-full text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6a4f] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#252827] ${
-                isActive
-                  ? "bg-slate-950 text-white ring-2 ring-[#2d6a4f] dark:bg-white dark:text-slate-950"
-                  : isDue
-                    ? "bg-[#2d6a4f] text-white hover:bg-[#1b4332]"
-                    : isDueThisWeek
-                      ? "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-400/15 dark:text-amber-200"
-                      : isComplete
-                        ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-400/15 dark:text-emerald-200"
-                        : day.inCurrentMonth
-                          ? "text-slate-700 hover:bg-[#eef5f1] hover:text-[#2d6a4f] dark:text-slate-300 dark:hover:bg-[#2c302e] dark:hover:text-[#74c69d]"
-                          : "text-slate-400 hover:bg-slate-50 dark:text-slate-600 dark:hover:bg-white/5"
+              aria-label={`${new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(day.date)}${
+                mark ? `, ${mark.count} assessment${mark.count === 1 ? "" : "s"}` : ""
               }`}
+              aria-pressed={isActive}
+              data-today={isToday || undefined}
+              data-out={!day.inCurrentMonth || undefined}
+              className="lms-cal-day"
             >
-              {day.date.getDate()}
-              {itemsCount > 0 && !isDue && !isComplete && !isDueThisWeek && (
-                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#2d6a4f]" />
-              )}
+              <span className="lms-cal-num">{day.date.getDate()}</span>
+              <span aria-hidden="true" className={`lms-cal-dot ${mark ? `lms-cal-dot--${mark.tone}` : "invisible"}`} />
             </button>
           );
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3 text-xs font-medium text-slate-600 dark:text-slate-400">
-        <Legend color="bg-[#2d6a4f]" label={`Due soon (${dueSoonDates.size})`} />
-        <Legend color="bg-amber-500" label="Due this week" />
-        <Legend color="bg-emerald-500" label={`Completed (${completedDates.size})`} />
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-3 text-[0.75rem] text-ink-3">
+        <Legend tone="soon" label="Due soon" />
+        <Legend tone="due" label="Due" />
+        <Legend tone="done" label="Done" />
       </div>
     </section>
   );
@@ -1000,43 +722,28 @@ function SideList({
   empty: string;
 }) {
   return (
-    <section className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#363a38] dark:bg-[#252827]">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
-          {title}
-        </h2>
-        <Link
-          href={href}
-          className="text-xs font-extrabold text-[#2d6a4f] no-underline dark:text-[#74c69d]"
-        >
-          View all
+    <section aria-label={title} className="lms-card !rounded-[24px] p-4 sm:p-5">
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="m-0 text-[1.05rem] font-bold tracking-[-0.015em] text-ink">{title}</h2>
+        <Link href={href} className="inline-flex min-h-9 items-center text-[0.85rem] font-medium text-accent no-underline hover:underline">
+          See all
         </Link>
       </div>
-
       {items.length === 0 ? (
-        <p className="rounded-md bg-slate-50 p-3 text-sm font-medium text-slate-500 dark:bg-[#1e2120] dark:text-slate-400">
-          {empty}
-        </p>
+        <p className="m-0 rounded-[14px] bg-[var(--lms-milk)] p-3.5 text-sm text-ink-2">{empty}</p>
       ) : (
-        <ul className="m-0 flex list-none flex-col gap-3 p-0">
+        <ul className="-mx-2 m-0 list-none p-0">
           {items.map((item) => (
             <li key={item.item_id}>
-              <Link
-                href={`/learn/${item.course_id}/item/${item.item_id}`}
-                className="grid grid-cols-[38px_minmax(0,1fr)] gap-3 rounded-md p-1.5 text-slate-950 no-underline transition hover:bg-[#f7fcf9] dark:text-white dark:hover:bg-[#252827]"
-              >
+              <Link href={`/learn/${item.course_id}/item/${item.item_id}`} className="flex items-center gap-3 rounded-[14px] p-2 text-inherit no-underline transition-colors hover:bg-[var(--lms-milk)]">
                 <AssessmentIcon assessment={item} />
-                <span className="min-w-0">
-                  <span className="line-clamp-1 text-sm font-extrabold">
-                    {item.title}
-                  </span>
-                  <span className="line-clamp-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    {item.course_title}
-                  </span>
-                  <span className="mt-0.5 block text-xs font-medium text-slate-600 dark:text-slate-300">
-                    {item.due_date ? formatDueDate(item.due_date) : "No due date"}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[0.9rem] font-semibold text-ink">{item.title}</span>
+                  <span className="block truncate text-[0.78rem] text-ink-3">
+                    {item.due_date ? `Due ${formatShortDate(item.due_date)}` : item.course_title}
                   </span>
                 </span>
+                <ChevronRight className="h-4 w-4 flex-none text-ink-3" aria-hidden="true" />
               </Link>
             </li>
           ))}
@@ -1048,218 +755,101 @@ function SideList({
 
 function FeedbackList({ assessments }: { assessments: UserAssessment[] }) {
   return (
-    <section className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#363a38] dark:bg-[#252827]">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
-          Recent Feedback
-        </h2>
-        <Link
-          href="/dashboard/assessments?tab=results"
-          className="text-xs font-extrabold text-[#2d6a4f] no-underline dark:text-[#74c69d]"
-        >
-          View all
+    <section aria-label="Recent results" className="lms-card !rounded-[24px] p-4 sm:p-5">
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="m-0 text-[1.05rem] font-bold tracking-[-0.015em] text-ink">Recent results</h2>
+        <Link href="/dashboard/assessments?tab=results" className="inline-flex min-h-9 items-center text-[0.85rem] font-medium text-accent no-underline hover:underline">
+          See all
         </Link>
       </div>
-
       {assessments.length === 0 ? (
-        <p className="rounded-md bg-slate-50 p-3 text-sm font-medium text-slate-500 dark:bg-[#1e2120] dark:text-slate-400">
-          Published scores and feedback will appear here.
-        </p>
+        <p className="m-0 rounded-[14px] bg-[var(--lms-milk)] p-3.5 text-sm text-ink-2">Published scores will appear here.</p>
       ) : (
-        <ul className="m-0 flex list-none flex-col gap-3 p-0">
-          {assessments.map((assessment) => (
-            <li
-              key={assessment.item_id}
-              className="grid grid-cols-[38px_minmax(0,1fr)] gap-3 rounded-md p-1.5"
-            >
-              <AssessmentIcon assessment={assessment} />
-              <div className="min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <Link
-                    href={`/learn/${assessment.course_id}/item/${assessment.item_id}`}
-                    className="line-clamp-1 text-sm font-extrabold text-slate-950 no-underline hover:text-[#2d6a4f] dark:text-white dark:hover:text-[#74c69d]"
-                  >
-                    {assessment.title}
-                  </Link>
-                  {typeof assessment.score === "number" && (
-                    <span
-                      className={`rounded-md px-2 py-0.5 text-xs font-extrabold ${
-                        assessment.status?.toUpperCase() === "FAILED"
-                          ? "bg-rose-100 text-rose-700 dark:bg-rose-400/15 dark:text-rose-200"
-                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200"
-                      }`}
-                    >
-                      {Math.round(assessment.score)}%
+        <ul className="-mx-2 m-0 list-none p-0">
+          {assessments.map((assessment) => {
+            const hasScore = typeof assessment.score === "number";
+            return (
+              <li key={assessment.item_id}>
+                <Link
+                  href={`/learn/${assessment.course_id}/item/${assessment.item_id}`}
+                  className="flex items-center gap-3 rounded-[14px] p-2 text-inherit no-underline transition-colors hover:bg-[var(--lms-milk)]"
+                >
+                  {hasScore ? (
+                    <span className="relative grid flex-none place-items-center">
+                      <ScoreRing value={Math.round(assessment.score as number)} size={40} />
+                      <span className="absolute text-[0.62rem] font-bold tabular-nums text-ink">
+                        {Math.round(assessment.score as number)}
+                      </span>
                     </span>
+                  ) : (
+                    <AssessmentIcon assessment={assessment} />
                   )}
-                </div>
-                <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  {assessment.last_activity_at
-                    ? `Reviewed on ${formatShortDate(assessment.last_activity_at)}`
-                    : "Review status available"}
-                </p>
-                <p className="mt-1 line-clamp-2 text-xs italic text-slate-600 dark:text-slate-300">
-                  {getFeedbackPreview(assessment)}
-                </p>
-              </div>
-            </li>
-          ))}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[0.9rem] font-semibold text-ink">{assessment.title}</span>
+                    <span className="block truncate text-[0.78rem] text-ink-3">{getFeedbackPreview(assessment)}</span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
   );
 }
 
-function FilterOption({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-[#eef5f1] dark:text-slate-200 dark:hover:bg-[#2c302e]"
-    >
-      {label}
-      {active && <Check className="h-4 w-4 text-[#2d6a4f] dark:text-[#74c69d]" />}
-    </button>
-  );
-}
-
-function Legend({ color, label }: { color: string; label: string }) {
+function Legend({ tone, label }: { tone: "due" | "soon" | "done"; label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className={`h-2 w-2 rounded-full ${color}`} />
+      <span aria-hidden="true" className={`lms-cal-dot lms-cal-dot--${tone}`} />
       {label}
     </span>
   );
 }
 
-function getStatusDisplay(assessment: UserAssessment) {
-  const status = assessment.status?.toUpperCase();
-  if (isEssayAwaitingResult(assessment)) {
-    return {
-      label: "Awaiting Result",
-      className:
-        "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-400/10 dark:text-amber-200 dark:border-amber-400/20",
-    };
-  }
-
-  return (
-    STATUS_STYLES[status] || {
-      label: status ? toTitleCase(status) : "Unknown",
-      className:
-        "bg-slate-50 text-slate-700 border-slate-100 dark:bg-slate-400/10 dark:text-slate-200 dark:border-slate-400/20",
-    }
-  );
-}
-
-function getActionConfig(assessment: UserAssessment): {
-  label: string;
-  icon: LucideIcon;
-  className: string;
-} {
-  const status = assessment.status?.toUpperCase();
-
-  if (status === "NOT_STARTED") {
-    return {
-      label: "Start",
-      icon: PlayCircle,
-      className:
-        "bg-[#2d6a4f] text-white ring-[#2d6a4f] hover:bg-[#1b4332] focus-visible:ring-[#2d6a4f]",
-    };
-  }
-
-  if (status === "FAILED") {
-    if (assessment.attempts_remaining === 0) {
-      return {
-        label: "Review",
-        icon: Eye,
-        className:
-          "bg-slate-50 text-slate-700 ring-slate-200 hover:bg-slate-100 dark:bg-white/10 dark:text-slate-100 dark:ring-white/10 dark:hover:bg-white/15 focus-visible:ring-slate-500",
-      };
-    }
-
-    return {
-      label: "Retake",
-      icon: RotateCcw,
-      className:
-        "bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100 dark:bg-rose-400/10 dark:text-rose-200 dark:ring-rose-400/25 dark:hover:bg-rose-400/15 focus-visible:ring-rose-500",
-    };
-  }
-
-  if (status === "PASSED" || status === "GRADED") {
-    return {
-      label: "View Result",
-      icon: Eye,
-      className:
-        "bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100 dark:bg-emerald-400/10 dark:text-emerald-200 dark:ring-emerald-400/25 dark:hover:bg-emerald-400/15 focus-visible:ring-emerald-500",
-    };
-  }
-
-  if (status === "SUBMITTED") {
-    return {
-      label: isEssayAwaitingResult(assessment) ? "View Status" : "Continue",
-      icon: FilePenLine,
-      className:
-        "bg-amber-50 text-amber-700 ring-amber-200 hover:bg-amber-100 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-400/25 dark:hover:bg-amber-400/15 focus-visible:ring-amber-500",
-    };
-  }
-
-  return {
-    label: "Open",
-    icon: FilePenLine,
-    className:
-      "bg-white text-[#2d6a4f] ring-[#cfe8da] hover:bg-[#eef5f1] dark:bg-[#1e2120] dark:text-[#95d5b2] dark:ring-[#35514a] dark:hover:bg-[#2c302e] focus-visible:ring-[#2d6a4f]",
-  };
-}
-
-function formatAttempts(assessment: UserAssessment) {
+function getAttemptsLine(assessment: UserAssessment) {
   const type = assessment.assessment_type?.toUpperCase();
-  if (type !== "QUIZ" && type !== "QUIZ_GROUP") {
-    return "Not applicable";
-  }
-
-  return `${formatAttemptsUsed(assessment)}; ${formatAttemptsRemaining(
-    assessment,
-  )}`;
+  if (type !== "QUIZ" && type !== "QUIZ_GROUP") return null;
+  if (typeof assessment.max_attempts !== "number") return null;
+  const used = typeof assessment.attempts_used === "number" ? assessment.attempts_used : 0;
+  return `${used} of ${assessment.max_attempts} attempts`;
 }
 
-function formatAttemptsUsed(assessment: UserAssessment) {
-  const used =
-    typeof assessment.attempts_used === "number"
-      ? assessment.attempts_used
-      : 0;
-
-  if (typeof assessment.max_attempts === "number") {
-    return `${used} of ${assessment.max_attempts} used`;
+function getStatusDisplay(assessment: UserAssessment): { label: string; tone: Tone } {
+  const status = assessment.status?.toUpperCase();
+  if (isEssayAwaitingResult(assessment)) return { label: "Awaiting result", tone: "orange" };
+  switch (status) {
+    case "NOT_STARTED":
+      return { label: "Not started", tone: "blue" };
+    case "SUBMITTED":
+      return { label: "Submitted", tone: "orange" };
+    case "PASSED":
+      return { label: "Passed", tone: "green" };
+    case "GRADED":
+      return { label: "Graded", tone: "green" };
+    case "FAILED":
+      return { label: "Retake needed", tone: "red" };
+    default:
+      return { label: status ? toTitleCase(status) : "Unknown", tone: "gray" };
   }
-
-  return `${used} used`;
 }
 
-function formatAttemptsRemaining(assessment: UserAssessment) {
-  if (typeof assessment.attempts_remaining === "number") {
-    return `${assessment.attempts_remaining} remaining`;
+function getActionConfig(assessment: UserAssessment): { label: string; tone: "primary" | "plain" | "red" } {
+  const status = assessment.status?.toUpperCase();
+  if (status === "NOT_STARTED") return { label: "Start", tone: "primary" };
+  if (status === "FAILED") {
+    return assessment.attempts_remaining === 0 ? { label: "Review", tone: "plain" } : { label: "Retake", tone: "red" };
   }
-
-  if (typeof assessment.max_attempts === "number") {
-    return "0 remaining";
-  }
-
-  return "Unlimited attempts";
+  if (status === "PASSED" || status === "GRADED") return { label: "View result", tone: "plain" };
+  if (status === "SUBMITTED") return { label: isEssayAwaitingResult(assessment) ? "View status" : "Continue", tone: "plain" };
+  return { label: "Open", tone: "plain" };
 }
 
 function getAssessmentMetaLabel(assessment: UserAssessment) {
   const type = assessment.assessment_type?.toUpperCase();
   const typeLabel =
     type === "ESSAY"
-      ? "Written Assignment"
+      ? "Essay"
       : type === "QUIZ"
         ? "Quiz"
         : type === "QUIZ_GROUP"
@@ -1267,25 +857,7 @@ function getAssessmentMetaLabel(assessment: UserAssessment) {
           : "Assessment";
   const estimate = getEstimatedMinutes(assessment);
 
-  return estimate > 0 ? `${typeLabel} - ${formatMinutes(estimate)}` : typeLabel;
-}
-
-function getRulesLabel(assessment: UserAssessment) {
-  const type = assessment.assessment_type?.toUpperCase();
-
-  if (type === "QUIZ" || type === "QUIZ_GROUP") {
-    return typeof assessment.pass_mark_percentage === "number"
-      ? `${Math.round(assessment.pass_mark_percentage)}% pass`
-      : "No pass mark";
-  }
-
-  if (type === "ESSAY") {
-    if (assessment.is_published) return "Grade published";
-    if (assessment.is_graded) return "Graded";
-    return "Awaiting result";
-  }
-
-  return "-";
+  return estimate > 0 ? `${typeLabel} · ${formatMinutes(estimate)}` : typeLabel;
 }
 
 function getEstimatedMinutes(item: { estimated_minutes?: number | null }) {
@@ -1305,15 +877,15 @@ function formatMinutes(minutes: number) {
 function getFeedbackPreview(assessment: UserAssessment) {
   const status = assessment.status?.toUpperCase();
   if (status === "FAILED") {
-    return "Review your score and try again while attempts are still available.";
+    return "Try again while attempts remain";
   }
   if (status === "PASSED" || status === "GRADED") {
-    return "Your result is available. Open the assessment to review the details.";
+    return "Result available";
   }
   if (isEssayAwaitingResult(assessment)) {
-    return "Submitted - awaiting result. Your essay is being checked before the result is released.";
+    return "Being marked. You’ll be notified when the result is out.";
   }
-  return "Submitted and awaiting review.";
+  return "Awaiting review";
 }
 
 function isEssayAwaitingResult(assessment: UserAssessment) {
