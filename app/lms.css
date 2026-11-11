@@ -1431,7 +1431,13 @@ html:has(.lms-root) body {
     text-align: right;
     outline: none;
   }
-  textarea.lms-form-input { height: auto; text-align: left; }
+  /* Multi-line values read like the others: right-aligned, centred against their label. */
+  textarea.lms-form-input { height: auto; min-height: 2.4rem; padding-block: 0.6rem; line-height: 1.35; text-align: right; field-sizing: content; max-height: 7rem; }
+  /* Groups that hold a pop-up let its menu spill out; the end rows keep the card's corners. */
+  .lms-group.lms-group--menus { overflow: visible; }
+  .lms-group--menus > .lms-form-row:first-child { border-top-left-radius: inherit; border-top-right-radius: inherit; }
+  .lms-group--menus > .lms-form-row:last-child { border-bottom-left-radius: inherit; border-bottom-right-radius: inherit; }
+  .lms-group--menus .lms-menu { z-index: 30; }
   .lms-form-input::placeholder { color: var(--sw-ink-3); }
   html:has(.lms-root) .lms-form-input:focus-visible { outline: none; }
   .lms-form-row:focus-within { background: color-mix(in srgb, var(--sw-green) 5%, transparent); }

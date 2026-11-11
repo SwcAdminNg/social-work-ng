@@ -362,7 +362,7 @@ export function ProfileSettings() {
       {/* Personal information */}
       <form onSubmit={handleUpdateProfile} className="lms-settings-section">
         <h2 className="lms-settings-head">Personal Information</h2>
-        <div className="lms-group">
+        <div className="lms-group lms-group--menus">
           <label className="lms-form-row">
             <span className="lms-form-label">First name</span>
             <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" placeholder="Required" className="lms-form-input" />
@@ -386,9 +386,9 @@ export function ProfileSettings() {
               />
             </div>
           </div>
-          <label className="lms-form-row !items-start">
-            <span className="lms-form-label pt-2.5">Address</span>
-            <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} autoComplete="street-address" placeholder="Home address" className="lms-form-input resize-none py-2.5 leading-snug" />
+          <label className="lms-form-row">
+            <span className="lms-form-label">Address</span>
+            <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={1} autoComplete="street-address" placeholder="Home address" className="lms-form-input resize-none" />
           </label>
         </div>
         <div className="lms-settings-foot">
