@@ -37,7 +37,7 @@ function parseBlocks(source: string): Block[] {
 function renderInline(text: string): ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
     part.startsWith("**") && part.endsWith("**") && part.length > 4 ? (
-      <strong key={index} className="font-semibold text-slate-950 dark:text-white">
+      <strong key={index} className="font-semibold text-ink">
         {part.slice(2, -2)}
       </strong>
     ) : (
@@ -51,13 +51,13 @@ export function LessonDescription({ text }: { text?: string | null }) {
   if (blocks.length === 0) return null;
 
   return (
-    <section aria-label="Lesson description" className="mt-5 max-w-[68ch] space-y-4">
+    <section aria-label="Lesson description" className="mt-6 max-w-[68ch] space-y-4">
       {blocks.map((block, index) => {
         if (block.kind === "h") {
           return (
             <h2
               key={index}
-              className="pt-2 text-[1.0625rem] font-semibold tracking-[-0.01em] text-slate-950 dark:text-white"
+              className="pt-2 text-[1.0625rem] font-semibold tracking-[-0.01em] text-ink"
             >
               {block.text}
             </h2>
@@ -69,9 +69,9 @@ export function LessonDescription({ text }: { text?: string | null }) {
               {block.items.map((item, itemIndex) => (
                 <li
                   key={itemIndex}
-                  className="grid grid-cols-[6px_minmax(0,1fr)] gap-3 text-[1.0625rem] leading-[1.65] text-slate-700 dark:text-slate-300"
+                  className="grid grid-cols-[6px_minmax(0,1fr)] gap-3 text-[1.0625rem] leading-[1.65] text-ink-2"
                 >
-                  <span className="mt-[0.7em] h-1.5 w-1.5 rounded-full bg-[#2D6A4F] dark:bg-[#52b788]" aria-hidden />
+                  <span className="mt-[0.7em] h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
                   <span>{renderInline(item)}</span>
                 </li>
               ))}
@@ -79,7 +79,7 @@ export function LessonDescription({ text }: { text?: string | null }) {
           );
         }
         return (
-          <p key={index} className="text-[1.0625rem] leading-[1.7] text-slate-700 dark:text-slate-300">
+          <p key={index} className="text-[1.0625rem] leading-[1.7] text-ink-2">
             {block.lines.map((line, lineIndex) => (
               <span key={lineIndex}>
                 {lineIndex > 0 && <br />}

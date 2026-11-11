@@ -71,23 +71,22 @@ export function MarkCompleteButton({ courseId, itemId, isCompleted, className = 
 
   return (
     <>
-      <button
-        onClick={handleComplete}
-        disabled={isCompleted || marking}
-        className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${
-          isCompleted 
-            ? "cursor-default bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]" 
-            : "bg-[#2D6A4F] text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-        } ${className}`}
-      >
-        {marking ? (
-          <IconSpinner className="w-4 h-4 animate-spin" />
-        ) : isCompleted ? (
-          <span className="w-4 h-4 [&>svg]:w-full [&>svg]:h-full"><IconCheck /></span>
-        ) : null}
-        
-        {isCompleted ? "Completed" : marking ? "Marking..." : "Mark as Complete"}
-      </button>
+      {isCompleted ? (
+        <span className={`lms-pill lms-pill--green h-9 ${className}`}>
+          <span className="h-3.5 w-3.5 [&>svg]:h-full [&>svg]:w-full" aria-hidden="true"><IconCheck /></span>
+          Completed
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={handleComplete}
+          disabled={marking}
+          className={`lms-btn lms-btn--sm ${className}`}
+        >
+          {marking && <IconSpinner className="h-4 w-4 animate-spin" />}
+          {marking ? "Saving…" : "Mark as Complete"}
+        </button>
+      )}
 
       <ReviewModal 
         courseId={courseId} 

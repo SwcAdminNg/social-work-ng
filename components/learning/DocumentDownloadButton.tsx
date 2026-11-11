@@ -49,13 +49,13 @@ export function DocumentDownloadButton({
         type="button"
         onClick={handleDownload}
         disabled={isLoading}
-        className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#2D6A4F]/25 px-3 text-sm font-bold text-[#2D6A4F] transition hover:bg-black/[0.04] disabled:cursor-wait disabled:opacity-70 dark:border-white/10 dark:text-[#b7e4c7] dark:hover:bg-white/[0.06]"
+        className="lms-btn lms-btn--sm lms-btn--tinted disabled:cursor-wait"
       >
         <Download className="h-4 w-4" />
-        {isLoading ? "Preparing..." : "Download"}
+        {isLoading ? "Preparing…" : "Download"}
       </button>
       {error && (
-        <p className="max-w-52 text-xs font-semibold text-amber-700 dark:text-amber-300">
+        <p className="m-0 max-w-52 text-xs font-semibold text-[#c46a12] dark:text-[#ffb35c]">
           {error}
         </p>
       )}

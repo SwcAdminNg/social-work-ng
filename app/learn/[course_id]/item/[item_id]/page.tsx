@@ -4,7 +4,6 @@ import { VideoPlayer } from "@/components/learning/VideoPlayer";
 import { QuizEngine } from "@/components/learning/QuizEngine";
 import { EssaySubmission } from "@/components/learning/EssaySubmission";
 import { QuizGroupEngine } from "@/components/learning/QuizGroupEngine";
-import { IconClipboardCheck } from "@/components/dashboard/icons";
 import { MarkCompleteButton } from "@/components/learning/MarkCompleteButton";
 import { DocumentDownloadButton } from "@/components/learning/DocumentDownloadButton";
 import { LinkResourcePanel } from "@/components/learning/LinkResourcePanel";
@@ -12,7 +11,22 @@ import { LiveSessionPanel } from "@/components/learning/LiveSessionPanel";
 import { LessonDescription } from "@/components/learning/LessonDescription";
 import { ScormPlayer } from "@/components/learning/ScormPlayer";
 import Link from "next/link";
-import { CheckCircle, ChevronLeft, ChevronRight, Clock, Lock } from "lucide-react";
+import {
+  AlertCircle,
+  Award,
+  BookOpen,
+  Boxes,
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  FileText,
+  HelpCircle,
+  Link2,
+  Lock,
+  PlayCircle,
+} from "lucide-react";
 
 type LearningNavItem = {
   id: string;
@@ -111,38 +125,46 @@ export default async function LearningItemPage(props: {
   }
 
   if (itemRes.status === 403 || isSequentiallyLocked) {
+    const isModuleLocked = itemRes.status === 403;
     return (
-      <div className="mx-auto flex h-full max-w-md flex-col items-center justify-center gap-3 p-10 text-center">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400">
-          <Lock className="h-6 w-6" />
-        </span>
-        <h1 className="text-lg font-semibold text-slate-950 dark:text-white">
-          {itemRes.status === 403 ? "Module locked" : "Complete previous items first"}
-        </h1>
-        <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-          {itemRes.status === 403
-            ? "This module is locked - pass the previous module's final assessment first."
-            : "You need to finish the earlier items in this module before you can move on to this one."}
-        </p>
-        <Link
-          href={
-            itemRes.status === 403
-              ? `/learn/${params.course_id}`
-              : frontierItem
-                ? `/learn/${params.course_id}/item/${frontierItem.id}`
-                : `/learn/${params.course_id}`
-          }
-          className="mt-2 inline-flex h-11 items-center gap-2 rounded-full bg-[#14402f] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-        >
-          {itemRes.status === 403 ? "Back to course" : "Continue where you left off"}
-        </Link>
+      <div className="lms-scroll flex min-h-0 flex-1 overflow-y-auto">
+        <div className="lms-unavailable lms-rise">
+          <Lock strokeWidth={1.5} aria-hidden="true" />
+          <h1>{isModuleLocked ? "Module Locked" : "Finish the Previous Lesson"}</h1>
+          <p>
+            {isModuleLocked
+              ? "Pass the final assessment of the previous module to open this one."
+              : "Lessons in a module open in order. Complete the earlier lessons to continue here."}
+          </p>
+          <Link
+            href={
+              isModuleLocked
+                ? `/learn/${params.course_id}`
+                : frontierItem
+                  ? `/learn/${params.course_id}/item/${frontierItem.id}`
+                  : `/learn/${params.course_id}`
+            }
+            className="lms-btn lms-btn--sm mt-3"
+          >
+            {isModuleLocked ? "Go to Current Lesson" : "Continue Where You Left Off"}
+          </Link>
+        </div>
       </div>
     );
   }
 
   if (!item) {
     return (
-      <div className="p-20 text-center text-red-500">Failed to load item.</div>
+      <div className="lms-scroll flex min-h-0 flex-1 overflow-y-auto">
+        <div className="lms-unavailable">
+          <AlertCircle strokeWidth={1.5} aria-hidden="true" />
+          <h1>Lesson Unavailable</h1>
+          <p>This lesson could not be loaded. Check your connection and try again.</p>
+          <Link href={`/learn/${params.course_id}/item/${params.item_id}`} className="lms-btn lms-btn--sm lms-btn--tinted mt-3">
+            Try Again
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -156,12 +178,13 @@ export default async function LearningItemPage(props: {
     (item.item_type === "ASSESSMENT" && item.assessment_type === "ESSAY");
   const isQuizGroup =
     item.item_type === "ASSESSMENT" && item.assessment_type === "QUIZ_GROUP";
+  const hasVideo = item.item_type === "VIDEO" && item.video_url;
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-      {item.item_type === "VIDEO" && item.video_url && (
-        <div className="z-20 mt-3 w-full flex-shrink-0 bg-black lg:bg-transparent lg:px-5">
-          <div className="mx-auto w-full max-w-[1180px] overflow-hidden lg:rounded-[28px]">
+    <div className="lms-scroll min-h-0 flex-1 overflow-y-auto text-ink">
+      {hasVideo && (
+        <div className="w-full lg:px-8 lg:pt-6">
+          <div className="lms-stage mx-auto w-full max-w-[1160px]">
             <VideoPlayer
               url={item.video_url}
               courseId={params.course_id}
@@ -172,86 +195,85 @@ export default async function LearningItemPage(props: {
         </div>
       )}
 
-      <div className="lms-scroll min-h-0 flex-1 overflow-y-auto text-ink">
-        <div className="mx-auto w-full max-w-[1040px] px-5 pb-16 pt-8 sm:px-8 sm:pt-10">
-          <header className="mb-8 sm:mb-10">
-            <p className="lms-kicker m-0 flex-wrap gap-y-1">
-              {moduleNumber > 0 ? (
-                <>
-                  <span>Module {moduleNumber}</span>
-                  {moduleItemCount > 0 && (
-                    <>
-                      <span aria-hidden className="text-slate-300 dark:text-slate-600">·</span>
-                      <span>
-                        {positionInModule} of {moduleItemCount}
-                      </span>
-                    </>
-                  )}
-                </>
-              ) : (
-                <span>{itemLabel}</span>
-              )}
-            </p>
-
-            <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
-              <h1 className="sw-display m-0 max-w-[760px] text-[clamp(1.9rem,4vw,2.9rem)] text-ink">
-                {item.title}
-              </h1>
-              <div className="flex flex-shrink-0 flex-wrap items-center gap-2 sm:mt-2">
-                {estimatedMinutes > 0 && (
-                  <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-black/[0.05] px-3 text-[0.8125rem] font-medium text-slate-700 dark:bg-white/10 dark:text-slate-200">
-                    <Clock className="h-3.5 w-3.5" aria-hidden />
-                    {formatMinutes(estimatedMinutes)}
+      {/* Under a video the text lines up with the stage's left edge, as on Apple TV's episode pages. */}
+      <div
+        className={`mx-auto w-full px-5 pb-20 pt-7 sm:px-8 sm:pt-9 ${
+          hasVideo ? "max-w-[1224px] [&>*]:max-w-[880px]" : "max-w-[880px]"
+        }`}
+      >
+        <header className="lms-rise mb-8">
+          <p className="m-0 text-[0.8125rem] font-semibold text-accent">
+            {moduleNumber > 0 ? (
+              <>
+                Module {moduleNumber}
+                {moduleItemCount > 0 && (
+                  <span className="font-medium text-ink-3">
+                    {" "}
+                    · Lesson {positionInModule} of {moduleItemCount}
                   </span>
                 )}
-                {item.is_completed && (
-                  <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#2D6A4F]/10 px-3 text-[0.8125rem] font-semibold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#95d5b2]">
-                    <CheckCircle className="h-3.5 w-3.5" aria-hidden />
-                    Complete
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {moduleTitle && moduleNumber > 0 && (
-              <p className="mt-3 text-[0.9375rem] text-slate-500 dark:text-slate-400">
-                {moduleTitle} · {itemLabel}
-              </p>
+              </>
+            ) : (
+              itemLabel
             )}
+          </p>
 
-            <LessonDescription text={item.item_description} />
-          </header>
+          <h1 className="m-0 mt-2 max-w-[760px] text-ink">{item.title}</h1>
+
+          {moduleTitle && moduleNumber > 0 && (
+            <p className="m-0 mt-2 text-[0.9375rem] text-ink-3">{moduleTitle}</p>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="lms-pill">
+              {getItemTypeIcon(item)}
+              {itemLabel}
+            </span>
+            {estimatedMinutes > 0 && (
+              <span className="lms-pill">
+                <Clock aria-hidden="true" />
+                {formatMinutes(estimatedMinutes)}
+              </span>
+            )}
+            {item.is_completed && (
+              <span className="lms-pill lms-pill--green">
+                <CheckCircle2 aria-hidden="true" />
+                Completed
+              </span>
+            )}
+          </div>
+
+          <LessonDescription text={item.item_description} />
+        </header>
 
         {item.item_type === "DOCUMENT" && item.document_url && (
-          <div className="flex h-[calc(100dvh-220px)] min-h-[420px] w-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[#252827] dark:ring-white/10">
-            <div className="flex flex-shrink-0 flex-col gap-3 border-b border-black/[0.06] bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#252827]/80 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7] [&>svg]:h-5 [&>svg]:w-5">
-                  <IconClipboardCheck />
+          <div className="lms-window h-[calc(100dvh-200px)] min-h-[440px] w-full">
+            <div className="lms-window-bar">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="lms-sym lms-sym--sm lms-sym--blue" aria-hidden="true">
+                  <FileText className="h-4 w-4" />
                 </span>
-                <h2 className="line-clamp-1 text-sm font-semibold text-slate-950 dark:text-white sm:text-base">{item.title}</h2>
+                <h2 className="m-0 line-clamp-1 font-[family-name:var(--font-roboto)] text-sm font-semibold tracking-normal text-ink">
+                  {item.title}
+                </h2>
               </div>
-              <div className="flex flex-shrink-0 items-center gap-2">
+              <div className="flex flex-shrink-0 items-start gap-2">
                 {item.downloadable === true && (
-                  <DocumentDownloadButton
-                    courseId={params.course_id}
-                    itemId={item.id}
-                  />
+                  <DocumentDownloadButton courseId={params.course_id} itemId={item.id} />
                 )}
                 <MarkCompleteButton
                   courseId={params.course_id}
                   itemId={item.id}
                   isCompleted={item.is_completed}
-                  className="h-9"
                 />
               </div>
             </div>
-            <div className="w-full flex-1 bg-slate-100 dark:bg-[#1a1c1b]">
+            <div className="w-full flex-1 bg-[color-mix(in_srgb,var(--sw-ink)_5%,var(--sw-paper))]">
               <iframe
                 src={getDocumentViewerUrl(params.course_id, item.id, item.document_url)}
                 title={item.title}
                 referrerPolicy="no-referrer"
-                className="w-full h-full border-0"
+                className="h-full w-full border-0"
               />
             </div>
           </div>
@@ -280,10 +302,7 @@ export default async function LearningItemPage(props: {
         )}
 
         {item.item_type === "LIVE_SESSION" && (
-          <LiveSessionPanel
-            courseId={params.course_id}
-            item={item}
-          />
+          <LiveSessionPanel courseId={params.course_id} item={item} />
         )}
 
         {isQuiz && item.questions && (
@@ -339,83 +358,119 @@ export default async function LearningItemPage(props: {
         )}
 
         {item.item_type === "ASSESSMENT" && !isQuiz && !isEssay && !isQuizGroup && (
-          <div className="rounded-2xl border border-black/[0.06] bg-white p-5 text-center text-sm font-medium text-slate-600 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827] dark:text-slate-300">
+          <div className="lms-group p-6 text-center text-[0.9375rem] text-ink-2">
             This assessment type is not available yet.
           </div>
         )}
 
-        {/* Course Navigation Footer */}
-        <div className="mt-10 grid gap-3 sm:grid-cols-2">
-          {prevItem ? (
-            <Link 
-              href={`/learn/${params.course_id}/item/${prevItem.id}`}
-              className="grid min-h-[72px] grid-cols-[20px_minmax(0,1fr)] items-center gap-3 rounded-full bg-white px-6 py-3 text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition-[box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_14px_30px_-14px_rgba(0,0,0,0.18)] dark:bg-[#252827] dark:text-slate-300 dark:ring-white/10"
-            >
-              <ChevronLeft className="h-5 w-5" />
-              <div className="min-w-0 text-left">
-                <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Previous</div>
-                <div className="line-clamp-1 text-sm font-semibold">{prevItem.title}</div>
-              </div>
-            </Link>
-          ) : <div className="hidden sm:block" />}
-          
-          {nextItem ? (
-            item.is_completed ? (
-              <Link
-                href={`/learn/${params.course_id}/item/${nextItem.id}`}
-                className="grid min-h-[72px] grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-full bg-[#14402f] px-6 py-3 text-white shadow-[0_10px_24px_-12px_rgba(45,106,79,0.7)] transition-[background-color,transform] duration-150 hover:bg-[#245c43] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-              >
-                <div className="min-w-0 text-right">
-                  <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-white/70 dark:text-[#1B4332]/70">Next</div>
-                  <div className="line-clamp-1 text-sm font-semibold">{nextItem.title}</div>
-                </div>
-                <ChevronRight className="h-5 w-5" />
-              </Link>
-            ) : (
-              <div
-                className="grid min-h-[72px] cursor-not-allowed grid-cols-[minmax(0,1fr)_20px] items-center gap-3 rounded-full px-6 bg-black/[0.04] px-5 py-3 text-slate-400 dark:bg-white/5 dark:text-slate-500"
-                aria-disabled="true"
-              >
-                <div className="min-w-0 text-right">
-                  <div className="text-[0.68rem] font-semibold uppercase tracking-wide">Next</div>
-                  <div className="line-clamp-1 text-sm font-semibold">
-                    Complete this item to continue
+        {/* Up Next, as a grouped list: where you came from and where you go. */}
+        <nav aria-label="Lesson navigation" className="mt-12">
+          <h2 className="lms-group-head font-[family-name:var(--font-roboto)] tracking-normal">
+            {nextItem ? "Up Next" : "Course"}
+          </h2>
+          <ul className="lms-group m-0 list-none p-0">
+            {nextItem ? (
+              <li>
+                {item.is_completed ? (
+                  <Link href={`/learn/${params.course_id}/item/${nextItem.id}`} className="lms-row">
+                    <span className="lms-sym lms-sym--green" aria-hidden="true">
+                      {getItemTypeIcon(nextItem, "h-[18px] w-[18px]")}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs text-ink-3">Next lesson</span>
+                      <span className="line-clamp-1 block text-[0.9375rem] font-semibold">{nextItem.title}</span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 flex-none text-ink-3" strokeWidth={2.4} aria-hidden="true" />
+                  </Link>
+                ) : (
+                  <div className="lms-row" aria-disabled="true">
+                    <span className="lms-sym lms-sym--gray" aria-hidden="true">
+                      <Lock className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs">Complete this lesson to continue</span>
+                      <span className="line-clamp-1 block text-[0.9375rem] font-semibold">{nextItem.title}</span>
+                    </span>
                   </div>
-                </div>
-                <Lock className="h-5 w-5" />
-              </div>
-            )
-          ) : item.is_completed ? (
-            <Link
-              href={`/dashboard/courses`}
-              className="inline-flex min-h-[72px] items-center justify-center gap-3 rounded-full bg-[#14402f] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(45,106,79,0.7)] transition hover:bg-[#245c43] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-            >
-              <CheckCircle className="h-5 w-5" />
-              <span>Finish Course</span>
-            </Link>
-          ) : (
-            <div
-              className="inline-flex min-h-[72px] cursor-not-allowed items-center justify-center gap-3 rounded-full bg-black/[0.04] px-5 py-3 text-sm font-semibold text-slate-400 dark:bg-white/5 dark:text-slate-500"
-              aria-disabled="true"
-            >
-              <Lock className="h-5 w-5" />
-              <span>Complete this item to finish the course</span>
-            </div>
-          )}
-        </div>
-        </div>
+                )}
+              </li>
+            ) : (
+              <li>
+                {item.is_completed ? (
+                  <Link href="/dashboard/courses" className="lms-row">
+                    <span className="lms-sym lms-sym--gold" aria-hidden="true">
+                      <Award className="h-[18px] w-[18px]" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs text-ink-3">You reached the end</span>
+                      <span className="block text-[0.9375rem] font-semibold">Finish Course</span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 flex-none text-ink-3" strokeWidth={2.4} aria-hidden="true" />
+                  </Link>
+                ) : (
+                  <div className="lms-row" aria-disabled="true">
+                    <span className="lms-sym lms-sym--gray" aria-hidden="true">
+                      <Lock className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs">Last lesson</span>
+                      <span className="block text-[0.9375rem] font-semibold">Complete this lesson to finish the course</span>
+                    </span>
+                  </div>
+                )}
+              </li>
+            )}
+            {prevItem && (
+              <li>
+                <Link href={`/learn/${params.course_id}/item/${prevItem.id}`} className="lms-row">
+                  <span className="lms-sym lms-sym--gray" aria-hidden="true">
+                    <ChevronLeft className="h-[18px] w-[18px]" strokeWidth={2.4} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-xs text-ink-3">Previous lesson</span>
+                    <span className="line-clamp-1 block text-[0.9375rem] font-semibold">{prevItem.title}</span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 flex-none text-ink-3" strokeWidth={2.4} aria-hidden="true" />
+                </Link>
+              </li>
+            )}
+          </ul>
+        </nav>
       </div>
     </div>
   );
 }
 
+function getItemTypeIcon(
+  item: { item_type?: string | null },
+  className = "",
+) {
+  const type = item.item_type;
+  const props = { className, "aria-hidden": true as const };
+  if (type === "VIDEO") return <PlayCircle {...props} />;
+  if (type === "DOCUMENT") return <FileText {...props} />;
+  if (type === "SCORM") return <Boxes {...props} />;
+  if (type === "LINKS") return <Link2 {...props} />;
+  if (type === "LIVE_SESSION") return <CalendarDays {...props} />;
+  if (type === "ASSESSMENT" || type === "QUIZ" || type === "ESSAY") return <HelpCircle {...props} />;
+  return <BookOpen {...props} />;
+}
+
 function getLearningItemLabel(item: LearningItemLabel) {
   if (item.item_type === "ASSESSMENT" && item.assessment_type) {
-    return `${item.assessment_type} ASSESSMENT`;
+    return `${sentenceCase(item.assessment_type)} assessment`;
   }
-  if (item.item_type === "SCORM") return "INTERACTIVE LESSON";
+  if (item.item_type === "SCORM") return "Interactive lesson";
+  if (item.item_type === "LINKS") return "Link";
+  if (item.item_type === "LIVE_SESSION") return "Live session";
 
-  return item.item_type;
+  return sentenceCase(item.item_type);
+}
+
+function sentenceCase(value?: string | null) {
+  if (!value) return "Lesson";
+  const text = value.replace(/_/g, " ").toLowerCase();
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function getEstimatedMinutes(item: LearningItemLabel) {
@@ -429,7 +484,7 @@ function formatMinutes(minutes: number) {
 
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
-  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
+  return remainder > 0 ? `${hours} hr ${remainder} min` : `${hours} hr`;
 }
 
 function getDocumentViewerUrl(courseId: string, itemId: string, documentUrl: string) {

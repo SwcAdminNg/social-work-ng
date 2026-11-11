@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle } from "lucide-react";
+import { Check } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import { HlsVideoPlayer } from "./HlsVideoPlayer";
 
@@ -13,6 +13,7 @@ interface VideoPlayerProps {
   isCompleted: boolean;
 }
 
+/** The lesson video on a black stage, with a slim completion bar beneath it. */
 export function VideoPlayer({ url, courseId, itemId, isCompleted }: VideoPlayerProps) {
   const [marking, setMarking] = useState(false);
   const [activeUrl, setActiveUrl] = useState(url);
@@ -40,13 +41,14 @@ export function VideoPlayer({ url, courseId, itemId, isCompleted }: VideoPlayerP
   };
 
   return (
-    <div className="flex w-full flex-col bg-slate-950">
-      <div className="relative flex aspect-video max-h-[62dvh] w-full items-center justify-center overflow-hidden bg-black">
+    <div className="flex w-full flex-col bg-black">
+      <div className="relative flex aspect-video max-h-[68dvh] w-full items-center justify-center overflow-hidden bg-black">
         {activeUrl.includes("iframe.mediadelivery.net") ||
         activeUrl.includes("youtube.com/embed") ||
         activeUrl.includes("vimeo.com/video") ? (
           <iframe
             src={activeUrl}
+            title="Lesson video"
             className="absolute left-0 top-0 h-full w-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -59,36 +61,30 @@ export function VideoPlayer({ url, courseId, itemId, isCompleted }: VideoPlayerP
         )}
       </div>
 
-      <div className="border-t border-white/10 bg-slate-950">
-        <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between lg:px-5">
-          <div className="flex min-w-0 items-center gap-3">
-            <span
-              className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${
-                isCompleted ? "bg-[#52b788] text-[#06130d]" : "bg-white/10 text-white"
-              }`}
-            >
-              <CheckCircle className="h-4 w-4" />
-            </span>
-            <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-white">Learning Progress</h3>
-              <p className="line-clamp-1 text-xs font-medium text-slate-400">
-                {isCompleted ? "This video is complete." : "Complete the video automatically or mark it done."}
-              </p>
-            </div>
-          </div>
+      <div className="flex items-center justify-between gap-3 bg-[#161817] px-4 py-2.5 text-white">
+        <p className="m-0 flex min-w-0 items-center gap-2 text-[0.8125rem] text-white/70">
+          {isCompleted ? (
+            <>
+              <span className="grid h-[18px] w-[18px] flex-none place-items-center rounded-full bg-[#30d158] text-black">
+                <Check className="h-3 w-3" strokeWidth={3.4} aria-hidden="true" />
+              </span>
+              <span className="font-semibold text-white">Watched</span>
+            </>
+          ) : (
+            <span className="truncate">Marked complete when the video ends</span>
+          )}
+        </p>
+        {!isCompleted && (
           <button
+            type="button"
             onClick={markComplete}
-            disabled={isCompleted || marking}
-            className={`inline-flex h-9 w-full flex-shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition sm:w-auto ${
-              isCompleted
-                ? "cursor-not-allowed bg-white/10 text-slate-400"
-                : "bg-[#52b788] text-[#06130d] hover:bg-[#74c69d]"
-            }`}
+            disabled={marking}
+            className="inline-flex h-8 flex-none cursor-pointer items-center gap-1.5 rounded-full bg-white/15 px-3.5 text-[0.8125rem] font-semibold text-white transition-colors hover:bg-white/25 disabled:cursor-wait disabled:opacity-70"
           >
-            {marking ? <IconSpinner className="h-4 w-4 animate-spin" /> : null}
-            {isCompleted ? "Completed" : marking ? "Marking..." : "Mark Complete"}
+            {marking && <IconSpinner className="h-3.5 w-3.5 animate-spin" />}
+            {marking ? "Saving…" : "Mark as Watched"}
           </button>
-        </div>
+        )}
       </div>
     </div>
   );

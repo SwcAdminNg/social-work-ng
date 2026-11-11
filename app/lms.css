@@ -2087,3 +2087,259 @@ html:has(.lms-root) #main-content h1:not(.sw-display, .sw-title) {
 @keyframes lms-shimmer { from { background-position: 100% 0; } to { background-position: -50% 0; } }
 @media (prefers-reduced-motion: reduce) { .lms-skel { animation: none; } }
 
+
+/* ════════════════════════════════════════════════════════════════════
+   Course player, after Apple's document and media apps: a source-list
+   sidebar (as in Notes, Books and the Developer app), a flat window
+   toolbar, the video on a dark stage, and Up Next as a grouped list.
+   ════════════════════════════════════════════════════════════════════ */
+@layer components {
+  .lms-player { --pl-side: 320px; --pl-top: 52px; }
+
+  /* Back button: accent chevron and label, as in a navigation bar. */
+  .lms-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1rem;
+    height: 2rem;
+    padding: 0 0.6rem 0 0.2rem;
+    border-radius: 8px;
+    color: var(--sw-accent);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.18s, opacity 0.18s;
+  }
+  .lms-back:hover { background: var(--lms-side-hover); }
+  .lms-back:active { opacity: 0.6; }
+
+  /* Thin progress meter, as in Books' reading progress. */
+  .lms-meter {
+    display: block;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-ink) 10%, transparent);
+  }
+  .lms-meter > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--sw-accent);
+    transform-origin: left;
+    animation: lms-grow 0.9s var(--sw-ease) both;
+  }
+
+  /* Module disclosure row. */
+  .lms-mod {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    width: 100%;
+    padding: 0.55rem 0.6rem 0.5rem 0.35rem;
+    border-radius: 10px;
+    color: var(--sw-ink);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.18s;
+  }
+  .lms-mod:hover { background: var(--lms-side-hover); }
+  .lms-mod-chev {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.1rem;
+    color: var(--sw-ink-3);
+    transition: transform 0.3s var(--sw-ease);
+  }
+  .lms-mod[aria-expanded="true"] .lms-mod-chev { transform: rotate(90deg); }
+  .lms-mod-num {
+    display: block;
+    color: var(--sw-ink-3);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .lms-mod-title {
+    display: -webkit-box;
+    margin-top: 0.1rem;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.875rem;
+    font-weight: 650;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .lms-mod-sub { display: block; margin-top: 0.15rem; color: var(--sw-ink-3); font-size: 0.75rem; line-height: 1.25; }
+
+  /* Lesson row in the source list. */
+  .lms-lesson {
+    display: grid;
+    grid-template-columns: 1.375rem minmax(0, 1fr);
+    align-items: start;
+    gap: 0.65rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.6rem 0.5rem 0.55rem;
+    border-radius: 10px;
+    color: var(--sw-ink);
+    text-decoration: none;
+    transition: background-color 0.15s, transform 0.3s var(--sw-ease);
+  }
+  a.lms-lesson:hover { background: var(--lms-side-hover); }
+  a.lms-lesson:active { transform: scale(0.985); }
+  .lms-lesson[aria-current="page"] { background: color-mix(in srgb, var(--sw-green) 14%, transparent); }
+  .dark .lms-lesson[aria-current="page"] { background: color-mix(in srgb, var(--sw-leaf) 16%, transparent); }
+  .lms-lesson[aria-disabled="true"] { color: var(--sw-ink-3); cursor: not-allowed; }
+  .lms-lesson-title {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .lms-lesson[aria-current="page"] .lms-lesson-title { font-weight: 650; }
+  .lms-lesson-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.15rem;
+    color: var(--sw-ink-3);
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+  .lms-lesson-meta > svg { width: 0.75rem; height: 0.75rem; flex: none; }
+
+  /* Status glyphs, after SF Symbols: circle, checkmark.circle.fill, play.circle.fill, lock.fill. */
+  .lms-glyph {
+    display: grid;
+    place-items: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    margin-top: 0.05rem;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--sw-ink) 24%, transparent);
+    color: var(--sw-ink-3);
+    font-size: 0.625rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .lms-glyph > svg { width: 0.75rem; height: 0.75rem; }
+  .lms-glyph--done, .lms-glyph--now { background: var(--sw-accent); box-shadow: none; color: #fff; }
+  .dark .lms-glyph--done, .dark .lms-glyph--now { color: #0d1a14; }
+  .lms-glyph--now > svg { width: 0.6rem; height: 0.6rem; margin-left: 1px; }
+  .lms-glyph--locked { box-shadow: none; background: color-mix(in srgb, var(--sw-ink) 8%, transparent); }
+  .lms-glyph--locked > svg { width: 0.65rem; height: 0.65rem; }
+
+  /* Window toolbar over the lesson. */
+  .lms-pl-top {
+    height: var(--pl-top);
+    background: color-mix(in srgb, var(--sw-paper) 82%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(1.7);
+    backdrop-filter: blur(24px) saturate(1.7);
+    box-shadow: inset 0 -1px 0 var(--sw-line);
+  }
+  .lms-tool {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9px;
+    color: var(--sw-ink-2);
+    cursor: pointer;
+    transition: background-color 0.18s, color 0.18s, transform 0.3s var(--sw-ease);
+  }
+  .lms-tool:hover { background: color-mix(in srgb, var(--sw-ink) 7%, transparent); color: var(--sw-ink); }
+  .lms-tool:active { transform: scale(0.94); }
+  @media (pointer: coarse) { .lms-tool { width: 2.75rem; height: 2.75rem; } }
+
+  /* Pills: small tinted status capsules, as in the App Store's metadata row. */
+  .lms-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 1.75rem;
+    padding: 0 0.7rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-ink) 6.5%, transparent);
+    color: var(--sw-ink-2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .lms-pill > svg { width: 0.875rem; height: 0.875rem; flex: none; }
+  .lms-pill--green { background: color-mix(in srgb, var(--sw-green) 13%, transparent); color: var(--sw-accent); }
+  .dark .lms-pill--green { background: color-mix(in srgb, var(--sw-leaf) 16%, transparent); }
+
+  /* Button size and the tinted style (Apple's bordered prominence). */
+  .lms-btn--sm { min-height: 2.25rem; padding: 0 1rem; font-size: 0.84rem; }
+  .lms-btn--tinted { background: color-mix(in srgb, var(--sw-green) 13%, transparent); color: var(--sw-accent); }
+  .lms-btn--tinted:hover { background: color-mix(in srgb, var(--sw-green) 20%, transparent); }
+  .dark .lms-btn--tinted { background: color-mix(in srgb, var(--sw-leaf) 16%, transparent); color: var(--sw-accent); }
+  .dark .lms-btn--tinted:hover { background: color-mix(in srgb, var(--sw-leaf) 24%, transparent); }
+  .lms-btn:disabled { opacity: 0.55; cursor: default; transform: none; }
+
+  /* Video stage: black, rounded on wide screens, full bleed on phones. */
+  .lms-stage { position: relative; overflow: hidden; background: #000; }
+  @media (min-width: 1024px) {
+    .lms-stage {
+      border-radius: 16px;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 28px 60px -34px rgba(4, 18, 11, 0.6);
+    }
+  }
+
+  /* Document window: a titlebar with actions above the page. */
+  .lms-window {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--sw-card);
+    box-shadow: inset 0 0 0 1px var(--sw-line), 0 24px 50px -36px rgba(14, 31, 23, 0.5);
+  }
+  .lms-window-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem 0.6rem 1rem;
+    box-shadow: inset 0 -1px 0 var(--sw-line);
+  }
+
+  /* Content unavailable: a large symbol, a title, a line of help and one action. */
+  .lms-unavailable {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    max-width: 26rem;
+    margin: auto;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+  }
+  .lms-unavailable > svg { width: 3.25rem; height: 3.25rem; margin-bottom: 0.4rem; color: var(--sw-ink-3); }
+  .lms-unavailable p { margin: 0; color: var(--sw-ink-2); font-size: 0.9375rem; line-height: 1.5; }
+
+  /* Section label above a grouped list ("Up Next"), as in Settings. */
+  .lms-group-head { margin: 0 0 0.5rem 1rem; color: var(--sw-ink-3); font-size: 0.8125rem; font-weight: 600; }
+  .lms-row[aria-disabled="true"] { color: var(--sw-ink-3); cursor: not-allowed; }
+  .lms-row[aria-disabled="true"]:hover, .lms-row[aria-disabled="true"]:active { background: transparent; }
+}
+
+/* The unavailable title is a page h1; keep it at a headline size. */
+html:has(.lms-root) #main-content .lms-unavailable h1 { margin: 0; font-size: 1.375rem; letter-spacing: -0.02em; line-height: 1.2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lms-meter > span { animation: none; }
+  .lms-back, .lms-mod, .lms-mod-chev, .lms-lesson, .lms-tool { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .lms-pl-top { background: var(--sw-paper); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}

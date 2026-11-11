@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, ExternalLink, Link2 } from "lucide-react";
+import { CheckCircle2, ExternalLink, Link2 } from "lucide-react";
 import { MarkCompleteButton } from "./MarkCompleteButton";
 
 type LinkResourcePanelProps = {
@@ -57,67 +57,51 @@ export function LinkResourcePanel({
     }
   }
 
+  let host = url;
+  try {
+    host = new URL(url).hostname.replace(/^www./, "");
+  } catch {
+    // Not a full URL: show it as written.
+  }
+
   return (
-    <section className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827]">
-      <div className="border-b border-black/[0.06] bg-[#fdfbf5] px-4 py-3 dark:border-white/10 dark:bg-[#1f2120] sm:px-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-              <Link2 className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
-                External resource
-              </p>
-              <h2 className="mt-0.5 line-clamp-2 text-base font-semibold text-slate-950 dark:text-white">
-                {displayLabel}
-              </h2>
-            </div>
-          </div>
-          {isCompleted && (
-            <span className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#e7f6ee] px-3 text-sm font-semibold text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-              <CheckCircle className="h-4 w-4" />
-              Complete
-            </span>
-          )}
+    <section className="lms-group">
+      <div className="flex items-center gap-3.5 p-4 sm:p-5">
+        <span className="lms-sym lms-sym--blue h-11 w-11 rounded-[12px]" aria-hidden="true">
+          <Link2 className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="m-0 line-clamp-2 font-[family-name:var(--font-roboto)] text-[1.0625rem] font-semibold tracking-[-0.01em] text-ink">
+            {displayLabel}
+          </h2>
+          <p className="m-0 mt-0.5 truncate text-[0.8125rem] text-ink-3">{host}</p>
         </div>
+        {isCompleted && (
+          <span className="lms-pill lms-pill--green hidden sm:inline-flex">
+            <CheckCircle2 aria-hidden="true" />
+            Completed
+          </span>
+        )}
       </div>
 
-      <div className="grid gap-5 p-5 sm:p-6">
-        {description && (
-          <p className="max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-            {description}
-          </p>
+      {description && (
+        <p className="m-0 px-4 pb-1 text-[0.9375rem] leading-relaxed text-ink-2 sm:px-5">{description}</p>
+      )}
+
+      {error && (
+        <p className="m-0 mx-4 mt-3 rounded-xl bg-[#c46a12]/10 px-3 py-2 text-sm font-semibold text-[#c46a12] dark:text-[#ffb35c] sm:mx-5">
+          {error}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2 p-4 sm:px-5 sm:pb-5">
+        <button type="button" onClick={openResource} disabled={isMarking} className="lms-btn lms-btn--sm">
+          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          {isMarking ? "Opening…" : "Open Link"}
+        </button>
+        {!isCompleted && (
+          <MarkCompleteButton courseId={courseId} itemId={itemId} isCompleted={false} />
         )}
-        <div className="rounded-xl border border-black/[0.05] bg-[#fbf8f0] p-4 dark:border-white/10 dark:bg-[#1f2120]">
-          <p className="truncate text-sm font-semibold text-slate-500 dark:text-slate-400">
-            {url}
-          </p>
-        </div>
-        {error && (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
-            {error}
-          </p>
-        )}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button
-            type="button"
-            onClick={openResource}
-            disabled={isMarking}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-wait disabled:opacity-75 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-          >
-            <ExternalLink className="h-4 w-4" />
-            {isMarking ? "Opening..." : "Open resource"}
-          </button>
-          {!isCompleted && (
-            <MarkCompleteButton
-              courseId={courseId}
-              itemId={itemId}
-              isCompleted={false}
-              className="h-11"
-            />
-          )}
-        </div>
       </div>
     </section>
   );

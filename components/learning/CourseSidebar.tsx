@@ -3,21 +3,20 @@
 import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { IconCheck } from "@/components/auth/shared/icons";
 import {
-  ArrowLeft,
   BookOpen,
   Boxes,
   CalendarDays,
-  ChevronDown,
+  Check,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   HelpCircle,
   Link2,
-  ListTree,
   Lock,
   Moon,
-  PanelLeftClose,
-  PanelLeftOpen,
+  PanelLeft,
+  Play,
   PlayCircle,
   Star,
   Sun,
@@ -99,8 +98,10 @@ function writeOutlinePinned(open: boolean) {
 }
 
 /**
- * The course player frame: the outline beside (or over) the lesson, a slim
- * top bar with the way out and overall progress, and the lesson itself.
+ * The course player window, after Apple's document apps: a source-list
+ * sidebar with the course and its modules, a flat toolbar over the lesson,
+ * and the lesson itself. The sidebar is a drawer on small screens and can be
+ * hidden on wide ones.
  */
 export function CoursePlayerShell({
   courseId,
@@ -112,20 +113,21 @@ export function CoursePlayerShell({
   const router = useRouter();
   const { theme, toggle, setHeaderToggle } = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  // Whether the outline stays beside the lesson on wide screens; remembered per browser.
+  // Whether the sidebar stays beside the lesson on wide screens; remembered per browser.
   const outlinePinned = useSyncExternalStore(subscribeOutline, readOutlinePinned, () => true);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [userReview, setUserReview] = useState<ReviewValue | null>(null);
 
-  const progress = Math.min(Math.max(Number(curriculum.progress_percent || 0), 0), 100);
+  const progress = Math.min(Math.max(Math.round(Number(curriculum.progress_percent || 0)), 0), 100);
   const sections = curriculum.sections || [];
   const allItems = sections.flatMap((section) => section.items || []);
   const activeItem = allItems.find((item) =>
     pathname.startsWith(`/learn/${courseId}/item/${item.id}`),
   );
-  const activeSectionId = sections.find((section) =>
+  const activeSectionIndex = sections.findIndex((section) =>
     (section.items || []).some((item) => item.id === activeItem?.id),
-  )?.id;
+  );
+  const activeSectionId = activeSectionIndex >= 0 ? sections[activeSectionIndex].id : undefined;
   const completedCount = allItems.filter((item) => item.is_completed).length;
   const totalEstimatedMinutes = allItems.reduce(
     (total, item) => total + getEstimatedMinutes(item),
@@ -133,6 +135,7 @@ export function CoursePlayerShell({
   );
   const courseTitle = curriculum.course_title || "Course";
   const isDark = theme === "dark";
+  const reviewCount = Number(curriculum.total_reviews || 0);
 
   // Modules fold away; the one being studied is open, as are short courses.
   const [closedSections, setClosedSections] = useState<Set<string>>(
@@ -169,6 +172,7 @@ export function CoursePlayerShell({
     return () => setHeaderToggle(false);
   }, [setHeaderToggle]);
 
+  // The drawer closes on Escape and holds the page still while it is open.
   useEffect(() => {
     if (!drawerOpen) return;
     const onKey = (event: KeyboardEvent) => {
@@ -204,64 +208,82 @@ export function CoursePlayerShell({
   const itemNumbers = new Map<string, number>();
   allItems.forEach((item, index) => itemNumbers.set(item.id, index + 1));
 
-  const outline = (
-    <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="flex-none px-5 pb-5 pt-5">
-        <div className="flex items-start justify-between gap-3">
-          <p className="lms-kicker m-0 mt-1.5">Course outline</p>
-          <button
-            type="button"
-            className="lms-icon-btn -mr-2 -mt-2 lg:hidden"
-            onClick={() => setDrawerOpen(false)}
-            aria-label="Close course outline"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <h2 className="sw-title m-0 mt-3 line-clamp-3 text-[1.2rem] text-ink">{courseTitle}</h2>
+  const sidebar = (
+    <div className="flex h-full w-[min(88vw,var(--pl-side))] flex-col lg:w-[var(--pl-side)]">
+      {/* Navigation bar: the way back, and the sidebar's own toggle. */}
+      <div className="flex h-[var(--pl-top)] flex-none items-center justify-between gap-2 pl-2 pr-2">
+        <Link href="/dashboard/courses" className="lms-back">
+          <ChevronLeft className="h-[22px] w-[22px]" strokeWidth={2.2} aria-hidden="true" />
+          My Courses
+        </Link>
+        <button
+          type="button"
+          onClick={() => writeOutlinePinned(false)}
+          aria-label="Hide sidebar"
+          title="Hide sidebar"
+          className="lms-side-btn hidden lg:grid"
+        >
+          <PanelLeft className="h-[18px] w-[18px]" strokeWidth={1.8} />
+        </button>
+        <button
+          type="button"
+          onClick={() => setDrawerOpen(false)}
+          aria-label="Close course outline"
+          className="lms-side-btn lg:hidden"
+        >
+          <X className="h-5 w-5" strokeWidth={1.8} />
+        </button>
+      </div>
 
-        <div className="lms-well mt-4 flex items-center gap-3.5 p-3">
-          <ProgressRing value={progress} size={52} stroke={6} label="Course progress" className="text-ink [--ring:var(--sw-green)] dark:[--ring:var(--sw-leaf)]">
-            <span className="text-[0.72rem] font-bold tabular-nums text-ink">{progress}%</span>
-          </ProgressRing>
-          <div className="min-w-0 flex-1 text-sm leading-snug">
-            <p className="m-0 font-semibold text-ink">
-              {completedCount} of {allItems.length} lessons done
-            </p>
-            {totalEstimatedMinutes > 0 && (
-              <p className="m-0 mt-0.5 text-ink-3">
-                About {formatMinutes(totalEstimatedMinutes)} in total
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-3 flex items-center justify-between gap-3">
-          {Number(curriculum.total_reviews || 0) > 0 ? (
-            <p className="m-0 flex items-center gap-1.5 text-[0.8125rem] text-ink-3">
+      {/* The course: title, progress, rating. */}
+      <div className="flex-none px-4 pb-4 pt-1">
+        <h2 className="m-0 line-clamp-3 font-[family-name:var(--font-roboto)] text-[1.0625rem] font-bold leading-snug tracking-[-0.015em] text-ink">
+          {courseTitle}
+        </h2>
+        <span className="lms-meter mt-3" aria-hidden="true">
+          <span style={{ width: `${progress}%` }} />
+        </span>
+        <p
+          className="m-0 mt-1.5 flex items-center justify-between gap-3 text-xs text-ink-3"
+          role="progressbar"
+          aria-label="Course progress"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <span>
+            {completedCount} of {allItems.length} complete
+            {totalEstimatedMinutes > 0 && <> · {formatMinutes(totalEstimatedMinutes)}</>}
+          </span>
+          <span className="font-semibold tabular-nums text-ink-2">{progress}%</span>
+        </p>
+        <div className="mt-3 flex items-center justify-between gap-3 text-[0.8125rem]">
+          {reviewCount > 0 ? (
+            <span className="flex items-center gap-1 text-ink-3">
               <Star className="h-3.5 w-3.5 fill-gold text-gold" aria-hidden="true" />
               <span className="font-semibold text-ink">
                 {Number(curriculum.average_rating || 0).toFixed(1)}
               </span>
-              <span>({curriculum.total_reviews} reviews)</span>
-            </p>
+              <span>
+                ({reviewCount} {reviewCount === 1 ? "rating" : "ratings"})
+              </span>
+            </span>
           ) : (
-            <span />
+            <span className="text-ink-3">No ratings yet</span>
           )}
           <button
             type="button"
             onClick={() => setIsReviewModalOpen(true)}
-            className="lms-btn lms-btn--quiet min-h-9 px-3.5 text-[0.8125rem]"
+            className="cursor-pointer rounded-md px-1 font-semibold text-accent hover:opacity-75"
           >
-            <Star className="h-3.5 w-3.5" aria-hidden="true" />
-            {userReview ? "Edit your rating" : "Rate this course"}
+            {userReview ? "Edit Rating" : "Rate Course"}
           </button>
         </div>
       </div>
 
       <nav
         aria-label="Lessons"
-        className="lms-scroll min-h-0 flex-1 overflow-y-auto border-t border-line px-3 pb-6 pt-3 text-ink"
+        className="lms-scroll min-h-0 flex-1 overflow-y-auto px-2.5 pb-6 pt-2 shadow-[inset_0_1px_0_var(--sw-line)]"
       >
         {sections.map((section, sectionIndex) => {
           const isSectionLocked = section.is_locked === true;
@@ -274,45 +296,34 @@ export function CoursePlayerShell({
           const panelId = `module-${section.id}`;
 
           return (
-            <section key={section.id} className="mb-1.5">
-              <h3 className="m-0">
+            <section key={section.id} className="mb-1">
+              <h3 className="m-0 font-[family-name:var(--font-roboto)] tracking-normal">
                 <button
                   type="button"
                   onClick={() => toggleSection(section.id)}
                   aria-expanded={isOpen}
                   aria-controls={panelId}
-                  className="flex w-full cursor-pointer items-start gap-3 rounded-2xl px-2.5 py-2.5 text-left transition-colors duration-200 hover:bg-ink/[0.05]"
+                  className="lms-mod"
                 >
+                  <ChevronRight className="lms-mod-chev" strokeWidth={2.4} aria-hidden="true" />
                   <span className="min-w-0 flex-1">
-                    <span className="sw-cap block text-accent">
-                      Module {sectionIndex + 1}
-                      <span className="text-ink-3">
-                        {" "}
-                        · {doneInSection}/{items.length}
-                      </span>
+                    <span className="lms-mod-num">
+                      Module {sectionIndex + 1} · {doneInSection} of {items.length}
                     </span>
-                    <span className="mt-1 line-clamp-2 block font-[family-name:var(--font-roboto)] text-[0.95rem] font-semibold leading-snug tracking-normal text-ink">
-                      {section.title}
-                    </span>
-                    {guestLabel && (
-                      <span className="mt-1 line-clamp-1 block font-[family-name:var(--font-roboto)] text-xs font-normal tracking-normal text-ink-3">
-                        {guestLabel}
-                      </span>
-                    )}
+                    <span className="lms-mod-title">{section.title}</span>
+                    {guestLabel && <span className="lms-mod-sub line-clamp-1">{guestLabel}</span>}
                   </span>
-                  {isSectionLocked && (
-                    <span className="mt-0.5 grid h-6 w-6 flex-none place-items-center rounded-full bg-ink/[0.07] text-ink-3">
-                      <Lock className="h-3.5 w-3.5" aria-label="Locked" />
+                  {isSectionLocked ? (
+                    <Lock className="mt-0.5 h-3.5 w-3.5 flex-none text-ink-3" aria-label="Locked" />
+                  ) : doneInSection === items.length && items.length > 0 ? (
+                    <span className="lms-glyph lms-glyph--done mt-0.5 !h-4 !w-4" aria-label="Module complete">
+                      <Check className="!h-2.5 !w-2.5" strokeWidth={3.5} />
                     </span>
-                  )}
-                  <ChevronDown
-                    aria-hidden="true"
-                    className={`mt-1 h-4 w-4 flex-none text-ink-3 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
-                  />
+                  ) : null}
                 </button>
               </h3>
 
-              <ul id={panelId} hidden={!isOpen} className="m-0 list-none space-y-0.5 p-0 pb-2">
+              <ul id={panelId} hidden={!isOpen} className="m-0 list-none space-y-px p-0 pb-2 pl-3">
                 {items.map((item, itemIndex) => {
                   const itemUrl = `/learn/${courseId}/item/${item.id}`;
                   const isActive = pathname.startsWith(itemUrl);
@@ -321,48 +332,43 @@ export function CoursePlayerShell({
                     !isSectionLocked && !isLiveSession && itemIndex > frontierIndex;
                   const isItemBlocked = isSectionLocked || isSequentialLocked;
 
+                  const glyph = isItemBlocked ? (
+                    <span className="lms-glyph lms-glyph--locked" aria-hidden="true">
+                      <Lock strokeWidth={2.6} />
+                    </span>
+                  ) : item.is_completed ? (
+                    <span className="lms-glyph lms-glyph--done" aria-hidden="true">
+                      <Check strokeWidth={3.4} />
+                    </span>
+                  ) : isActive ? (
+                    <span className="lms-glyph lms-glyph--now" aria-hidden="true">
+                      <Play fill="currentColor" strokeWidth={0} />
+                    </span>
+                  ) : (
+                    <span className="lms-glyph" aria-hidden="true">
+                      {itemNumbers.get(item.id)}
+                    </span>
+                  );
+
                   const itemInner = (
                     <>
-                      <span
-                        className={`grid h-7 w-7 place-items-center rounded-full text-xs font-semibold ${
-                          item.is_completed
-                            ? "bg-brand text-white dark:bg-leaf dark:text-[#06130d]"
-                            : isActive
-                              ? "bg-gold text-[#10231a]"
-                              : "bg-ink/[0.06] text-ink-3"
-                        }`}
-                        aria-hidden
-                      >
-                        {isItemBlocked ? (
-                          <Lock className="h-3.5 w-3.5" />
-                        ) : item.is_completed ? (
-                          <span className="flex h-3.5 w-3.5 items-center justify-center [&>svg]:h-full [&>svg]:w-full">
-                            <IconCheck />
-                          </span>
-                        ) : (
-                          itemNumbers.get(item.id)
-                        )}
-                      </span>
+                      {glyph}
                       <span className="min-w-0">
-                        <span
-                          className={`line-clamp-2 block text-[0.92rem] leading-5 ${
-                            isActive ? "font-semibold" : "font-medium"
-                          }`}
-                        >
+                        <span className="lms-lesson-title">
                           {item.title}
                           {item.is_completed && <span className="sr-only"> (complete)</span>}
                         </span>
-                        <span className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-3">
-                          <span className="[&>svg]:h-3 [&>svg]:w-3" aria-hidden>
-                            {getItemIcon(item)}
+                        <span className="lms-lesson-meta">
+                          {getItemIcon(item)}
+                          <span className="truncate">
+                            {isSectionLocked
+                              ? "Locked"
+                              : isSequentialLocked
+                                ? "Finish the previous lesson first"
+                                : isLiveSession
+                                  ? getLiveSessionMetaLabel(item)
+                                  : getItemMetaLabel(item)}
                           </span>
-                          {isSectionLocked
-                            ? "Locked"
-                            : isSequentialLocked
-                              ? "Complete the previous item first"
-                              : isLiveSession
-                                ? getLiveSessionMetaLabel(item)
-                                : getItemMetaLabel(item)}
                         </span>
                       </span>
                     </>
@@ -371,10 +377,7 @@ export function CoursePlayerShell({
                   if (isItemBlocked) {
                     return (
                       <li key={item.id}>
-                        <div
-                          className="grid min-h-[52px] cursor-not-allowed grid-cols-[28px_minmax(0,1fr)] items-center gap-3 rounded-2xl px-2.5 py-2 text-ink-3 opacity-70"
-                          aria-disabled="true"
-                        >
+                        <div className="lms-lesson" aria-disabled="true">
                           {itemInner}
                         </div>
                       </li>
@@ -387,11 +390,7 @@ export function CoursePlayerShell({
                         href={itemUrl}
                         onClick={() => setDrawerOpen(false)}
                         aria-current={isActive ? "page" : undefined}
-                        className={`grid min-h-[52px] grid-cols-[28px_minmax(0,1fr)] items-center gap-3 rounded-2xl px-2.5 py-2 no-underline transition-[background-color,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 ${
-                          isActive
-                            ? "bg-mint text-ink shadow-[inset_0_0_0_1.5px_color-mix(in_srgb,var(--sw-green)_45%,transparent)] dark:bg-white/[0.08]"
-                            : "text-ink-2 hover:bg-ink/[0.05]"
-                        }`}
+                        className="lms-lesson"
                       >
                         {itemInner}
                       </Link>
@@ -404,14 +403,11 @@ export function CoursePlayerShell({
         })}
 
         {resources.length > 0 && (
-          <section className="mt-3 border-t border-line pt-4">
-            <div className="px-2.5 pb-2">
-              <p className="sw-cap m-0 text-accent">Course resources</p>
-              <h3 className="m-0 mt-1 font-[family-name:var(--font-roboto)] text-[0.95rem] font-semibold tracking-normal text-ink">
-                Templates, readings &amp; links
-              </h3>
-            </div>
-            <ul className="m-0 list-none space-y-0.5 p-0">
+          <section className="mt-2 pt-3 shadow-[inset_0_1px_0_var(--sw-line)]">
+            <h3 className="m-0 px-2 pb-1.5 font-[family-name:var(--font-roboto)] text-xs font-bold tracking-normal text-ink-3">
+              Resources
+            </h3>
+            <ul className="m-0 list-none space-y-px p-0">
               {resources.map((resource) => {
                 const resourceUrl = `/resources/${resource.slug || resource.id}`;
                 const isLocked = resource.can_access === false;
@@ -421,16 +417,14 @@ export function CoursePlayerShell({
                     <Link
                       href={resourceUrl}
                       onClick={() => setDrawerOpen(false)}
-                      className="grid min-h-[52px] grid-cols-[28px_minmax(0,1fr)] items-center gap-3 rounded-2xl px-2.5 py-2 text-ink-2 no-underline transition-colors hover:bg-ink/[0.05]"
+                      className="lms-lesson"
                     >
-                      <span className="grid h-7 w-7 place-items-center rounded-full bg-ink/[0.06] text-ink-3">
-                        {isLocked ? <Lock className="h-3.5 w-3.5" /> : getResourceIcon(resource.category)}
+                      <span className="lms-glyph lms-glyph--locked" aria-hidden="true">
+                        {isLocked ? <Lock strokeWidth={2.6} /> : getResourceIcon(resource.category)}
                       </span>
                       <span className="min-w-0">
-                        <span className="line-clamp-2 block text-[0.92rem] font-medium leading-5">
-                          {resource.name}
-                        </span>
-                        <span className="mt-0.5 block text-xs text-ink-3">
+                        <span className="lms-lesson-title">{resource.name}</span>
+                        <span className="lms-lesson-meta">
                           {isLocked
                             ? getResourceLockLabel(resource)
                             : formatResourceCategory(resource.category)}
@@ -444,9 +438,10 @@ export function CoursePlayerShell({
             <Link
               href={`/resources?course_id=${courseId}`}
               onClick={() => setDrawerOpen(false)}
-              className="lms-btn lms-btn--quiet mx-2 mt-3 flex"
+              className="mt-1 flex items-center gap-1 rounded-lg px-2 py-2 text-[0.8125rem] font-semibold text-accent no-underline hover:opacity-75"
             >
-              View all course resources
+              Show All Resources
+              <ChevronRight className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden="true" />
             </Link>
           </section>
         )}
@@ -454,92 +449,95 @@ export function CoursePlayerShell({
     </div>
   );
 
+  const activeLabel = activeItem
+    ? activeSectionIndex >= 0
+      ? `Module ${activeSectionIndex + 1} · ${courseTitle}`
+      : courseTitle
+    : null;
+
   return (
-    <div className="flex h-dvh overflow-hidden">
-      {/* The outline: a drawer on small screens, a panel beside the lesson on wide ones. */}
+    <div className="lms-player flex h-dvh overflow-hidden">
+      {/* Small screens: the sidebar slides in over a dimmed page. */}
       <div
         aria-hidden="true"
         onClick={() => setDrawerOpen(false)}
-        className={`fixed inset-0 z-40 bg-night/60 backdrop-blur-sm transition-opacity duration-500 lg:hidden ${
+        className={`fixed inset-0 z-40 bg-night/40 backdrop-blur-[2px] transition-opacity duration-500 lg:hidden ${
           drawerOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       />
       <aside
         id="course-outline"
         aria-label="Course outline"
-        className={`fixed inset-y-0 left-0 z-50 w-[min(90vw,380px)] flex-none overflow-hidden p-2.5 transition-[translate,visibility,width,opacity,padding] duration-500 ease-sw motion-reduce:transition-none lg:static lg:z-auto lg:translate-x-0 lg:py-3 lg:pl-3 lg:pr-0 ${
-          drawerOpen ? "translate-x-0" : "-translate-x-[105%] max-lg:invisible"
-        } ${outlinePinned ? "lg:w-[348px]" : "lg:invisible lg:w-0 lg:pl-0 lg:opacity-0"}`}
+        className={`lms-side fixed inset-y-0 left-0 z-50 flex-none overflow-hidden transition-[translate,visibility,width] duration-500 ease-sw motion-reduce:transition-none lg:static lg:z-auto lg:translate-x-0 ${
+          drawerOpen ? "translate-x-0" : "-translate-x-[110%] max-lg:invisible"
+        } ${outlinePinned ? "lg:w-[var(--pl-side)]" : "lg:invisible lg:w-0"}`}
       >
-        <div className="lms-card h-full overflow-hidden max-lg:shadow-2xl lg:w-[336px]">{outline}</div>
+        {sidebar}
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex-none px-3 pt-3 sm:px-5">
-          <div className="flex h-14 items-center gap-1.5 rounded-full bg-card/85 px-2 shadow-[inset_0_0_0_1px_var(--sw-line)] backdrop-blur-xl sm:gap-2">
+        {/* Window toolbar. */}
+        <header className="lms-pl-top relative z-10 flex flex-none items-center gap-1 px-2 sm:px-3">
+          <div className="flex min-w-0 flex-1 basis-0 items-center gap-1">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              aria-label="Open course outline"
+              aria-label="Show course outline"
               aria-expanded={drawerOpen}
               aria-controls="course-outline"
-              className="lms-icon-btn h-10 w-10 lg:hidden"
+              className="lms-tool lg:hidden"
             >
-              <ListTree className="h-5 w-5" />
+              <PanelLeft className="h-5 w-5" strokeWidth={1.8} />
             </button>
-            <button
-              type="button"
-              onClick={() => writeOutlinePinned(!outlinePinned)}
-              aria-label={outlinePinned ? "Hide course outline" : "Show course outline"}
-              aria-expanded={outlinePinned}
-              aria-controls="course-outline"
-              title={outlinePinned ? "Hide outline" : "Show outline"}
-              className="lms-icon-btn hidden h-10 w-10 lg:grid"
-            >
-              {outlinePinned ? (
-                <PanelLeftClose className="h-5 w-5" />
-              ) : (
-                <PanelLeftOpen className="h-5 w-5" />
-              )}
-            </button>
+            {!outlinePinned && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => writeOutlinePinned(true)}
+                  aria-label="Show sidebar"
+                  title="Show sidebar"
+                  aria-controls="course-outline"
+                  aria-expanded={false}
+                  className="lms-tool hidden lg:grid"
+                >
+                  <PanelLeft className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                </button>
+                <Link href="/dashboard/courses" className="lms-back hidden lg:inline-flex">
+                  <ChevronLeft className="h-[22px] w-[22px]" strokeWidth={2.2} aria-hidden="true" />
+                  My Courses
+                </Link>
+              </>
+            )}
+          </div>
 
-            <Link
-              href="/dashboard/courses"
-              className="flex h-10 flex-none items-center gap-2 rounded-full px-2.5 text-sm font-semibold text-ink-2 no-underline transition-colors duration-300 hover:bg-ink/[0.06] hover:text-ink sm:px-3.5"
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">My courses</span>
-              <span className="sr-only sm:hidden">Back to my courses</span>
-            </Link>
-
-            <span aria-hidden="true" className="h-5 w-px flex-none bg-line" />
-
-            <p className="sw-title m-0 min-w-0 flex-1 truncate px-1.5 text-[0.98rem] text-ink">
-              {courseTitle}
+          <div className="min-w-0 max-w-[min(34rem,56vw)] flex-none text-center leading-tight">
+            <p className="m-0 truncate text-[0.875rem] font-semibold tracking-[-0.01em] text-ink">
+              {activeItem?.title || courseTitle}
             </p>
+            {activeLabel && (
+              <p className="m-0 hidden truncate text-[0.6875rem] text-ink-3 sm:block">{activeLabel}</p>
+            )}
+          </div>
 
-            <div className="flex flex-none items-center gap-2.5 pl-1">
-              <span className="hidden text-xs text-ink-3 md:inline">
-                {completedCount}/{allItems.length} lessons
-              </span>
+          <div className="flex min-w-0 flex-1 basis-0 items-center justify-end gap-1.5">
+            <span className="hidden items-center gap-2 pr-1 text-xs tabular-nums text-ink-3 md:flex">
               <ProgressRing
                 value={progress}
-                size={38}
-                stroke={4.5}
+                size={22}
+                stroke={3}
                 label="Course progress"
-                className="text-ink [--ring:var(--sw-green)] dark:[--ring:var(--sw-leaf)]"
-              >
-                <span className="text-[0.62rem] font-bold tabular-nums text-ink">{progress}</span>
-              </ProgressRing>
-            </div>
+                className="text-ink [--ring:var(--sw-accent)]"
+              />
+              {progress}%
+            </span>
             <button
               type="button"
               onClick={toggle}
               aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
               title={isDark ? "Light mode" : "Dark mode"}
-              className="lms-icon-btn h-10 w-10"
+              className="lms-tool"
             >
-              {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+              {isDark ? <Sun className="h-[18px] w-[18px]" strokeWidth={1.8} /> : <Moon className="h-[18px] w-[18px]" strokeWidth={1.8} />}
             </button>
           </div>
         </header>
@@ -567,22 +565,22 @@ export function CoursePlayerShell({
 function getItemIcon(item: CurriculumItem) {
   const type = item.item_type;
 
-  if (type === "VIDEO") return <PlayCircle className="h-3.5 w-3.5" />;
-  if (type === "DOCUMENT") return <FileText className="h-3.5 w-3.5" />;
-  if (type === "SCORM") return <Boxes className="h-3.5 w-3.5" />;
-  if (type === "LINKS") return <Link2 className="h-3.5 w-3.5" />;
-  if (type === "LIVE_SESSION") return <CalendarDays className="h-3.5 w-3.5" />;
+  if (type === "VIDEO") return <PlayCircle aria-hidden="true" />;
+  if (type === "DOCUMENT") return <FileText aria-hidden="true" />;
+  if (type === "SCORM") return <Boxes aria-hidden="true" />;
+  if (type === "LINKS") return <Link2 aria-hidden="true" />;
+  if (type === "LIVE_SESSION") return <CalendarDays aria-hidden="true" />;
   if (type === "ASSESSMENT" || type === "QUIZ" || type === "ESSAY") {
-    return <HelpCircle className="h-3.5 w-3.5" />;
+    return <HelpCircle aria-hidden="true" />;
   }
 
-  return <BookOpen className="h-3.5 w-3.5" />;
+  return <BookOpen aria-hidden="true" />;
 }
 
 function getResourceIcon(category?: string) {
-  if (category === "VIDEOS_AND_WEBINARS") return <PlayCircle className="h-3.5 w-3.5" />;
-  if (category === "USEFUL_LINKS") return <Link2 className="h-3.5 w-3.5" />;
-  return <FileText className="h-3.5 w-3.5" />;
+  if (category === "VIDEOS_AND_WEBINARS") return <PlayCircle strokeWidth={2.2} />;
+  if (category === "USEFUL_LINKS") return <Link2 strokeWidth={2.2} />;
+  return <FileText strokeWidth={2.2} />;
 }
 
 function getResourceLockLabel(resource: ResourceRead) {
@@ -632,13 +630,12 @@ function formatMinutes(minutes: number) {
 
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
-  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
+  return remainder > 0 ? `${hours} hr ${remainder} min` : `${hours} hr`;
 }
 
 function titleCaseEnum(value?: string | null) {
   if (!value) return "Item";
-  return value
-    .split("_")
-    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-    .join(" ");
+  const words = value.split("_").map((word) => word.toLowerCase());
+  words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+  return words.join(" ");
 }
