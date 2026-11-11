@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PopUpMenu } from "@/components/dashboard/PopUpMenu";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
@@ -337,18 +338,21 @@ export default function AssessmentsList({
                     </button>
                   </nav>
                 )}
-                <label className="flex items-center gap-2 text-sm text-ink-3">
-                  Show
-                  <select
-                    value={pageSize}
-                    onChange={(event) => updateParam({ rows: event.target.value, page: "1" })}
-                    className="lms-popup"
-                  >
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                  </select>
-                </label>
+                <div className="flex items-center gap-2 text-sm text-ink-3">
+                  <span aria-hidden="true">Show</span>
+                  <PopUpMenu
+                    kind="popup"
+                    direction="up"
+                    ariaLabel={`Rows per page, ${pageSize}`}
+                    label={<span className="tabular-nums">{pageSize}</span>}
+                    items={[10, 20, 50, 100].map((size) => ({
+                      key: String(size),
+                      label: `${size} per page`,
+                      checked: pageSize === size,
+                      onSelect: () => updateParam({ rows: String(size), page: "1" }),
+                    }))}
+                  />
+                </div>
               </div>
             </div>
           )}

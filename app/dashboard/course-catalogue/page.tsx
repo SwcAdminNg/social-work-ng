@@ -1,21 +1,23 @@
 import Link from "next/link";
 import Form from "next/form";
 import {
+  Award,
   BookOpen,
   Check,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   Clock3,
-  Filter,
   GraduationCap,
   Search,
+  Shapes,
   Sparkles,
   Star,
-  Trophy,
-  UsersRound,
+  Tag,
+  X,
 } from "lucide-react";
+import { cookies } from "next/headers";
 import { fetchApi, publicFetchApi } from "@/lib/fetchApi";
+import { PopUpMenu, ViewSwitch } from "@/components/dashboard/PopUpMenu";
 import { getCourseDurationLabel } from "@/lib/courseDuration";
 import {
   InstructorSummary,
@@ -295,6 +297,14 @@ export default async function CourseCataloguePage(props: {
   const category = firstValue(searchParams.category);
   const level = firstValue(searchParams.level);
   const isFree = normalizeBool(searchParams.is_free);
+  const cookieStore = await cookies();
+  const requestedView = firstValue(searchParams.view);
+  const view: "grid" | "list" =
+    requestedView === "list" || requestedView === "grid"
+      ? requestedView
+      : cookieStore.get("swcl_catalog_view")?.value === "list"
+        ? "list"
+        : "grid";
 
   const filters = {
     page: String(page),
@@ -303,440 +313,364 @@ export default async function CourseCataloguePage(props: {
     category,
     level,
     is_free: isFree,
+    view: view === "list" ? "list" : undefined,
   };
 
   const { courses, catalogs, meta, error } = await getCatalogueData(filters);
   const selectedCatalog = catalogs.find((item) => item.slug === catalog);
-  const enrolledCount = courses.filter((course) => course.is_enrolled).length;
-  const accessCount = courses.filter((course) => course.has_access).length;
   const showingStart = courses.length ? (meta.page - 1) * meta.page_size + 1 : 0;
   const showingEnd = courses.length ? showingStart + courses.length - 1 : 0;
+  const unfiltered = !search && !catalog && !category && !level && !isFree;
+  // With no filters the course list's own total is the true count; catalogue counts can lag behind.
+  const totalCourses = unfiltered
+    ? meta.total_items
+    : catalogs.reduce((sum, item) => sum + Number(item.total_courses || 0), 0);
+
+  const levelLabel = LEVELS.find((item) => item.value === level)?.label;
+  const categoryLabel = CATEGORIES.find((item) => item.value === category)?.label;
+  const priceLabel = isFree === "true" ? "Free" : isFree === "false" ? "Paid" : undefined;
+  const activeTokens = [
+    search ? { key: "search", label: `“${search}”`, href: buildHref(filters, { page: 1, search: undefined }) } : null,
+    levelLabel ? { key: "level", label: levelLabel, href: buildHref(filters, { page: 1, level: undefined }) } : null,
+    categoryLabel ? { key: "category", label: categoryLabel, href: buildHref(filters, { page: 1, category: undefined }) } : null,
+    priceLabel ? { key: "price", label: priceLabel, href: buildHref(filters, { page: 1, is_free: undefined }) } : null,
+  ].filter((token): token is { key: string; label: string; href: string } => Boolean(token));
+  const clearAllHref = buildHref(filters, { page: 1, search: undefined, catalog: undefined, category: undefined, level: undefined, is_free: undefined });
 
   return (
-    <div className="flex w-full flex-col gap-5 pb-8">
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="min-w-0">
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-                Course Catalogue
-              </h1>
-              <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-                Explore expert-led courses for social work professionals, with
-                catalog browsing, complete filtering, and personalized access
-                flags when you are signed in.
-              </p>
-            </div>
-            <Link
-              href={buildHref(filters, {
-                page: 1,
-                search: undefined,
-                catalog: undefined,
-                category: undefined,
-                level: undefined,
-                is_free: undefined,
-              })}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-white px-4 text-sm font-bold text-[#2D6A4F] shadow-sm transition hover:bg-[#f0fbf5] dark:border-[#315244] dark:bg-[#222524] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35] sm:flex-shrink-0"
-            >
-              Reset filters
+    <div className="mx-auto flex w-full max-w-[1440px] flex-col pb-8">
+      <header className="lms-rise pt-1">
+        <h1 className="sw-display m-0 text-[clamp(1.9rem,4vw,2.75rem)] leading-[1.02] text-ink">Course Catalogue</h1>
+        <p className="m-0 mt-2 max-w-2xl text-[0.98rem] text-ink-2">
+          {totalCourses > 0
+            ? `${totalCourses} expert-led course${totalCourses === 1 ? "" : "s"} across ${catalogs.length} catalogue${catalogs.length === 1 ? "" : "s"}, built for social work practice.`
+            : "Expert-led courses built for social work practice."}
+        </p>
+      </header>
+
+      {/* Search */}
+      <Form action="/dashboard/course-catalogue" className="lms-rise mt-5" style={{ "--i": 1 } as React.CSSProperties}>
+        {catalog && <input type="hidden" name="catalog" value={catalog} />}
+        {category && <input type="hidden" name="category" value={category} />}
+        {level && <input type="hidden" name="level" value={level} />}
+        {isFree && <input type="hidden" name="is_free" value={isFree} />}
+        {view === "list" && <input type="hidden" name="view" value="list" />}
+        <div className="lms-search lms-search--lg">
+          <label htmlFor="catalogue-search" className="sr-only">
+            Search courses
+          </label>
+          <Search aria-hidden="true" className="lms-search-glyph" strokeWidth={2.2} />
+          <input
+            id="catalogue-search"
+            name="search"
+            type="search"
+            defaultValue={search ?? ""}
+            autoComplete="off"
+            enterKeyHint="search"
+            placeholder="Search courses by title or topic"
+          />
+          {search && (
+            <Link href={buildHref(filters, { page: 1, search: undefined })} aria-label="Clear search" className="lms-search-clear" scroll={false}>
+              <X className="h-3 w-3" strokeWidth={3} />
             </Link>
-          </div>
-
-          <Form
-            action="/dashboard/course-catalogue"
-            className="mb-4 flex flex-col gap-3 sm:flex-row"
-          >
-            <input type="hidden" name="page" value="1" />
-            {catalog && <input type="hidden" name="catalog" value={catalog} />}
-            {category && <input type="hidden" name="category" value={category} />}
-            {level && <input type="hidden" name="level" value={level} />}
-            {isFree && <input type="hidden" name="is_free" value={isFree} />}
-            <label className="relative block min-w-0 flex-1">
-              <span className="sr-only">Search courses</span>
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                name="search"
-                defaultValue={search ?? ""}
-                autoComplete="off"
-
-                placeholder="Search by course title or description..."
-                className="h-12 w-full rounded-md border border-[#dceee4] bg-white pl-12 pr-4 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#35514a] dark:bg-[#252827] dark:text-slate-100 dark:focus:border-[#52b788]"
-              />
-            </label>
-            <div className="flex gap-3 w-full sm:w-auto">
-              <button
-                type="submit"
-                className="inline-flex h-12 flex-1 sm:flex-none items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-5 text-sm font-bold text-white transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-              >
-                <Search className="h-4 w-4" />
-                Search
-              </button>
-              <a
-                href="#catalogue-filters"
-                className="inline-flex h-12 flex-1 sm:flex-none items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-5 text-sm font-bold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#35514a] dark:bg-[#252827] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35] xl:hidden"
-              >
-                <Filter className="h-4 w-4" />
-                Filters
-              </a>
-            </div>
-          </Form>
-
-          <div className="swcl-sidebar-scroll mb-5 flex gap-2 overflow-x-auto pb-1">
-            <FilterChip
-              href={buildHref(filters, { page: 1, catalog: undefined })}
-              active={!catalog}
-            >
-              All Catalogs
-            </FilterChip>
-            {catalogs.slice(0, 12).map((item) => (
-              <FilterChip
-                key={item.id}
-                href={buildHref(filters, { page: 1, catalog: item.slug })}
-                active={catalog === item.slug}
-              >
-                {item.name}
-                <span className="text-xs opacity-70">{item.total_courses ?? 0}</span>
-              </FilterChip>
-            ))}
-          </div>
-
-          {selectedCatalog && (
-            <div className="mb-5 rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-4 dark:border-[#35514a] dark:bg-[#222524]">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
-                    Selected catalog
-                  </p>
-                  <h2 className="mt-1 text-lg font-extrabold text-slate-950 dark:text-white">
-                    {selectedCatalog.name}
-                  </h2>
-                  {selectedCatalog.description && (
-                    <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-                      {selectedCatalog.description}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-shrink-0 flex-wrap gap-2 text-xs font-bold">
-                  <span className="rounded-md bg-white px-2.5 py-1 text-[#2D6A4F] shadow-sm dark:bg-[#252827] dark:text-[#b7e4c7]">
-                    {Number(selectedCatalog.total_courses || 0).toLocaleString()} courses
-                  </span>
-                  {(selectedCatalog.categories ?? []).slice(0, 2).map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-md border border-[#dceee4] px-2.5 py-1 text-slate-600 dark:border-[#35514a] dark:text-slate-300"
-                    >
-                      {titleCaseEnum(item)}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
-              {error}
-            </div>
-          )}
-
-          {courses.length ? (
-            <>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3">
-                {courses.map((course) => (
-                  <CourseTile key={course.id} course={course} />
-                ))}
-              </div>
-
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  Showing {showingStart} to {showingEnd} of {meta.total_items} courses
-                  {enrolledCount > 0 && (
-                    <span className="ml-2 font-bold text-[#2D6A4F] dark:text-[#b7e4c7]">
-                      {enrolledCount} enrolled
-                    </span>
-                  )}
-                  {accessCount > enrolledCount && (
-                    <span className="ml-2 font-bold text-[#2D6A4F] dark:text-[#b7e4c7]">
-                      {accessCount - enrolledCount} subscription access
-                    </span>
-                  )}
-                </p>
-                <Pagination meta={meta} filters={filters} />
-              </div>
-            </>
-          ) : (
-            <div className="rounded-lg border border-dashed border-[#cfe8da] bg-white px-6 py-16 text-center dark:border-[#35514a] dark:bg-[#252827]">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-                <BookOpen className="h-7 w-7" />
-              </div>
-              <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
-                No courses found
-              </h2>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
-                Try a broader search or remove one of the active filters.
-                Published courses will appear here as soon as the API returns
-                them.
-              </p>
-            </div>
           )}
         </div>
+      </Form>
 
-        <aside
-          id="catalogue-filters"
-          className="grid h-max gap-4 xl:sticky xl:top-[92px]"
-        >
-          <FilterPanel
-            title="Level"
-            filters={filters}
-            param="level"
-            options={LEVELS}
-          />
-          <FilterPanel
-            title="Category"
-            filters={filters}
-            param="category"
-            options={CATEGORIES}
-          />
-          <FilterPanel
-            title="Price"
-            filters={filters}
-            param="is_free"
-            options={[
-              { value: "true", label: "Free courses" },
-              { value: "false", label: "Paid courses" },
-            ]}
-          />
-          <div className="rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-4 dark:border-[#35514a] dark:bg-[#222524]">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-white text-[#2D6A4F] shadow-sm dark:bg-[#252827] dark:text-[#b7e4c7]">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
-              Build your learning path
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
-              Catalog tiles use live published-course counts. You can combine
-              search, catalog, category, level, and price filters in one
-              bookmarkable view.
-            </p>
+      {/* Catalogues, as capsule chips */}
+      {catalogs.length > 0 && (
+        <nav aria-label="Catalogues" className="lms-scroll-x -mx-3 mt-4 overflow-x-auto px-3 sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
+          <ul className="m-0 flex list-none gap-2 p-0 pb-1">
+            <li>
+              <Link href={buildHref(filters, { page: 1, catalog: undefined })} aria-current={!catalog ? "page" : undefined} className="lms-capsule" scroll={false}>
+                All
+              </Link>
+            </li>
+            {catalogs.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={buildHref(filters, { page: 1, catalog: item.slug })}
+                  aria-current={catalog === item.slug ? "page" : undefined}
+                  className="lms-capsule"
+                  scroll={false}
+                >
+                  {item.name}
+                  <span className="lms-capsule-count">{item.total_courses ?? 0}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
+      {/* Toolbar: filters and view, pinned under the top bar */}
+      <div className="lms-course-bar sticky top-[var(--lms-top)] z-20 -mx-3 mt-3 px-3 py-3 sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <PopUpMenu
+              ariaLabel="Level"
+              label={levelLabel ?? "Level"}
+              icon={<GraduationCap className="h-4 w-4" aria-hidden="true" />}
+              active={Boolean(levelLabel)}
+              align="left"
+              items={[
+                { key: "all", label: "Any level", checked: !level, href: buildHref(filters, { page: 1, level: undefined }) },
+                ...LEVELS.map((item) => ({ key: item.value, label: item.label, checked: level === item.value, href: buildHref(filters, { page: 1, level: item.value }) })),
+              ]}
+            />
+            <PopUpMenu
+              ariaLabel="Category"
+              label={categoryLabel ?? "Category"}
+              icon={<Shapes className="h-4 w-4" aria-hidden="true" />}
+              active={Boolean(categoryLabel)}
+              align="left"
+              items={[
+                { key: "all", label: "All categories", checked: !category, href: buildHref(filters, { page: 1, category: undefined }) },
+                ...CATEGORIES.map((item) => ({ key: item.value, label: item.label, checked: category === item.value, href: buildHref(filters, { page: 1, category: item.value }) })),
+              ]}
+            />
+            <PopUpMenu
+              ariaLabel="Price"
+              label={priceLabel ?? "Price"}
+              icon={<Tag className="h-4 w-4" aria-hidden="true" />}
+              active={Boolean(priceLabel)}
+              align="left"
+              items={[
+                { key: "all", label: "Any price", checked: !isFree, href: buildHref(filters, { page: 1, is_free: undefined }) },
+                { key: "true", label: "Free", checked: isFree === "true", href: buildHref(filters, { page: 1, is_free: "true" }) },
+                { key: "false", label: "Paid", checked: isFree === "false", href: buildHref(filters, { page: 1, is_free: "false" }) },
+              ]}
+            />
           </div>
-        </aside>
-      </section>
+          <ViewSwitch
+            view={view}
+            gridHref={buildHref(filters, { view: undefined })}
+            listHref={buildHref(filters, { view: "list" })}
+          />
+        </div>
+
+        {activeTokens.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {activeTokens.map((token) => (
+              <span key={token.key} className="lms-filter-token">
+                {token.label}
+                <Link href={token.href} aria-label={`Remove ${token.label}`} className="lms-filter-token-x" scroll={false}>
+                  <X className="h-3 w-3" strokeWidth={2.6} />
+                </Link>
+              </span>
+            ))}
+            <Link href={clearAllHref} className="ml-1 text-[0.82rem] font-semibold text-accent no-underline hover:underline" scroll={false}>
+              Clear all
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {selectedCatalog && (
+        <section aria-label={selectedCatalog.name} className="lms-milk mt-2 flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="min-w-0">
+            <h2 className="sw-title m-0 text-[1.35rem] text-ink">{selectedCatalog.name}</h2>
+            {selectedCatalog.description && (
+              <p className="m-0 mt-1 max-w-2xl text-[0.92rem] leading-relaxed text-ink-2">{selectedCatalog.description}</p>
+            )}
+          </div>
+          <span className="lms-chip-milk flex-none">
+            {Number(selectedCatalog.total_courses || 0).toLocaleString()} course{Number(selectedCatalog.total_courses || 0) === 1 ? "" : "s"}
+          </span>
+        </section>
+      )}
+
+      {error && (
+        <p role="alert" className="m-0 mt-3 rounded-[18px] bg-clay-wash px-5 py-3.5 text-sm font-medium text-ink shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--sw-clay)_35%,transparent)]">
+          {error}
+        </p>
+      )}
+
+      {courses.length ? (
+        <>
+          {view === "grid" ? (
+            <ul className="lms-course-grid m-0 mt-3 list-none p-0">
+              {courses.map((course, index) => (
+                <li key={course.id} className="lms-rise min-w-0" style={{ "--i": Math.min(index, 6) } as React.CSSProperties}>
+                  <CourseCard course={course} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <ul className="lms-group m-0 mt-3 list-none p-0">
+              {courses.map((course) => (
+                <li key={course.id}>
+                  <CourseRow course={course} />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+            <p className="m-0 text-sm text-ink-3">
+              {showingStart}–{showingEnd} of {meta.total_items}
+            </p>
+            <Pagination meta={meta} filters={filters} />
+          </div>
+        </>
+      ) : (
+        <div className="lms-milk mt-3 flex flex-col items-center px-6 py-14 text-center sm:py-20">
+          <span className="grid h-16 w-16 place-items-center rounded-[20px] bg-card text-accent shadow-[inset_0_0_0_1px_var(--sw-line)] dark:bg-white/[0.06]">
+            {search ? <Search className="h-7 w-7" strokeWidth={1.8} /> : <BookOpen className="h-7 w-7" strokeWidth={1.8} />}
+          </span>
+          <h2 className="m-0 mt-5 text-[1.2rem] font-bold tracking-[-0.02em] text-ink">{search ? "No matches" : "No courses here yet"}</h2>
+          <p className="m-0 mt-2 max-w-md text-[0.95rem] leading-relaxed text-ink-2">
+            {search || activeTokens.length || catalog
+              ? "Try fewer words or remove a filter to see more courses."
+              : "New courses appear here as soon as they are published."}
+          </p>
+          {(activeTokens.length > 0 || catalog) && (
+            <Link href={clearAllHref} className="lms-btn lms-btn--quiet mt-6" scroll={false}>
+              Clear filters
+            </Link>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function FilterChip({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`inline-flex h-10 flex-shrink-0 items-center gap-2 rounded-md border px-4 text-sm font-bold no-underline transition ${
-        active
-          ? "border-[#2D6A4F] bg-[#2D6A4F] text-white shadow-[0_10px_24px_-18px_rgba(45,106,79,0.9)] dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
-          : "border-[#dceee4] bg-white text-slate-700 hover:border-[#95d5b2] hover:bg-[#f7fcf9] hover:text-[#2D6A4F] dark:border-[#35514a] dark:bg-[#252827] dark:text-slate-300 dark:hover:border-[#52b788] dark:hover:bg-[#2a3f35] dark:hover:text-[#b7e4c7]"
-      }`}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function FilterPanel({
-  title,
-  filters,
-  param,
-  options,
-}: {
-  title: string;
-  filters: Record<string, string | undefined>;
-  param: string;
-  options: Array<{ value: string; label: string }>;
-}) {
-  return (
-    <details
-      className="group rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#35514a] dark:bg-[#252827] [&_summary::-webkit-details-marker]:hidden"
-      open={true}
-    >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 outline-none select-none">
-        <h2 className="text-sm font-extrabold text-slate-950 dark:text-white">
-          {title}
-        </h2>
-        <span className="flex items-center justify-center transition-transform duration-200 group-open:rotate-180">
-          <ChevronDown className="h-4 w-4 text-slate-400" />
-        </span>
-      </summary>
-      <div className="mt-4 grid gap-2">
-        <SideFilterLink
-          href={buildHref(filters, { page: 1, [param]: undefined })}
-          active={!filters[param]}
-          label={`All ${title}`}
-        />
-        {options.map((option) => (
-          <SideFilterLink
-            key={option.value}
-            href={buildHref(filters, { page: 1, [param]: option.value })}
-            active={filters[param] === option.value}
-            label={option.label}
-          />
-        ))}
-      </div>
-    </details>
-  );
-}
-
-function SideFilterLink({
-  href,
-  active,
-  label,
-}: {
-  href: string;
-  active: boolean;
-  label: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex min-h-8 items-center justify-between gap-3 rounded-md px-1.5 py-1 text-sm font-medium text-slate-600 no-underline transition hover:bg-[#f0fbf5] hover:text-[#2D6A4F] dark:text-slate-400 dark:hover:bg-[#52b788]/10 dark:hover:text-[#b7e4c7]"
-    >
-      <span className="flex min-w-0 items-center gap-2">
-        <span
-          className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition ${
-            active
-              ? "border-[#2D6A4F] bg-[#2D6A4F] text-white dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
-              : "border-slate-300 text-transparent group-hover:border-[#95d5b2] dark:border-slate-600"
-          }`}
-        >
-          <Check className="h-3 w-3" strokeWidth={3} />
-        </span>
-        <span className="min-w-0 truncate">{label}</span>
-      </span>
-    </Link>
-  );
-}
-
-function CourseTile({ course }: { course: Course }) {
-  const courseHref = `/dashboard/course-catalogue/${course.slug || course.id}`;
-  const isEnrolled = course.is_enrolled === true;
-  const hasAccess = course.has_access === true;
-  const isCompleted = course.is_completed === true;
-  const canViewCourse = isEnrolled || hasAccess || isCompleted;
+function courseFacts(course: Course) {
   const rating = typeof course.average_rating === "number" ? course.average_rating : 0;
   const reviews = Number(course.total_reviews || 0);
-  const outcomeCount = course.what_you_will_learn?.length ?? 0;
-  const materialCount = course.material_includes?.length ?? 0;
-  const instructors = getCourseInstructors(course);
-  const durationLabel = getCourseDurationLabel(course);
+  return {
+    href: `/dashboard/course-catalogue/${course.slug || course.id}`,
+    owned: course.is_enrolled === true || course.has_access === true || course.is_completed === true,
+    state: course.is_completed ? "Completed" : course.is_enrolled ? "Enrolled" : course.has_access ? "Included" : null,
+    rating,
+    reviews,
+    duration: getCourseDurationLabel(course),
+    instructors: getCourseInstructors(course),
+  };
+}
 
+function CourseMeta({ course, compact = false }: { course: Course; compact?: boolean }) {
+  const { rating, reviews, duration } = courseFacts(course);
   return (
-    <article
-      className={`group flex min-h-full flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-lg dark:bg-[#252827] ${
-        canViewCourse
-          ? "border-[#2D6A4F]/55 ring-1 ring-[#2D6A4F]/20 dark:border-[#52b788]/60 dark:ring-[#52b788]/20"
-          : "border-[#e3ede7] dark:border-[#35514a]"
-      }`}
-    >
-      <div className="relative aspect-[16/9] overflow-hidden bg-[#e7f6ee]">
-        <Link href={courseHref} className="block h-full w-full">
-          <img
-            src={course.thumbnail_url || FALLBACK_IMAGE}
-            alt=""
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
-          <span className="absolute left-3 top-3 rounded-md bg-[#2D6A4F] px-2.5 py-1 text-xs font-bold text-white shadow-sm dark:bg-[#52b788] dark:text-[#06130d]">
-            {titleCaseEnum(course.category)}
+    <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[0.8rem] text-ink-3">
+      <span>{titleCaseEnum(course.level)}</span>
+      <span aria-hidden="true">·</span>
+      <span className="inline-flex items-center gap-1">
+        <Star className="h-3.5 w-3.5 fill-[#f5b301] text-[#f5b301]" aria-hidden="true" />
+        <span className="font-semibold text-ink-2">{rating ? rating.toFixed(1) : "New"}</span>
+        {reviews > 0 && <span>({reviews.toLocaleString()})</span>}
+      </span>
+      {duration && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span className="inline-flex items-center gap-1">
+            <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
+            {duration}
           </span>
-          <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
-            {course.is_exclusive && (
-              <span className="rounded-md bg-slate-950/85 px-2.5 py-1 text-xs font-extrabold text-white shadow-sm">
-                Exclusive
-              </span>
-            )}
-          </div>
-          {canViewCourse && (
-            <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-[#2D6A4F] shadow-sm dark:bg-[#252827]/95 dark:text-[#b7e4c7]">
-              <Check className="h-3 w-3" strokeWidth={3} />
-              {isCompleted ? "Completed" : isEnrolled ? "Enrolled" : "Access"}
+        </>
+      )}
+      {!compact && course.certificate_enabled === true && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span className="inline-flex items-center gap-1">
+            <Award className="h-3.5 w-3.5" aria-hidden="true" />
+            Certificate
+          </span>
+        </>
+      )}
+    </span>
+  );
+}
+
+function CourseCard({ course }: { course: Course }) {
+  const { href, owned, state, instructors } = courseFacts(course);
+  return (
+    <article className="lms-milk lms-milk-hover group relative flex h-full flex-col p-2.5">
+      <div className="relative">
+        <Link href={href} tabIndex={-1} aria-hidden="true" className="lms-art relative block aspect-[16/9] overflow-hidden bg-paper-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={course.thumbnail_url || FALLBACK_IMAGE} alt="" loading="lazy" decoding="async" className="sw-zoom h-full w-full object-cover" />
+        </Link>
+        <div className="pointer-events-none absolute left-2.5 top-2.5 flex flex-wrap gap-1.5">
+          <span className="lms-glass-pill">{titleCaseEnum(course.category)}</span>
+          {course.is_exclusive && (
+            <span className="lms-glass-pill lms-glass-pill--new">
+              <Sparkles className="h-3 w-3" aria-hidden="true" />
+              Exclusive
             </span>
           )}
-        </Link>
-        <CourseBookmarkButton
-          courseId={course.id}
-          courseTitle={course.title}
-          initialBookmarked={course.is_bookmarked}
-        />
+        </div>
+        {state && (
+          <span className="lms-glass-pill lms-glass-pill--done pointer-events-none absolute bottom-2.5 left-2.5">
+            <Check className="h-3 w-3" strokeWidth={3} aria-hidden="true" />
+            {state}
+          </span>
+        )}
+        <CourseBookmarkButton courseId={course.id} courseTitle={course.title} initialBookmarked={course.is_bookmarked} variant="glass" />
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
-          <span className="inline-flex items-center gap-1">
-            <GraduationCap className="h-3.5 w-3.5" />
-            {titleCaseEnum(course.level)}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            {rating ? rating.toFixed(1) : "New"}
-          </span>
-          {reviews > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <UsersRound className="h-3.5 w-3.5" />
-              {reviews.toLocaleString()}
-            </span>
-          )}
-          {durationLabel && (
-            <span className="inline-flex items-center gap-1 text-[#2D6A4F] dark:text-[#b7e4c7]">
-              <Clock3 className="h-3.5 w-3.5" />
-              {durationLabel}
-            </span>
-          )}
-          {course.certificate_enabled === true && (
-            <span className="inline-flex items-center gap-1 text-[#0f8a46] dark:text-[#8de5b5]">
-              <Trophy className="h-3.5 w-3.5" />
-              Certificate
-            </span>
-          )}
-          {outcomeCount > 0 && <span>{outcomeCount} outcomes</span>}
-          {materialCount > 0 && <span>{materialCount} materials</span>}
-        </div>
-
-        <div>
-          <h2 className="line-clamp-2 text-base font-extrabold leading-snug text-slate-950 dark:text-white">
-            <Link href={courseHref} className="no-underline hover:text-[#2D6A4F] dark:hover:text-[#b7e4c7]">
-              {course.title}
-            </Link>
-          </h2>
-          <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-slate-600 dark:text-slate-400">
-            {course.description || "Professional learning designed for practical social work growth."}
-          </p>
-          <div className="mt-3">
-            <InstructorSummary instructors={instructors} />
-          </div>
-        </div>
-
-        <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#e6f2eb] pt-3 dark:border-[#35514a]">
-          <span className="text-sm font-extrabold text-[#2D6A4F] dark:text-[#b7e4c7]">
-            {formatPrice(course)}
-          </span>
-          <Link
-            href={courseHref}
-            className={`inline-flex h-9 items-center justify-center rounded-md border px-4 text-sm font-bold no-underline transition ${
-              canViewCourse
-                ? "border-[#2D6A4F] bg-[#2D6A4F] text-white hover:bg-[#1B4332] dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-                : "border-[#2D6A4F] text-[#2D6A4F] hover:bg-[#2D6A4F] hover:text-white dark:border-[#52b788] dark:text-[#b7e4c7] dark:hover:bg-[#52b788] dark:hover:text-[#06130d]"
-            }`}
-          >
-            {canViewCourse ? "View Course" : "Enroll"}
+      <div className="flex flex-1 flex-col px-2 pb-2 pt-3.5">
+        <h2 className="sw-title m-0 line-clamp-2 text-[1.08rem] leading-snug text-ink">
+          <Link href={href} className="text-inherit no-underline after:absolute after:inset-0 after:rounded-[24px] after:content-['']">
+            {course.title}
           </Link>
+        </h2>
+        <p className="m-0 mt-1.5 line-clamp-2 text-[0.86rem] leading-relaxed text-ink-2">
+          {course.description || "Professional learning for practical social work growth."}
+        </p>
+        <div className="relative z-[1] mt-3 w-fit">
+          <InstructorSummary instructors={instructors} />
+        </div>
+        <div className="mt-3">
+          <CourseMeta course={course} />
+        </div>
+        <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+          <span className={`text-[1.05rem] font-bold tracking-[-0.01em] ${course.is_free ? "text-accent" : "text-ink"}`}>{formatPrice(course)}</span>
+          <span className={`lms-btn !min-h-9 !px-4 !text-[0.82rem] ${owned ? "" : "lms-btn--quiet"}`} aria-hidden="true">
+            {owned ? "Open" : "View course"}
+          </span>
         </div>
       </div>
     </article>
+  );
+}
+
+function CourseRow({ course }: { course: Course }) {
+  const { href, owned, state, instructors } = courseFacts(course);
+  const lead = instructors[0]?.name;
+  return (
+    <div className="lms-row group !items-start sm:!items-center">
+      <Link href={href} tabIndex={-1} aria-hidden="true" className="lms-art relative block aspect-[16/10] w-24 flex-none overflow-hidden bg-paper-2 !rounded-[12px] sm:w-36">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={course.thumbnail_url || FALLBACK_IMAGE} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+      </Link>
+      <div className="min-w-0 flex-1">
+        <span className="block text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-ink-3">
+          {titleCaseEnum(course.category)}
+          {state && <span className="ml-2 normal-case tracking-normal text-accent">· {state}</span>}
+        </span>
+        <h2 className="m-0 mt-0.5 truncate text-[1rem] font-semibold tracking-[-0.01em] text-ink">
+          <Link href={href} className="text-inherit no-underline after:absolute after:inset-0 after:content-['']">
+            {course.title}
+          </Link>
+        </h2>
+        <p className="m-0 mt-0.5 hidden truncate text-[0.85rem] text-ink-2 sm:block">
+          {course.description || "Professional learning for practical social work growth."}
+        </p>
+        <div className="mt-1.5">
+          <CourseMeta course={course} compact />
+        </div>
+        {lead && <p className="m-0 mt-1 truncate text-[0.8rem] text-ink-3 md:hidden">{lead}</p>}
+      </div>
+      <span className="hidden w-40 flex-none truncate text-[0.85rem] text-ink-2 md:block">{lead}</span>
+      <div className="relative z-[1] flex flex-none flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-3">
+        <span className={`text-[0.95rem] font-bold ${course.is_free ? "text-accent" : "text-ink"}`}>{formatPrice(course)}</span>
+        <span className={`lms-row-action ${owned ? "lms-row-action--primary" : ""} hidden sm:inline-flex`} aria-hidden="true">
+          {owned ? "Open" : "View"}
+        </span>
+        <CourseBookmarkButton courseId={course.id} courseTitle={course.title} initialBookmarked={course.is_bookmarked} variant="icon" />
+      </div>
+    </div>
   );
 }
 
@@ -807,55 +741,40 @@ function Pagination({
   meta: Meta;
   filters: Record<string, string | undefined>;
 }) {
+  if (meta.total_pages <= 1) return null;
   const pages = Array.from({ length: Math.min(meta.total_pages, 5) }, (_, index) => {
     const start = Math.max(1, Math.min(meta.page - 2, meta.total_pages - 4));
     return start + index;
   }).filter((page) => page >= 1 && page <= meta.total_pages);
 
   return (
-    <nav className="flex flex-wrap items-center gap-2" aria-label="Course pages">
-      <PageButton
-        href={buildHref(filters, { page: Math.max(1, meta.page - 1) })}
-        disabled={!meta.has_previous}
-        label="Previous page"
-      >
+    <nav className="lms-pager" aria-label="Course pages">
+      <PageLink href={buildHref(filters, { page: Math.max(1, meta.page - 1) })} disabled={!meta.has_previous} label="Previous page">
         <ChevronLeft className="h-4 w-4" />
-      </PageButton>
+      </PageLink>
       {pages.map((page) => (
-        <PageButton
-          key={page}
-          href={buildHref(filters, { page })}
-          active={page === meta.page}
-          label={`Page ${page}`}
-        >
+        <PageLink key={page} href={buildHref(filters, { page })} active={page === meta.page} label={`Page ${page}`}>
           {page}
-        </PageButton>
+        </PageLink>
       ))}
-      {meta.total_pages > 5 && meta.page < meta.total_pages - 2 && (
-        <span className="flex h-9 w-9 items-center justify-center text-sm font-bold text-slate-500">
-          ...
-        </span>
-      )}
       {meta.total_pages > 5 && !pages.includes(meta.total_pages) && (
-        <PageButton
-          href={buildHref(filters, { page: meta.total_pages })}
-          label={`Page ${meta.total_pages}`}
-        >
-          {meta.total_pages}
-        </PageButton>
+        <>
+          <span aria-hidden="true" className="grid h-9 w-6 place-items-center text-sm text-ink-3">
+            …
+          </span>
+          <PageLink href={buildHref(filters, { page: meta.total_pages })} label={`Page ${meta.total_pages}`}>
+            {meta.total_pages}
+          </PageLink>
+        </>
       )}
-      <PageButton
-        href={buildHref(filters, { page: Math.min(meta.total_pages || 1, meta.page + 1) })}
-        disabled={!meta.has_next}
-        label="Next page"
-      >
+      <PageLink href={buildHref(filters, { page: Math.min(meta.total_pages || 1, meta.page + 1) })} disabled={!meta.has_next} label="Next page">
         <ChevronRight className="h-4 w-4" />
-      </PageButton>
+      </PageLink>
     </nav>
   );
 }
 
-function PageButton({
+function PageLink({
   href,
   active = false,
   disabled = false,
@@ -868,16 +787,15 @@ function PageButton({
   label: string;
   children: React.ReactNode;
 }) {
-  const className = `flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm font-bold no-underline transition ${
-    active
-      ? "border-[#2D6A4F] bg-[#2D6A4F] text-white dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
-      : disabled
-        ? "pointer-events-none border-[#e8eee9] bg-[#f8faf8] text-slate-300 dark:border-[#2f3331] dark:bg-[#1e2120] dark:text-slate-700"
-        : "border-[#dceee4] bg-white text-slate-700 hover:border-[#95d5b2] hover:bg-[#f7fcf9] hover:text-[#2D6A4F] dark:border-[#35514a] dark:bg-[#252827] dark:text-slate-300 dark:hover:border-[#52b788] dark:hover:bg-[#2a3f35] dark:hover:text-[#b7e4c7]"
-  }`;
-
+  if (disabled) {
+    return (
+      <span aria-disabled="true" aria-label={label} className="lms-page opacity-35">
+        {children}
+      </span>
+    );
+  }
   return (
-    <Link href={disabled ? "#" : href} aria-label={label} className={className}>
+    <Link href={href} aria-label={label} aria-current={active ? "page" : undefined} className="lms-page no-underline">
       {children}
     </Link>
   );

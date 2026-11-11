@@ -9,7 +9,7 @@ type CourseBookmarkButtonProps = {
   courseId: string;
   initialBookmarked?: boolean | null;
   courseTitle: string;
-  variant?: "floating" | "inline";
+  variant?: "floating" | "inline" | "glass" | "icon";
 };
 
 export function CourseBookmarkButton({
@@ -69,7 +69,11 @@ export function CourseBookmarkButton({
 
   const label = bookmarked ? "Saved Course" : "Save Course";
   const className =
-    variant === "inline"
+    variant === "glass"
+      ? "lms-glass-btn absolute right-2.5 top-2.5 z-[2]"
+      : variant === "icon"
+        ? `lms-gpop-x !h-9 !w-9 ${bookmarked ? "!text-clay" : ""}`
+        : variant === "inline"
       ? `inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border px-4 text-sm font-extrabold transition disabled:cursor-wait disabled:opacity-75 ${
           bookmarked
             ? "border-[#2D6A4F] bg-[#e7f6ee] text-[#2D6A4F] hover:bg-[#d8f3dc] dark:border-[#52b788]/50 dark:bg-[#52b788]/15 dark:text-[#b7e4c7] dark:hover:bg-[#52b788]/25"
@@ -93,6 +97,7 @@ export function CourseBookmarkButton({
       title={bookmarked ? "Remove from saved" : "Save course"}
       onClick={toggleBookmark}
       disabled={pending}
+      data-on={bookmarked || undefined}
       className={className}
     >
       {pending ? (

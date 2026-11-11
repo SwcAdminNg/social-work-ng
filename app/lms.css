@@ -852,6 +852,39 @@ html:has(.lms-root) body {
   .dark .lms-page[aria-current="page"] { background: var(--sw-green); }
   .lms-page:disabled:not([aria-current]) { opacity: 0.35; cursor: default; }
 
+  /* ── Course catalogue ── */
+  .lms-search--lg input { height: 3rem; padding-left: 2.7rem; border-radius: 14px; font-size: 1rem; }
+  .lms-search--lg .lms-search-glyph { left: 1rem; width: 1.1rem; height: 1.1rem; }
+  .lms-search--lg .lms-search-clear { right: 0.6rem; }
+  .lms-capsule {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    height: 2.25rem;
+    padding: 0 0.95rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-ink) 6%, transparent);
+    color: var(--sw-ink);
+    font-size: 0.86rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color 0.18s, color 0.18s, transform 0.2s var(--sw-ease);
+  }
+  .dark .lms-capsule { background: rgba(255, 255, 255, 0.075); }
+  .lms-capsule:hover { background: color-mix(in srgb, var(--sw-ink) 10%, transparent); }
+  .lms-capsule:active { transform: scale(0.96); }
+  .lms-capsule[aria-current="page"] { background: var(--sw-ink); color: var(--sw-paper); }
+  .lms-capsule-count { font-size: 0.72rem; font-weight: 600; opacity: 0.6; font-variant-numeric: tabular-nums; }
+  .lms-segmented--icons .lms-segment { padding: 0 0.7rem; }
+  .lms-segment[aria-current="true"] {
+    background: var(--sw-card);
+    color: var(--sw-ink);
+    box-shadow: 0 1px 2px rgba(14, 31, 23, 0.1), 0 4px 12px -6px rgba(14, 31, 23, 0.22);
+  }
+  .dark .lms-segment[aria-current="true"] { background: #3a3e3c; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
+  .lms-segment[aria-current="true"] > svg { color: var(--sw-accent); }
+
   /* ── Notifications page: rounded platters, after Notification Center ── */
   .lms-sym--lg { width: 2.5rem; height: 2.5rem; border-radius: 11px; }
   .lms-notice {
@@ -1088,6 +1121,11 @@ html:has(.lms-root) body {
   .lms-pulldown:hover, .lms-pulldown[aria-expanded="true"] { background: color-mix(in srgb, var(--sw-ink) 10%, transparent); }
   .lms-pulldown--on { color: var(--sw-accent); background: color-mix(in srgb, var(--sw-green) 13%, transparent); }
   .lms-menu--down { top: calc(100% + 6px); bottom: auto; left: auto; right: 0; width: 12rem; transform-origin: top right; }
+  .lms-menu--up { top: auto; bottom: calc(100% + 6px); left: auto; right: 0; width: 10rem; transform-origin: bottom right; }
+  .lms-menu--start { left: 0; right: auto; transform-origin: top left; }
+  .lms-menu--down, .lms-menu--up { max-height: min(22rem, 60vh); overflow-y: auto; z-index: 40; }
+  .lms-menu--up .lms-menu-item > svg { color: var(--sw-accent); }
+  .lms-menu--up .lms-menu-item:hover > svg, .lms-menu--up .lms-menu-item:focus-visible > svg { color: #fff; }
   .lms-menu--down .lms-menu-item > svg { color: var(--sw-accent); }
   .lms-menu--down .lms-menu-item:hover > svg, .lms-menu--down .lms-menu-item:focus-visible > svg { color: #fff; }
   .lms-filter-token {
