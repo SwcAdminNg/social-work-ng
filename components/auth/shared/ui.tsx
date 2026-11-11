@@ -55,7 +55,7 @@ export function AuthHeader({
     <div className="au-head">
       {icon === "app" ? (
         <Link href="/" className="au-appicon" aria-label="Social Work Consultancy Ltd home">
-          <Image src="/favicon.png" alt="" width={120} height={120} priority />
+          <Image src="/images/logo/swc-mark.png" alt="" width={120} height={120} priority />
         </Link>
       ) : icon === "success" ? (
         <span className="au-glyph" data-tone="success" aria-hidden="true">
