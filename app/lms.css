@@ -1317,6 +1317,64 @@ html:has(.lms-root) body {
   .dark .lms-cal-icon-month { color: #ff453a; }
   .lms-cal-icon-day { display: grid; place-items: center; margin-top: -0.2rem; color: var(--sw-ink); font-size: 2rem; font-weight: 300; line-height: 1; }
 
+  /* ── Compose sheet (new support request) ── */
+  .lms-sheet-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, 0.3); animation: lms-alert-fade 0.2s ease-out both; }
+  .dark .lms-sheet-scrim { background: rgba(0, 0, 0, 0.55); }
+  .lms-sheet {
+    position: fixed;
+    z-index: 61;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - 2.5rem);
+    border-radius: 22px 22px 0 0;
+    background: var(--sw-paper);
+    box-shadow: 0 -10px 40px -10px rgba(0, 0, 0, 0.35);
+    animation: lms-sheet-up 0.38s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  }
+  .dark .lms-sheet { background: #1f2120; box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.1), 0 -10px 40px -10px rgba(0, 0, 0, 0.7); }
+  @media (min-width: 640px) {
+    .lms-sheet {
+      left: 50%;
+      right: auto;
+      bottom: auto;
+      top: 50%;
+      width: min(560px, calc(100vw - 3rem));
+      max-height: min(640px, calc(100dvh - 4rem));
+      border-radius: 20px;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.45);
+      animation: lms-sheet-in 0.3s cubic-bezier(0.2, 0.9, 0.25, 1.06) both;
+    }
+  }
+  .lms-sheet-bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 3.25rem;
+    padding: 0 1rem;
+    box-shadow: inset 0 -1px 0 var(--sw-line);
+  }
+  .lms-sheet-bar > :first-child { justify-self: start; }
+  .lms-sheet-send {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 2rem;
+    padding: 0 0.95rem;
+    border-radius: 999px;
+    background: var(--sw-green);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .lms-sheet-send:disabled { background: color-mix(in srgb, var(--sw-ink) 12%, transparent); color: var(--sw-ink-3); cursor: default; }
+
   /* ── Notifications page: rounded platters, after Notification Center ── */
   .lms-sym--lg { width: 2.5rem; height: 2.5rem; border-radius: 11px; }
   .lms-notice {
@@ -1880,6 +1938,8 @@ html:has(.lms-root) body {
 }
 
 @keyframes lms-typing { 0%, 60%, 100% { opacity: 0.35; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-2px); } }
+@keyframes lms-sheet-up { from { transform: translate3d(0, 100%, 0); } }
+@keyframes lms-sheet-in { from { opacity: 0; transform: translate(-50%, -46%) scale(0.98); } }
 @keyframes lms-menu-in { from { opacity: 0; transform: scale(0.96) translate3d(0, 4px, 0); } }
 @keyframes lms-rise { from { opacity: 0; transform: translate3d(0, 18px, 0); } }
 @keyframes lms-grow { from { transform: scaleX(0); } }
@@ -1895,6 +1955,7 @@ html:has(.lms-root) body {
   .lms-side-link, .lms-side-btn, .lms-side-chev, .lms-icon-btn, .lms-btn, .lms-tab, .lms-card-hover, .lms-milk-hover, .lms-glass-btn, .lms-segment, .lms-row, .lms-row-action, .lms-cal-num, .lms-pass, .lms-pass-sheen, .lms-pass-action, .lms-notice, .lms-switch, .lms-switch::after, .lms-checkout { transition: none; }
   .lms-typing span, .lms-contact { animation: none; }
   .lms-live-join { transition: none; }
+  .lms-sheet, .lms-sheet-scrim { animation: none; }
   .lms-pass:hover { transform: none; }
   .lms-milk-hover:hover, .lms-milk-hover:active { transform: none; }
   .lms-menu { animation: none; }

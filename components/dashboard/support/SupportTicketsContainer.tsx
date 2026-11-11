@@ -45,28 +45,15 @@ export default async function SupportTicketsContainer({
   }
 
   return (
-    <div className="w-full h-full max-w-8xl mx-auto py-8">
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            My Support Tickets
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Browse your open and past support requests, or start a new one.
-          </p>
-        </div>
-      </div>
-
-      <SupportTicketsList
-        initialData={tickets}
-        totalItems={totalItems}
-        currentPage={page}
-        limit={limit}
-        error={error}
-        openNewTicketOnLoad={openNewTicket}
-        initialSubject={initialSubject}
-        initialMessage={initialMessage}
-      />
-    </div>
+    <SupportTicketsList
+      initialData={tickets}
+      totalItems={totalItems}
+      currentPage={page}
+      limit={limit}
+      error={error}
+      openNewTicketOnLoad={openNewTicket}
+      initialSubject={initialSubject}
+      initialMessage={initialMessage}
+    />
   );
 }
