@@ -212,11 +212,11 @@ export default async function LiveSessionsPage({
   // eslint-disable-next-line react-hooks/purity -- a server render reads the clock once
   const now = Date.now();
 
-  const live = items.filter((session) => session.can_join);
+  const live = items.filter((session) => sessionState(session, now) === "live");
   // Upcoming fetches from a little before now so a class already in progress is included; anything finished stays in Past.
   const listed =
     view === "upcoming"
-      ? items.filter((session) => !session.can_join && !["ended", "recording"].includes(sessionState(session, now)))
+      ? items.filter((session) => !["live", "ended", "recording"].includes(sessionState(session, now)))
       : items;
   const groups = groupByDay(listed);
   const courseTitle = courseId ? items.find((session) => session.course_id === courseId)?.course_title : undefined;

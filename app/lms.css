@@ -1254,6 +1254,9 @@ html:has(.lms-root) body {
   .lms-session--recording { --bar: #2d9d6a; }
   .lms-session--ended, .lms-session--unscheduled { --bar: color-mix(in srgb, var(--sw-ink) 22%, transparent); }
   .lms-session--ended h3, .lms-session--ended .tabular-nums { opacity: 0.7; }
+  .lms-session--cancelled { --bar: #ff3b30; }
+  .lms-session--cancelled h3 { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--sw-ink) 45%, transparent); }
+  .lms-session--cancelled h3, .lms-session--cancelled .tabular-nums { opacity: 0.7; }
   .lms-row-action--red-fill, .lms-row:hover .lms-row-action--red-fill, .dark .lms-row-action--red-fill { background: #ff3b30; color: #fff; }
   .lms-live-card {
     position: relative;

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronRight, Clock3, UserRound, Video } from "lucide-react";
+import { SessionOpener } from "./SessionAlert";
 
 export type LiveSession = {
   item_id: string;
@@ -34,16 +35,28 @@ export function parse(value?: string | null) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export type SessionState = "live" | "soon" | "upcoming" | "ended" | "recording" | "unscheduled";
+export type SessionState = "live" | "soon" | "upcoming" | "ended" | "recording" | "cancelled" | "unscheduled";
+
+/** When the session is due to finish: its end time, or start plus duration. */
+export function sessionEnd(session: LiveSession) {
+  const start = parse(session.scheduled_start_at);
+  return parse(session.scheduled_end_at) ?? (start && session.duration_minutes ? new Date(start.getTime() + session.duration_minutes * 60_000) : null);
+}
 
 export function sessionState(session: LiveSession, now: number): SessionState {
-  if (session.can_join) return "live";
+  const status = (session.status || "").toUpperCase();
+  if (status === "CANCELLED") return "cancelled";
+  // The host can end a session early; it stops being joinable even inside the join window.
+  const endedByHost = status === "ENDED";
+  if (!endedByHost && session.can_join) return "live";
   const start = parse(session.scheduled_start_at);
-  const end = parse(session.scheduled_end_at) ?? (start && session.duration_minutes ? new Date(start.getTime() + session.duration_minutes * 60_000) : null);
+  const end = sessionEnd(session);
   const recording = (session.recording_status || "").toUpperCase();
-  if (session.is_completed || (end && end.getTime() < now)) {
+  if (endedByHost || session.is_completed || (end && end.getTime() < now)) {
     return ["READY", "AVAILABLE", "PUBLISHED", "COMPLETED"].includes(recording) ? "recording" : "ended";
   }
+  // The host opened the room before the usual join window.
+  if (status === "LIVE") return "live";
   if (!start) return "unscheduled";
   return start.getTime() - now <= 60 * 60_000 ? "soon" : "upcoming";
 }
@@ -91,7 +104,7 @@ export function groupByDay(items: LiveSession[]) {
 export function timeRange(session: LiveSession) {
   const start = parse(session.scheduled_start_at);
   if (!start) return { start: "TBC", end: "" };
-  const end = parse(session.scheduled_end_at) ?? (session.duration_minutes ? new Date(start.getTime() + session.duration_minutes * 60_000) : null);
+  const end = sessionEnd(session);
   return { start: timeFmt.format(start), end: end ? timeFmt.format(end) : "" };
 }
 
@@ -151,7 +164,9 @@ export function SessionRow({ session, now }: { session: LiveSession; now: number
             ? { label: "Recording available", tone: "green" }
             : state === "ended"
               ? { label: "Ended", tone: "gray" }
-              : { label: "Time to be confirmed", tone: "gray" };
+              : state === "cancelled"
+                ? { label: "Cancelled", tone: "red" }
+                : { label: "Time to be confirmed", tone: "gray" };
 
   const action = state === "live" ? "Join" : state === "recording" ? "Watch" : "Details";
 
@@ -164,9 +179,16 @@ export function SessionRow({ session, now }: { session: LiveSession; now: number
       <span className="lms-session-bar" aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <h3 className="m-0 truncate text-[0.98rem] font-semibold tracking-[-0.01em] text-ink">
-          <Link href={sessionHref(session)} className="lms-stretch text-inherit no-underline">
-            {session.title}
-          </Link>
+          {state === "live" ? (
+            <Link href={sessionHref(session)} className="lms-stretch text-inherit no-underline">
+              {session.title}
+            </Link>
+          ) : (
+            // Anything not joinable explains itself in an alert instead of opening a call that cannot start.
+            <SessionOpener session={session} className="lms-stretch lms-session-open">
+              {session.title}
+            </SessionOpener>
+          )}
         </h3>
         <p className="m-0 mt-0.5 truncate text-[0.84rem] text-ink-2">
           {session.course_title || "Course session"}
