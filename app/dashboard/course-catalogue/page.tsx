@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Clock3,
   GraduationCap,
+  Library,
   Search,
   Shapes,
   Sparkles,
@@ -377,36 +378,35 @@ export default async function CourseCataloguePage(props: {
         </div>
       </Form>
 
-      {/* Catalogues, as capsule chips */}
-      {catalogs.length > 0 && (
-        <nav aria-label="Catalogues" className="lms-scroll-x -mx-3 mt-4 overflow-x-auto px-3 sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
-          <ul className="m-0 flex list-none gap-2 p-0 pb-1">
-            <li>
-              <Link href={buildHref(filters, { page: 1, catalog: undefined })} aria-current={!catalog ? "page" : undefined} className="lms-capsule" scroll={false}>
-                All
-              </Link>
-            </li>
-            {catalogs.map((item) => (
-              <li key={item.id}>
-                <Link
-                  href={buildHref(filters, { page: 1, catalog: item.slug })}
-                  aria-current={catalog === item.slug ? "page" : undefined}
-                  className="lms-capsule"
-                  scroll={false}
-                >
-                  {item.name}
-                  <span className="lms-capsule-count">{item.total_courses ?? 0}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
 
       {/* Toolbar: filters and view, pinned under the top bar */}
       <div className="lms-course-bar sticky top-[var(--lms-top)] z-20 -mx-3 mt-3 px-3 py-3 sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
+            {catalogs.length > 0 && (
+              <PopUpMenu
+                ariaLabel="Catalogue"
+                kind="popup"
+                label={
+                  <span className="max-w-[16rem] truncate">
+                    <span className="text-ink-3">Catalogue: </span>
+                    {selectedCatalog?.name ?? "All"}
+                  </span>
+                }
+                icon={<Library className="h-4 w-4" aria-hidden="true" />}
+                active={Boolean(catalog)}
+                align="left"
+                items={[
+                  { key: "all", label: "All catalogues", checked: !catalog, href: buildHref(filters, { page: 1, catalog: undefined }) },
+                  ...catalogs.map((item) => ({
+                    key: item.id,
+                    label: `${item.name} (${item.total_courses ?? 0})`,
+                    checked: catalog === item.slug,
+                    href: buildHref(filters, { page: 1, catalog: item.slug }),
+                  })),
+                ]}
+              />
+            )}
             <PopUpMenu
               ariaLabel="Level"
               label={levelLabel ?? "Level"}

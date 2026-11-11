@@ -10,9 +10,10 @@ import {
   formatResourceCategory,
   getResources,
 } from "@/lib/resources";
-import { ViewSwitch } from "@/components/dashboard/PopUpMenu";
+import { PopUpMenu, ViewSwitch } from "@/components/dashboard/PopUpMenu";
 import { ResourceSearchBar } from "./ResourceSearchBar";
 import { ResourceCard, ResourceRow, look } from "./ResourceCards";
+import { LayoutList } from "lucide-react";
 
 export const metadata = {
   title: "Resources | Dashboard | Social Work Nigeria",
@@ -49,6 +50,7 @@ export default async function DashboardResourcesPage(props: {
         ? "list"
         : "grid";
   const filters: Filters = { category, search, access, view };
+  const CategoryIcon = category ? look(category).icon : LayoutList;
 
   const { items, meta, ok } = await getResources({
     page,
@@ -83,29 +85,32 @@ export default async function DashboardResourcesPage(props: {
         <ResourceSearchBar initialSearch={search} />
       </div>
 
-      <nav aria-label="Categories" className="lms-scroll-x -mx-3 mt-4 overflow-x-auto px-3 sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
-        <ul className="m-0 flex list-none gap-2 p-0 pb-1">
-          <li>
-            <Link href={buildUrl({ ...filters, category: undefined })} aria-current={!category ? "page" : undefined} className="lms-capsule" scroll={false}>
-              All
-            </Link>
-          </li>
-          {RESOURCE_CATEGORIES.map((item) => {
-            const { icon: Icon } = look(item);
-            return (
-              <li key={item}>
-                <Link href={buildUrl({ ...filters, category: item })} aria-current={category === item ? "page" : undefined} className="lms-capsule" scroll={false}>
-                  <Icon className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
-                  {formatResourceCategory(item)}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
 
       <div className="lms-course-bar sticky top-[var(--lms-top)] z-20 -mx-3 mt-3 px-3 py-3 sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+          <PopUpMenu
+            ariaLabel="Category"
+            kind="popup"
+            align="left"
+            active={Boolean(category)}
+            icon={<CategoryIcon className="h-4 w-4" aria-hidden="true" />}
+            label={
+              <span className="truncate">
+                <span className="text-ink-3">Category: </span>
+                {category ? formatResourceCategory(category) : "All"}
+              </span>
+            }
+            items={[
+              { key: "all", label: "All categories", checked: !category, href: buildUrl({ ...filters, category: undefined }) },
+              ...RESOURCE_CATEGORIES.map((item) => ({
+                key: item,
+                label: formatResourceCategory(item),
+                checked: category === item,
+                href: buildUrl({ ...filters, category: item }),
+              })),
+            ]}
+          />
           <div role="group" aria-label="Access" className="lms-segmented">
             {[
               { key: undefined, label: "Any" },
@@ -122,6 +127,7 @@ export default async function DashboardResourcesPage(props: {
                 {option.label}
               </Link>
             ))}
+          </div>
           </div>
           <ViewSwitch
             view={view}

@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
+  ArrowUp,
   BookOpen,
-  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -16,17 +16,15 @@ import {
   FileText,
   Hash,
   ImageIcon,
+  Info,
   Loader2,
   MessageSquareReply,
-  Paperclip,
-  Radio,
+  Plus,
+  Reply,
   Search,
-  Send,
   ShieldCheck,
   UserCog,
   UsersRound,
-  Wifi,
-  WifiOff,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -989,17 +987,14 @@ export default function CommunityChat({
 
   if (communities.length === 0) {
     return (
-      <div className="grid min-h-[460px] place-items-center rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-950">
-        <div>
-          <UsersRound className="mx-auto h-10 w-10 text-[#2D6A4F] dark:text-[#74c69d]" />
-          <h2 className="mt-4 text-lg font-bold text-slate-950 dark:text-white">
-            No communities yet
-          </h2>
-          <p className="mt-2 max-w-md text-sm text-slate-500 dark:text-slate-400">
-            Rooms available to your account will appear here once you have
-            Community access.
-          </p>
-        </div>
+      <div className="lms-milk flex flex-col items-center px-6 py-16 text-center sm:py-24">
+        <span className="grid h-16 w-16 place-items-center rounded-full bg-card text-accent shadow-[inset_0_0_0_1px_var(--sw-line)] dark:bg-white/[0.06]">
+          <UsersRound className="h-7 w-7" strokeWidth={1.8} />
+        </span>
+        <h2 className="m-0 mt-5 text-[1.2rem] font-bold tracking-[-0.02em] text-ink">No rooms yet</h2>
+        <p className="m-0 mt-2 max-w-md text-[0.95rem] leading-relaxed text-ink-2">
+          Rooms for your courses and the wider community appear here as soon as your account has access.
+        </p>
       </div>
     );
   }
@@ -1029,67 +1024,76 @@ export default function CommunityChat({
         role="log"
         aria-live="polite"
         aria-relevant="additions"
-        className="swcl-sidebar-scroll h-full overflow-y-auto px-3 py-4 sm:px-5"
+        className="lms-scroll h-full overflow-y-auto px-3 pb-4 pt-3 sm:px-5"
       >
-      {hasOlder && (
-        <button
-          type="button"
-          onClick={() => loadMessages(activeId, page + 1)}
-          disabled={loadingOlder}
-          className="mx-auto mb-4 flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition hover:border-[#2D6A4F]/40 hover:text-[#2D6A4F] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-        >
-          {loadingOlder ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <ChevronUp className="h-3.5 w-3.5" />
-          )}
-          Older messages
-        </button>
-      )}
+        {hasOlder && (
+          <button
+            type="button"
+            onClick={() => loadMessages(activeId, page + 1)}
+            disabled={loadingOlder}
+            className="mx-auto mb-3 flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.78rem] font-semibold text-accent transition-colors hover:bg-[color-mix(in_srgb,var(--sw-green)_10%,transparent)] disabled:opacity-60"
+          >
+            {loadingOlder ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronUp className="h-3.5 w-3.5" />}
+            Load earlier messages
+          </button>
+        )}
 
-      {loadingMessages ? (
-        <div className="grid h-full place-items-center text-sm font-medium text-slate-400">
-          <span className="inline-flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading conversation
-          </span>
-        </div>
-      ) : visibleMessages.length === 0 ? (
-        <div className="grid h-full place-items-center text-center">
-          <div>
-            <Radio className="mx-auto h-10 w-10 text-[#2D6A4F] dark:text-[#74c69d]" />
-            <h3 className="mt-4 text-base font-bold text-slate-950 dark:text-white">
-              Start the conversation
-            </h3>
-            <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-              Share a note, ask a question, or attach a useful document for
-              the room.
-            </p>
+        {loadingMessages ? (
+          <div className="grid h-full place-items-center">
+            <span className="inline-flex items-center gap-2 text-sm text-ink-3">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading conversation
+            </span>
           </div>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {visibleMessages.map((message) => {
-            const own = message.sender_id === currentUserId;
-            return (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                own={own}
-                onReply={() => setReplyTo(message)}
-                onMemberClick={setSelectedMember}
-              />
-            );
-          })}
-        </div>
-      )}
+        ) : visibleMessages.length === 0 ? (
+          <div className="grid h-full place-items-center px-6 text-center">
+            <div>
+              <RoomAvatar type={activeCommunity?.type} size="lg" />
+              <h3 className="m-0 mt-4 text-[1.05rem] font-semibold text-ink">{activeCommunity?.name}</h3>
+              <p className="m-0 mt-1.5 max-w-xs text-[0.88rem] leading-relaxed text-ink-3">
+                No messages yet. Say hello, ask a question or share something useful with the room.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col">
+            {visibleMessages.map((message, index) => {
+              const previous = visibleMessages[index - 1];
+              const next = visibleMessages[index + 1];
+              const time = new Date(message.created_at).getTime();
+              const gapBefore = previous ? time - new Date(previous.created_at).getTime() : Infinity;
+              const gapAfter = next ? new Date(next.created_at).getTime() - time : Infinity;
+              const showDivider = !previous || gapBefore > 30 * 60_000 || !sameLagosDay(previous.created_at, message.created_at);
+              const startsGroup = showDivider || previous?.sender_id !== message.sender_id || gapBefore > 5 * 60_000;
+              const endsGroup = !next || next.sender_id !== message.sender_id || gapAfter > 5 * 60_000 || !sameLagosDay(message.created_at, next.created_at) || gapAfter > 30 * 60_000;
+              return (
+                <div key={message.id}>
+                  {showDivider && <p className="lms-chat-divider">{formatDivider(message.created_at)}</p>}
+                  <MessageBubble
+                    message={message}
+                    own={message.sender_id === currentUserId}
+                    startsGroup={startsGroup}
+                    endsGroup={endsGroup}
+                    onReply={() => setReplyTo(message)}
+                    onMemberClick={setSelectedMember}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-      {typingLine && (
-        <div className="mt-3 px-2 text-xs font-semibold text-[#2D6A4F] dark:text-[#74c69d]">
-          {typingLine}
-        </div>
-      )}
-      <div ref={bottomRef} />
+        {typingLine && (
+          <div className="mt-2 flex items-center gap-2 pl-9" aria-live="polite">
+            <span className="lms-typing" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+            <span className="text-[0.75rem] text-ink-3">{typingLine}</span>
+          </div>
+        )}
+        <div ref={bottomRef} />
       </div>
 
       {!isAtBottom && (
@@ -1097,11 +1101,11 @@ export default function CommunityChat({
           type="button"
           onClick={() => scrollToBottom("smooth")}
           aria-label="Scroll to latest messages"
-          className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#2D6A4F] shadow-lg ring-1 ring-slate-200 transition hover:bg-slate-50 active:scale-95 dark:bg-slate-900 dark:text-[#74c69d] dark:ring-slate-700 sm:bottom-6 sm:right-6"
+          className="lms-glass-btn absolute bottom-3 left-1/2 !h-10 !w-10 -translate-x-1/2"
         >
           <ChevronDown className="h-5 w-5" />
           {newMessageCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#2D6A4F] px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white dark:bg-[#74c69d] dark:text-slate-950 dark:ring-slate-950">
+            <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[var(--sw-clay)] px-1 text-[10px] font-bold leading-none text-white">
               {newMessageCount > 99 ? "99+" : newMessageCount}
             </span>
           )}
@@ -1110,13 +1114,12 @@ export default function CommunityChat({
     </div>
   );
 
+  const canSend = !sending && Boolean(draft.trim() || attachedFile || resourceShare);
+
   const composerArea = (
-    <form
-      onSubmit={handleSend}
-      className="border-t border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
-    >
+    <form onSubmit={handleSend} className="lms-composer">
       {(replyTo || attachedFile || resourceShare) && (
-        <div className="mb-2 flex flex-col gap-2">
+        <div className="mb-2 flex flex-col gap-1.5">
           {replyTo && (
             <ComposerChip
               icon={<MessageSquareReply className="h-4 w-4" />}
@@ -1128,20 +1131,14 @@ export default function CommunityChat({
           {resourceShare && (
             <ComposerChip
               icon={<BookOpen className="h-4 w-4" />}
-              title="Sharing resource"
+              title="Sharing a resource"
               detail={resourceShare.name}
               onClear={() => setResourceShare(null)}
             />
           )}
           {attachedFile && (
             <ComposerChip
-              icon={
-                attachedPreviewUrl ? (
-                  <ImageIcon className="h-4 w-4" />
-                ) : (
-                  <FileText className="h-4 w-4" />
-                )
-              }
+              icon={attachedPreviewUrl ? <ImageIcon className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
               title={attachedFile.name}
               detail={formatBytes(attachedFile.size)}
               imageUrl={attachedPreviewUrl}
@@ -1163,207 +1160,243 @@ export default function CommunityChat({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={sending || Boolean(attachedFile)}
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[#2D6A4F] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:border-slate-700 dark:text-slate-400 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
-          aria-label="Attach file"
-          title="Attach file"
+          className="lms-composer-plus"
+          aria-label="Attach a photo or file"
+          title="Attach a photo or file"
         >
-          <Paperclip className="h-4 w-4" />
+          <Plus className="h-5 w-5" strokeWidth={2.2} />
         </button>
-        <textarea
-          value={draft}
-          onChange={(event) => handleDraftChange(event.target.value)}
-          onBlur={() => sendTyping(false)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-              event.preventDefault();
-              handleSend(event as unknown as React.FormEvent);
-            }
-          }}
-          rows={1}
-          placeholder="Message this community"
-          className="max-h-32 min-h-11 flex-1 resize-none rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:bg-white focus:ring-2 focus:ring-[#2D6A4F]/15 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:bg-slate-950"
-        />
-        <button
-          type="submit"
-          disabled={sending || (!draft.trim() && !attachedFile && !resourceShare)}
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-[#2D6A4F] text-white shadow-sm transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2 dark:bg-[#74c69d] dark:text-slate-950 dark:hover:bg-[#95d5b2]"
-          aria-label="Send message"
-          title="Send message"
-        >
-          {sending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
-        </button>
+        <div className="lms-composer-field">
+          <label htmlFor="community-draft" className="sr-only">
+            Message {activeCommunity?.name}
+          </label>
+          <textarea
+            id="community-draft"
+            value={draft}
+            onChange={(event) => {
+              handleDraftChange(event.target.value);
+              const el = event.target;
+              el.style.height = "auto";
+              el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+            }}
+            onBlur={() => sendTyping(false)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                handleSend(event as unknown as React.FormEvent);
+                event.currentTarget.style.height = "auto";
+              }
+            }}
+            rows={1}
+            placeholder={activeCommunity ? `Message ${activeCommunity.name}` : "Message"}
+          />
+          <button
+            type="submit"
+            disabled={!canSend}
+            className="lms-composer-send"
+            aria-label="Send message"
+            title="Send"
+          >
+            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" strokeWidth={2.8} />}
+          </button>
+        </div>
       </div>
     </form>
   );
 
+  const roomList = (
+    <ul className="m-0 list-none p-0">
+      {filteredCommunities.map((community) => (
+        <li key={community.id}>
+          <RoomRow
+            community={community}
+            active={community.id === activeId}
+            onClick={() => {
+              setActiveId(community.id);
+              setMobileScreen("chat");
+            }}
+          />
+        </li>
+      ))}
+      {filteredCommunities.length === 0 && (
+        <li className="px-4 py-8 text-center text-[0.86rem] text-ink-3">No rooms match “{search}”.</li>
+      )}
+    </ul>
+  );
+
+  const roomSearch = (
+    <div className="lms-search">
+      <label htmlFor="room-search" className="sr-only">
+        Search rooms
+      </label>
+      <Search aria-hidden="true" className="lms-search-glyph" strokeWidth={2.2} />
+      <input
+        id="room-search"
+        type="search"
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && search) setSearch("");
+        }}
+        autoComplete="off"
+        placeholder="Search"
+      />
+      {search && (
+        <button type="button" aria-label="Clear search" onClick={() => setSearch("")} className="lms-search-clear">
+          <X className="h-3 w-3" strokeWidth={3} />
+        </button>
+      )}
+    </div>
+  );
+
+  const roomSubtitle = (
+    <>
+      <ConnectionDot state={connection} />
+      {onlineMembers.length} online
+      {members.length > 0 ? ` · ${members.length} members` : ""}
+    </>
+  );
+
   return (
     <>
-      {/* Mobile: WhatsApp-style room list -> full-screen chat -> members sheet */}
-      <div className="xl:hidden">
-        <div
-          className={cx(
-            "flex min-h-[70vh] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950",
-            mobileScreen === "chat" && "hidden",
-          )}
-        >
-          <div className="border-b border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/45">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search rooms"
-                className="h-10 w-full rounded-md border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-2 focus:ring-[#2D6A4F]/15 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-              />
-            </div>
+      {/* Phones and tablets: room list, then the conversation, then its details (as in Messages on iPhone) */}
+      <div className="lg:hidden">
+        <div className={cx("lms-msg-window flex flex-col", mobileScreen === "chat" && "hidden")}>
+          <div className="flex flex-col gap-3 px-3 pb-2 pt-3">
+            {roomSearch}
             {totalUnread > 0 && (
-              <p className="mt-2 px-1 text-xs font-semibold text-[#2D6A4F] dark:text-[#74c69d]">
-                {unreadBadgeLabel(totalUnread)} unread {totalUnread === 1 ? "message" : "messages"} across your rooms
+              <p className="m-0 px-1 text-[0.8rem] font-medium text-accent">
+                {unreadBadgeLabel(totalUnread)} unread {totalUnread === 1 ? "message" : "messages"}
               </p>
             )}
           </div>
-          <div className="swcl-sidebar-scroll flex-1 overflow-y-auto">
-            {filteredCommunities.map((community) => (
-              <MobileRoomRow
-                key={community.id}
-                community={community}
-                active={community.id === activeId}
-                onClick={() => {
-                  setActiveId(community.id);
-                  setMobileScreen("chat");
-                }}
-              />
-            ))}
-          </div>
+          <div className="lms-scroll flex-1 overflow-y-auto pb-2">{roomList}</div>
         </div>
 
         {mobileScreen === "chat" && (
-          <div className="fixed inset-0 z-40 flex flex-col bg-[#fbf8f0] dark:bg-slate-950">
-            <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-2 dark:border-slate-800 dark:bg-slate-950">
-              <button
-                type="button"
-                onClick={() => setMobileScreen("list")}
-                aria-label="Back to communities"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
-              >
-                <ChevronLeft className="h-5 w-5" />
+          <div className="lms-msg-fullscreen">
+            <header className="lms-navbar">
+              <button type="button" onClick={() => setMobileScreen("list")} className="lms-navbar-back" aria-label="Back to rooms">
+                <ChevronLeft className="h-6 w-6" strokeWidth={2.4} />
+                <span className="hidden min-[400px]:inline">Rooms</span>
               </button>
-              <button
-                type="button"
-                onClick={() => setMobileMembersOpen(true)}
-                className="flex min-w-0 flex-1 items-center gap-2 text-left"
-              >
-                <span className="min-w-0">
-                  <span className="flex items-center gap-2">
-                    <span className="truncate text-base font-bold text-slate-950 dark:text-white">
-                      {activeCommunity?.name}
-                    </span>
-                  </span>
-                  <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
-                    {onlineMembers.length} online
-                  </span>
-                </span>
+              <button type="button" onClick={() => setMobileMembersOpen(true)} className="flex min-w-0 flex-1 flex-col items-center px-2" aria-label="Room details">
+                <span className="max-w-full truncate text-[0.98rem] font-semibold text-ink">{activeCommunity?.name}</span>
+                <span className="flex items-center gap-1 text-[0.72rem] text-ink-3">{roomSubtitle}</span>
               </button>
-              <ConnectionIndicator state={connection} />
+              <button type="button" onClick={() => setMobileMembersOpen(true)} className="lms-gpop-x !h-10 !w-10 text-accent" aria-label="Room details">
+                <Info className="h-[21px] w-[21px]" strokeWidth={2} />
+              </button>
             </header>
-
             {messagesArea}
             {composerArea}
           </div>
         )}
 
         {mobileScreen === "chat" && mobileMembersOpen && (
-          <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-950">
-            <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-2 dark:border-slate-800 dark:bg-slate-950">
-              <button
-                type="button"
-                onClick={() => setMobileMembersOpen(false)}
-                aria-label="Back to chat"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
-              >
-                <ChevronLeft className="h-5 w-5" />
+          <div className="lms-msg-fullscreen">
+            <header className="lms-navbar">
+              <button type="button" onClick={() => setMobileMembersOpen(false)} className="lms-navbar-back" aria-label="Back to conversation">
+                <ChevronLeft className="h-6 w-6" strokeWidth={2.4} />
+                <span>Chat</span>
               </button>
-              <h2 className="truncate text-base font-bold text-slate-950 dark:text-white">
-                {activeCommunity?.name}
-              </h2>
+              <span className="flex-1 truncate text-center text-[0.98rem] font-semibold text-ink">Details</span>
+              <span className="w-16" aria-hidden="true" />
             </header>
-            <div className="swcl-sidebar-scroll flex-1 overflow-y-auto p-4">
+            <div className="lms-scroll flex-1 overflow-y-auto p-4">
+              <RoomIdentity community={activeCommunity} subtitle={roomSubtitle} />
               <MembersPanel {...membersPanelProps} />
             </div>
           </div>
         )}
       </div>
 
-      {/* Desktop: three-column layout, pinned to the viewport so only the
-          panels scroll internally instead of the whole page */}
-      <div className="hidden grid-cols-1 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950 xl:grid xl:h-[calc(100vh-280px)] xl:min-h-[520px] xl:grid-cols-[290px_minmax(0,1fr)_270px]">
-        <aside className="flex flex-col border-b border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/45 xl:min-h-0 xl:border-b-0 xl:border-r">
-          <div className="relative shrink-0">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search rooms"
-              className="h-10 w-full rounded-md border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-2 focus:ring-[#2D6A4F]/15 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-            />
+      {/* Laptops and up: rooms, conversation and details side by side, as in Messages on the Mac */}
+      <div className="lms-msg-window hidden lg:grid lg:h-[calc(100dvh-var(--lms-top)-11rem)] lg:min-h-[560px] lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_280px]">
+        <aside className="lms-msg-rooms flex min-h-0 flex-col">
+          <div className="flex flex-col gap-2.5 p-3">
+            {roomSearch}
+            {totalUnread > 0 && (
+              <p className="m-0 px-1 text-[0.78rem] font-medium text-accent">
+                {unreadBadgeLabel(totalUnread)} unread {totalUnread === 1 ? "message" : "messages"}
+              </p>
+            )}
           </div>
-          {totalUnread > 0 && (
-            <p className="mt-2 px-1 text-xs font-semibold text-[#2D6A4F] dark:text-[#74c69d]">
-              {unreadBadgeLabel(totalUnread)} unread {totalUnread === 1 ? "message" : "messages"} across your rooms
-            </p>
-          )}
-
-          <div className="swcl-sidebar-scroll mt-3 min-h-0 flex-1 space-y-1 overflow-y-auto">
-            {filteredCommunities.map((community) => (
-              <RoomButton
-                key={community.id}
-                community={community}
-                active={community.id === activeId}
-                onClick={() => setActiveId(community.id)}
-              />
-            ))}
-          </div>
+          <div className="lms-scroll min-h-0 flex-1 overflow-y-auto px-2 pb-2">{roomList}</div>
         </aside>
 
-        <main className="flex min-w-0 flex-col bg-[#fbf8f0] dark:bg-slate-950 xl:min-h-0">
-          <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="truncate text-base font-bold text-slate-950 dark:text-white">
-                  {activeCommunity?.name}
-                </h2>
-                {activeCommunity?.type && (
-                  <span className="rounded-md bg-amber-100 px-2 py-1 text-[0.68rem] font-bold uppercase tracking-[0.05em] text-amber-800 dark:bg-amber-400/15 dark:text-amber-200">
-                    {communityTypeBadge(activeCommunity.type)}
-                  </span>
-                )}
-              </div>
-              <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
-                {onlineMembers.length} online
-                {members.length > 0 ? ` of ${members.length} visible members` : ""}
-              </p>
+        <section aria-label={activeCommunity?.name ?? "Conversation"} className="flex min-h-0 min-w-0 flex-col">
+          <header className="lms-chat-head">
+            <RoomAvatar type={activeCommunity?.type} size="sm" />
+            <div className="min-w-0 flex-1">
+              <h2 className="m-0 truncate text-[0.98rem] font-semibold tracking-[-0.01em] text-ink">{activeCommunity?.name}</h2>
+              <p className="m-0 flex items-center gap-1 truncate text-[0.75rem] text-ink-3">{roomSubtitle}</p>
             </div>
-            <ConnectionIndicator state={connection} />
+            {activeCommunity?.type && <span className="lms-chip-milk hidden sm:inline-flex">{communityTypeBadge(activeCommunity.type)}</span>}
           </header>
-
           {messagesArea}
           {composerArea}
-        </main>
+        </section>
 
-        <aside className="swcl-sidebar-scroll hidden overflow-y-auto border-l border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950 xl:block xl:min-h-0">
+        <aside aria-label="Room details" className="lms-msg-details lms-scroll hidden min-h-0 overflow-y-auto p-4 xl:block">
+          <RoomIdentity community={activeCommunity} subtitle={roomSubtitle} />
           <MembersPanel {...membersPanelProps} />
         </aside>
       </div>
 
-      <UserProfileModal
-        member={selectedMember}
-        onClose={() => setSelectedMember(null)}
-      />
+      <UserProfileModal member={selectedMember} onClose={() => setSelectedMember(null)} />
     </>
+  );
+}
+
+const LAGOS_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos", year: "numeric", month: "2-digit", day: "2-digit" });
+
+function sameLagosDay(a: string, b: string) {
+  return LAGOS_DAY.format(new Date(a)) === LAGOS_DAY.format(new Date(b));
+}
+
+/** "Today 3:42 PM", "Yesterday 9:10 AM", "Monday 2:05 PM", "12 Oct 2026 4:00 PM", as Messages labels a new burst. */
+function formatDivider(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const time = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Africa/Lagos" }).format(date);
+  const now = Date.now();
+  const key = LAGOS_DAY.format(date);
+  if (key === LAGOS_DAY.format(new Date(now))) return `Today ${time}`;
+  if (key === LAGOS_DAY.format(new Date(now - 86_400_000))) return `Yesterday ${time}`;
+  if (now - date.getTime() < 6 * 86_400_000) {
+    return `${new Intl.DateTimeFormat("en-GB", { weekday: "long", timeZone: "Africa/Lagos" }).format(date)} ${time}`;
+  }
+  return `${new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }).format(date)} ${time}`;
+}
+
+const ROOM_TONE: Record<string, string> = {
+  GENERAL: "green",
+  COURSE: "blue",
+  HELP: "orange",
+  INSTRUCTOR_GENERAL: "indigo",
+  ADMIN_GENERAL: "gray",
+  CUSTOM: "gold",
+};
+
+function RoomAvatar({ type, size = "md" }: { type?: Community["type"]; size?: "sm" | "md" | "lg" }) {
+  const tone = ROOM_TONE[type ?? ""] ?? "green";
+  return (
+    <span className={cx("lms-room-avatar", `lms-sym--${tone}`, size === "sm" && "lms-room-avatar--sm", size === "lg" && "lms-room-avatar--lg")} aria-hidden="true">
+      <CommunityTypeIcon type={type ?? "GENERAL"} />
+    </span>
+  );
+}
+
+function RoomIdentity({ community, subtitle }: { community?: Community; subtitle: React.ReactNode }) {
+  if (!community) return null;
+  return (
+    <div className="mb-5 flex flex-col items-center text-center">
+      <RoomAvatar type={community.type} size="lg" />
+      <h2 className="m-0 mt-3 text-[1.1rem] font-semibold tracking-[-0.01em] text-ink">{community.name}</h2>
+      <p className="m-0 mt-0.5 flex items-center gap-1 text-[0.8rem] text-ink-3">{subtitle}</p>
+      <span className="lms-chip-milk mt-2.5">{communityTypeLabel(community.type)}</span>
+    </div>
   );
 }
 
@@ -1398,104 +1431,59 @@ function MembersPanel({
   onlineIds: Set<string>;
   onMemberClick: (member: Member) => void;
 }) {
+  const list = rosterExpanded ? displayedMembers : compactOnlineMembers;
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-bold text-slate-950 dark:text-white">
-            Members
-          </h3>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-            {rosterExpanded
-              ? memberMode === "online"
-                ? "Online members"
-                : "Full room roster"
-              : "Online now"}
-          </p>
-        </div>
-        <span className="rounded-md bg-[#d8f3dc] px-2 py-1 text-xs font-bold text-[#1B4332] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-          {onlineMembers.length} online
-        </span>
+    <section aria-label="Members">
+      <div className="mb-2 flex items-center justify-between px-1">
+        <h3 className="m-0 text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-ink-3">
+          {rosterExpanded ? (memberMode === "online" ? "Online now" : "All members") : "Online now"}
+        </h3>
+        <span className="text-[0.75rem] font-semibold text-accent">{onlineMembers.length} online</span>
       </div>
 
       {rosterExpanded && (
-        <div className="mt-4 grid grid-cols-2 rounded-md bg-slate-100 p-1 dark:bg-slate-900">
-          <button
-            type="button"
-            onClick={() => {
-              setMemberMode("online");
-              setMemberPage(1);
-            }}
-            className={cx(
-              "h-8 rounded px-3 text-xs font-bold transition",
-              memberMode === "online"
-                ? "bg-white text-[#2D6A4F] shadow-sm dark:bg-slate-950 dark:text-[#74c69d]"
-                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white",
-            )}
-          >
-            Online
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMemberMode("all");
-              setMemberPage(1);
-            }}
-            className={cx(
-              "h-8 rounded px-3 text-xs font-bold transition",
-              memberMode === "all"
-                ? "bg-white text-[#2D6A4F] shadow-sm dark:bg-slate-950 dark:text-[#74c69d]"
-                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white",
-            )}
-          >
-            All
-          </button>
+        <div role="tablist" aria-label="Members" className="lms-segmented mb-3 grid w-full grid-cols-2">
+          {(["online", "all"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              role="tab"
+              aria-selected={memberMode === mode}
+              onClick={() => {
+                setMemberMode(mode);
+                setMemberPage(1);
+              }}
+              className="lms-segment justify-center"
+            >
+              {mode === "online" ? "Online" : "Everyone"}
+            </button>
+          ))}
         </div>
       )}
 
-      <div className="mt-4 space-y-2">
+      <div className="lms-group">
         {loadingMembers && (
-          <div className="flex items-center gap-2 rounded-lg border border-slate-200 p-3 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          <p className="m-0 flex items-center gap-2 px-4 py-3 text-[0.82rem] text-ink-3">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
             Updating members
-          </div>
-        )}
-
-        {(rosterExpanded ? displayedMembers : compactOnlineMembers).map(
-          (member, index) => (
-            <MemberRow
-              key={
-                memberId(member)
-                  ? `${memberId(member)}-${index}`
-                  : `member-${index}`
-              }
-              member={member}
-              online={
-                (memberId(member)
-                  ? onlineIds.has(memberId(member) as string)
-                  : false) ||
-                Boolean(member.is_online)
-              }
-              onClick={() => onMemberClick(member)}
-            />
-          ),
-        )}
-
-        {!loadingMembers &&
-          !rosterExpanded &&
-          compactOnlineMembers.length === 0 && (
-            <p className="rounded-lg border border-dashed border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              Nobody is online right now.
-            </p>
-          )}
-
-        {!loadingMembers && rosterExpanded && displayedMembers.length === 0 && (
-          <p className="rounded-lg border border-dashed border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            {memberMode === "online"
-              ? "Nobody is online right now."
-              : "No members found for this room."}
           </p>
         )}
+        {!loadingMembers && list.length === 0 && (
+          <p className="m-0 px-4 py-4 text-[0.85rem] text-ink-3">
+            {memberMode === "online" || !rosterExpanded ? "Nobody is online right now." : "No members found for this room."}
+          </p>
+        )}
+        <ul className="m-0 list-none p-0">
+          {list.map((member, index) => (
+            <li key={memberId(member) ? `${memberId(member)}-${index}` : `member-${index}`}>
+              <MemberRow
+                member={member}
+                online={(memberId(member) ? onlineIds.has(memberId(member) as string) : false) || Boolean(member.is_online)}
+                onClick={() => onMemberClick(member)}
+              />
+            </li>
+          ))}
+        </ul>
       </div>
 
       {!rosterExpanded ? (
@@ -1506,41 +1494,28 @@ function MembersPanel({
             setMemberMode("online");
             setMemberPage(1);
           }}
-          className="mt-4 flex h-10 w-full items-center justify-center rounded-md border border-slate-200 text-xs font-bold text-slate-600 transition hover:border-[#2D6A4F]/50 hover:text-[#2D6A4F] dark:border-slate-700 dark:text-slate-300 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
+          className="lms-text-btn mt-2 w-full justify-center"
         >
-          View all online
+          Show all members
         </button>
       ) : (
-        <div className="mt-4 space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => setMemberPage((current) => Math.max(1, current - 1))}
-              disabled={memberPage <= 1}
-              className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[#2D6A4F]/50 hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-400 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
-              aria-label="Previous members page"
-              title="Previous"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-              Page {memberPage} of {rosterTotalPages}
-            </span>
-            <button
-              type="button"
-              onClick={() =>
-                setMemberPage((current) =>
-                  Math.min(rosterTotalPages, current + 1),
-                )
-              }
-              disabled={memberPage >= rosterTotalPages}
-              className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-[#2D6A4F]/50 hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-400 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
-              aria-label="Next members page"
-              title="Next"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+        <div className="mt-3 flex flex-col items-center gap-2">
+          {rosterTotalPages > 1 && (
+            <nav className="lms-pager" aria-label="Member pages">
+              <button type="button" onClick={() => setMemberPage((current) => Math.max(1, current - 1))} disabled={memberPage <= 1} aria-label="Previous members page" className="lms-page">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="px-1 text-[0.8rem] tabular-nums text-ink-3">
+                {memberPage} of {rosterTotalPages}
+              </span>
+              <button type="button" onClick={() => setMemberPage((current) => Math.min(rosterTotalPages, current + 1))} disabled={memberPage >= rosterTotalPages} aria-label="Next members page" className="lms-page">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </nav>
+          )}
+          {memberMode === "all" && memberTotalItems > 0 && (
+            <p className="m-0 text-[0.75rem] text-ink-3">{memberTotalItems} members in this room</p>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -1548,108 +1523,28 @@ function MembersPanel({
               setMemberMode("online");
               setMemberPage(1);
             }}
-            className="flex h-9 w-full items-center justify-center rounded-md text-xs font-bold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
+            className="lms-text-btn"
           >
-            Show online preview
+            Show less
           </button>
-          {memberMode === "all" && memberTotalItems > 0 && (
-            <p className="text-center text-[0.7rem] font-medium text-slate-400">
-              {memberTotalItems} total members
-            </p>
-          )}
         </div>
       )}
-    </>
+    </section>
   );
 }
 
-function MobileRoomRow({
-  community,
-  active,
-  onClick,
-}: {
-  community: Community;
-  active: boolean;
-  onClick: () => void;
-}) {
+function RoomRow({ community, active, onClick }: { community: Community; active: boolean; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cx(
-        "flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left transition dark:border-slate-800",
-        active
-          ? "bg-[#d8f3dc]/40 dark:bg-[#52b788]/10"
-          : "hover:bg-slate-50 dark:hover:bg-slate-900",
-      )}
-    >
-      <span
-        className={cx(
-          "grid h-12 w-12 shrink-0 place-items-center rounded-full",
-          active
-            ? "bg-[#2D6A4F] text-white dark:bg-[#74c69d] dark:text-slate-950"
-            : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
-        )}
-      >
-        <CommunityTypeIcon type={community.type} />
-      </span>
+    <button type="button" onClick={onClick} aria-current={active ? "true" : undefined} className="lms-room-row group">
+      <RoomAvatar type={community.type} />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold text-slate-950 dark:text-white">
-          {community.name}
-        </span>
-        <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
+        <span className="block truncate text-[0.92rem] font-semibold tracking-[-0.01em]">{community.name}</span>
+        <span className="lms-room-sub block truncate text-[0.78rem]">
           {communityTypeLabel(community.type)}
-          {typeof community.member_count === "number"
-            ? ` • ${community.member_count} members`
-            : ""}
+          {typeof community.member_count === "number" ? ` · ${community.member_count} members` : ""}
         </span>
       </span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 dark:text-slate-600" />
-    </button>
-  );
-}
-
-function RoomButton({
-  community,
-  active,
-  onClick,
-}: {
-  community: Community;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cx(
-        "flex min-w-[220px] items-center gap-3 rounded-lg border px-3 py-3 text-left transition xl:min-w-0 xl:w-full",
-        active
-          ? "border-[#2D6A4F] bg-white shadow-sm dark:border-[#74c69d] dark:bg-slate-950"
-          : "border-transparent hover:border-slate-200 hover:bg-white dark:hover:border-slate-700 dark:hover:bg-slate-950",
-      )}
-    >
-      <span
-        className={cx(
-          "grid h-9 w-9 shrink-0 place-items-center rounded-md",
-          active
-            ? "bg-[#2D6A4F] text-white dark:bg-[#74c69d] dark:text-slate-950"
-            : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
-        )}
-      >
-        <CommunityTypeIcon type={community.type} />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold text-slate-950 dark:text-white">
-          {community.name}
-        </span>
-        <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
-          {communityTypeLabel(community.type)}
-        </span>
-      </span>
-      {active ? (
-        <Check className="h-4 w-4 shrink-0 text-[#2D6A4F] dark:text-[#74c69d]" />
-      ) : null}
+      <ChevronRight className="lms-room-chev h-4 w-4 flex-none lg:hidden" aria-hidden="true" />
     </button>
   );
 }
@@ -1657,141 +1552,106 @@ function RoomButton({
 function MessageBubble({
   message,
   own,
+  startsGroup,
+  endsGroup,
   onReply,
   onMemberClick,
 }: {
   message: Message;
   own: boolean;
+  startsGroup: boolean;
+  endsGroup: boolean;
   onReply: () => void;
   onMemberClick: (member: Member) => void;
 }) {
   const name = displayName(message.sender);
   const staffLabel = staffRoleLabel(message.sender);
+  const onlyMedia = !message.body && !message.reply_to && message.attachment_kind === "IMAGE";
 
   return (
-    <div className={cx("group flex", own ? "justify-end" : "justify-start")}>
-      <div
-        className={cx(
-          "flex max-w-[88%] flex-col gap-1 sm:max-w-[72%]",
-          own ? "items-end" : "items-start",
-        )}
-      >
-        {!own && (
+    <div className={cx("group flex items-end gap-2", own ? "justify-end" : "justify-start", startsGroup ? "mt-3" : "mt-0.5")}>
+      {!own && (
+        <span className="w-7 flex-none">
+          {endsGroup && (
+            <button
+              type="button"
+              onClick={() => message.sender && onMemberClick(message.sender)}
+              className="block rounded-full"
+              aria-label={`View ${name}'s profile`}
+              title={name}
+            >
+              <Avatar member={message.sender} size="sm" />
+            </button>
+          )}
+        </span>
+      )}
+      <div className={cx("flex max-w-[82%] flex-col sm:max-w-[68%]", own ? "items-end" : "items-start")}>
+        {!own && startsGroup && (
           <button
             type="button"
             onClick={() => message.sender && onMemberClick(message.sender)}
-            className="flex items-center gap-1.5 rounded px-1 text-left text-xs font-bold text-slate-500 transition hover:text-[#2D6A4F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:text-slate-400 dark:hover:text-[#74c69d]"
+            className="mb-0.5 ml-3 flex items-center gap-1.5 text-[0.72rem] font-medium text-ink-3 hover:text-ink"
           >
             {name}
             {staffLabel && <StaffBadge label={staffLabel} />}
           </button>
         )}
-        <div className="flex items-end gap-2">
-          {!own && (
-            <button
-              type="button"
-              onClick={() => message.sender && onMemberClick(message.sender)}
-              className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
-              aria-label={`View ${name}'s profile`}
-              title={`View ${name}'s profile`}
-            >
-              <Avatar member={message.sender} size="sm" />
-            </button>
-          )}
+        <div className="flex items-center gap-1.5">
+          {own && <ReplyButton onReply={onReply} />}
           <div
             className={cx(
-              "rounded-lg px-3 py-2 text-sm leading-relaxed shadow-sm",
-              own
-                ? "bg-[#2D6A4F] text-white dark:bg-[#74c69d] dark:text-slate-950"
-                : "border border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100",
+              "lms-bubble",
+              own ? "lms-bubble--own" : "lms-bubble--them",
+              endsGroup && "lms-bubble--tail",
+              onlyMedia && "lms-bubble--media",
             )}
+            title={formatMessageTime(message.created_at)}
           >
             {message.reply_to && (
-              <div
-                className={cx(
-                  "mb-2 rounded-md border-l-2 px-2 py-1 text-xs",
-                  own
-                    ? "border-white/70 bg-white/10 text-white/85 dark:text-slate-900"
-                    : "border-[#2D6A4F] bg-slate-50 text-slate-600 dark:bg-slate-950 dark:text-slate-300",
-                )}
-              >
-                <span className="block font-bold">
-                  {displayName(message.reply_to.sender ?? undefined)}
-                </span>
-                <span className="block truncate">
-                  {message.reply_to.body ||
-                    message.reply_to.attachment_file_name ||
-                    "Previous message"}
+              <div className="lms-bubble-quote">
+                <span className="block text-[0.72rem] font-semibold">{displayName(message.reply_to.sender ?? undefined)}</span>
+                <span className="block truncate text-[0.78rem]">
+                  {message.reply_to.body || message.reply_to.attachment_file_name || "Previous message"}
                 </span>
               </div>
             )}
-            {message.body && (
-              <p className="whitespace-pre-wrap break-words">{message.body}</p>
-            )}
-            {message.attachment_url && (
-              <MessageAttachment message={message} own={own} />
-            )}
-            {message.resource_reference && (
-              <ResourceCard resource={message.resource_reference} own={own} />
-            )}
+            {message.body && <p className="m-0 whitespace-pre-wrap break-words">{message.body}</p>}
+            {message.attachment_url && <MessageAttachment message={message} own={own} />}
+            {message.resource_reference && <ResourceCard resource={message.resource_reference} own={own} />}
           </div>
-          {own && (
-            <button
-              type="button"
-              onClick={onReply}
-              className="hidden h-8 w-8 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-[#2D6A4F] group-hover:grid group-focus-within:grid focus:grid focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:hover:bg-slate-800 dark:hover:text-[#74c69d]"
-              aria-label="Reply to message"
-              title="Reply"
-            >
-              <MessageSquareReply className="h-4 w-4" />
-            </button>
-          )}
-          {!own && (
-            <button
-              type="button"
-              onClick={onReply}
-              className="hidden h-8 w-8 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-[#2D6A4F] group-hover:grid group-focus-within:grid focus:grid focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:hover:bg-slate-800 dark:hover:text-[#74c69d]"
-              aria-label="Reply to message"
-              title="Reply"
-            >
-              <MessageSquareReply className="h-4 w-4" />
-            </button>
-          )}
+          {!own && <ReplyButton onReply={onReply} />}
         </div>
-        <span className="flex items-center gap-1 px-1 text-[0.68rem] font-medium text-slate-400">
-          {formatMessageTime(message.created_at)}
-          {own &&
-            (message.status === "sending" ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Check className="h-3 w-3" />
-            ))}
-        </span>
+        {endsGroup && (
+          <span className={cx("mt-1 flex items-center gap-1 text-[0.68rem] text-ink-3", own ? "mr-2" : "ml-3")}>
+            {formatMessageTime(message.created_at)}
+            {own && (message.status === "sending" ? " · Sending…" : " · Delivered")}
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
-function MessageAttachment({
-  message,
-  own,
-}: {
-  message: Message;
-  own: boolean;
-}) {
+function ReplyButton({ onReply }: { onReply: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onReply}
+      className="grid h-7 w-7 flex-none place-items-center rounded-full text-ink-3 opacity-0 transition-opacity hover:bg-ink/[0.06] hover:text-ink focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-60"
+      aria-label="Reply to message"
+      title="Reply"
+    >
+      <Reply className="h-4 w-4" />
+    </button>
+  );
+}
+
+function MessageAttachment({ message, own }: { message: Message; own: boolean }) {
   if (message.attachment_kind === "IMAGE") {
     return (
-      <a
-        href={message.attachment_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-2 block overflow-hidden rounded-md"
-      >
-        <img
-          src={message.attachment_url}
-          alt={message.attachment_file_name || "Attachment"}
-          className="max-h-64 max-w-full object-cover transition hover:opacity-90"
-        />
+      <a href={message.attachment_url} target="_blank" rel="noopener noreferrer" className={cx("block overflow-hidden rounded-[14px]", message.body && "mt-1.5")}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={message.attachment_url} alt={message.attachment_file_name || "Image"} className="max-h-72 max-w-full object-cover transition-opacity hover:opacity-90" />
       </a>
     );
   }
@@ -1801,67 +1661,42 @@ function MessageAttachment({
       href={message.attachment_url}
       target="_blank"
       rel="noopener noreferrer"
-      className={cx(
-        "mt-2 flex min-w-[220px] items-center gap-3 rounded-md border px-3 py-2 transition",
-        own
-          ? "border-white/20 bg-white/10 hover:bg-white/15"
-          : "border-slate-200 bg-slate-50 hover:border-[#2D6A4F]/40 dark:border-slate-700 dark:bg-slate-950",
-      )}
+      className={cx("lms-bubble-file", own ? "lms-bubble-file--own" : "", message.body && "mt-1.5")}
     >
-      <FileText className="h-5 w-5 shrink-0" />
+      <span className="lms-sym lms-sym--blue !h-9 !w-9 !rounded-[9px]">
+        <FileText className="h-[18px] w-[18px]" />
+      </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-xs font-bold">
-          {message.attachment_file_name || "Attachment"}
-        </span>
+        <span className="block truncate text-[0.82rem] font-semibold">{message.attachment_file_name || "Attachment"}</span>
         {typeof message.attachment_file_size_bytes === "number" && (
-          <span className="block text-[0.68rem] opacity-75">
-            {formatBytes(message.attachment_file_size_bytes)}
-          </span>
+          <span className="block text-[0.72rem] opacity-75">{formatBytes(message.attachment_file_size_bytes)}</span>
         )}
       </span>
     </a>
   );
 }
 
-function ResourceCard({
-  resource,
-  own,
-}: {
-  resource: ResourceReference;
-  own: boolean;
-}) {
+function ResourceCard({ resource, own }: { resource: ResourceReference; own: boolean }) {
   const content = (
-    <span
-      className={cx(
-        "mt-2 flex min-w-[240px] items-center gap-3 rounded-md border p-2 transition",
-        own
-          ? "border-white/20 bg-white/10 hover:bg-white/15"
-          : "border-slate-200 bg-slate-50 hover:border-[#2D6A4F]/40 dark:border-slate-700 dark:bg-slate-950",
-      )}
-    >
+    <span className={cx("lms-bubble-file", own ? "lms-bubble-file--own" : "", "mt-1.5")}>
       {resource.thumbnail_url ? (
-        <img
-          src={resource.thumbnail_url}
-          alt=""
-          className="h-12 w-12 rounded-md object-cover"
-        />
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={resource.thumbnail_url} alt="" className="h-11 w-11 flex-none rounded-[10px] object-cover" />
       ) : (
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-blue-100 text-blue-700 dark:bg-blue-400/15 dark:text-blue-200">
+        <span className="lms-sym lms-sym--green !h-11 !w-11 !rounded-[10px]">
           <BookOpen className="h-5 w-5" />
         </span>
       )}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-xs font-bold">{resource.name}</span>
-        <span className="block truncate text-[0.68rem] opacity-75">
-          {resource.category || "Resource"}
-        </span>
+        <span className="block truncate text-[0.82rem] font-semibold">{resource.name}</span>
+        <span className="block truncate text-[0.72rem] opacity-75">{resource.category ? resource.category.replaceAll("_", " ").toLowerCase() : "Resource"}</span>
       </span>
     </span>
   );
 
   if (!resource.slug) return content;
   return (
-    <Link href={`/resources/${resource.slug}`} className="block">
+    <Link href={`/resources/${resource.slug}`} className="block text-inherit no-underline">
       {content}
     </Link>
   );
@@ -1881,94 +1716,61 @@ function ComposerChip({
   onClear: () => void;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
+    <div className="flex items-center gap-3 rounded-[14px] bg-[var(--lms-milk)] px-3 py-2 shadow-[inset_0_0_0_1px_var(--lms-milk-line)]">
       {imageUrl ? (
-        <img src={imageUrl} alt="" className="h-9 w-9 rounded-md object-cover" />
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={imageUrl} alt="" className="h-9 w-9 rounded-[8px] object-cover" />
       ) : (
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-white text-[#2D6A4F] dark:bg-slate-950 dark:text-[#74c69d]">
-          {icon}
-        </span>
+        <span className="grid h-9 w-9 flex-none place-items-center rounded-[8px] bg-card text-accent dark:bg-white/[0.06]">{icon}</span>
       )}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-xs font-bold text-slate-900 dark:text-white">
-          {title}
-        </span>
-        <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
-          {detail}
-        </span>
+        <span className="block truncate text-[0.8rem] font-semibold text-ink">{title}</span>
+        <span className="block truncate text-[0.75rem] text-ink-3">{detail}</span>
       </span>
-      <button
-        type="button"
-        onClick={onClear}
-        className="grid h-8 w-8 place-items-center rounded-md text-slate-400 transition hover:bg-white hover:text-red-500 dark:hover:bg-slate-950"
-        aria-label="Remove"
-        title="Remove"
-      >
+      <button type="button" onClick={onClear} className="lms-gpop-x !h-8 !w-8" aria-label="Remove" title="Remove">
         <X className="h-4 w-4" />
       </button>
     </div>
   );
 }
 
-function MemberRow({
-  member,
-  online,
-  onClick,
-}: {
-  member: Member;
-  online: boolean;
-  onClick: () => void;
-}) {
+function MemberRow({ member, online, onClick }: { member: Member; online: boolean; onClick: () => void }) {
   const firstName = memberFirstName(member);
   const username = memberUsername(member);
   const staffLabel = staffRoleLabel(member);
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:hover:bg-slate-900"
-    >
-      <div className="relative">
+    <button type="button" onClick={onClick} className="lms-member-row">
+      <span className="relative flex-none">
         <Avatar member={member} />
-        <span
-          className={cx(
-            "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-slate-950",
-            online ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700",
-          )}
-        />
-      </div>
-      <div className="min-w-0">
-        <p className="flex items-center gap-1.5 truncate text-sm font-bold text-slate-900 dark:text-white">
+        <span className={cx("lms-presence", online && "lms-presence--on")} aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1 text-left">
+        <span className="flex items-center gap-1.5 truncate text-[0.88rem] font-semibold text-ink">
           {firstName}
           {staffLabel && <StaffBadge label={staffLabel} />}
-        </p>
-        <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-          {[username, online ? "Online now" : "Offline"]
-            .filter(Boolean)
-            .join(" • ")}
-        </p>
-      </div>
+        </span>
+        <span className="block truncate text-[0.75rem] text-ink-3">{[username, online ? "Online" : "Offline"].filter(Boolean).join(" · ")}</span>
+      </span>
+      <ChevronRight className="h-4 w-4 flex-none text-ink-3" aria-hidden="true" />
     </button>
   );
 }
 
-function UserProfileModal({
-  member,
-  onClose,
-}: {
-  member: Member | null;
-  onClose: () => void;
-}) {
+/** A contact card, as a sheet over the conversation. */
+function UserProfileModal({ member, onClose }: { member: Member | null; onClose: () => void }) {
+  const doneRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!member) return;
-
+    const frame = requestAnimationFrame(() => doneRef.current?.focus());
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
-
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [member, onClose]);
 
   if (!member) return null;
@@ -1980,62 +1782,37 @@ function UserProfileModal({
   const image = profile.profile_picture_url || profile.image;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-950/55 px-3 py-4 backdrop-blur-sm sm:items-center sm:px-6">
-      <button
-        type="button"
-        className="absolute inset-0 cursor-default"
-        onClick={onClose}
-        aria-label="Close profile"
-      />
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="community-user-profile-title"
-        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/70 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-950 sm:rounded-3xl"
-      >
-        <div className="h-24 bg-[#2D6A4F] dark:bg-[#1B4332]" />
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-slate-500 shadow-sm transition hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white dark:bg-slate-950/85 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
-          aria-label="Close profile"
-          title="Close"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <div className="-mt-12 px-5 pb-6 text-center sm:px-8 sm:pb-8">
-          <div className="mx-auto grid h-24 w-24 place-items-center overflow-hidden rounded-2xl border-4 border-white bg-slate-100 shadow-lg dark:border-slate-950 dark:bg-slate-900">
+    <div className="lms-alert-scrim !z-[70] !place-items-end sm:!place-items-center">
+      <button type="button" className="absolute inset-0 cursor-default" onClick={onClose} aria-label="Close" tabIndex={-1} />
+      <section role="dialog" aria-modal="true" aria-labelledby="community-user-profile-title" className="lms-contact">
+        <div className="flex justify-end">
+          <button ref={doneRef} type="button" onClick={onClose} className="lms-text-btn !font-semibold">
+            Done
+          </button>
+        </div>
+        <div className="flex flex-col items-center text-center">
+          <span className="grid h-24 w-24 place-items-center overflow-hidden rounded-full bg-[linear-gradient(180deg,#a3aab0,#868e96)] text-[2rem] font-semibold text-white shadow-[0_8px_20px_-10px_rgba(0,0,0,0.4)]">
             {image ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={image} alt="" className="h-full w-full object-cover" />
             ) : (
-              <span className="text-3xl font-black text-[#2D6A4F] dark:text-[#74c69d]">
-                {initials(name).toUpperCase()}
-              </span>
+              initials(name).toUpperCase()
             )}
-          </div>
-          <div className="mt-4 min-w-0">
-            <h2
-              id="community-user-profile-title"
-              className="break-words text-2xl font-black text-slate-950 dark:text-white"
-            >
-              {name}
-            </h2>
-            {username && (
-              <p className="mt-1 break-words text-sm font-semibold text-slate-500 dark:text-slate-400">
-                {username}
-              </p>
-            )}
-          </div>
-          <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left dark:border-slate-800 dark:bg-slate-900/70">
-            <p className="text-[0.68rem] font-extrabold uppercase tracking-wide text-slate-400">
-              Role
-            </p>
-            <div className="mt-1 flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-              <ShieldCheck className="h-4 w-4 text-[#2D6A4F] dark:text-[#74c69d]" />
-              <span>{role}</span>
-            </div>
-          </div>
+          </span>
+          <h2 id="community-user-profile-title" className="m-0 mt-3 break-words text-[1.5rem] font-semibold tracking-[-0.02em] text-ink">
+            {name}
+          </h2>
+          {username && <p className="m-0 mt-0.5 break-words text-[0.9rem] text-ink-3">{username}</p>}
         </div>
+        <dl className="lms-group mt-5">
+          <div className="flex items-center justify-between gap-3 px-4 py-3">
+            <dt className="text-[0.9rem] text-ink-2">Role</dt>
+            <dd className="m-0 flex items-center gap-1.5 text-[0.9rem] font-semibold text-ink">
+              <ShieldCheck className="h-4 w-4 text-accent" />
+              {role}
+            </dd>
+          </div>
+        </dl>
       </section>
     </div>
   );
@@ -2043,73 +1820,38 @@ function UserProfileModal({
 
 function StaffBadge({ label }: { label: string }) {
   return (
-    <span
-      className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-[0.62rem] font-extrabold uppercase tracking-wide text-blue-700 dark:bg-blue-400/15 dark:text-blue-300"
-      title={label}
-    >
-      <ShieldCheck className="h-3 w-3" />
+    <span className="inline-flex flex-none items-center gap-0.5 rounded-full bg-[color-mix(in_srgb,#2f80ed_14%,transparent)] px-1.5 py-px text-[0.6rem] font-bold uppercase tracking-[0.04em] text-[#2f6fd6] dark:text-[#6aa8ff]" title={label}>
+      <ShieldCheck className="h-2.5 w-2.5" />
       {label}
     </span>
   );
 }
 
-function Avatar({
-  member,
-  size = "md",
-}: {
-  member?: Member;
-  size?: "sm" | "md";
-}) {
+function Avatar({ member, size = "md" }: { member?: Member; size?: "sm" | "md" }) {
   const name = displayName(member);
   const profile = memberProfile(member);
   const image = profile.profile_picture_url || profile.image;
-  const sizeClass = size === "sm" ? "h-7 w-7 text-[0.65rem]" : "h-9 w-9 text-xs";
+  const sizeClass = size === "sm" ? "h-7 w-7 text-[0.62rem]" : "h-9 w-9 text-[0.75rem]";
 
   if (image) {
-    return (
-      <img
-        src={image}
-        alt=""
-        className={cx("shrink-0 rounded-md object-cover", sizeClass)}
-      />
-    );
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={image} alt="" className={cx("flex-none rounded-full object-cover", sizeClass)} />;
   }
 
+  // Monogram, as Contacts draws one when there is no photo.
   return (
-    <span
-      className={cx(
-        "grid shrink-0 place-items-center rounded-md bg-slate-200 font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200",
-        sizeClass,
-      )}
-    >
+    <span className={cx("grid flex-none place-items-center rounded-full bg-[linear-gradient(180deg,#a3aab0,#868e96)] font-semibold text-white", sizeClass)}>
       {initials(name).toUpperCase()}
     </span>
   );
 }
 
-function ConnectionIndicator({ state }: { state: ConnectionState }) {
-  if (state === "open") {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200">
-        <Wifi className="h-3.5 w-3.5" />
-        Live
-      </span>
-    );
-  }
-
-  if (state === "connecting") {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Connecting
-      </span>
-    );
-  }
-
+function ConnectionDot({ state }: { state: ConnectionState }) {
+  const label = state === "open" ? "Live" : state === "connecting" ? "Connecting" : "Offline";
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
-      <WifiOff className="h-3.5 w-3.5" />
-      Offline
+    <span className="inline-flex items-center gap-1" title={label}>
+      <span className={cx("lms-presence !static !h-2 !w-2 !shadow-none", state === "open" && "lms-presence--on", state === "connecting" && "lms-presence--wait")} aria-hidden="true" />
+      <span className="sr-only">{label}, </span>
     </span>
   );
 }

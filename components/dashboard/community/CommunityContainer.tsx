@@ -49,24 +49,16 @@ export default async function CommunityContainer({
   }
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1500px] flex-col gap-5 py-5 lg:py-7">
-      <div className="flex flex-col gap-2 px-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#2D6A4F] dark:text-[#74c69d]">
-            Community
-          </p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">
-            Course conversations
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-            Talk with your learning groups, share resources, and keep up with
-            the rooms available to your account.
-          </p>
-        </div>
-      </div>
+    <div className="mx-auto flex h-full w-full max-w-[1440px] flex-col gap-5">
+      <header className="lms-rise pt-1">
+        <h1 className="sw-display m-0 text-[clamp(1.9rem,4vw,2.75rem)] leading-[1.02] text-ink">Community</h1>
+        <p className="m-0 mt-2 max-w-2xl text-[0.98rem] text-ink-2">
+          Talk with your course rooms, ask questions and share useful resources.
+        </p>
+      </header>
 
       {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-5 text-sm font-semibold text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+        <div role="alert" className="rounded-[18px] bg-clay-wash px-5 py-3.5 text-sm font-medium text-ink shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--sw-clay)_35%,transparent)]">
           {error}
         </div>
       ) : (
