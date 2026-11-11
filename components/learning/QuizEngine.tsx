@@ -323,7 +323,7 @@ export function QuizEngine({
       />
 
       {!preview && !result && canSubmit && (
-        <div className="lms-group">
+        <div className="lms-group mt-5">
           {questions.length > 0 ? (
             <div className="lms-group-foot">
               <p>
