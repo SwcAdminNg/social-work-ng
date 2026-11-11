@@ -305,11 +305,16 @@ export default function AssessmentsList({
               )}
             </div>
           ) : (
-            <ul className="lms-group m-0 list-none p-0">
-              {visibleAssessments.map((assessment) => (
-                <AssessmentRow key={assessment.item_id} assessment={assessment} />
-              ))}
-            </ul>
+            <>
+              <div className="hidden md:block">
+                <AssessmentTable rows={visibleAssessments} />
+              </div>
+              <ul className="lms-group m-0 list-none p-0 md:hidden">
+                {visibleAssessments.map((assessment) => (
+                  <AssessmentRow key={assessment.item_id} assessment={assessment} />
+                ))}
+              </ul>
+            </>
           )}
 
           {!error && totalItems > 0 && (
@@ -351,8 +356,10 @@ export default function AssessmentsList({
 
         <aside aria-label="Calendar and highlights" className="grid min-w-0 gap-4 md:grid-cols-2 xl:sticky xl:top-[calc(var(--lms-top)+5rem)] xl:grid-cols-1">
           <AssessmentCalendar
+            key={dateRange?.startDate ?? "none"}
             assessments={calendarItems}
             activeDateRange={dateRange}
+            onClearDate={clearDateRange}
             onSelectDate={(date, preferredTab) => {
               const nextRange = getDayRangeParams(date);
               updateParam({
@@ -554,7 +561,7 @@ function AssessmentRow({ assessment }: { assessment: UserAssessment }) {
           </span>
         </span>
 
-        <span className="hidden w-36 flex-none text-right md:block">
+        <span className="hidden">
           <span className="block text-[0.72rem] text-ink-3">{assessment.due_date ? "Due" : "Last activity"}</span>
           <span className="block text-[0.85rem] font-medium tabular-nums text-ink-2">
             {assessment.due_date
@@ -565,7 +572,7 @@ function AssessmentRow({ assessment }: { assessment: UserAssessment }) {
           </span>
         </span>
 
-        <span className="hidden w-16 flex-none text-right lg:block">
+        <span className="hidden">
           <span className="block text-[0.72rem] text-ink-3">Score</span>
           <span className={`block text-[1rem] font-semibold tabular-nums ${failed ? "text-[#d92d20] dark:text-[#ff6961]" : "text-ink"}`}>
             {hasScore ? `${Math.round(assessment.score as number)}%` : "–"}
@@ -579,7 +586,7 @@ function AssessmentRow({ assessment }: { assessment: UserAssessment }) {
   );
 }
 
-function AssessmentIcon({ assessment }: { assessment: UserAssessment }) {
+function AssessmentIcon({ assessment, small = false }: { assessment: UserAssessment; small?: boolean }) {
   const status = assessment.status?.toUpperCase();
   const type = assessment.assessment_type?.toUpperCase();
   let tone: Tone = type === "ESSAY" ? "orange" : type === "QUIZ_GROUP" ? "indigo" : "blue";
@@ -597,111 +604,313 @@ function AssessmentIcon({ assessment }: { assessment: UserAssessment }) {
   }
 
   return (
-    <span className={`lms-sym lms-sym--${tone}`}>
-      <Icon className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden="true" />
+    <span className={`lms-sym lms-sym--${tone} ${small ? "lms-sym--sm" : ""}`}>
+      <Icon className={small ? "h-4 w-4" : "h-[18px] w-[18px]"} strokeWidth={2.4} aria-hidden="true" />
     </span>
   );
 }
 
+type SortKey = "title" | "due" | "status" | "score";
+
+/** A macOS-style table: sortable column headers, alternating rows, the row opens the assessment. */
+function AssessmentTable({ rows }: { rows: UserAssessment[] }) {
+  const router = useRouter();
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>(null);
+
+  const sorted = useMemo(() => {
+    if (!sort) return rows;
+    const value = (item: UserAssessment): string | number => {
+      switch (sort.key) {
+        case "title":
+          return item.title.toLowerCase();
+        case "due":
+          return item.due_date ? new Date(item.due_date).getTime() : Number.POSITIVE_INFINITY;
+        case "status":
+          return getStatusDisplay(item).label;
+        case "score":
+          return typeof item.score === "number" ? item.score : -1;
+      }
+    };
+    return [...rows].sort((a, b) => {
+      const x = value(a);
+      const y = value(b);
+      const order = x < y ? -1 : x > y ? 1 : 0;
+      return sort.dir === "asc" ? order : -order;
+    });
+  }, [rows, sort]);
+
+  function header(key: SortKey, label: string, align: "left" | "right" = "left", className = "") {
+    const active = sort?.key === key;
+    return (
+      <th
+        scope="col"
+        aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+        className={`${align === "right" ? "text-right" : ""} ${className}`}
+      >
+        <button
+          type="button"
+          onClick={() =>
+            setSort((current) =>
+              current?.key === key ? { key, dir: current.dir === "asc" ? "desc" : "asc" } : { key, dir: key === "score" ? "desc" : "asc" },
+            )
+          }
+          className={`lms-th-btn ${align === "right" ? "justify-end" : ""}`}
+          data-active={active || undefined}
+        >
+          {label}
+          <ChevronDown
+            aria-hidden="true"
+            className={`h-3 w-3 transition-transform ${active ? "opacity-100" : "opacity-0"} ${active && sort.dir === "asc" ? "rotate-180" : ""}`}
+            strokeWidth={2.6}
+          />
+        </button>
+      </th>
+    );
+  }
+
+  return (
+    <div className="lms-table-wrap">
+      <table className="lms-table">
+        <thead>
+          <tr>
+            {header("title", "Name", "left", "w-[44%]")}
+            {header("due", "Due", "left", "hidden lg:table-cell")}
+            {header("status", "Status")}
+            {header("score", "Score", "right")}
+            <th scope="col" className="hidden text-right xl:table-cell">
+              <span className="lms-th-btn justify-end">Attempts</span>
+            </th>
+            <th scope="col">
+              <span className="sr-only">Action</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map((assessment) => {
+            const href = `/learn/${assessment.course_id}/item/${assessment.item_id}`;
+            const status = getStatusDisplay(assessment);
+            const action = getActionConfig(assessment);
+            const failed = assessment.status?.toUpperCase() === "FAILED";
+            const attempts = getAttemptsLine(assessment);
+            return (
+              <tr key={assessment.item_id} onClick={() => router.push(href)}>
+                <td>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <AssessmentIcon assessment={assessment} small />
+                    <div className="min-w-0">
+                      <Link
+                        href={href}
+                        onClick={(event) => event.stopPropagation()}
+                        className="block truncate font-semibold text-ink no-underline"
+                      >
+                        {assessment.title}
+                      </Link>
+                      <span className="block truncate text-[0.78rem] text-ink-3">
+                        {assessment.course_title} · {getAssessmentMetaLabel(assessment)}
+                      </span>
+                      <span className="block truncate text-[0.78rem] text-ink-3 lg:hidden">
+                        {assessment.due_date ? `Due ${formatShortDate(assessment.due_date)}` : "No due date"}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td className="hidden whitespace-nowrap tabular-nums text-ink-2 lg:table-cell">
+                  {assessment.due_date ? (
+                    <>
+                      <span className="block">{formatShortDate(assessment.due_date)}</span>
+                      <span className="block text-[0.75rem] text-ink-3">{formatTime(assessment.due_date)}</span>
+                    </>
+                  ) : (
+                    <span className="text-ink-3">—</span>
+                  )}
+                </td>
+                <td className="whitespace-nowrap">
+                  <span className={`lms-status lms-status--${status.tone}`}>{status.label}</span>
+                </td>
+                <td className={`whitespace-nowrap text-right font-semibold tabular-nums ${failed ? "text-[#d92d20] dark:text-[#ff6961]" : "text-ink"}`}>
+                  {typeof assessment.score === "number" ? `${Math.round(assessment.score)}%` : <span className="font-normal text-ink-3">—</span>}
+                </td>
+                <td className="hidden whitespace-nowrap text-right tabular-nums text-ink-3 xl:table-cell">{attempts ?? "—"}</td>
+                <td className="w-px whitespace-nowrap text-right">
+                  <span className={`lms-row-action lms-row-action--${action.tone} inline-flex`}>{action.label}</span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function formatTime(value: string) {
+  return `${new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Africa/Lagos" }).format(new Date(value))} WAT`;
+}
+
+/** After Apple Calendar: month grid with today in red, the chosen day in ink, and that day's items below. */
 function AssessmentCalendar({
   assessments,
   activeDateRange,
   onSelectDate,
+  onClearDate,
 }: {
   assessments: UserAssessment[];
   activeDateRange: AssessmentDateRange | null;
   onSelectDate: (date: Date, preferredTab: AssessmentTab) => void;
+  onClearDate: () => void;
 }) {
-  const [monthOffset, setMonthOffset] = useState(0);
   const [today] = useState(() => new Date());
-  const monthDate = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
-  const days = getCalendarDays(monthDate);
+  const [selected, setSelected] = useState<Date>(() => (activeDateRange ? new Date(activeDateRange.startDate) : today));
+  const [month, setMonth] = useState(() => new Date(selected.getFullYear(), selected.getMonth(), 1));
+  const days = getCalendarDays(month);
   const todayKey = toDateKey(today);
-  const activeDateKey = activeDateRange ? toDateKey(activeDateRange.startDate) : null;
+  const selectedKey = toDateKey(selected);
+  const filteredKey = activeDateRange ? toDateKey(activeDateRange.startDate) : null;
 
-  const marks = useMemo(() => {
-    const map = new Map<string, { count: number; tone: "due" | "soon" | "done" }>();
-    const now = today.getTime();
+  const byDay = useMemo(() => {
+    const map = new Map<string, UserAssessment[]>();
     for (const item of assessments) {
       const status = item.status?.toUpperCase();
       const when = item.due_date || (status !== "NOT_STARTED" ? item.last_activity_at : null);
       if (!when) continue;
       const key = toDateKey(when);
-      const done = ["PASSED", "FAILED", "GRADED", "SUBMITTED"].includes(status);
-      const soon = !done && new Date(when).getTime() - now <= 2 * 86_400_000;
-      const tone = done ? "done" : soon ? "soon" : "due";
-      const existing = map.get(key);
-      const rank = { soon: 3, due: 2, done: 1 } as const;
-      map.set(key, {
-        count: (existing?.count ?? 0) + 1,
-        tone: existing && rank[existing.tone] > rank[tone] ? existing.tone : tone,
-      });
+      map.set(key, [...(map.get(key) ?? []), item]);
     }
     return map;
-  }, [assessments, today]);
+  }, [assessments]);
 
-  function handleDateClick(date: Date) {
-    const key = toDateKey(date);
-    const hasUpcoming = assessments.some(
-      (item) => item.due_date && toDateKey(item.due_date) === key && item.status?.toUpperCase() === "NOT_STARTED",
-    );
-    onSelectDate(date, hasUpcoming ? "upcoming" : "completed");
+  const dayTone = (item: UserAssessment): "soon" | "due" | "done" => {
+    const status = item.status?.toUpperCase();
+    if (["PASSED", "FAILED", "GRADED", "SUBMITTED"].includes(status)) return "done";
+    const when = item.due_date ? new Date(item.due_date).getTime() : Number.POSITIVE_INFINITY;
+    return when - today.getTime() <= 2 * 86_400_000 ? "soon" : "due";
+  };
+
+  const agenda = byDay.get(selectedKey) ?? [];
+  const agendaTitle =
+    selectedKey === todayKey
+      ? "Today"
+      : new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(selected);
+
+  function pick(date: Date) {
+    setSelected(date);
+    if (date.getMonth() !== month.getMonth() || date.getFullYear() !== month.getFullYear()) {
+      setMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+    }
+  }
+
+  function goToday() {
+    setSelected(today);
+    setMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+  }
+
+  // Arrow keys move the selection by a day or a week, as in Calendar.
+  function onGridKey(event: React.KeyboardEvent<HTMLDivElement>) {
+    const step = ({ ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 } as Record<string, number>)[event.key];
+    if (!step) return;
+    event.preventDefault();
+    const grid = event.currentTarget;
+    const next = new Date(selected);
+    next.setDate(next.getDate() + step);
+    pick(next);
+    requestAnimationFrame(() => grid.querySelector<HTMLElement>(`[data-key="${toDateKey(next)}"]`)?.focus());
   }
 
   return (
     <section aria-label="Calendar" className="lms-card !rounded-[24px] p-4 sm:p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="m-0 text-[1.05rem] font-bold tracking-[-0.015em] text-ink">
-          {new Intl.DateTimeFormat("en-GB", { month: "long" }).format(monthDate)}{" "}
-          <span className="text-clay-ink">{monthDate.getFullYear()}</span>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="m-0 text-[1.15rem] font-bold tracking-[-0.02em] text-ink" aria-live="polite">
+          {new Intl.DateTimeFormat("en-GB", { month: "long" }).format(month)}{" "}
+          <span className="font-normal text-ink-3">{month.getFullYear()}</span>
         </h2>
-        <div className="flex items-center">
-          <button type="button" onClick={() => setMonthOffset((v) => v - 1)} aria-label="Previous month" className="lms-gpop-x !h-9 !w-9 text-accent">
-            <ChevronLeft className="h-[18px] w-[18px]" strokeWidth={2.4} />
+        <div className="lms-cal-nav">
+          <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} aria-label="Previous month">
+            <ChevronLeft className="h-4 w-4" strokeWidth={2.4} />
           </button>
-          {monthOffset !== 0 && (
-            <button type="button" onClick={() => setMonthOffset(0)} className="h-8 rounded-full px-2.5 text-[0.8rem] font-semibold text-accent hover:bg-ink/[0.06]">
-              Today
-            </button>
-          )}
-          <button type="button" onClick={() => setMonthOffset((v) => v + 1)} aria-label="Next month" className="lms-gpop-x !h-9 !w-9 text-accent">
-            <ChevronRight className="h-[18px] w-[18px]" strokeWidth={2.4} />
+          <button type="button" onClick={goToday} className="lms-cal-today">
+            Today
+          </button>
+          <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} aria-label="Next month">
+            <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 text-center">
+      <div role="grid" aria-label="Choose a day" onKeyDown={onGridKey} className="grid grid-cols-7 text-center">
         {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => (
-          <span key={index} className="pb-1.5 text-[0.68rem] font-semibold uppercase text-ink-3">
+          <span key={index} role="columnheader" className={`pb-1 text-[0.7rem] font-semibold ${index > 4 ? "text-ink-3/70" : "text-ink-3"}`}>
             {day}
           </span>
         ))}
         {days.map((day) => {
           const key = toDateKey(day.date);
-          const mark = marks.get(key);
-          const isToday = key === todayKey;
-          const isActive = activeDateKey === key;
+          const items = byDay.get(key) ?? [];
+          const tones = Array.from(new Set(items.map(dayTone))).slice(0, 3);
+          const isSelected = key === selectedKey;
           return (
             <button
               key={key}
               type="button"
-              onClick={() => handleDateClick(day.date)}
+              role="gridcell"
+              data-key={key}
+              tabIndex={isSelected ? 0 : -1}
+              onClick={() => pick(day.date)}
+              aria-selected={isSelected}
               aria-label={`${new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(day.date)}${
-                mark ? `, ${mark.count} assessment${mark.count === 1 ? "" : "s"}` : ""
+                items.length ? `, ${items.length} assessment${items.length === 1 ? "" : "s"}` : ""
               }`}
-              aria-pressed={isActive}
-              data-today={isToday || undefined}
+              data-today={key === todayKey || undefined}
               data-out={!day.inCurrentMonth || undefined}
               className="lms-cal-day"
             >
               <span className="lms-cal-num">{day.date.getDate()}</span>
-              <span aria-hidden="true" className={`lms-cal-dot ${mark ? `lms-cal-dot--${mark.tone}` : "invisible"}`} />
+              <span aria-hidden="true" className="flex h-1.5 items-center gap-[3px]">
+                {tones.map((tone) => (
+                  <span key={tone} className={`lms-cal-dot lms-cal-dot--${tone}`} />
+                ))}
+              </span>
             </button>
           );
         })}
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-3 text-[0.75rem] text-ink-3">
+      {/* The chosen day's items, as Calendar lists events under the month */}
+      <div className="mt-3 border-t border-line pt-3">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="m-0 text-[0.82rem] font-semibold text-ink">{agendaTitle}</p>
+          {filteredKey === selectedKey ? (
+            <button type="button" onClick={onClearDate} className="text-[0.8rem] font-semibold text-accent hover:underline">
+              Show all
+            </button>
+          ) : agenda.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => onSelectDate(selected, agenda.some((item) => item.status?.toUpperCase() === "NOT_STARTED") ? "upcoming" : "completed")}
+              className="text-[0.8rem] font-semibold text-accent hover:underline"
+            >
+              Show in list
+            </button>
+          ) : null}
+        </div>
+        {agenda.length === 0 ? (
+          <p className="m-0 py-2 text-[0.82rem] text-ink-3">No assessments</p>
+        ) : (
+          <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+            {agenda.map((item) => (
+              <li key={item.item_id}>
+                <Link href={`/learn/${item.course_id}/item/${item.item_id}`} className={`lms-event lms-event--${dayTone(item)}`}>
+                  <span className="block truncate text-[0.85rem] font-semibold">{item.title}</span>
+                  <span className="block truncate text-[0.75rem] opacity-80">
+                    {item.due_date ? formatTime(item.due_date) : "Activity"} · {item.course_title}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[0.72rem] text-ink-3">
         <Legend tone="soon" label="Due soon" />
         <Legend tone="due" label="Due" />
         <Legend tone="done" label="Done" />

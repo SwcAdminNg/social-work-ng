@@ -3,17 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bell,
-  BookOpen,
+  BellRing,
   CheckCheck,
-  CircleHelp,
-  CreditCard,
+  ChevronRight,
   Loader2,
-  MessageSquare,
   RefreshCcw,
-  KeyRound,
-  ShieldCheck,
-  TicketCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import type {
@@ -23,10 +17,13 @@ import type {
 } from "./types";
 import {
   formatNotificationDateTime,
+  formatNotificationTime,
   getSafeNotificationPath,
   mergeNewest,
   normalizeNotification,
   notificationTypeLabel,
+  notificationVisual,
+  type NotificationTone,
 } from "./utils";
 
 const PAGE_SIZE = 20;
@@ -213,216 +210,176 @@ export function NotificationInbox({
       window.removeEventListener("notifications:new", handleNewNotification);
   }, [filter]);
 
+  // Day groups are reckoned in West Africa Time, like every date in the dashboard.
+  const [now] = useState(() => Date.now());
+  const groups = useMemo(() => {
+    const out: { label: string; items: NotificationItem[] }[] = [];
+    for (const item of items) {
+      const label = dayGroup(item.created_at, now);
+      const last = out[out.length - 1];
+      if (last?.label === label) last.items.push(item);
+      else out.push({ label, items: [item] });
+    }
+    return out;
+  }, [items, now]);
+
   return (
-    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 pb-8">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-normal text-slate-950 dark:text-white sm:text-3xl">
-            Notifications
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm font-medium text-slate-500 dark:text-slate-400">
-            Course updates, results, live sessions, support replies, payments, and account notices in one place.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => fetchNotifications(1)}
-            disabled={loading}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-3 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#35514a] dark:bg-[#252827] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35]"
-          >
-            <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-          <button
-            type="button"
-            onClick={markAllRead}
-            disabled={markingAll || unreadCount === 0}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-3 text-sm font-extrabold text-white shadow-sm transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-          >
-            {markingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCheck className="h-4 w-4" />}
-            Mark all read
-          </button>
+    <div className="mx-auto flex w-full max-w-[880px] flex-col pb-8">
+      <header className="lms-rise pt-1">
+        <h1 className="sw-display m-0 text-[clamp(1.9rem,4vw,2.75rem)] leading-[1.02] text-ink">Notifications</h1>
+        <p className="m-0 mt-2 text-[0.98rem] text-ink-2">
+          {unreadCount > 0 ? `${unreadCount} unread` : "You’re all caught up"}
+          {totalItems > 0 ? ` · ${totalItems} in total` : ""}
+        </p>
+      </header>
+
+      <div className="lms-course-bar sticky top-[var(--lms-top)] z-20 -mx-3 mt-5 px-3 py-3 sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
+        <div className="mx-auto flex max-w-[880px] items-center justify-between gap-3">
+          <div role="tablist" aria-label="Show" className="lms-segmented">
+            {(["all", "unread"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={filter === value}
+                onClick={() => changeFilter(value)}
+                className="lms-segment !px-4"
+              >
+                {value === "all" ? "All" : "Unread"}
+                {value === "unread" && unreadCount > 0 && <span className="lms-segment-count">{unreadCount}</span>}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={markAllRead}
+              disabled={markingAll || unreadCount === 0}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[0.86rem] font-semibold text-accent transition-colors hover:bg-[color-mix(in_srgb,var(--sw-green)_10%,transparent)] disabled:cursor-default disabled:text-ink-3 disabled:opacity-60 disabled:hover:bg-transparent"
+            >
+              {markingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCheck className="h-4 w-4" />}
+              <span className="hidden sm:inline">Mark all as read</span>
+              <span className="sm:hidden">Read all</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => fetchNotifications(1)}
+              disabled={loading}
+              aria-label="Refresh"
+              title="Refresh"
+              className="lms-gpop-x !h-9 !w-9 disabled:opacity-60"
+            >
+              <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            </button>
+          </div>
         </div>
       </div>
 
-      <section className="grid gap-3 sm:grid-cols-3">
-        <SummaryCard label="Showing" value={items.length} />
-        <SummaryCard label="Unread Here" value={unreadCount} />
-        <SummaryCard label="Total In View" value={totalItems} />
-      </section>
-
-      <section className="overflow-hidden rounded-lg border border-[#e3dfd0] bg-white shadow-sm dark:border-[#363a38] dark:bg-[#252827]">
-        <div className="flex flex-col gap-3 border-b border-[#e9e5d6] px-4 py-3 dark:border-[#363a38] sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex gap-2">
-            <FilterButton active={filter === "all"} onClick={() => changeFilter("all")}>
-              All
-            </FilterButton>
-            <FilterButton active={filter === "unread"} onClick={() => changeFilter("unread")}>
-              Unread
-            </FilterButton>
-          </div>
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-            Newest notifications appear first.
-          </p>
-        </div>
-
+      <div className="mt-2">
         {loading && items.length === 0 ? (
-          <div className="flex min-h-72 items-center justify-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Loading notifications
+          <div aria-hidden="true" className="flex flex-col gap-2">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="lms-notice !cursor-default">
+                <span className="lms-skel h-10 w-10 flex-none !rounded-[11px]" />
+                <span className="flex-1 pt-1">
+                  <span className="lms-skel block h-3.5" style={{ width: `${70 - i * 10}%` }} />
+                  <span className="lms-skel mt-2 block h-3 w-[90%]" />
+                </span>
+              </div>
+            ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center px-4 py-12 text-center">
-            <span className="grid h-12 w-12 place-items-center rounded-full bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-              <Bell className="h-6 w-6" />
+          <div className="lms-milk lms-rise flex flex-col items-center px-6 py-14 text-center sm:py-20">
+            <span className="grid h-16 w-16 place-items-center rounded-[20px] bg-card text-accent shadow-[inset_0_0_0_1px_var(--sw-line)] dark:bg-white/[0.06]">
+              <BellRing className="h-7 w-7" strokeWidth={1.8} />
             </span>
-            <p className="mt-3 text-sm font-extrabold text-slate-950 dark:text-white">
+            <h2 className="m-0 mt-5 text-[1.2rem] font-bold tracking-[-0.02em] text-ink">
               {filter === "unread" ? "No unread notifications" : "No notifications yet"}
-            </p>
-            <p className="mt-1 max-w-sm text-sm leading-6 text-slate-500 dark:text-slate-400">
-              Student updates will collect here so you can catch up without losing your place.
+            </h2>
+            <p className="m-0 mt-2 max-w-md text-[0.95rem] leading-relaxed text-ink-2">
+              Updates about your courses, results, live sessions, payments and support replies will appear here.
             </p>
           </div>
         ) : (
-          <ul className="m-0 list-none divide-y divide-[#f1eee2] p-0 dark:divide-[#363a38]">
-            {items.map((notification) => (
-              <li key={notification.id}>
-                <button
-                  type="button"
-                  onClick={() => openNotification(notification)}
-                  className="grid w-full gap-3 px-4 py-4 text-left transition hover:bg-[#fdfbf5] dark:hover:bg-[#252827] sm:grid-cols-[44px_minmax(0,1fr)_auto] sm:items-start"
-                >
-                  <span className={`grid h-11 w-11 place-items-center rounded-md ${iconTone(notification.type)}`}>
-                    {notificationIcon(notification.type)}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-extrabold text-slate-950 dark:text-white">
-                        {notification.title}
-                      </span>
-                      {!notification.is_read && (
-                        <span className="rounded-md bg-[#e7f6ee] px-2 py-0.5 text-[0.68rem] font-extrabold uppercase text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-                          New
+          groups.map((group) => (
+            <section key={group.label} aria-label={group.label} className="mt-5 first:mt-2">
+              <h2 className="m-0 mb-2 px-1 text-[1.15rem] font-bold tracking-[-0.02em] text-ink">{group.label}</h2>
+              <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                {group.items.map((notification) => {
+                  const { icon: Icon, tone } = notificationVisual(notification.type);
+                  const opens = Boolean(getSafeNotificationPath(notification.link));
+                  return (
+                    <li key={notification.id}>
+                      <button
+                        type="button"
+                        onClick={() => openNotification(notification)}
+                        data-unread={notification.is_read ? undefined : ""}
+                        className="lms-notice group"
+                      >
+                        <span className={tone === "key" ? "lms-sym lms-sym--lg lms-key-tile" : `lms-sym lms-sym--lg lms-sym--${SYM_TONE[tone]}`}>
+                          <Icon className="h-5 w-5" strokeWidth={tone === "key" ? 2.2 : 2.1} aria-hidden="true" />
                         </span>
-                      )}
-                    </span>
-                    {notification.body && (
-                      <span className="mt-1 line-clamp-2 block text-sm leading-6 text-slate-600 dark:text-slate-300">
-                        {notification.body}
-                      </span>
-                    )}
-                    <span className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      <span>{notificationTypeLabel(notification.type)}</span>
-                      <span>{formatNotificationDateTime(notification.created_at)} WAT</span>
-                      {!getSafeNotificationPath(notification.link) && <span>No link</span>}
-                    </span>
-                  </span>
-                  <span className="hidden rounded-md border border-[#dceee4] px-2.5 py-1 text-xs font-bold text-slate-500 dark:border-[#35514a] dark:text-slate-400 sm:inline-flex">
-                    {notification.is_read ? "Read" : "Unread"}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-baseline gap-2">
+                            <span className="min-w-0 flex-1 truncate text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-ink-3">
+                              {notificationTypeLabel(notification.type)}
+                            </span>
+                            <time
+                              dateTime={notification.created_at}
+                              title={`${formatNotificationDateTime(notification.created_at)} WAT`}
+                              suppressHydrationWarning
+                              className="flex-none text-[0.75rem] tabular-nums text-ink-3"
+                            >
+                              {formatNotificationTime(notification.created_at)}
+                            </time>
+                          </span>
+                          <span className={`mt-0.5 block text-[0.95rem] leading-snug text-ink ${notification.is_read ? "font-medium" : "font-semibold"}`}>
+                            {notification.title}
+                          </span>
+                          {notification.body && (
+                            <span className="mt-0.5 line-clamp-2 block text-[0.86rem] leading-[1.45] text-ink-2">{notification.body}</span>
+                          )}
+                        </span>
+                        {opens && <ChevronRight className="mt-6 h-4 w-4 flex-none text-ink-3 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
+                        {!notification.is_read && <span className="sr-only">, unread</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))
         )}
 
-        {hasNext && (
-          <div className="border-t border-[#e9e5d6] p-4 dark:border-[#363a38]">
-            <button
-              type="button"
-              onClick={() => fetchNotifications(page + 1)}
-              disabled={loadingMore}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#dceee4] bg-white px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#35514a] dark:bg-[#252827] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35]"
-            >
+        {hasNext && items.length > 0 && (
+          <div className="mt-6 flex justify-center">
+            <button type="button" onClick={() => fetchNotifications(page + 1)} disabled={loadingMore} className="lms-btn lms-btn--quiet disabled:opacity-60">
               {loadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
-              Load more notifications
+              Show older
             </button>
           </div>
         )}
-      </section>
+      </div>
     </div>
   );
 }
 
-function SummaryCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-lg border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#363a38] dark:bg-[#252827]">
-      <p className="text-2xl font-extrabold text-slate-950 dark:text-white">
-        {value.toLocaleString()}
-      </p>
-      <p className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        {label}
-      </p>
-    </div>
-  );
-}
+const SYM_TONE: Record<Exclude<NotificationTone, "key">, string> = {
+  green: "green",
+  gold: "gold",
+  clay: "orange",
+  deep: "blue",
+  quiet: "gray",
+};
 
-function FilterButton({
-  active,
-  children,
-  onClick,
-}: {
-  active: boolean;
-  children: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex h-9 items-center rounded-md px-3 text-sm font-extrabold transition ${
-        active
-          ? "bg-[#2D6A4F] text-white dark:bg-[#52b788] dark:text-[#06130d]"
-          : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-[#1e2120] dark:text-slate-300 dark:hover:bg-[#2c302e]"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
+const lagosDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos", year: "numeric", month: "2-digit", day: "2-digit" });
+const lagosLong = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", weekday: "long", day: "numeric", month: "long" });
 
-function isAuthNotice(type: string) {
-  return /LOGIN|PASSWORD|TWO_FACTOR|PASSKEY|SIGN_IN/.test(type.toUpperCase());
-}
-
-function notificationIcon(type: string) {
-  const normalized = type.toUpperCase();
-  if (isAuthNotice(normalized)) {
-    return <KeyRound className="h-5 w-5" strokeWidth={2.1} />;
-  }
-  if (normalized.includes("COURSE") || normalized.includes("CERTIFICATE")) {
-    return <BookOpen className="h-5 w-5" />;
-  }
-  if (normalized.includes("PAYMENT") || normalized.includes("SUBSCRIPTION")) {
-    return <CreditCard className="h-5 w-5" />;
-  }
-  if (normalized.includes("COMMUNITY")) {
-    return <MessageSquare className="h-5 w-5" />;
-  }
-  if (normalized.includes("SUPPORT")) {
-    return <TicketCheck className="h-5 w-5" />;
-  }
-  if (normalized.includes("ACCOUNT") || normalized.includes("PASSWORD") || normalized.includes("TWO_FACTOR")) {
-    return <ShieldCheck className="h-5 w-5" />;
-  }
-  if (normalized.includes("LIVE_SESSION")) {
-    return <Bell className="h-5 w-5" />;
-  }
-  return <CircleHelp className="h-5 w-5" />;
-}
-
-function iconTone(type: string) {
-  const normalized = type.toUpperCase();
-  if (isAuthNotice(normalized)) return "lms-key-tile !rounded-full";
-  if (normalized.includes("PAYMENT") || normalized.includes("CERTIFICATE") || normalized.includes("COMPLETED")) {
-    return "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200";
-  }
-  if (normalized.includes("FAILED") || normalized.includes("EXPIRED") || normalized.includes("SUSPENDED")) {
-    return "bg-rose-100 text-rose-700 dark:bg-rose-400/15 dark:text-rose-200";
-  }
-  if (normalized.includes("LIVE_SESSION") || normalized.includes("EXPIRING")) {
-    return "bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-200";
-  }
-  return "bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]";
+function dayGroup(value: string, now: number) {
+  const date = new Date(value);
+  const key = lagosDay.format(date);
+  if (key === lagosDay.format(now)) return "Today";
+  if (key === lagosDay.format(now - 86_400_000)) return "Yesterday";
+  if (now - date.getTime() < 7 * 86_400_000) return lagosLong.format(date).split(" ")[0];
+  return "Earlier";
 }

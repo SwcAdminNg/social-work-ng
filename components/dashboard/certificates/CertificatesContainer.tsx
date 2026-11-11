@@ -41,24 +41,12 @@ export default async function CertificatesContainer({
   }
 
   return (
-    <div className="w-full h-full max-w-8xl mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Certificates
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Certificates you&apos;ve earned by completing courses. Download the PDF or
-          share the verification link with anyone.
-        </p>
-      </div>
-
-      <CertificatesList
-        initialData={certificates}
-        totalItems={totalItems}
-        currentPage={page}
-        limit={limit}
-        error={error}
-      />
-    </div>
+    <CertificatesList
+      initialData={certificates}
+      totalItems={totalItems}
+      currentPage={page}
+      limit={limit}
+      error={error}
+    />
   );
 }

@@ -852,6 +852,130 @@ html:has(.lms-root) body {
   .dark .lms-page[aria-current="page"] { background: var(--sw-green); }
   .lms-page:disabled:not([aria-current]) { opacity: 0.35; cursor: default; }
 
+  /* ── Notifications page: rounded platters, after Notification Center ── */
+  .lms-sym--lg { width: 2.5rem; height: 2.5rem; border-radius: 11px; }
+  .lms-notice {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    width: 100%;
+    padding: 0.85rem 1rem 0.9rem;
+    border-radius: 20px;
+    background: var(--sw-card);
+    box-shadow: inset 0 0 0 1px var(--sw-line), 0 1px 2px rgba(14, 31, 23, 0.04);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s, transform 0.25s var(--sw-ease), box-shadow 0.25s;
+  }
+  @media (min-width: 640px) { .lms-notice { padding: 1rem 1.15rem; gap: 1rem; } }
+  .lms-notice:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sw-green) 35%, transparent), 0 10px 24px -16px rgba(14, 31, 23, 0.35); }
+  .lms-notice:active { transform: scale(0.99); }
+  .lms-notice[data-unread] { background: color-mix(in srgb, var(--sw-green) 5%, var(--sw-card)); }
+  .lms-notice[data-unread]::before {
+    content: "";
+    position: absolute;
+    left: 0.4rem;
+    top: 50%;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-top: -0.2rem;
+    border-radius: 999px;
+    background: #2f80ed;
+  }
+  .dark .lms-notice[data-unread]::before { background: #0a84ff; }
+
+  /* ── Certificates: passes, after Wallet ── */
+  .lms-pass-grid { display: grid; gap: 1.5rem 1.25rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
+  .lms-pass {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    aspect-ratio: 1.42;
+    min-height: 13.5rem;
+    padding: 1.1rem 1.2rem 1rem;
+    overflow: hidden;
+    border-radius: 20px;
+    color: #fff;
+    text-decoration: none;
+    background: var(--pass);
+    box-shadow:
+      inset 0 0 0 0.5px rgba(255, 255, 255, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      0 1px 2px rgba(0, 0, 0, 0.12),
+      0 18px 34px -18px rgba(8, 24, 16, 0.55);
+    transition: transform 0.5s var(--sw-ease), box-shadow 0.5s var(--sw-ease);
+  }
+  .lms-pass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .lms-pass:hover { transform: translate3d(0, -4px, 0) rotate(-0.4deg); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 30px 50px -22px rgba(8, 24, 16, 0.6); }
+  .lms-pass:active { transform: scale(0.985); }
+  .lms-pass--forest { --pass: radial-gradient(120% 90% at 100% 0%, rgba(243, 197, 107, 0.28), transparent 55%), linear-gradient(155deg, #2d6a4f 0%, #14402f 55%, #0c2a1e 100%); }
+  .lms-pass--teal { --pass: radial-gradient(120% 90% at 100% 0%, rgba(149, 213, 178, 0.3), transparent 55%), linear-gradient(155deg, #1f7a72 0%, #12504d 55%, #0b3433 100%); }
+  .lms-pass--plum { --pass: radial-gradient(120% 90% at 100% 0%, rgba(243, 155, 122, 0.3), transparent 55%), linear-gradient(155deg, #6b3a5c 0%, #4a2340 55%, #2f1529 100%); }
+  .lms-pass--night { --pass: radial-gradient(120% 90% at 100% 0%, rgba(235, 169, 55, 0.3), transparent 55%), linear-gradient(155deg, #2d3a4f 0%, #1c2536 55%, #111725 100%); }
+  .lms-pass--ghost { width: min(15rem, 70vw); min-height: 0; transform: rotate(-4deg); opacity: 0.9; }
+  .lms-pass--ghost:hover { transform: rotate(-4deg); }
+  .lms-pass-sheen {
+    position: absolute;
+    inset: -40% -60%;
+    z-index: -1;
+    background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.14) 50%, transparent 60%);
+    transform: translateX(-30%);
+    transition: transform 1.1s var(--sw-ease);
+    pointer-events: none;
+  }
+  .lms-pass:hover .lms-pass-sheen { transform: translateX(30%); }
+  .lms-pass-seal {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 999px;
+    background: radial-gradient(circle at 35% 30%, #fbe3a6, #eba937 55%, #b97d1d);
+    color: #3d2700;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14), 0 4px 10px -3px rgba(0, 0, 0, 0.45), inset 0 -2px 3px rgba(122, 72, 0, 0.35);
+  }
+  .lms-pass-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3px;
+  }
+  .lms-pass-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.6rem;
+    padding: 0 0.5rem;
+    border-radius: 6px;
+    background: var(--lms-milk);
+    box-shadow: inset 0 0 0 1px var(--lms-milk-line);
+    color: var(--sw-ink);
+    font-size: 0.84rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.18s, transform 0.2s var(--sw-ease);
+  }
+  .lms-pass-action:first-child { border-radius: 16px 6px 6px 16px; }
+  .lms-pass-action:last-child { border-radius: 6px 16px 16px 6px; }
+  .lms-pass-action:hover { background: var(--lms-milk-2); }
+  .lms-pass-action:active { transform: scale(0.97); }
+  .lms-pass-action--primary { background: var(--sw-deep); color: #fff; box-shadow: none; }
+  .lms-pass-action--primary:hover { background: var(--sw-green); }
+  .dark .lms-pass-action--primary { background: var(--sw-green); }
+  .dark .lms-pass-action--primary:hover { background: #367d5d; }
+
   /* ── Assessments ── */
   .lms-tile[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--sw-accent); }
   /* SF-style symbol tile: a coloured rounded square with a white glyph (as in Reminders). */
@@ -873,6 +997,13 @@ html:has(.lms-root) body {
   .lms-sym--blue { --sym: #2f80ed; }
   .lms-sym--indigo { --sym: #5b5fd6; }
   .lms-sym--gray { --sym: #8e8e93; }
+  /* The key badge keeps its brass finish when it takes the symbol-tile shape. */
+  .lms-sym.lms-key-tile {
+    background:
+      radial-gradient(120% 90% at 30% 15%, rgba(255, 255, 255, 0.55), transparent 55%),
+      linear-gradient(145deg, #f7d27a 0%, #eba937 55%, #c9821b 100%);
+    color: #3d2700;
+  }
 
   /* Inset grouped list: one rounded card, rows split by hairlines that start after the icon. */
   .lms-group {
@@ -986,6 +1117,66 @@ html:has(.lms-root) body {
   }
   .dark .lms-popup { background-color: rgba(255, 255, 255, 0.075); }
 
+  .lms-sym--sm { width: 1.875rem; height: 1.875rem; border-radius: 8px; }
+
+  /* Table, after macOS: header labels with sort chevrons, faint column dividers, alternating rows. */
+  .lms-table-wrap {
+    overflow-x: auto;
+    border-radius: 16px;
+    background: var(--sw-card);
+    box-shadow: inset 0 0 0 1px var(--sw-line), 0 1px 2px rgba(14, 31, 23, 0.04);
+  }
+  .lms-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.875rem; }
+  .lms-table thead th {
+    position: relative;
+    padding: 0 0.5rem;
+    height: 2.25rem;
+    background: color-mix(in srgb, var(--sw-ink) 2.5%, var(--sw-card));
+    border-bottom: 1px solid var(--sw-line);
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .lms-table thead th:first-child { padding-left: 0.85rem; border-top-left-radius: 16px; }
+  .lms-table thead th:last-child { border-top-right-radius: 16px; }
+  .lms-table thead th + th::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55rem;
+    bottom: 0.55rem;
+    width: 1px;
+    background: var(--sw-line);
+  }
+  .lms-th-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    width: 100%;
+    height: 2.25rem;
+    padding: 0 0.35rem;
+    border-radius: 6px;
+    color: var(--sw-ink-3);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.005em;
+    cursor: pointer;
+  }
+  span.lms-th-btn { cursor: default; }
+  .lms-th-btn:hover, .lms-th-btn[data-active] { color: var(--sw-ink); }
+  .lms-table tbody td {
+    padding: 0.7rem 0.85rem;
+    vertical-align: middle;
+    color: var(--sw-ink);
+  }
+  .lms-table tbody tr { cursor: pointer; transition: background-color 0.12s; }
+  .lms-table tbody tr:nth-child(even) { background: color-mix(in srgb, var(--sw-ink) 2.6%, transparent); }
+  .dark .lms-table tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.025); }
+  .lms-table tbody tr:hover { background: color-mix(in srgb, var(--sw-green) 7%, transparent); }
+  .lms-table tbody tr:last-child td:first-child { border-bottom-left-radius: 16px; }
+  .lms-table tbody tr:last-child td:last-child { border-bottom-right-radius: 16px; }
+  .lms-table td:first-child { max-width: 0; width: 44%; }
+
   /* Month view, after Calendar: initials, today in colour, a dot under days with work. */
   .lms-cal-day {
     display: grid;
@@ -1008,10 +1199,51 @@ html:has(.lms-root) body {
     transition: background-color 0.15s, color 0.15s;
   }
   .lms-cal-day:hover .lms-cal-num { background: color-mix(in srgb, var(--sw-ink) 7%, transparent); }
-  .lms-cal-day[data-out] { color: var(--sw-ink-3); opacity: 0.55; }
-  .lms-cal-day[data-today] .lms-cal-num { color: var(--sw-clay-ink); font-weight: 700; }
-  .lms-cal-day[aria-pressed="true"] .lms-cal-num { background: var(--sw-clay); color: #fff; font-weight: 700; }
-  .lms-cal-day[data-today][aria-pressed="true"] .lms-cal-num { background: var(--sw-clay); color: #fff; }
+  .lms-cal-day:focus-visible { outline: none; }
+  .lms-cal-day:focus-visible .lms-cal-num { box-shadow: 0 0 0 2px var(--sw-accent); }
+  .lms-cal-day[data-out] { color: var(--sw-ink-3); opacity: 0.5; }
+  .lms-cal-day[data-today] .lms-cal-num { color: #ff3b30; font-weight: 700; }
+  .dark .lms-cal-day[data-today] .lms-cal-num { color: #ff453a; }
+  .lms-cal-day[aria-selected="true"] .lms-cal-num { background: var(--sw-ink); color: var(--sw-paper); font-weight: 700; }
+  .lms-cal-day[data-today][aria-selected="true"] .lms-cal-num { background: #ff3b30; color: #fff; }
+  .dark .lms-cal-day[data-today][aria-selected="true"] .lms-cal-num { background: #ff453a; }
+  .lms-cal-nav {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-ink) 6%, transparent);
+  }
+  .dark .lms-cal-nav { background: rgba(255, 255, 255, 0.07); }
+  .lms-cal-nav > button {
+    display: grid;
+    place-items: center;
+    min-width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 999px;
+    color: var(--sw-ink-2);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .lms-cal-nav > button:hover { background: var(--sw-card); color: var(--sw-ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
+  .dark .lms-cal-nav > button:hover { background: #3a3e3c; }
+  .lms-cal-today { padding: 0 0.6rem; font-size: 0.78rem; font-weight: 600; }
+  /* Agenda entries: a tinted block with a colour bar, as events read in Calendar. */
+  .lms-event {
+    display: block;
+    padding: 0.45rem 0.65rem 0.45rem 0.8rem;
+    border-radius: 8px;
+    box-shadow: inset 3px 0 0 var(--ev);
+    background: color-mix(in srgb, var(--ev) 13%, transparent);
+    color: color-mix(in srgb, var(--ev) 70%, var(--sw-ink));
+    text-decoration: none;
+    transition: background-color 0.15s;
+  }
+  .lms-event:hover { background: color-mix(in srgb, var(--ev) 20%, transparent); }
+  .dark .lms-event { color: color-mix(in srgb, var(--ev) 55%, #fff); }
+  .lms-event--soon { --ev: #ef4b3f; }
+  .lms-event--due { --ev: #2f80ed; }
+  .lms-event--done { --ev: #2d9d6a; }
   .lms-cal-dot { display: inline-block; width: 0.35rem; height: 0.35rem; border-radius: 999px; background: var(--sw-ink-3); }
   .lms-cal-dot--soon { background: #ef4b3f; }
   .lms-cal-dot--due { background: #2f80ed; }
@@ -1185,7 +1417,8 @@ html:has(.lms-root) body {
 
 @media (prefers-reduced-motion: reduce) {
   .lms-rise, .lms-pop, .lms-bar > span { animation: none; }
-  .lms-side-link, .lms-side-btn, .lms-side-chev, .lms-icon-btn, .lms-btn, .lms-tab, .lms-card-hover, .lms-milk-hover, .lms-glass-btn, .lms-segment, .lms-row, .lms-row-action, .lms-cal-num { transition: none; }
+  .lms-side-link, .lms-side-btn, .lms-side-chev, .lms-icon-btn, .lms-btn, .lms-tab, .lms-card-hover, .lms-milk-hover, .lms-glass-btn, .lms-segment, .lms-row, .lms-row-action, .lms-cal-num, .lms-pass, .lms-pass-sheen, .lms-pass-action, .lms-notice { transition: none; }
+  .lms-pass:hover { transform: none; }
   .lms-milk-hover:hover, .lms-milk-hover:active { transform: none; }
   .lms-menu { animation: none; }
 }
