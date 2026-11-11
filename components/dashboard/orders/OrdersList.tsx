@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Repeat, ShoppingBag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ReceiptDownloadButton } from "./ReceiptDownloadButton";
+import Link from "next/link";
 import { formatNaira } from "@/lib/paymentTax";
 
 type Transaction = {
@@ -81,7 +81,8 @@ export default function OrdersList({
                   const status = statusInfo(txn.status);
                   const subscription = txn.transaction_type?.toUpperCase().includes("SUBSCRIPTION");
                   return (
-                    <li key={txn.id} className="lms-form-row !items-start !gap-3 !py-3">
+                    <li key={txn.id}>
+                      <Link href={`/dashboard/orders/${encodeURIComponent(txn.reference)}`} className="lms-form-row lms-order-row !items-start !gap-3 !py-3" aria-label={`${formatTransactionType(txn.transaction_type)}, ${formatNaira(txn.amount, 2)}, ${status.label}. View order details`}>
                       <span className={`lms-sym ${subscription ? "lms-sym--indigo" : "lms-sym--green"} mt-0.5`}>
                         {subscription ? <Repeat className="h-[18px] w-[18px]" aria-hidden="true" /> : <ShoppingBag className="h-[18px] w-[18px]" aria-hidden="true" />}
                       </span>
@@ -101,11 +102,6 @@ export default function OrdersList({
                             {hasTax(txn) && `Includes VAT ${formatNaira(Number(txn.tax_amount))}`}
                           </p>
                         )}
-                        {canDownloadReceipt(txn) && (
-                          <div className="mt-1.5">
-                            <ReceiptDownloadButton reference={txn.reference} />
-                          </div>
-                        )}
                       </div>
                       <div className="flex-none text-right">
                         <p className={`m-0 text-[0.98rem] font-semibold tabular-nums tracking-[-0.01em] ${status.tone === "red" ? "text-ink-3 line-through decoration-1" : "text-ink"}`}>
@@ -113,6 +109,8 @@ export default function OrdersList({
                         </p>
                         <span className={`lms-status lms-status--${status.tone} mt-0.5 text-[0.75rem]`}>{status.label}</span>
                       </div>
+                      <ChevronRight className="lms-order-chev mt-3 h-4 w-4" aria-hidden="true" />
+                      </Link>
                     </li>
                   );
                 })}
@@ -162,13 +160,6 @@ function statusInfo(status: string): { label: string; tone: "green" | "orange" |
   }
 }
 
-function canDownloadReceipt(txn: Transaction) {
-  const type = txn.transaction_type?.toUpperCase();
-  return (
-    (type === "COURSE_PURCHASE" || type === "CART_PURCHASE") &&
-    txn.status?.toUpperCase() === "SUCCESS"
-  );
-}
 
 function formatTransactionType(type: string) {
   if (type?.toUpperCase() === "CART_PURCHASE") return "Course bundle";

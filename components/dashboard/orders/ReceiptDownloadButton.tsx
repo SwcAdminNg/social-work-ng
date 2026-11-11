@@ -5,9 +5,11 @@ import { useState } from "react";
 
 type ReceiptDownloadButtonProps = {
   reference: string;
+  /** "button" is the filled action on the order page; "link" is the small inline one. */
+  variant?: "link" | "button";
 };
 
-export function ReceiptDownloadButton({ reference }: ReceiptDownloadButtonProps) {
+export function ReceiptDownloadButton({ reference, variant = "link" }: ReceiptDownloadButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,8 +46,13 @@ export function ReceiptDownloadButton({ reference }: ReceiptDownloadButtonProps)
   }
 
   return (
-    <span className="inline-flex flex-col gap-0.5">
-      <button type="button" onClick={handleDownload} disabled={isLoading} className="lms-text-btn !min-h-7 !text-[0.82rem] !font-semibold">
+    <span className={variant === "button" ? "flex flex-col gap-1.5 sm:flex-1" : "inline-flex flex-col gap-0.5"}>
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={isLoading}
+        className={variant === "button" ? "lms-btn w-full" : "lms-text-btn !min-h-7 !text-[0.82rem] !font-semibold"}
+      >
         {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
         {isLoading ? "Preparing receipt…" : "Download Receipt"}
       </button>
