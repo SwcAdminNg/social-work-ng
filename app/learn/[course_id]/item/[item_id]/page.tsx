@@ -312,6 +312,7 @@ export default async function LearningItemPage(props: {
             title={item.title}
             isCompleted={item.is_completed}
             questions={item.questions}
+            paraphrased={item.quiz_paraphrased}
             estimatedMinutes={estimatedMinutes}
             maxAttempts={item.max_attempts}
             attemptsUsed={item.attempts_used}

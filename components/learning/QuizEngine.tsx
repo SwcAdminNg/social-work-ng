@@ -13,7 +13,8 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
-import { QuizFocusShell } from "./QuizFocusMode";
+import { QuizFocusShell, RetryNote } from "./QuizFocusMode";
+import { IconSpinner } from "@/components/auth/shared/icons";
 import {
   ChoiceList,
   FinalAssessmentNotice,
@@ -29,6 +30,8 @@ interface QuizEngineProps {
   itemId: string;
   isCompleted: boolean;
   questions: QuizQuestion[];
+  /** The questions above are an AI-reworded retry version already drawn up for this learner. */
+  paraphrased?: boolean | null;
   estimatedMinutes?: number | null;
   maxAttempts?: number | null;
   attemptsUsed?: number | null;
@@ -73,7 +76,8 @@ export function QuizEngine({
   title,
   itemId,
   isCompleted,
-  questions,
+  questions: initialQuestions,
+  paraphrased: initialParaphrased,
   maxAttempts,
   attemptsUsed,
   attemptsRemaining,
@@ -102,6 +106,12 @@ export function QuizEngine({
   );
   const [error, setError] = useState("");
   const [focusOpen, setFocusOpen] = useState(false);
+  // The version being taken comes from quiz/start: as written the first time,
+  // reworded by AI on a retry. Fetched once per attempt.
+  const [questions, setQuestions] = useState<QuizQuestion[]>(initialQuestions);
+  const [paraphrased, setParaphrased] = useState(Boolean(initialParaphrased));
+  const [versionReady, setVersionReady] = useState(false);
+  const [starting, setStarting] = useState(false);
 
   // Once the server-provided attempts data reflects a submission (after router.refresh()),
   // drop the local session counter so we don't double-subtract the same attempt.
@@ -163,6 +173,7 @@ export function QuizEngine({
       });
       setAttemptsUsedThisSession((count) => count + 1);
       setFocusOpen(false);
+      setVersionReady(false);
       setCurrentQuestionIndex(0);
 
       router.refresh();
@@ -170,6 +181,37 @@ export function QuizEngine({
       setError(getErrorMessage(err, "Failed to submit quiz"));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openQuiz = async (fresh = false) => {
+    if (versionReady && !fresh) {
+      setFocusOpen(true);
+      return;
+    }
+    setStarting(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/proxy/learning/courses/${courseId}/items/${itemId}/quiz/start`, {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Could not start the quiz");
+      const next: QuizQuestion[] = data.data?.questions || [];
+      const sameVersion =
+        next.length === questions.length && next.every((q, idx) => q.id === questions[idx]?.id && q.text === questions[idx]?.text);
+      setQuestions(next);
+      setParaphrased(data.data?.paraphrased === true);
+      setVersionReady(true);
+      if (fresh || !sameVersion) {
+        setCurrentQuestionIndex(0);
+        if (!sameVersion) setAnswers({});
+      }
+      setFocusOpen(true);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Could not start the quiz"));
+    } finally {
+      setStarting(false);
     }
   };
 
@@ -244,14 +286,14 @@ export function QuizEngine({
                 type="button"
                 onClick={() => {
                   setResult(null);
-                  setError("");
                   setAnswers({});
                   setCurrentQuestionIndex(0);
-                  setFocusOpen(true);
+                  void openQuiz(true);
                 }}
+                disabled={starting}
                 className="lms-btn lms-btn--sm lms-btn--tinted"
               >
-                <RotateCcw className="h-4 w-4" />
+                {starting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
                 {result.resultVisible && result.passed ? "Retake" : "Try Again"}
               </button>
             ) : undefined
@@ -294,15 +336,26 @@ export function QuizEngine({
                   ? `${answeredCount} of ${questions.length} answered. Your answers are kept while this page stays open.`
                   : "The quiz opens full screen. Answer each question, then submit at the end."}
               </p>
-              <button type="button" onClick={() => setFocusOpen(true)} className="lms-btn lms-btn--sm">
-                <PlayCircle className="h-4 w-4" />
-                {answeredCount > 0 ? "Resume Quiz" : "Start Quiz"}
+              <button
+                type="button"
+                onClick={() => void openQuiz()}
+                disabled={starting}
+                className="lms-btn lms-btn--sm"
+              >
+                {starting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+                {starting ? "Preparing…" : answeredCount > 0 ? "Resume Quiz" : "Start Quiz"}
               </button>
             </div>
           ) : (
             <p className="m-0 p-6 text-center text-[0.9375rem] text-ink-2">There are no questions in this quiz yet.</p>
           )}
         </div>
+      )}
+
+      {!focusOpen && error && !result && (
+        <p role="alert" className="lms-group-note !text-[#d92d20]">
+          {error}
+        </p>
       )}
 
       {/* After submitting, step through the questions with the correct answers marked. */}
@@ -357,6 +410,7 @@ export function QuizEngine({
                 {error}
               </Notice>
             )}
+            {paraphrased && <RetryNote />}
             <QuestionProgress
               index={currentQuestionIndex}
               total={questions.length}
