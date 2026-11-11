@@ -1,14 +1,10 @@
 import Form from "next/form";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, RotateCw, UsersRound, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, RotateCw, Search, UsersRound, X } from "lucide-react";
 import CatalogueCard from "./CatalogueCard";
 import FiltersPanel from "./FiltersPanel";
 import { COSTS, LEVELS, type CatalogueCourse, type CourseCatalog } from "./courseFormat";
-import PageHero from "@/components/site/PageHero";
-import { SearchBar } from "@/components/site/form";
-import { Btn } from "@/components/site/ui";
-import { photos } from "@/lib/photos";
 import lib from "@/components/resources/library/Library.module.css";
 import s from "./Catalogue.module.css";
 
@@ -39,6 +35,7 @@ function buildHref(query: CatalogueQuery, changes: Partial<CatalogueQuery>) {
 export default function CourseCatalogue({ query, courses, ok, total, totalPages, topics, enrolledIds }: Props) {
   const filtered = Boolean(query.search || query.topic || query.level || query.cost);
   const catalogueEmpty = ok && !filtered && total === 0;
+  const activeCount = [query.topic, query.level, query.cost].filter(Boolean).length;
   const enrolled = new Set(enrolledIds);
 
   const topicName = topics.find((t) => t.slug === query.topic)?.name;
@@ -53,57 +50,67 @@ export default function CourseCatalogue({ query, courses, ok, total, totalPages,
           label: "Topic",
           value: query.topic,
           allLabel: "All topics",
-          title: "Choose a topic",
-          help: "Show courses about one area of practice.",
           options: topics.map((t) => ({ value: t.slug, label: t.name })),
         }]
       : []),
-    {
-      name: "level",
-      label: "Level",
-      value: query.level,
-      allLabel: "All levels",
-      title: "Choose a level",
-      help: "Pick the level that matches your study or practice experience.",
-      options: LEVELS.map((l) => ({ value: l.value, label: l.label, description: l.description })),
-    },
-    {
-      name: "cost",
-      label: "Cost",
-      value: query.cost,
-      allLabel: "Free and paid",
-      title: "Free or paid",
-      options: COSTS.map((c) => ({ value: c.value, label: c.label })),
-    },
+    { name: "level", label: "Level", value: query.level, allLabel: "All levels", options: LEVELS.map((l) => ({ value: l.value, label: l.label })) },
+    { name: "cost", label: "Cost", value: query.cost, allLabel: "Free and paid", options: COSTS.map((c) => ({ value: c.value, label: c.label })) },
   ];
 
   return (
-    <>
-      <PageHero
-        id="courses-heading"
-        eyebrow="Our courses"
-        title="Build your knowledge and *strengthen* your social work practice"
-        lead="Explore practical learning from Social Work Consultancy Ltd for social work students, practitioners and those supporting children, families and communities. Find learning that connects professional knowledge with the realities of practice in Nigeria and the Global South."
-        photo={photos.atWork}
-        position="50% 26%"
-        compact
-      >
-        <Btn href="#catalogue" variant="gold">Browse Courses</Btn>
-        <Btn href="/contact?topic=course" variant="ghost">Need Help Choosing?</Btn>
-      </PageHero>
+    <div className={`${lib.page} ${s.page}`}>
+      <section className={s.hero} aria-labelledby="courses-heading">
+        <div className={`${lib.container} ${s.heroInner}`}>
+          <h1 id="courses-heading">Build your knowledge and strengthen your social work practice</h1>
+          <p className={s.heroLead}>
+            Explore practical learning from Social Work Consultancy Ltd for social work students,
+            practitioners and those supporting children, families and communities. Find learning that
+            connects professional knowledge with the realities of practice in Nigeria and the Global
+            South.
+          </p>
+          <div className={s.heroActions}>
+            <a href="#catalogue" className={s.browse}>
+              Browse Courses <ArrowRight size={17} aria-hidden="true" />
+            </a>
+            <Link href="/contact?topic=course" className={s.help}>
+              Need Help Choosing?
+            </Link>
+          </div>
+        </div>
+      </section>
 
-      <div className={`${lib.page} ${s.page} sw-sheet pt-6 md:pt-10`}>
       {!catalogueEmpty && ok && (
         <section className={`${lib.toolbar} ${lib.container}`} aria-label="Search and filter courses">
-          <Form action="/courses" scroll={false} className={lib.searchForm} role="search">
-            <SearchBar
-              key={query.search}
-              id="course-search"
-              label="Search courses"
-              placeholder="Search by course title or topic"
-              defaultValue={query.search}
-            />
-            <FiltersPanel filters={filters} />
+          <Form action="/courses" className={lib.searchForm} role="search">
+            <label htmlFor="course-search" className={lib.searchLabel}>
+              Search courses
+            </label>
+            <div className={lib.searchRow}>
+              <div className={lib.searchField}>
+                <Search size={20} aria-hidden="true" />
+                <input
+                  key={query.search}
+                  id="course-search"
+                  name="search"
+                  type="search"
+                  className={lib.searchInput}
+                  placeholder="Search by course title or topic"
+                  defaultValue={query.search}
+                  autoComplete="off"
+                  enterKeyHint="search"
+                />
+              </div>
+              <button type="submit" className={lib.searchButton}>
+                Search
+              </button>
+            </div>
+            <FiltersPanel filters={filters} activeCount={activeCount} clearHref="/courses#catalogue" />
+            {query.level && (
+              <p className={s.levelHelp}>
+                {LEVELS.find((l) => l.value === query.level)?.label}:{" "}
+                {LEVELS.find((l) => l.value === query.level)?.description}
+              </p>
+            )}
           </Form>
         </section>
       )}
@@ -142,7 +149,7 @@ export default function CourseCatalogue({ query, courses, ok, total, totalPages,
         ) : catalogueEmpty ? (
           <div className={lib.state}>
             <div className={lib.stateMedia}>
-              <Image src="/images/ng/learning-together.webp" alt="Two colleagues look at a laptop together." fill sizes="840px" quality={90} />
+              <Image src="/images/courses/learners-collaborate.webp" alt="Three learners study together at a table with notebooks and a laptop." fill sizes="420px" />
             </div>
             <h3>New courses are being prepared.</h3>
             <p>Register your interest to be notified when learning becomes available.</p>
@@ -219,7 +226,6 @@ export default function CourseCatalogue({ query, courses, ok, total, totalPages,
           </div>
         </div>
       </section>
-      </div>
-    </>
+    </div>
   );
 }

@@ -92,12 +92,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     };
   }, []);
 
-  // Lets sticky page elements (such as a section menu) move up when the header slides away.
-  useEffect(() => {
-    document.documentElement.toggleAttribute("data-nav-hidden", hidden && !menuOpen);
-    return () => document.documentElement.removeAttribute("data-nav-hidden");
-  }, [hidden, menuOpen]);
-
   // Menu open: lock page scroll, trap focus, close on Escape or on desktop widths.
   useIsoLayoutEffect(() => {
     if (!menuOpen) return;
@@ -143,17 +137,12 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const surfaceStyle: React.CSSProperties = menuOpen
     ? { backgroundColor: "transparent", borderColor: "transparent" }
     : {
-        backgroundColor: `rgba(${surface.rgb}, ${surface.atTop ? 0 : 0.74})`,
+        backgroundColor: `rgba(${surface.rgb}, ${surface.atTop ? 0.92 : 0.72})`,
         borderColor: surface.atTop
           ? "transparent"
           : onDark
-            ? "rgba(255,255,255,0.12)"
-            : "rgba(15,23,20,0.09)",
-        boxShadow: surface.atTop
-          ? "none"
-          : onDark
-            ? "0 18px 40px -22px rgba(0,0,0,0.65)"
-            : "0 18px 40px -24px rgba(14,31,23,0.35)",
+            ? "rgba(255,255,255,0.08)"
+            : "rgba(15,23,20,0.07)",
       };
 
   const fg = onDark ? "text-white" : "text-[#10231a]";
@@ -174,18 +163,17 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       } ${hidden && !menuOpen ? "-translate-y-full" : ""}`}
     >
       {/* No transform on the nav while open: it would trap the fixed sheet. */}
-      {/* Adaptive capsule: takes on the colour of whatever is beneath it. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-2.5 top-2.5 bottom-2.5 -z-10 sm:inset-x-5">
-        <div
-          className={`mx-auto h-full max-w-[1280px] rounded-full border motion-reduce:transition-none ${
-            surface.atTop || menuOpen ? "" : "backdrop-blur-2xl backdrop-saturate-[1.8]"
-          } ${surface.ready ? "transition-[background-color,border-color,box-shadow] duration-500 ease-out" : ""}`}
-          style={surfaceStyle}
-        />
-      </div>
+      {/* Adaptive surface: takes on the colour of whatever is beneath it. */}
+      <div
+        aria-hidden="true"
+        className={`absolute inset-0 -z-10 border-b backdrop-blur-2xl backdrop-saturate-[1.8] motion-reduce:transition-none ${
+          surface.ready ? "transition-[background-color,border-color] duration-500 ease-out" : ""
+        }`}
+        style={surfaceStyle}
+      />
 
       <div
-        className="relative z-10 mx-auto flex max-w-[1280px] items-center gap-6 px-7 sm:px-12"
+        className="relative z-10 max-w-6xl mx-auto px-5 sm:px-6 flex items-center gap-6"
         style={{ height: HEADER_HEIGHT }}
       >
         <Link
@@ -267,23 +255,13 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
           <Link
             href={account.href}
-            className={`group hidden lg:inline-flex items-center gap-2.5 h-10 pl-5 pr-1.5 ml-1 rounded-full text-sm font-semibold no-underline transition-all duration-300 active:scale-[0.97] ${
+            className={`hidden lg:inline-flex items-center h-10 px-5 ml-1 rounded-full text-sm font-semibold no-underline transition-all duration-300 active:scale-[0.97] ${
               onDark
                 ? "bg-white text-[#0c2a1e] hover:bg-[#F3C56B]"
                 : "bg-[#14402F] text-white hover:bg-[#2D6A4F]"
             }`}
           >
             {account.name}
-            <span
-              aria-hidden="true"
-              className={`grid h-7 w-7 place-items-center rounded-full transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:-rotate-45 ${
-                onDark ? "bg-[#0c2a1e] text-[#F3C56B]" : "bg-[#EBA937] text-[#10231a]"
-              }`}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </span>
           </Link>
 
           {/* Mobile menu button */}
@@ -445,7 +423,7 @@ function MobileMenu({
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <span
-                    className={`flex-1 font-display text-[30px] font-semibold leading-none tracking-[-0.03em] transition-[color,transform] duration-300 group-hover:translate-x-1 sm:text-[34px] ${
+                    className={`flex-1 text-[28px] font-medium leading-none tracking-[-0.02em] transition-[color,transform] duration-300 group-hover:translate-x-1 sm:text-[34px] ${
                       active ? "text-white" : "text-white/85 group-hover:text-white"
                     }`}
                   >

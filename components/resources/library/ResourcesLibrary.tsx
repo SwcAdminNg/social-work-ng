@@ -1,7 +1,7 @@
 import Form from "next/form";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, Info, Sprout, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Info, Search, Sprout, X } from "lucide-react";
 import {
   RESOURCE_ACCESS_OPTIONS,
   RESOURCE_CATEGORIES,
@@ -10,9 +10,6 @@ import {
 } from "@/lib/resources";
 import AccessSelect from "./AccessSelect";
 import LibraryCard, { categoryLabel } from "./LibraryCard";
-import { SearchBar } from "@/components/site/form";
-import PageHero from "@/components/site/PageHero";
-import { photos } from "@/lib/photos";
 import s from "./Library.module.css";
 
 export type LibraryQuery = { search: string; category: string; access: string; page: number };
@@ -65,37 +62,61 @@ export default function ResourcesLibrary({ query, result, counts, pageSize }: Pr
     .join(" · ");
 
   return (
-    <>
-      <PageHero
-        id="resources-heading"
-        eyebrow="Knowledge Hub"
-        title="Practical resources for *informed* practice"
-        lead="Explore learning materials, practice tools and guidance from Social Work Consultancy Ltd. Find resources to support reflection, professional development and your understanding of social work practice in Nigeria and the Global South."
-        body={
-          <span className="flex items-start gap-2">
-            <Info size={16} className="mt-1 flex-none text-gold-light" aria-hidden="true" />
+    <div className={s.page}>
+      <section className={s.hero} aria-labelledby="resources-heading">
+        <div className={s.heroCopy}>
+          <p className={s.eyebrow}>Knowledge Hub</p>
+          <h1 id="resources-heading">Practical resources for informed practice</h1>
+          <p className={s.heroLead}>
+            Explore learning materials, practice tools and guidance from Social Work Consultancy Ltd.
+            Find resources to support reflection, professional development and your understanding of
+            social work practice in Nigeria and the Global South.
+          </p>
+          <p className={s.heroNote}>
+            <Info size={16} aria-hidden="true" />
             <span>
-              Check each resource for its intended audience, source, publication or review date, and access
-              requirements.
+              Check each resource for its intended audience, source, publication or review date, and
+              access requirements.
             </span>
-          </span>
-        }
-        photo={photos.readingTea}
-        position="70% 30%"
-        compact
-      />
+          </p>
+        </div>
+        <div className={s.heroMedia}>
+          <Image
+            src="/images/resources/library-browsing.webp"
+            alt="Two colleagues browse folders and books on the shelves of a bright resource library."
+            fill
+            priority
+            sizes="(min-width: 900px) 48vw, 100vw"
+          />
+          <span className={s.chip}>Illustrative image</span>
+        </div>
+      </section>
 
-      <div className={`${s.page} sw-sheet pt-6 md:pt-10`}>
       {!libraryEmpty && (
         <section className={`${s.toolbar} ${s.container}`} aria-label="Search and filter resources">
-          <Form action="/resources" scroll={false} className={s.searchForm} role="search">
-            <SearchBar
-              key={query.search}
-              id="resource-search"
-              label="Search the resource library"
-              placeholder="Search by title or topic"
-              defaultValue={query.search}
-            />
+          <Form action="/resources" className={s.searchForm} role="search">
+            <label htmlFor="resource-search" className={s.searchLabel}>
+              Search the resource library
+            </label>
+            <div className={s.searchRow}>
+              <div className={s.searchField}>
+                <Search size={20} aria-hidden="true" />
+                <input
+                  key={query.search}
+                  id="resource-search"
+                  name="search"
+                  type="search"
+                  className={s.searchInput}
+                  placeholder="Search by title or topic"
+                  defaultValue={query.search}
+                  autoComplete="off"
+                  enterKeyHint="search"
+                />
+              </div>
+              <button type="submit" className={s.searchButton}>
+                Search
+              </button>
+            </div>
             {query.category && <input type="hidden" name="category" value={query.category} />}
 
             <div className={s.filterRow}>
@@ -165,11 +186,10 @@ export default function ResourcesLibrary({ query, result, counts, pageSize }: Pr
           <div className={s.state}>
             <div className={s.stateMedia}>
               <Image
-                src="/images/ng/reading-tea.webp"
-                alt="A woman in glasses and a striped kaftan reads a newspaper over a cup of tea."
+                src="/images/resources/learning-toolkit.webp"
+                alt="A planner, notebook and tablet laid out on a desk, ready for study."
                 fill
-                sizes="840px"
-                quality={90}
+                sizes="420px"
               />
             </div>
             <h3>Our resource library is under development.</h3>
@@ -251,7 +271,6 @@ export default function ResourcesLibrary({ query, result, counts, pageSize }: Pr
           </div>
         </div>
       </section>
-      </div>
-    </>
+    </div>
   );
 }

@@ -1,18 +1,26 @@
-import { pageMetadata } from "@/lib/site";
+import type { Metadata } from "next";
 import ForgotPassword from "@/components/auth/ForgotPassword";
 import { Suspense } from "react";
+import { fetchApi } from "@/lib/fetchApi";
 
-export const metadata = pageMetadata({
+export const metadata: Metadata = {
   title: "Forgot password | Social Work Consultancy Ltd",
   description: "Get a secure link to reset your Social Work Consultancy Ltd password.",
-  path: "/forgot-password",
-  index: false,
-});
+  alternates: { canonical: "/forgot-password" },
+  robots: { index: false, follow: false },
+};
 
-export default function ForgotPasswordPage() {
+export default async function ForgotPasswordPage() {
+  const res = await fetchApi("/home/stats", { next: { revalidate: 3600 } });
+  let stats = null;
+  if (res.ok) {
+    const data = await res.json().catch(() => ({}));
+    stats = data?.data || null;
+  }
+
   return (
     <Suspense fallback={null}>
-      <ForgotPassword />
+      <ForgotPassword statsData={stats} />
     </Suspense>
   );
 }

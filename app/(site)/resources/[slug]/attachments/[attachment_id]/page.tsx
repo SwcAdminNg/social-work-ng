@@ -16,8 +16,6 @@ export async function generateMetadata(props: {
 
   return {
     title: `${attachment?.title || resource?.name || "Resource"} | Social Work Nigeria`,
-    // A viewer for one file; the resource page is the one to find in search.
-    robots: { index: false, follow: true },
   };
 }
 
@@ -72,22 +70,22 @@ export default async function ResourceAttachmentPage(props: {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper">
-      <header className="border-b border-line bg-card px-4 py-4 sm:px-6">
+    <main className="flex min-h-screen flex-col bg-[#f7fcf9] dark:bg-[#0b1220]">
+      <header className="sticky top-0 z-20 border-b border-[#dceee4] bg-white/95 px-4 py-3 backdrop-blur dark:border-[#27433a] dark:bg-[#111525]/95 sm:px-6">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <Link
               href={`/resources/${slug}`}
-              className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-full border border-line text-ink no-underline transition-colors hover:border-ink"
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-[#dceee4] text-slate-600 transition hover:bg-[#f0fbf5] hover:text-[#2D6A4F] dark:border-[#27433a] dark:text-slate-300 dark:hover:bg-[#183026]"
               aria-label="Back to resource"
             >
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div className="min-w-0">
-              <p className="sw-cap m-0 text-clay-ink">
+              <p className="text-xs font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
                 {attachment.attachment_type === "VIDEO" ? "Video viewer" : "Document viewer"}
               </p>
-              <h1 className="sw-title m-0 mt-1 line-clamp-1 text-lg text-ink sm:text-xl">
+              <h1 className="line-clamp-1 text-base font-extrabold text-slate-950 dark:text-white sm:text-lg">
                 {attachment.title || attachment.document?.file_name || resource.name}
               </h1>
             </div>
@@ -110,35 +108,44 @@ export default async function ResourceAttachmentPage(props: {
             downloadable={downloadable}
           />
         ) : (
-          <div className="mx-auto flex h-[calc(100dvh-120px)] max-w-2xl flex-col items-center justify-center rounded-[32px] border border-dashed border-line bg-card p-8 text-center">
-            <FileText className="mb-4 h-10 w-10 text-ink-3" />
-            <h2 className="sw-title m-0 text-xl text-ink">
+          <div className="mx-auto flex h-[calc(100dvh-120px)] max-w-2xl flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-[#111525]">
+            <FileText className="mb-4 h-10 w-10 text-slate-400" />
+            <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
               Viewer unavailable
             </h2>
-            <p className="m-0 mt-2 text-sm leading-6 text-ink-2">
+            <p className="mt-2 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
               {viewError || "This attachment is not available to view right now."}
             </p>
           </div>
         )}
       </section>
-    </div>
+    </main>
   );
 }
 
 function ViewerError({ message, locked }: { message: string; locked?: boolean }) {
   return (
-    <div className="flex min-h-[70vh] items-center justify-center bg-paper p-6">
-      <div className="max-w-md rounded-[32px] border border-dashed border-line bg-card p-10 text-center">
-        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-mint text-accent">
-          {locked ? <Lock size={26} aria-hidden="true" /> : <FileText size={26} aria-hidden="true" />}
-        </span>
-        <h1 className="sw-display m-0 mt-6 text-[1.7rem] text-ink">Unable to open attachment</h1>
-        <p className="m-0 mt-3 text-ink-2">{message}</p>
-        <Link href="/resources" className="sw-btn mt-7 justify-center px-6">
+    <main className="flex min-h-screen items-center justify-center bg-[#f7fcf9] p-6 dark:bg-[#0b1220]">
+      <div className="max-w-md rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-[#111525]">
+        {locked ? (
+          <Lock className="mx-auto mb-4 h-10 w-10 text-slate-400" />
+        ) : (
+          <FileText className="mx-auto mb-4 h-10 w-10 text-slate-400" />
+        )}
+        <h1 className="text-lg font-extrabold text-slate-950 dark:text-white">
+          Unable to open attachment
+        </h1>
+        <p className="mt-2 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
+          {message}
+        </p>
+        <Link
+          href="/resources"
+          className="mt-5 inline-flex h-10 items-center justify-center rounded-md bg-[#2D6A4F] px-4 text-sm font-extrabold text-white transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
+        >
           Back to resources
         </Link>
       </div>
-    </div>
+    </main>
   );
 }
 

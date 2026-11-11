@@ -2,9 +2,9 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { Info } from "lucide-react";
-import { ChoiceGroup, FormAlert, FormNote, FormSuccess, PhoneField, RequiredNote, SelectField, SpamTrap, SubmitButton, TextArea, TextField } from "@/components/site/form";
-import { phoneProblem } from "@/lib/phone";
+import { AlertCircle, Check, CheckCircle2, Info, Loader2, Send } from "lucide-react";
+// Form controls share the Contact page's styles so every enquiry form looks the same.
+import s from "@/components/contact/Contact.module.css";
 
 const SUPPORT_EMAIL = "support@socialworknigeria.org";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -60,8 +60,6 @@ function initialValues(fields: FieldDef[]): Values {
 function validateField(field: FieldDef, raw: string): string | undefined {
   const value = raw.trim();
   const lower = field.label.toLowerCase();
-  // The phone field hands over the international form, such as +2348034471063.
-  if (field.kind === "tel") return phoneProblem(value, { required: field.required });
   if (!value) {
     if (!field.required) return undefined;
     if (field.kind === "radio" || field.kind === "select") return `Choose your ${lower}.`;
@@ -69,6 +67,12 @@ function validateField(field: FieldDef, raw: string): string | undefined {
     return `Enter your ${lower}.`;
   }
   if (field.kind === "email" && !EMAIL_PATTERN.test(value)) return "Enter a valid email address so we can reply.";
+  if (field.kind === "tel") {
+    const digits = value.replace(/\D/g, "");
+    if (!/^\+?[\d\s().-]+$/.test(value) || digits.length < 7 || digits.length > 15) {
+      return "Enter a phone number with country code, for example +234 803 447 1063, or leave it blank.";
+    }
+  }
   if (field.kind === "textarea") {
     if (field.min && value.length < field.min) return `Add a little more detail (at least ${field.min} characters).`;
     if (value.length > field.max) return `Keep this under ${field.max} characters.`;
@@ -199,19 +203,29 @@ export default function EnquiryForm({ config }: { config: FormConfig }) {
     }
   };
 
+  const describedBy = (...ids: (string | false | undefined)[]) => ids.filter(Boolean).join(" ") || undefined;
   const sending = status === "sending";
   const errorList = fields.filter((f) => errors[f.name]);
 
   if (status === "sent") {
     return (
-      <FormSuccess
-        ref={successRef}
-        title={config.success.title}
-        body={config.success.body}
-        reference={reference}
-        againLabel="Send another enquiry"
-        onAgain={() => setStatus("idle")}
-      />
+      <div className={s.success} role="status">
+        <span className={s.successIcon}>
+          <CheckCircle2 size={34} strokeWidth={1.75} aria-hidden="true" />
+        </span>
+        <h3 ref={successRef} tabIndex={-1} style={{ fontSize: "clamp(1.3rem, 1.15rem + 0.6vw, 1.6rem)" }}>
+          {config.success.title}
+        </h3>
+        <p>{config.success.body}</p>
+        {reference && (
+          <p className={s.reference}>
+            Reference: <strong>{reference}</strong>
+          </p>
+        )}
+        <button type="button" className={s.secondaryButton} onClick={() => setStatus("idle")}>
+          Send another enquiry
+        </button>
+      </div>
     );
   }
 
@@ -225,140 +239,208 @@ export default function EnquiryForm({ config }: { config: FormConfig }) {
 
   const renderField = (field: FieldDef) => {
     const fid = id(field.name);
-    const value = values[field.name] ?? "";
-    const shared = {
-      id: fid,
-      name: field.name,
-      required: field.required,
-      optional: !field.required,
-      error: errors[field.name],
-      hint: field.hint,
-      disabled: sending,
-    };
+    const err = errors[field.name];
+    const errId = err ? `${fid}-error` : undefined;
+    const hintId = field.hint ? `${fid}-hint` : undefined;
+    const label = (
+      <>
+        {field.label}
+        {field.required ? (
+          <span className={s.required} aria-hidden="true">*</span>
+        ) : (
+          <span className={s.optional}> (optional)</span>
+        )}
+      </>
+    );
+    const errorEl = err && (
+      <span id={errId} className={s.fieldError}>
+        <AlertCircle size={15} aria-hidden="true" />
+        {err}
+      </span>
+    );
 
     if (field.kind === "radio" || field.kind === "checkboxes") {
+      const selected = (values[field.name] ?? "").split("\n").filter(Boolean);
       return (
-        <ChoiceGroup
+        <fieldset
           key={field.name}
-          {...shared}
-          legend={field.label}
-          type={field.kind === "radio" ? "radio" : "checkbox"}
-          options={field.options.map((option) => ({ value: option, label: option }))}
-          value={field.kind === "radio" ? (value ? [value] : []) : value.split("\n").filter(Boolean)}
-          onToggle={(option) => (field.kind === "radio" ? update(field.name, option) : toggleCheckbox(field.name, option))}
-        />
+          className={s.fieldset}
+          aria-invalid={!!err || undefined}
+          aria-describedby={describedBy(hintId, errId)}
+          disabled={sending}
+        >
+          <legend className={s.label}>{label}</legend>
+          {field.hint && <p id={hintId} className={s.hint} style={{ marginBottom: 8 }}>{field.hint}</p>}
+          <div id={fid} tabIndex={-1} className={`${s.topics} ${err ? s.topicsInvalid : ""}`}>
+            {field.options.map((option) => (
+              <label key={option} className={s.topic}>
+                <input
+                  type={field.kind === "radio" ? "radio" : "checkbox"}
+                  name={field.name}
+                  value={option}
+                  checked={field.kind === "radio" ? values[field.name] === option : selected.includes(option)}
+                  onChange={() => (field.kind === "radio" ? update(field.name, option) : toggleCheckbox(field.name, option))}
+                />
+                <span className={s.topicFace}>
+                  <Check size={15} strokeWidth={2.5} aria-hidden="true" />
+                  {option}
+                </span>
+              </label>
+            ))}
+          </div>
+          {errorEl && <div style={{ marginTop: 8 }}>{errorEl}</div>}
+        </fieldset>
       );
     }
 
     if (field.kind === "select") {
       return (
-        <SelectField
-          key={field.name}
-          {...shared}
-          label={field.label}
-          options={field.options.map((option) => ({ value: option, label: option }))}
-          value={value}
-          onChange={(next) => update(field.name, next)}
-          onBlur={() => onBlur(field)}
-        />
-      );
-    }
-
-    if (field.kind === "textarea") {
-      const guidanceId = field.guidance ? `${fid}-guidance` : undefined;
-      return (
-        <div key={field.name} className="grid gap-3">
-          {field.guidance && (
-            <FormNote id={guidanceId} icon={<Info size={18} aria-hidden="true" />}>
-              {field.guidance}
-            </FormNote>
-          )}
-          <TextArea
-            ref={field.name === config.messageField ? messageRef : undefined}
-            {...shared}
-            label={field.label}
-            rows={field.rows}
-            maxLength={field.max}
-            placeholder={field.placeholder}
-            describedBy={guidanceId}
-            value={value}
-            onChange={(next) => update(field.name, next)}
+        <div key={field.name} className={s.field}>
+          <label htmlFor={fid} className={s.label}>{label}</label>
+          <select
+            id={fid}
+            name={field.name}
+            className={s.input}
+            value={values[field.name]}
+            onChange={(e) => update(field.name, e.target.value)}
             onBlur={() => onBlur(field)}
-          />
+            aria-required={field.required || undefined}
+            aria-invalid={!!err || undefined}
+            aria-describedby={describedBy(hintId, errId)}
+            disabled={sending}
+          >
+            <option value="">Choose one</option>
+            {field.options.map((o) => (
+              <option key={o} value={o}>{o}</option>
+            ))}
+          </select>
+          {field.hint && <span id={hintId} className={s.hint}>{field.hint}</span>}
+          {errorEl}
         </div>
       );
     }
 
-    if (field.kind === "tel") {
+    if (field.kind === "textarea") {
+      const length = (values[field.name] ?? "").length;
+      const guidanceId = field.guidance ? `${fid}-guidance` : undefined;
       return (
-        <PhoneField
-          key={field.name}
-          {...shared}
-          label={field.label}
-          value={value}
-          onChange={(next) => update(field.name, next)}
-          onBlur={() => onBlur(field)}
-        />
+        <div key={field.name} className={s.field}>
+          <label htmlFor={fid} className={s.label}>{label}</label>
+          {field.guidance && (
+            <p id={guidanceId} className={s.callout}>
+              <Info size={18} aria-hidden="true" />
+              <span>{field.guidance}</span>
+            </p>
+          )}
+          <textarea
+            ref={field.name === config.messageField ? messageRef : undefined}
+            id={fid}
+            name={field.name}
+            className={s.textarea}
+            style={field.rows ? { minHeight: field.rows * 28 } : undefined}
+            maxLength={field.max}
+            placeholder={field.placeholder}
+            value={values[field.name]}
+            onChange={(e) => update(field.name, e.target.value)}
+            onBlur={() => onBlur(field)}
+            aria-required={field.required || undefined}
+            aria-invalid={!!err || undefined}
+            aria-describedby={describedBy(guidanceId, hintId, errId)}
+            disabled={sending}
+          />
+          <div className={s.messageMeta}>
+            {errorEl || (field.hint ? <span id={hintId} className={s.hint}>{field.hint}</span> : <span />)}
+            <span className={`${s.counter} ${length > field.max * 0.9 ? s.counterNear : ""}`} aria-hidden="true">
+              {length}/{field.max}
+            </span>
+          </div>
+        </div>
       );
     }
 
     return (
-      <TextField
-        key={field.name}
-        {...shared}
-        label={field.label}
-        type={field.kind}
-        autoComplete={field.autoComplete}
-        valid={Boolean(value.trim()) && !validateField(field, value)}
-        value={value}
-        onChange={(next) => update(field.name, next)}
-        onBlur={() => onBlur(field)}
-      >
-        {field.suggestFrom === "timeZone" && deviceTimeZone && value !== deviceTimeZone && (
-          <button type="button" className="swf-inline-action" onClick={() => update(field.name, deviceTimeZone)} disabled={sending}>
+      <div key={field.name} className={s.field}>
+        <label htmlFor={fid} className={s.label}>{label}</label>
+        <input
+          id={fid}
+          name={field.name}
+          type={field.kind}
+          inputMode={field.kind === "email" ? "email" : field.kind === "tel" ? "tel" : undefined}
+          className={s.input}
+          autoComplete={field.autoComplete}
+          autoCapitalize={field.kind === "email" ? "none" : undefined}
+          spellCheck={field.kind === "email" ? false : undefined}
+          value={values[field.name]}
+          onChange={(e) => update(field.name, e.target.value)}
+          onBlur={() => onBlur(field)}
+          aria-required={field.required || undefined}
+          aria-invalid={!!err || undefined}
+          aria-describedby={describedBy(hintId, errId)}
+          disabled={sending}
+        />
+        {field.hint && <span id={hintId} className={s.hint}>{field.hint}</span>}
+        {field.suggestFrom === "timeZone" && deviceTimeZone && values[field.name] !== deviceTimeZone && (
+          <button
+            type="button"
+            className={s.hint}
+            style={{ justifySelf: "start", padding: "6px 0", border: 0, background: "none", color: "var(--link)", fontWeight: 600, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3 }}
+            onClick={() => update(field.name, deviceTimeZone)}
+            disabled={sending}
+          >
             Use {deviceTimeZone}
           </button>
         )}
-      </TextField>
+        {errorEl}
+      </div>
     );
   };
 
   return (
-    <form ref={formRef} className="swf-form" onSubmit={onSubmit} noValidate>
+    <form ref={formRef} className={s.form} onSubmit={onSubmit} noValidate>
       {config.intro}
-      <RequiredNote />
+      <p className={s.hint}>
+        Fields marked <span className={s.required} aria-hidden="true">*</span>
+        <span className="sr-only">with an asterisk</span> are required.
+      </p>
 
       {errorList.length > 0 && (
-        <FormAlert
-          ref={summaryRef}
-          titleId={id("summary")}
-          title={`Please check ${errorList.length === 1 ? "this field" : `these ${errorList.length} fields`}`}
-        >
-          <ul>
-            {errorList.map((f) => (
-              <li key={f.name}>
-                <a href={`#${id(f.name)}`}>{f.label}</a>: {errors[f.name]}
-              </li>
-            ))}
-          </ul>
-        </FormAlert>
+        <div ref={summaryRef} tabIndex={-1} className={s.alert} role="alert" aria-labelledby={id("summary")}>
+          <AlertCircle size={20} aria-hidden="true" />
+          <div>
+            <h3 id={id("summary")}>
+              Please check {errorList.length === 1 ? "this field" : `these ${errorList.length} fields`}
+            </h3>
+            <ul>
+              {errorList.map((f) => (
+                <li key={f.name}>
+                  <a href={`#${id(f.name)}`}>{f.label}</a>: {errors[f.name]}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       )}
 
       {(status === "failed" || status === "limited") && (
-        <FormAlert
-          ref={alertRef}
-          title={status === "limited" ? "You have sent several enquiries in a short time." : "We could not send your enquiry."}
-        >
-          <p>
-            {status === "limited" ? "Please wait a few minutes and try again" : "Please try again"}, or email{" "}
-            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. Your answers are still below.
-          </p>
-        </FormAlert>
+        <div ref={alertRef} tabIndex={-1} className={s.alert} role="alert">
+          <AlertCircle size={20} aria-hidden="true" />
+          <div>
+            <h3>
+              {status === "limited"
+                ? "You have sent several enquiries in a short time."
+                : "We could not send your enquiry."}
+            </h3>
+            <p>
+              {status === "limited" ? "Please wait a few minutes and try again" : "Please try again"}, or email{" "}
+              <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. Your answers are still below.
+            </p>
+          </div>
+        </div>
       )}
 
       {rows.map((row) =>
         row.length === 2 ? (
-          <div key={row[0].name} className="swf-row">
+          <div key={row[0].name} className={s.row}>
             {row.map(renderField)}
           </div>
         ) : (
@@ -366,14 +448,30 @@ export default function EnquiryForm({ config }: { config: FormConfig }) {
         ),
       )}
 
-      <SpamTrap />
+      <div className={s.trap} aria-hidden="true">
+        <label>
+          Website
+          <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+        </label>
+      </div>
 
-      <div className="swf-foot">
-        <p>
-          We use these details only to respond to your enquiry. Read our <Link href="/privacy-policy">Privacy Policy</Link>.
+      <div className={s.submitArea}>
+        <p className={s.privacy}>
+          We use these details only to respond to your enquiry. Read our{" "}
+          <Link href="/privacy-policy">Privacy Policy</Link>.
         </p>
-        <SubmitButton sending={sending}>{config.submitLabel}</SubmitButton>
-        <p className="text-center" role="status" aria-live="polite">
+        <button type="submit" className={s.submit} disabled={sending}>
+          {sending ? (
+            <>
+              <Loader2 size={18} className={s.spinner} aria-hidden="true" /> Sending…
+            </>
+          ) : (
+            <>
+              {config.submitLabel} <Send size={17} aria-hidden="true" />
+            </>
+          )}
+        </button>
+        <p className={s.replyNote} role="status" aria-live="polite">
           {sending ? "Sending your enquiry, please wait." : "We will contact you at the email address you provide."}
         </p>
       </div>

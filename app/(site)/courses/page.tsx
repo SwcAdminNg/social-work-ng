@@ -1,5 +1,4 @@
-import JsonLd from "@/components/site/JsonLd";
-import { absoluteUrl, breadcrumbNode, pageMetadata, webPageNode } from "@/lib/site";
+import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { fetchApi, publicFetchApi } from "@/lib/fetchApi";
 import CourseCatalogue, { type CatalogueQuery } from "@/components/courses/catalogue/CourseCatalogue";
@@ -9,7 +8,18 @@ const title = "Courses | Social Work Consultancy Ltd";
 const description =
   "Practical social work courses from Social Work Consultancy Ltd for students, practitioners and those supporting children, families and communities in Nigeria and the Global South.";
 
-export const metadata = pageMetadata({ title, description, path: "/courses", image: "courses" });
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: "/courses" },
+  openGraph: {
+    type: "website",
+    url: "/courses",
+    title,
+    description,
+    images: ["/images/courses/learners-collaborate.webp"],
+  },
+};
 
 const PAGE_SIZE = 12;
 
@@ -81,41 +91,14 @@ export default async function CoursesPage(props: {
   }
 
   return (
-    <>
-      <JsonLd
-        nodes={[
-          webPageNode({
-            type: "CollectionPage",
-            path: "/courses",
-            name: title,
-            description,
-            extra: courses.length
-              ? {
-                  mainEntity: {
-                    "@type": "ItemList",
-                    numberOfItems: total,
-                    itemListElement: courses.map((course, index) => ({
-                      "@type": "ListItem",
-                      position: index + 1,
-                      name: course.title,
-                      url: absoluteUrl("/courses/" + (course.slug || course.id)),
-                    })),
-                  },
-                }
-              : undefined,
-          }),
-          breadcrumbNode("/courses", [{ name: "Courses", path: "/courses" }]),
-        ]}
-      />
-      <CourseCatalogue
-        query={query}
-        courses={courses}
-        ok={Boolean(res?.ok)}
-        total={total}
-        totalPages={totalPages}
-        topics={topics}
-        enrolledIds={enrolledIds}
-      />
-    </>
+    <CourseCatalogue
+      query={query}
+      courses={courses}
+      ok={Boolean(res?.ok)}
+      total={total}
+      totalPages={totalPages}
+      topics={topics}
+      enrolledIds={enrolledIds}
+    />
   );
 }

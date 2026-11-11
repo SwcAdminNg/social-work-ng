@@ -62,13 +62,13 @@ export function ResourceDownloadButton({
         type="button"
         onClick={handleDownload}
         disabled={isLoading}
-        className="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-full border border-line bg-transparent px-5 text-[0.95rem] font-semibold text-ink transition-colors hover:border-ink disabled:cursor-wait disabled:opacity-70"
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#b7e4c7] px-3 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] disabled:cursor-wait disabled:opacity-70 dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
       >
         <Download className="h-4 w-4" />
         {isLoading ? "Preparing..." : "Download"}
       </button>
       {error && (
-        <p className="m-0 max-w-60 text-xs font-semibold text-clay-ink">
+        <p className="max-w-60 text-xs font-semibold text-amber-700 dark:text-amber-300">
           {error}
         </p>
       )}

@@ -3,22 +3,21 @@
 import { useState, useRef } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
-import { FieldErrors, FloatingInput } from "./shared/FloatingInput";
+import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
 import { PasskeyButton, PasskeyContinueCard, usePasskeySignIn } from "./shared/PasskeySignIn";
 import { TwoFactorSetup } from "./TwoFactorSetup";
 import { TwoFactorVerify } from "./TwoFactorVerify";
-import { ArrowRight } from "lucide-react";
-import { AuthAlert, AuthHeader, Checkbox, ChevronLink, Divider, LegalNote, Spinner } from "./shared/ui";
-import { errorMessage, type SessionData } from "./shared/types";
+import { IconArrowRight, IconCheck, IconLock, IconUser, IconSpinner } from "./shared/icons";
 
 type Step =
   | { name: "credentials" }
   | { name: "setup"; challengeToken: string }
   | { name: "verify"; challengeToken: string; method: "EMAIL" | "TOTP" };
 
-export default function Login() {
+export default function Login({ statsData }: { statsData?: any }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -41,11 +40,11 @@ export default function Login() {
     onError: (message) => setError(message),
     onSession: async (sessionData) => {
       setError("");
-      await finalizeSession(sessionData as SessionData);
+      await finalizeSession(sessionData);
     },
   });
 
-  const finalizeSession = async (sessionData: SessionData) => {
+  const finalizeSession = async (sessionData: any) => {
     setFinalizeError("");
     try {
       const res = await signIn("credentials", {
@@ -60,8 +59,8 @@ export default function Login() {
 
       const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
       router.push(callbackUrl);
-    } catch (err) {
-      setFinalizeError(errorMessage(err, "Failed to sign in. Please try again."));
+    } catch (err: any) {
+      setFinalizeError(err.message || "Failed to sign in. Please try again.");
     }
   };
 
@@ -112,23 +111,25 @@ export default function Login() {
       } else {
         throw new Error("Failed to sign in. Please check your credentials.");
       }
-    } catch (err) {
-      setError(errorMessage(err, "Something went wrong. Please try again."));
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const finalizeAlert = finalizeError ? <AuthAlert>{finalizeError}</AuthAlert> : null;
-
   if (step.name === "setup") {
     return (
-      <AuthPageShell variant="login" stage="setup">
-        {finalizeAlert}
+      <AuthPageShell variant="login" statsData={statsData}>
+        {finalizeError && (
+          <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+            {finalizeError}
+          </div>
+        )}
         <TwoFactorSetup
           api={{ kind: "challenge", challengeToken: step.challengeToken }}
           title="Set up two-factor authentication"
-          description="Your account needs a second step before you can continue. Choose how you'd like to receive codes."
+          description="Your account needs 2FA before you can continue. Choose how you'd like to receive codes."
           onBack={() => setStep({ name: "credentials" })}
           onComplete={(sessionData) => finalizeSession(sessionData)}
         />
@@ -138,8 +139,12 @@ export default function Login() {
 
   if (step.name === "verify") {
     return (
-      <AuthPageShell variant="login" stage="verify">
-        {finalizeAlert}
+      <AuthPageShell variant="login" statsData={statsData}>
+        {finalizeError && (
+          <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+            {finalizeError}
+          </div>
+        )}
         <TwoFactorVerify
           challengeToken={step.challengeToken}
           method={step.method}
@@ -150,14 +155,28 @@ export default function Login() {
     );
   }
 
-  const ready = email.trim().length > 0 && password.length > 0;
-
   return (
-    <AuthPageShell variant="login" stage="credentials">
-      <AuthHeader title="Sign in" subtitle="Continue your learning with Social Work Consultancy Ltd." />
+    <AuthPageShell variant="login" statsData={statsData}>
+      {/* Heading */}
+      <div className="mb-8">
+        <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#2D6A4F] dark:text-[#52b788] mb-2">
+          Welcome back
+        </p>
+        <h1 className="text-[1.75rem] sm:text-[2rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-2">
+          Sign in to your account
+        </h1>
+        <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
+          Continue your learning with Social Work Consultancy Ltd.
+        </p>
+      </div>
 
-      {error && <AuthAlert>{error}</AuthAlert>}
+      {error && (
+        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+          {error}
+        </div>
+      )}
 
+      {/* Form */}
       {passkey.continueAccount && (
         <>
           <PasskeyContinueCard
@@ -166,85 +185,167 @@ export default function Login() {
             onContinue={() => passkey.start(passkey.continueAccount?.email)}
             onUseAnother={() => emailRef.current?.focus()}
           />
-          <Divider>or use your password</Divider>
+          <div className="flex items-center gap-3 mb-5" aria-hidden="true">
+            <div className="flex-1 h-px bg-gray-200 dark:bg-white/10" />
+            <span className="text-[0.75rem] text-gray-500 font-medium">or sign in with your password</span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-white/10" />
+          </div>
         </>
       )}
 
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="au-joined">
-          <FloatingInput
-            ref={emailRef}
-            id="identifier"
-            label="Email or username"
-            type="text"
-            value={email}
-            onChange={(v) => {
-              setEmail(v);
-              if (emailError) setEmailError("");
-            }}
-            autoComplete="username webauthn"
-            required
-            error={emailError}
-            errorId="identifier-error"
-          />
-          <FloatingInput
-            ref={passwordRef}
-            id="password"
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(v) => {
-              setPassword(v);
-              if (passwordError) setPasswordError("");
-            }}
-            autoComplete="current-password"
-            required
-            capsLockWarning
-            error={passwordError}
-            errorId="password-error"
-            suffixSize="wide"
-            suffix={
-              <>
-                <PasswordToggle visible={showPassword} onToggle={() => setShowPassword((v) => !v)} />
-                <button type="submit" className="au-go" data-ready={ready || undefined} disabled={loading} aria-label="Sign in" aria-busy={loading || undefined}>
-                  {loading ? <Spinner size={18} /> : <ArrowRight size={18} strokeWidth={2.4} aria-hidden="true" />}
-                </button>
-              </>
-            }
-          />
-        </div>
-        <FieldErrors
-          errors={[
-            { id: "identifier-error", text: emailError },
-            { id: "password-error", text: passwordError },
-          ]}
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        {/* Email or Username */}
+        <FloatingInput
+          ref={emailRef}
+          id="identifier"
+          label="Email or username"
+          type="text"
+          value={email}
+          onChange={(v) => {
+            setEmail(v);
+            if (emailError) setEmailError("");
+          }}
+          icon={<IconUser />}
+          autoComplete="username webauthn"
+          required
+          error={emailError}
         />
 
-        <div className="au-row mt-3">
-          <Checkbox checked={keepLoggedIn} onChange={setKeepLoggedIn} label="Keep me signed in" />
-          {loading && (
-            <span className="inline-flex items-center gap-2 text-ink-3" aria-live="polite">
-              <Spinner size={14} /> Signing in…
+        {/* Password */}
+        <FloatingInput
+          ref={passwordRef}
+          id="password"
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={(v) => {
+            setPassword(v);
+            if (passwordError) setPasswordError("");
+          }}
+          icon={<IconLock />}
+          autoComplete="current-password"
+          required
+          capsLockWarning
+          error={passwordError}
+          suffix={
+            <PasswordToggle
+              visible={showPassword}
+              onToggle={() => setShowPassword((v) => !v)}
+            />
+          }
+        />
+
+        {/* Keep me logged in + Forgot password */}
+        <div className="flex items-center justify-between pt-0.5">
+          {/* Custom checkbox */}
+          <label className="flex items-center gap-2 cursor-pointer group select-none">
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked={keepLoggedIn}
+              aria-label="Keep me logged in"
+              onClick={() => setKeepLoggedIn((v) => !v)}
+              className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] focus-visible:ring-offset-1"
+            >
+              <span
+                aria-hidden="true"
+                className={`
+                  w-[18px] h-[18px] rounded-[5px] border-2 flex items-center justify-center
+                  transition-all duration-150
+                  ${
+                    keepLoggedIn
+                      ? "bg-[#2D6A4F] border-[#2D6A4F] dark:bg-[#2D6A4F] dark:border-[#2D6A4F]"
+                      : "bg-white dark:bg-white/5 border-gray-300 dark:border-white/20 group-hover:border-[#2D6A4F] dark:group-hover:border-[#52b788]"
+                  }
+                `}
+              >
+                {keepLoggedIn && <IconCheck />}
+              </span>
+            </button>
+            <span className="text-[0.83rem] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors duration-150">
+              Keep me logged in
+            </span>
+          </label>
+
+          <Link
+            href="/forgot-password"
+            className="text-[0.83rem] font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"
+          >
+            Forgot password?
+          </Link>
+        </div>
+
+        {/* Submit button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className={`
+            relative mt-2 w-full h-[52px] rounded-xl font-bold text-[0.93rem] text-white
+            bg-[#2D6A4F] hover:bg-[#1e4d38] dark:hover:bg-[#3d8c68]
+            shadow-lg shadow-green-900/20 hover:shadow-green-900/30
+            transition-all duration-200 hover:-translate-y-0.5
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2
+            disabled:opacity-70 disabled:cursor-not-allowed disabled:translate-y-0
+            overflow-hidden
+          `}
+        >
+          {loading ? (
+            <span className="flex items-center justify-center gap-2.5">
+              <IconSpinner className="w-4 h-4 text-white/80" />
+              Signing in…
+            </span>
+          ) : (
+            <span className="flex items-center justify-center gap-2">
+              Sign in
+              <IconArrowRight />
             </span>
           )}
-        </div>
+        </button>
       </form>
 
+      {/* Passkey: only when this account can use one */}
       {passkey.availableForTyped && !passkey.continueAccount && (
         <>
-          <Divider>or</Divider>
+          <div className="flex items-center gap-3 my-5" aria-hidden="true">
+            <div className="flex-1 h-px bg-gray-200 dark:bg-white/10" />
+            <span className="text-[0.75rem] text-gray-500 dark:text-gray-500 font-medium">or</span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-white/10" />
+          </div>
           <PasskeyButton busy={passkey.busy} disabled={loading} onClick={() => passkey.start(email)} />
         </>
       )}
 
-      <div className="au-links">
-        <ChevronLink href="/forgot-password">Forgot password?</ChevronLink>
-        <p>
-          Don&apos;t have an account? <ChevronLink href="/register">Create yours now</ChevronLink>
-        </p>
-      </div>
+      <div className="my-6" aria-hidden="true" />
 
-      <LegalNote action="signing in" />
+      {/* Register link */}
+      <p className="text-center text-[0.85rem] text-gray-500 dark:text-gray-400">
+        Don't have an account?{" "}
+        <Link
+          href="/register"
+          className="font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"
+        >
+          Create an account
+        </Link>
+      </p>
+
+      {/* Footer note */}
+      <p className="mt-10 text-center text-[0.72rem] text-gray-500 dark:text-gray-600 leading-relaxed">
+        By signing in, you agree to our{" "}
+        <Link
+          href="/terms-of-service"
+          className="underline hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-150"
+        >
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link
+          href="/privacy-policy"
+          className="underline hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-150"
+        >
+          Privacy Policy
+        </Link>
+        .
+      </p>
     </AuthPageShell>
   );
 }

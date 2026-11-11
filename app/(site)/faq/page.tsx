@@ -1,5 +1,4 @@
-import JsonLd from "@/components/site/JsonLd";
-import { breadcrumbNode, pageMetadata, webPageNode } from "@/lib/site";
+import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { fetchApi } from "@/lib/fetchApi";
 import FAQ, { type FAQCategory } from "@/components/faq/FAQ";
@@ -8,7 +7,12 @@ const title = "Frequently asked questions | Social Work Consultancy Ltd";
 const description =
   "Answers about courses, payments, certificates and your account on the Social Work Consultancy Ltd learning platform.";
 
-export const metadata = pageMetadata({ title, description, path: "/faq", image: "mentorship" });
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: "/faq" },
+  openGraph: { type: "website", url: "/faq", title, description, images: ["/images/contact/support-professional.webp"] },
+};
 
 export default async function FAQPage() {
   const session = await auth();
@@ -29,28 +33,26 @@ export default async function FAQPage() {
 
   // Only published answers, as structured data for search engines.
   const items = categories.flatMap((c) => c.items.filter((i) => i.is_published !== false));
-  const nodes = [
-    webPageNode({
-      type: "FAQPage",
-      path: "/faq",
-      name: title,
-      description,
-      extra: items.length
-        ? {
-            mainEntity: items.map((i) => ({
-              "@type": "Question",
-              name: i.question,
-              acceptedAnswer: { "@type": "Answer", text: i.answer },
-            })),
-          }
-        : undefined,
-    }),
-    breadcrumbNode("/faq", [{ name: "FAQ", path: "/faq" }]),
-  ];
+  const jsonLd = items.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: items.map((i) => ({
+          "@type": "Question",
+          name: i.question,
+          acceptedAnswer: { "@type": "Answer", text: i.answer },
+        })),
+      }
+    : null;
 
   return (
     <>
-      <JsonLd nodes={nodes} />
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        />
+      )}
       <FAQ categories={categories} isAuthenticated={Boolean(session)} loadFailed={loadFailed} />
     </>
   );

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Smartphone, Mail } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
-import { TwoFactorSetup } from "@/components/auth/TwoFactorSetup";
+import { TwoFactorSetup } from "@/components/dashboard/security/TwoFactorSetup";
 
 type TwoFactorStatus = {
   two_factor_enabled?: boolean;

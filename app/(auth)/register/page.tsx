@@ -1,18 +1,25 @@
-import { pageMetadata } from "@/lib/site";
+import type { Metadata } from "next";
 import SignUp from "@/components/auth/SignUp";
 import { Suspense } from "react";
+import { fetchApi } from "@/lib/fetchApi";
 
-export const metadata = pageMetadata({
+export const metadata: Metadata = {
   title: "Create an account | Social Work Consultancy Ltd",
   description: "Create a free Social Work Consultancy Ltd account to enrol on courses and use learning resources.",
-  path: "/register",
-  index: false,
-});
+  alternates: { canonical: "/register" },
+};
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const res = await fetchApi("/home/stats", { next: { revalidate: 3600 } });
+  let stats = null;
+  if (res.ok) {
+    const data = await res.json().catch(() => ({}));
+    stats = data?.data || null;
+  }
+
   return (
     <Suspense fallback={null}>
-      <SignUp />
+      <SignUp statsData={stats} />
     </Suspense>
   );
 }

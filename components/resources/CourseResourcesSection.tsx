@@ -1,39 +1,36 @@
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import LibraryCard from "@/components/resources/library/LibraryCard";
-import lib from "@/components/resources/library/Library.module.css";
+import { ResourceCard } from "@/components/resources/ResourceCard";
 import { getCourseResources } from "@/lib/resources";
+import Link from "next/link";
 
-/** Up to three resources attached to a course. Renders nothing when there are none. */
 export async function CourseResourcesSection({ courseId }: { courseId: string }) {
   const { items, ok } = await getCourseResources(courseId, { pageSize: 3 });
 
   if (!ok || items.length === 0) return null;
 
   return (
-    <section id="resources" className="scroll-mt-40" aria-labelledby="course-resources-heading">
-      <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <section>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 id="course-resources-heading" className="sw-display m-0 text-[clamp(1.8rem,3vw,2.5rem)] text-ink">
+          <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
             Resources
           </h2>
-          <p className="m-0 mt-2 text-ink-2">
+          <p className="mt-2 text-sm font-medium leading-6 text-gray-600 dark:text-gray-400">
             Supplementary templates, readings, and reference material attached to this course.
           </p>
         </div>
-        <Link href={`/resources?course_id=${courseId}`} className="sw-link text-accent">
+        <Link
+          href={`/resources?course_id=${courseId}`}
+          className="inline-flex h-10 items-center justify-center rounded-md border border-[#b7e4c7] px-4 text-sm font-extrabold text-[#2D6A4F] transition hover:bg-[#f0fbf5] dark:border-[#27433a] dark:text-[#b7e4c7] dark:hover:bg-[#183026]"
+        >
           View all
-          <ArrowUpRight size={16} aria-hidden="true" />
         </Link>
       </div>
 
-      <ul className={`${lib.page} m-0 grid list-none gap-5 bg-transparent p-0 md:grid-cols-2`}>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {items.map((resource) => (
-          <li key={resource.id}>
-            <LibraryCard resource={resource} />
-          </li>
+          <ResourceCard key={resource.id} resource={resource} />
         ))}
-      </ul>
+      </div>
     </section>
   );
 }

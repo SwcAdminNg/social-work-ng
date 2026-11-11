@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Wrench } from "lucide-react";
-import { Contours } from "@/components/site/ui";
-import { siteFonts } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   title: "Under Maintenance | Social Work Nigeria",
@@ -11,32 +8,25 @@ export const metadata: Metadata = {
 
 export default function MaintenancePage() {
   return (
-    <div className={`${siteFonts} sw`}>
-      <main className="sw-on-dark sw-grain relative flex min-h-[100dvh] w-full flex-col items-center justify-center overflow-hidden bg-forest px-6 py-16 text-center">
-        <Contours className="text-leaf" />
-        <div aria-hidden="true" className="pointer-events-none absolute -right-32 -top-24 h-[420px] w-[420px] rounded-full bg-clay/30 blur-[140px]" />
+    <main className="min-h-[100dvh] w-full flex items-center justify-center bg-white dark:bg-[#0a0a0a] px-6 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#2D6A4F]/10 dark:bg-[#2D6A4F]/5 blur-[100px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[#F4A261]/10 dark:bg-[#F4A261]/5 blur-[120px]" />
+      </div>
 
-        <div className="relative z-10 max-w-xl">
-          <Image
-            src="/images/logo/swc-logo-on-dark.webp"
-            alt="Social Work Consultancy Ltd"
-            width={480}
-            height={133}
-            className="mx-auto h-auto w-[170px]"
-            priority
-          />
-          <div className="mx-auto mt-12 grid h-20 w-20 place-items-center rounded-full bg-gold text-[#10231a]">
-            <Wrench className="h-9 w-9" aria-hidden="true" />
-          </div>
-          <h1 className="sw-display m-0 mt-8 text-[clamp(2.4rem,6vw,4.2rem)] text-[#fffdf4]">
-            We&apos;ll be back <em className="sw-em text-gold-light">soon</em>
-          </h1>
-          <p className="sw-lead m-0 mt-6 text-white/75">
-            Social Work Nigeria is currently undergoing scheduled maintenance. We&apos;re working to get everything
-            back up as quickly as possible. Thank you for your patience.
-          </p>
+      <div className="relative z-10 max-w-lg text-center">
+        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-[#2D6A4F]/10 text-[#2D6A4F]">
+          <Wrench className="h-9 w-9" aria-hidden="true" />
         </div>
-      </main>
-    </div>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+          We&apos;ll be back soon
+        </h1>
+        <p className="mt-4 text-base leading-relaxed text-gray-600 dark:text-gray-400">
+          Social Work Nigeria is currently undergoing scheduled maintenance.
+          We&apos;re working to get everything back up as quickly as possible.
+          Thank you for your patience.
+        </p>
+      </div>
+    </main>
   );
 }

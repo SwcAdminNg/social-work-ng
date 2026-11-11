@@ -1,12 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { ShieldCheck, Smartphone, Mail, Copy, Check, ChevronLeft, ChevronRight, QrCode } from "lucide-react";
-import { OtpInput, ResendButton, useCooldown, useOtp } from "./shared/OtpInput";
-import { AuthAlert, AuthHeader, Spinner } from "./shared/ui";
-import { errorMessage, type SessionData } from "./shared/types";
+import { ShieldCheck, Smartphone, Mail, Copy, Check, ArrowLeft, TriangleAlert } from "lucide-react";
+import { OtpInput } from "./shared/OtpInput";
+import { IconSpinner } from "./shared/icons";
 
 type SetupApi =
   | { kind: "challenge"; challengeToken: string }
@@ -38,9 +36,6 @@ const ENDPOINTS = {
   },
 };
 
-/** The secret in groups of four, easier to read across to another device. */
-const grouped = (secret: string) => secret.replace(/\s+/g, "").replace(/(.{4})/g, "$1 ").trim();
-
 export function TwoFactorSetup({
   api,
   onComplete,
@@ -50,32 +45,48 @@ export function TwoFactorSetup({
   description = "Choose how you'd like to receive your sign-in codes.",
 }: {
   api: SetupApi;
-  onComplete: (result: SessionData) => void;
+  onComplete: (result: any) => void;
   onBack?: () => void;
   currentMethod?: Method | null;
   title?: string;
   description?: string;
 }) {
   const [step, setStep] = useState<Step>("choice");
-  const [loadingMethod, setLoadingMethod] = useState<Method | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
+  const [code, setCode] = useState("");
   const [copied, setCopied] = useState(false);
-  const [resending, setResending] = useState(false);
+
   const [totpSecret, setTotpSecret] = useState("");
   const [totpQrDataUri, setTotpQrDataUri] = useState("");
+
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [pendingMethod, setPendingMethod] = useState<Method | null>(null);
-  const otp = useOtp();
-  const cooldown = useCooldown();
 
   const headingRef = useRef<HTMLHeadingElement>(null);
 
-  // Announce each new step by its heading; the email step goes straight to the code boxes instead.
   useEffect(() => {
-    if (step !== "email") headingRef.current?.focus({ preventScroll: true });
-  }, [step]);
+    headingRef.current?.focus();
+  }, []);
 
   const body = (extra: Record<string, unknown> = {}) =>
-    JSON.stringify(api.kind === "challenge" ? { challenge_token: api.challengeToken, ...extra } : extra);
+    JSON.stringify(
+      api.kind === "challenge" ? { challenge_token: api.challengeToken, ...extra } : extra,
+    );
+
+  const startCooldown = () => {
+    setResendCooldown(30);
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const selectMethod = (method: Method) => {
     if (api.kind === "authenticated") {
@@ -87,8 +98,8 @@ export function TwoFactorSetup({
 
   const choose = async (method: Method) => {
     setError("");
-    otp.reset();
-    setLoadingMethod(method);
+    setCode("");
+    setLoading(true);
     try {
       const res = await fetch(ENDPOINTS[api.kind][method].start, {
         method: "POST",
@@ -105,20 +116,19 @@ export function TwoFactorSetup({
         setTotpQrDataUri(data.data?.qr_code_data_uri || "");
         setStep("totp");
       } else {
-        cooldown.start();
+        startCooldown();
         setStep("email");
       }
-    } catch (err) {
-      setError(errorMessage(err, "Something went wrong. Please try again."));
+    } catch (err: any) {
+      setError(err.message);
     } finally {
-      setLoadingMethod(null);
+      setLoading(false);
     }
   };
 
   const resendEmail = async () => {
-    if (cooldown.seconds > 0 || resending) return;
+    if (resendCooldown > 0) return;
     setError("");
-    setResending(true);
     try {
       const res = await fetch(ENDPOINTS[api.kind].EMAIL.start, {
         method: "POST",
@@ -127,20 +137,17 @@ export function TwoFactorSetup({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.message || "Could not resend the code. Please try again.");
+        throw new Error(data.message || "Could not resend code. Please try again.");
       }
-      otp.reset();
-      cooldown.start();
-    } catch (err) {
-      setError(errorMessage(err, "Something went wrong. Please try again."));
-    } finally {
-      setResending(false);
+      startCooldown();
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
   const confirm = async (method: Method, submittedCode: string) => {
     setError("");
-    otp.verifying();
+    setConfirming(true);
     try {
       const res = await fetch(ENDPOINTS[api.kind][method].confirm, {
         method: "POST",
@@ -149,13 +156,13 @@ export function TwoFactorSetup({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.message || "That code didn't work. Check it and try again.");
+        throw new Error(data.message || "Invalid or expired code");
       }
-      otp.succeed();
       onComplete(data.data);
-    } catch (err) {
-      setError(errorMessage(err, "Something went wrong. Please try again."));
-      otp.fail();
+    } catch (err: any) {
+      setError(err.message);
+      setCode("");
+      setConfirming(false);
     }
   };
 
@@ -163,175 +170,234 @@ export function TwoFactorSetup({
     try {
       await navigator.clipboard.writeText(totpSecret);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
+      setTimeout(() => setCopied(false), 1500);
     } catch {
-      // Clipboard access can fail (e.g. insecure context); the key stays readable.
+      // Clipboard access can fail silently (e.g. insecure context); no-op.
     }
   };
 
-  const backToChoice = () => {
-    setStep("choice");
-    setError("");
-    otp.reset();
-  };
-
-  const methods: { id: Method; title: string; text: string; icon: React.ReactNode; tile: string }[] = [
-    {
-      id: "TOTP",
-      title: "Authenticator app",
-      text: "Google Authenticator, Microsoft Authenticator or a similar app.",
-      icon: <Smartphone size={20} strokeWidth={2} />,
-      tile: "linear-gradient(160deg, #3d8c68, #14402f)",
-    },
-    {
-      id: "EMAIL",
-      title: "Email code",
-      text: "Get a 6-digit code by email each time you sign in.",
-      icon: <Mail size={20} strokeWidth={2} />,
-      tile: "linear-gradient(160deg, #f3c56b, #d9603a)",
-    },
-  ];
-
   return (
-    <div className="au">
-      <div key={step} className="au-stage">
-        <AuthHeader
-          headingRef={headingRef}
-          icon={
-            otp.status === "success" ? (
-              "success"
-            ) : step === "totp" ? (
-              <QrCode size={28} strokeWidth={1.8} />
-            ) : step === "email" ? (
-              <Mail size={28} strokeWidth={1.8} />
-            ) : (
-              <ShieldCheck size={30} strokeWidth={1.8} />
-            )
-          }
-          title={step === "choice" ? title : step === "totp" ? "Scan with your app" : "Check your email"}
-          subtitle={
-            step === "choice"
-              ? description
-              : step === "totp"
-                ? "Scan the code with your authenticator app, then enter the 6-digit code it shows."
-                : "We sent a 6-digit code to your email address. Enter it to finish."
-          }
-        />
+    <div>
+      <div className="mb-8">
+        <div className="w-11 h-11 rounded-xl bg-[#2D6A4F]/10 dark:bg-[#52b788]/10 flex items-center justify-center mb-4">
+          <ShieldCheck className="w-5 h-5 text-[#2D6A4F] dark:text-[#52b788]" />
+        </div>
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="text-[1.5rem] font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-2 outline-none"
+        >
+          {step === "choice" ? title : "Enter verification code"}
+        </h1>
+        <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
+          {step === "choice"
+            ? description
+            : step === "totp"
+              ? "Scan the QR code with your authenticator app, then enter the 6-digit code it shows."
+              : "We sent a 6-digit code to your email address."}
+        </p>
+      </div>
 
-        {error && <AuthAlert>{error}</AuthAlert>}
+      {error && (
+        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
+          {error}
+        </div>
+      )}
 
-        {step === "choice" && (
-          <div className="au-list" role="list">
-            {methods.map((m) => {
-              const isCurrent = currentMethod === m.id;
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  role="listitem"
-                  disabled={!!loadingMethod || isCurrent}
-                  onClick={() => selectMethod(m.id)}
-                  className="au-list-row"
-                >
-                  <span className="au-tile" style={{ background: m.tile }} aria-hidden="true">
-                    {m.icon}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="au-list-title">
-                      {m.title}
-                      {isCurrent ? (
-                        <span className="au-badge" data-tone="muted">Current</span>
-                      ) : m.id === "TOTP" ? (
-                        <span className="au-badge">Recommended</span>
-                      ) : null}
-                    </span>
-                    <span className="au-list-text block">{m.text}</span>
-                  </span>
-                  {loadingMethod === m.id ? <Spinner size={18} className="text-ink-3" /> : <ChevronRight size={18} className="au-chev" aria-hidden="true" />}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {step === "totp" && (
-          <div>
-            {totpQrDataUri && (
-              <div className="au-qr">
-                <Image src={totpQrDataUri} alt="QR code to scan with your authenticator app" width={172} height={172} unoptimized />
-              </div>
-            )}
-
-            {totpSecret && (
-              <div className="mb-6">
-                <p className="au-eyebrow">Can&apos;t scan? Enter this setup key instead</p>
-                <button type="button" onClick={copySecret} className="au-key" aria-label="Copy setup key">
-                  <code>{grouped(totpSecret)}</code>
-                  <span className="au-key-copy" aria-live="polite">
-                    {copied ? (
-                      <>
-                        <Check size={15} aria-hidden="true" /> Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={15} aria-hidden="true" /> Copy
-                      </>
-                    )}
-                  </span>
-                </button>
-              </div>
-            )}
-
-            <OtpInput value={otp.code} onChange={otp.setCode} onComplete={(v) => confirm("TOTP", v)} status={otp.status} />
-
-            <div className="au-row mt-5">
-              <button type="button" onClick={backToChoice} className="au-link au-link--muted">
-                <ChevronLeft size={16} strokeWidth={2.2} aria-hidden="true" /> Other methods
-              </button>
+      {step === "choice" && (
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            disabled={loading || currentMethod === "TOTP"}
+            onClick={() => selectMethod("TOTP")}
+            className="group flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-white/10 hover:border-[#2D6A4F] dark:hover:border-[#52b788] bg-white dark:bg-white/5 text-left transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-white/10"
+          >
+            <div className="w-10 h-10 rounded-lg bg-[#2D6A4F]/10 dark:bg-[#52b788]/10 flex items-center justify-center flex-shrink-0">
+              <Smartphone className="w-5 h-5 text-[#2D6A4F] dark:text-[#52b788]" />
             </div>
-          </div>
-        )}
-
-        {step === "email" && (
-          <div>
-            <OtpInput value={otp.code} onChange={otp.setCode} onComplete={(v) => confirm("EMAIL", v)} status={otp.status} autoFocus />
-
-            <div className="au-row mt-6">
-              <button type="button" onClick={backToChoice} className="au-link au-link--muted">
-                <ChevronLeft size={16} strokeWidth={2.2} aria-hidden="true" /> Other methods
-              </button>
-              <ResendButton seconds={cooldown.seconds} busy={resending} onClick={resendEmail} />
+            <div className="flex-1 min-w-0">
+              <p className="text-[0.9rem] font-bold text-gray-900 dark:text-white">
+                Authenticator app{" "}
+                {currentMethod === "TOTP" ? (
+                  <span className="ml-1 text-[0.65rem] font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    Current method
+                  </span>
+                ) : (
+                  <span className="ml-1 text-[0.65rem] font-bold uppercase tracking-wide text-[#2D6A4F] dark:text-[#52b788]">
+                    Recommended
+                  </span>
+                )}
+              </p>
+              <p className="text-[0.8rem] text-gray-500 dark:text-gray-400">
+                Use Google Authenticator, Microsoft Authenticator, or similar.
+              </p>
             </div>
-          </div>
-        )}
+            {loading ? <IconSpinner className="w-4 h-4 text-gray-400 flex-shrink-0" /> : null}
+          </button>
 
-        {step === "choice" && onBack && (
-          <div className="au-row mt-6">
-            <button type="button" onClick={onBack} className="au-link au-link--muted">
-              <ChevronLeft size={16} strokeWidth={2.2} aria-hidden="true" /> Back
+          <button
+            type="button"
+            disabled={loading || currentMethod === "EMAIL"}
+            onClick={() => selectMethod("EMAIL")}
+            className="group flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-white/10 hover:border-[#2D6A4F] dark:hover:border-[#52b788] bg-white dark:bg-white/5 text-left transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-white/10"
+          >
+            <div className="w-10 h-10 rounded-lg bg-[#2D6A4F]/10 dark:bg-[#52b788]/10 flex items-center justify-center flex-shrink-0">
+              <Mail className="w-5 h-5 text-[#2D6A4F] dark:text-[#52b788]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[0.9rem] font-bold text-gray-900 dark:text-white">
+                Email code
+                {currentMethod === "EMAIL" && (
+                  <span className="ml-1 text-[0.65rem] font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    Current method
+                  </span>
+                )}
+              </p>
+              <p className="text-[0.8rem] text-gray-500 dark:text-gray-400">
+                Get a 6-digit code by email each time you sign in.
+              </p>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {step === "totp" && (
+        <div>
+          {totpQrDataUri && (
+            <div className="flex justify-center mb-5">
+              <div className="p-3 rounded-2xl bg-white border border-gray-200 dark:border-white/10">
+                <img src={totpQrDataUri} alt="Scan this QR code with your authenticator app" width={176} height={176} />
+              </div>
+            </div>
+          )}
+
+          <div className="mb-5">
+            <p className="text-[0.75rem] font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+              Can&apos;t scan? Enter this key manually
+            </p>
+            <button
+              type="button"
+              onClick={copySecret}
+              className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-[#2D6A4F] dark:hover:border-[#52b788] transition-colors duration-150"
+            >
+              <span className="font-mono text-[0.8rem] text-gray-800 dark:text-gray-200 break-all text-left">
+                {totpSecret}
+              </span>
+              {copied ? (
+                <Check className="w-4 h-4 text-[#2D6A4F] dark:text-[#52b788] flex-shrink-0" />
+              ) : (
+                <Copy className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              )}
             </button>
           </div>
-        )}
-      </div>
+
+          <OtpInput
+            value={code}
+            onChange={setCode}
+            onComplete={(v) => confirm("TOTP", v)}
+            disabled={confirming}
+            autoFocus
+          />
+
+          {confirming && (
+            <p className="mt-3 flex items-center justify-center gap-2 text-[0.8rem] text-gray-500 dark:text-gray-400">
+              <IconSpinner className="w-3.5 h-3.5" /> Verifying…
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              setStep("choice");
+              setError("");
+              setCode("");
+            }}
+            className="mt-5 flex items-center gap-1.5 text-[0.83rem] font-semibold text-gray-500 dark:text-gray-400 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-150"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Choose a different method
+          </button>
+        </div>
+      )}
+
+      {step === "email" && (
+        <div>
+          <OtpInput
+            value={code}
+            onChange={setCode}
+            onComplete={(v) => confirm("EMAIL", v)}
+            disabled={confirming}
+            autoFocus
+          />
+
+          {confirming && (
+            <p className="mt-3 flex items-center justify-center gap-2 text-[0.8rem] text-gray-500 dark:text-gray-400">
+              <IconSpinner className="w-3.5 h-3.5" /> Verifying…
+            </p>
+          )}
+
+          <div className="mt-5 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                setStep("choice");
+                setError("");
+                setCode("");
+              }}
+              className="flex items-center gap-1.5 text-[0.83rem] font-semibold text-gray-500 dark:text-gray-400 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-150"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Choose a different method
+            </button>
+
+            <button
+              type="button"
+              disabled={resendCooldown > 0}
+              onClick={resendEmail}
+              className="text-[0.83rem] font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+            >
+              {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === "choice" && onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="mt-6 flex items-center gap-1.5 text-[0.83rem] font-semibold text-gray-500 dark:text-gray-400 hover:text-[#2D6A4F] dark:hover:text-[#52b788] transition-colors duration-150"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back
+        </button>
+      )}
 
       <Dialog.Root open={!!pendingMethod} onOpenChange={(open) => !open && setPendingMethod(null)}>
         <Dialog.Portal>
-          <Dialog.Overlay className="au-dialog-overlay" />
-          <Dialog.Content className="au-dialog">
-            <div className="au-dialog-body">
-              <ShieldCheck size={34} strokeWidth={1.7} className="mx-auto text-accent" aria-hidden="true" />
-              <Dialog.Title className="au-dialog-title">
-                Switch to {pendingMethod === "TOTP" ? "an authenticator app" : "email codes"}?
-              </Dialog.Title>
-              <Dialog.Description className="au-dialog-text">
-                {pendingMethod === "TOTP"
-                  ? "Your current method will stop working for sign-in once the app is set up."
-                  : "Your current method, including any saved authenticator app, will stop working. You'll verify with an emailed code from now on."}
-              </Dialog.Description>
+          <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <Dialog.Content className="fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-sm translate-x-[-50%] translate-y-[-50%] gap-4 border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#121212] p-6 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-2xl">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                <TriangleAlert className="w-5 h-5 text-amber-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <Dialog.Title className="text-[1.05rem] font-bold text-gray-900 dark:text-white">
+                  Switch to {pendingMethod === "TOTP" ? "authenticator app" : "email code"}?
+                </Dialog.Title>
+                <Dialog.Description className="mt-1.5 text-[0.83rem] text-gray-500 dark:text-gray-400 leading-relaxed">
+                  {pendingMethod === "TOTP"
+                    ? "Your current method will stop working for sign-in. You'll need to set up an authenticator app to continue."
+                    : "Your current method will stop working for sign-in, including your saved authenticator app. You'll verify with an emailed code from now on."}
+                </Dialog.Description>
+              </div>
             </div>
-            <div className="au-dialog-actions">
+
+            <div className="flex justify-end gap-2 pt-2">
               <Dialog.Close asChild>
-                <button type="button">Cancel</button>
+                <button
+                  type="button"
+                  className="inline-flex h-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+                >
+                  Cancel
+                </button>
               </Dialog.Close>
               <button
                 type="button"
@@ -340,8 +406,9 @@ export function TwoFactorSetup({
                   setPendingMethod(null);
                   if (method) choose(method);
                 }}
+                className="inline-flex h-10 items-center justify-center rounded-xl bg-[#2D6A4F] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#1B4332] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] shadow-sm"
               >
-                Switch
+                Switch method
               </button>
             </div>
           </Dialog.Content>

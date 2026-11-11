@@ -28,7 +28,7 @@ export function ResourceAttachmentViewer({
 
   if (!isPdf(url, mimeType)) {
     return (
-      <div className="mx-auto flex h-[calc(100dvh-112px)] max-w-7xl flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[#dceee4] bg-white p-8 text-center shadow-sm dark:border-[#27433a] dark:bg-[#16231c]">
+      <div className="mx-auto flex h-[calc(100dvh-112px)] max-w-7xl flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-[#dceee4] bg-white p-8 text-center shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
         <FileText className="h-10 w-10 text-slate-400" />
         <div>
           <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
@@ -56,7 +56,7 @@ export function ResourceAttachmentViewer({
   }
 
   return (
-    <div className="mx-auto h-[calc(100dvh-112px)] max-w-7xl overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#16231c]">
+    <div className="mx-auto h-[calc(100dvh-112px)] max-w-7xl overflow-hidden rounded-lg border border-[#dceee4] bg-white shadow-sm dark:border-[#27433a] dark:bg-[#111525]">
       <iframe
         src={appendPdfViewerOptions(url)}
         title={title}

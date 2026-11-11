@@ -16,7 +16,7 @@ import {
   signInWithPasskey,
   subscribeRememberedAccounts,
 } from "@/lib/passkeys";
-import { Spinner } from "./ui";
+import { IconSpinner } from "./icons";
 
 const noopSubscribe = () => () => {};
 const useSupported = () => useSyncExternalStore(noopSubscribe, passkeysSupported, () => false);
@@ -123,7 +123,7 @@ const initials = (account: RememberedAccount) =>
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
-/** "Continue as …" for the account this device last used a passkey with. */
+/** "Continue as …" card for the account this device last used a passkey with. */
 export function PasskeyContinueCard({
   account,
   busy,
@@ -136,26 +136,35 @@ export function PasskeyContinueCard({
   onUseAnother: () => void;
 }) {
   return (
-    <div className="mb-2">
-      <div className="au-account">
-        <span className="au-avatar" aria-hidden="true">
+    <div className="mb-6 rounded-2xl border border-[#d9e7df] bg-white p-4 shadow-[0_12px_32px_-24px_rgba(18,62,41,0.5)] dark:border-white/10 dark:bg-[#121e18]">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#2D6A4F] text-sm font-bold text-white" aria-hidden="true">
           {initials(account) || "?"}
         </span>
-        <p className="au-account-name">{account.name || account.email}</p>
-        {account.name && <p className="au-account-mail">{account.email}</p>}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[0.95rem] font-semibold text-[#10231a] dark:text-white">{account.name || account.email}</p>
+          {account.name && <p className="truncate text-[0.82rem] text-gray-500 dark:text-gray-400">{account.email}</p>}
+        </div>
       </div>
-      <button type="button" onClick={onContinue} disabled={busy} data-busy={busy || undefined} className="au-btn mt-4">
-        <span key={busy ? "busy" : "idle"} className="au-btn-label">
-          {busy ? <Spinner size={18} /> : <Fingerprint size={22} aria-hidden="true" />}
-          {busy ? "Waiting for your fingerprint or face…" : "Continue with fingerprint or face"}
-        </span>
+      <button
+        type="button"
+        onClick={onContinue}
+        disabled={busy}
+        className="group mt-4 flex h-[54px] w-full items-center justify-center gap-3 rounded-xl bg-[#2D6A4F] text-[0.98rem] font-semibold text-white shadow-lg shadow-green-900/20 transition-colors hover:bg-[#1e4d38] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2 disabled:cursor-progress disabled:opacity-80 dark:focus-visible:ring-offset-[#0b1410]"
+      >
+        {busy ? <IconSpinner className="h-5 w-5 animate-spin text-white/90" /> : <Fingerprint className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />}
+        {busy ? "Waiting for your fingerprint or face…" : "Continue with fingerprint or face"}
       </button>
-      <div className="au-row mt-3 justify-center gap-5">
-        <button type="button" onClick={onUseAnother} className="au-link">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[0.84rem]">
+        <button type="button" onClick={onUseAnother} className="min-h-[40px] rounded-md font-semibold text-[#2D6A4F] hover:underline dark:text-[#95d5b2]">
           Use another account
         </button>
-        <button type="button" onClick={() => forgetPasskeyAccount(account.email)} className="au-link au-link--muted">
-          Not you?
+        <button
+          type="button"
+          onClick={() => forgetPasskeyAccount(account.email)}
+          className="min-h-[40px] rounded-md text-gray-500 hover:text-gray-800 hover:underline dark:text-gray-400 dark:hover:text-gray-200"
+        >
+          Not you? Forget this account
         </button>
       </div>
     </div>
@@ -165,14 +174,21 @@ export function PasskeyContinueCard({
 /** Fingerprint button shown under the form when the typed account has a passkey. */
 export function PasskeyButton({ busy, disabled, onClick }: { busy: boolean; disabled?: boolean; onClick: () => void }) {
   return (
-    <div className="au-strength">
-      <button type="button" onClick={onClick} disabled={busy || disabled} data-busy={busy || undefined} className="au-btn au-btn--quiet">
-        <span key={busy ? "busy" : "idle"} className="au-btn-label">
-          {busy ? <Spinner size={18} /> : <Fingerprint size={22} aria-hidden="true" />}
-          {busy ? "Waiting for your fingerprint or face…" : "Sign in with fingerprint or face"}
-        </span>
+    <div className="swcl-passkey-rise">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={busy || disabled}
+        className="group flex h-[56px] w-full items-center justify-center gap-3 rounded-xl border-[1.5px] border-[#2D6A4F]/40 bg-[#f3faf6] text-[0.98rem] font-semibold text-[#10231a] transition-colors duration-150 hover:border-[#2D6A4F] hover:bg-[#e8f5ee] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2 disabled:cursor-progress disabled:opacity-70 dark:border-[#74c69d]/40 dark:bg-[#132119] dark:text-white dark:hover:border-[#74c69d] dark:focus-visible:ring-[#74c69d] dark:focus-visible:ring-offset-[#0b1410]"
+      >
+        {busy ? (
+          <IconSpinner className="h-5 w-5 animate-spin text-[#2D6A4F] dark:text-[#95d5b2]" />
+        ) : (
+          <Fingerprint className="h-6 w-6 text-[#2D6A4F] transition-transform duration-200 group-hover:scale-110 dark:text-[#95d5b2]" aria-hidden="true" />
+        )}
+        {busy ? "Waiting for your fingerprint or face…" : "Sign in with fingerprint or face"}
       </button>
-      <p className="au-msg justify-center" data-tone="hint">This account has a passkey. No password needed.</p>
+      <p className="mt-2 text-center text-[0.8rem] text-gray-500 dark:text-gray-400">This account has a passkey. No password needed.</p>
     </div>
   );
 }

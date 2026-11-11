@@ -1,0 +1,198 @@
+/* Home page styles, ported from the SWCL e-learning homepage template.
+   Type uses the site-wide font inherited from <body>. */
+.page {
+  --green: #123e29;
+  --green-dark: #092b1c;
+  --gold: #e5a61d;
+  --gold-light: #ffe8b4;
+  --ink: #17251d;
+  --line: #dedfd7;
+  --page-width: 1240px;
+  color: var(--ink);
+  line-height: 1.55;
+  background: #fff;
+}
+
+.page img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.page a { color: inherit; }
+.page h1, .page h2, .page h3, .page p { margin: 0; }
+.page h1, .page h2, .page h3 {
+  color: var(--green);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -.025em;
+}
+.page h1 { font-size: clamp(2.35rem, 3.6vw, 3.6rem); }
+.page h2 { font-size: clamp(1.9rem, 2.55vw, 2.75rem); }
+.page h3 { font-size: 1.9rem; }
+.page p { font-size: 1.1rem; }
+.page :focus-visible { outline: 3px solid #9a6500; outline-offset: 5px; }
+.page .button:focus-visible, .hero a:focus-visible, .closingCta a:focus-visible { outline-color: #f9cf69; }
+
+.container { width: min(var(--page-width), calc(100% - 64px)); margin-inline: auto; }
+.sectionPad { padding-block: 36px; }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 47% 53%; background: var(--green); position: relative; overflow: hidden; }
+.heroContent {
+  padding: clamp(36px, 4.5vw, 65px) 20px clamp(36px, 4.5vw, 65px) max(32px, calc((100vw - var(--page-width)) / 2));
+  position: relative;
+  z-index: 1;
+}
+.page .hero h1 { color: #fffdf4; max-width: 600px; }
+.page .hero p { color: #fff; font-size: 1.22rem; line-height: 1.4; max-width: 510px; margin-top: 22px; }
+.heroImage { position: relative; min-height: 430px; }
+.heroImage::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45px;
+  left: -1px;
+  z-index: 1;
+  background: var(--green);
+  clip-path: polygon(0 0, 70% 0, 100% 18%, 0 100%);
+}
+.page .heroImage img { position: absolute; inset: 0; object-position: center; }
+
+/* Buttons */
+.buttonGroup { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 30px; }
+.button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 48px;
+  padding: 11px 23px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  font-size: .98rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-decoration: none;
+  text-align: center;
+  transition: background .15s, transform .15s;
+}
+.button:hover { transform: translateY(-1px); }
+.page .buttonGold { color: #10291b; background: var(--gold); border-color: var(--gold); }
+.page .buttonGold:hover { background: #f2bb43; border-color: #f2bb43; }
+.page .buttonOutline { color: #fff; border-color: #fff; }
+.page .buttonOutline:hover { background: #ffffff18; }
+.page .buttonGreen { color: #fff; background: var(--green); border-color: var(--green); }
+.page .buttonGreen:hover { background: var(--green-dark); border-color: var(--green-dark); }
+
+/* Pathways */
+.pathways { background: linear-gradient(#fffdf8, #fff); }
+.sectionIntro { text-align: center; max-width: 1100px; margin-inline: auto; }
+.page .sectionIntro p { margin-top: 13px; }
+.pathwayGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 32px; }
+.pathwayCard { padding: 22px 26px 25px; border: 1px solid var(--line); border-bottom: 4px solid var(--gold); border-radius: 8px; background: #fff; }
+.lineIcon { width: 58px; height: 58px; stroke: var(--green); stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.page .pathwayCard h3 { margin-top: 8px; }
+.pathwayCard h3 a { text-decoration: none; }
+.pathwayCard h3 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.page .pathwayCard p { margin-top: 10px; }
+
+/* Split panels */
+.featuredSection { margin-top: 3px; }
+.splitPanel { display: grid; overflow: hidden; }
+.featuredPanel { grid-template-columns: 58% 42%; background: #eff3eb; border-radius: 10px; }
+.panelCopy { padding: 32px 36px; }
+.page .panelCopy p:not(.eyebrow) { margin-top: 13px; }
+.panelCopy .button { margin-top: 20px; }
+.page .eyebrow { color: var(--green); font-size: .85rem; letter-spacing: .12em; font-weight: 700; text-transform: uppercase; margin-bottom: 25px; }
+.eyebrow::after { content: ""; display: block; width: 50px; height: 4px; background: var(--gold); margin-top: 9px; }
+.panelImage { position: relative; min-height: 280px; }
+.page .panelImage img { position: absolute; inset: 0; }
+.featuredPanel .panelImage { clip-path: polygon(12% 0, 100% 0, 100% 100%, 0 100%); }
+.page .featuredPanel img { object-position: 65% center; }
+
+/* Practice scenario */
+.practiceSection { display: grid; grid-template-columns: 140px 1fr; gap: 36px; align-items: center; margin-block: 40px; }
+.practiceIcon { display: grid; place-items: center; align-self: stretch; min-height: 130px; border-radius: 10px; background: var(--gold-light); }
+.practiceIcon .lineIcon { width: 76px; height: 76px; }
+.practiceText { border-left: 1px solid #cda854; padding-left: 32px; }
+.page .practiceText p { margin-top: 10px; }
+
+/* Team training */
+.teamSection { border-top: 1px solid #ecece5; padding-block: 15px; }
+.teamPanel { grid-template-columns: 50% 50%; }
+.teamPanel .panelCopy { padding-left: 0; }
+.teamPanel .panelImage { clip-path: polygon(9% 0, 100% 0, 100% 100%, 0 100%); }
+
+/* Closing call to action */
+.closingCta { background: var(--green); color: #fff; padding-block: 36px; text-align: center; }
+.page .closingCta h2 { color: #fffdf4; }
+.page .closingCta p { margin-top: 10px; }
+.closingCta .buttonGroup { justify-content: center; margin-top: 22px; }
+
+/* Dark mode: same deep green-black palette as the About page. */
+:global(.dark) .page {
+  --ink: #ecf2ee;
+  --line: rgba(255, 255, 255, 0.1);
+  color: var(--ink);
+  background: #0b1410;
+  color-scheme: dark;
+}
+:global(.dark) .page h1,
+:global(.dark) .page h2,
+:global(.dark) .page h3 { color: #ecf2ee; }
+:global(.dark) .page p { color: #c3d1c8; }
+:global(.dark) .page :focus-visible { outline-color: #f3c56b; }
+:global(.dark) .hero,
+:global(.dark) .heroImage::before { background: #0f3324; }
+:global(.dark) .page .hero p { color: #e4ece7; }
+:global(.dark) .pathways { background: linear-gradient(#101b15, #0b1410); }
+:global(.dark) .pathwayCard { background: #16231c; }
+:global(.dark) .lineIcon { stroke: #f3c56b; }
+:global(.dark) .featuredPanel { background: #16231c; }
+:global(.dark) .page .eyebrow { color: #f3c56b; }
+:global(.dark) .page .buttonGreen { background: #2d6a4f; border-color: #2d6a4f; }
+:global(.dark) .page .buttonGreen:hover { background: #367d5d; border-color: #367d5d; }
+:global(.dark) .practiceIcon { background: rgba(229, 166, 29, 0.16); }
+:global(.dark) .practiceText { border-left-color: rgba(243, 197, 107, 0.35); }
+:global(.dark) .teamSection { border-top-color: rgba(255, 255, 255, 0.08); }
+:global(.dark) .closingCta { background: linear-gradient(180deg, #0f3324, #0a2419); }
+:global(.dark) .page .closingCta p { color: rgba(255, 255, 255, 0.86); }
+
+@media (max-width: 1100px) {
+  .hero { grid-template-columns: 48% 52%; }
+  .heroContent { padding-right: 15px; }
+  .hero .button { padding-inline: 16px; }
+  .pathwayCard { padding-inline: 20px; }
+  .page h3 { font-size: 1.7rem; }
+}
+
+@media (max-width: 760px) {
+  .container { width: calc(100% - 36px); }
+  .hero { grid-template-columns: 1fr; }
+  .heroContent { padding: 36px 22px; }
+  .page .hero h1 { font-size: clamp(2.3rem, 7.5vw, 3.3rem); max-width: 650px; }
+  .page .hero p { font-size: 1.12rem; }
+  .heroImage { min-height: 0; aspect-ratio: 16 / 9; }
+  .heroImage::before { display: none; }
+  .hero .buttonGroup { gap: 12px; margin-top: 25px; }
+  .pathwayGrid { grid-template-columns: 1fr; gap: 17px; margin-top: 25px; }
+  .pathwayCard { padding: 22px; }
+  .featuredPanel, .teamPanel { grid-template-columns: 1fr; }
+  .panelCopy, .teamPanel .panelCopy { padding: 26px 24px; }
+  .page .eyebrow { margin-bottom: 17px; }
+  .panelImage { min-height: 0; aspect-ratio: 16 / 9; }
+  .featuredPanel .panelImage, .teamPanel .panelImage { clip-path: none; }
+  .practiceSection { grid-template-columns: 1fr; gap: 18px; margin-block: 30px; }
+  .practiceIcon { min-height: 90px; width: 90px; }
+  .practiceIcon .lineIcon { width: 58px; height: 58px; }
+  .practiceText { padding-left: 0; border-left: 0; }
+  .teamPanel .panelCopy { padding-left: 0; padding-right: 0; }
+  .teamSection { padding-bottom: 0; }
+  .closingCta { padding-block: 32px; }
+  .page p { font-size: 1rem; }
+}
+
+@media (max-width: 380px) {
+  .buttonGroup .button { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button { transition: none; }
+  .button:hover { transform: none; }
+}
