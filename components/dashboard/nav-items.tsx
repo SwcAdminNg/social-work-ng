@@ -92,7 +92,7 @@ export const dashboardNavGroups: NavGroup[] = [
     label: "Account",
     items: [
       {
-        label: "Profile Settings",
+        label: "Settings",
         href: "/dashboard/settings",
         icon: Settings,
       },
