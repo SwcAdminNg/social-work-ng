@@ -164,9 +164,19 @@ export function PopUpMenu({
 const VIEW_COOKIE = "swcl_catalog_view";
 
 /** Finder-style view switch: two icon segments; the choice is remembered in a cookie. */
-export function ViewSwitch({ view, gridHref, listHref }: { view: "grid" | "list"; gridHref: string; listHref: string }) {
+export function ViewSwitch({
+  view,
+  gridHref,
+  listHref,
+  cookie = VIEW_COOKIE,
+}: {
+  view: "grid" | "list";
+  gridHref: string;
+  listHref: string;
+  cookie?: string;
+}) {
   const remember = (value: "grid" | "list") => {
-    document.cookie = `${VIEW_COOKIE}=${value}; path=/; max-age=31536000; samesite=lax`;
+    document.cookie = `${cookie}=${value}; path=/; max-age=31536000; samesite=lax`;
   };
   return (
     <div role="group" aria-label="View" className="lms-segmented lms-segmented--icons">
@@ -192,6 +202,32 @@ export function ViewSwitch({ view, gridHref, listHref }: { view: "grid" | "list"
       >
         <List className="h-[17px] w-[17px]" strokeWidth={2} />
       </Link>
+    </div>
+  );
+}
+
+/** The same switch for lists rendered in the browser: buttons, and a cookie named by the caller. */
+export function ViewToggle({
+  view,
+  onChange,
+  cookie,
+}: {
+  view: "grid" | "list";
+  onChange: (view: "grid" | "list") => void;
+  cookie: string;
+}) {
+  const choose = (value: "grid" | "list") => {
+    document.cookie = `${cookie}=${value}; path=/; max-age=31536000; samesite=lax`;
+    onChange(value);
+  };
+  return (
+    <div role="group" aria-label="View" className="lms-segmented lms-segmented--icons flex-none">
+      <button type="button" onClick={() => choose("grid")} aria-label="Grid view" title="Grid view" aria-pressed={view === "grid"} aria-current={view === "grid" ? "true" : undefined} className="lms-segment">
+        <LayoutGrid className="h-[17px] w-[17px]" strokeWidth={2} />
+      </button>
+      <button type="button" onClick={() => choose("list")} aria-label="List view" title="List view" aria-pressed={view === "list"} aria-current={view === "list" ? "true" : undefined} className="lms-segment">
+        <List className="h-[17px] w-[17px]" strokeWidth={2} />
+      </button>
     </div>
   );
 }

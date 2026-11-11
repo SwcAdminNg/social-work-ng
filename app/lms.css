@@ -852,6 +852,119 @@ html:has(.lms-root) body {
   .dark .lms-page[aria-current="page"] { background: var(--sw-green); }
   .lms-page:disabled:not([aria-current]) { opacity: 0.35; cursor: default; }
 
+  /* A link whose hit area covers its whole (positioned) row or card. */
+  .lms-stretch::after { content: ""; position: absolute; inset: 0; }
+
+  /* Document artwork for resources without a thumbnail: a tinted field and a raised symbol tile. */
+  .lms-doc { background: radial-gradient(120% 90% at 85% 0%, color-mix(in srgb, var(--doc) 22%, transparent), transparent 60%), color-mix(in srgb, var(--doc) 9%, var(--sw-card)); }
+  .dark .lms-doc { background: radial-gradient(120% 90% at 85% 0%, color-mix(in srgb, var(--doc) 28%, transparent), transparent 60%), color-mix(in srgb, var(--doc) 12%, #1e2120); }
+  .lms-doc-glyph {
+    display: grid;
+    place-items: center;
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 18px;
+    background: var(--doc);
+    color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.12), 0 10px 22px -10px color-mix(in srgb, var(--doc) 70%, transparent);
+    transition: transform 0.6s var(--sw-ease);
+  }
+  .lms-milk-hover:hover .lms-doc-glyph { transform: translate3d(0, -3px, 0) rotate(-3deg); }
+  .lms-doc--green { --doc: #2d9d6a; }
+  .lms-doc--gold { --doc: #e0a12c; }
+  .lms-doc--orange { --doc: #f08a24; }
+  .lms-doc--red { --doc: #ef4b3f; }
+  .lms-doc--blue { --doc: #2f80ed; }
+  .lms-doc--indigo { --doc: #5b5fd6; }
+  .lms-doc--gray { --doc: #8e8e93; }
+
+  /* ── Bag (cart), after apple.com ── */
+  .lms-bag-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.4rem 0;
+    border-bottom: 1px solid var(--sw-line);
+    transition: opacity 0.2s;
+  }
+  @media (min-width: 640px) { .lms-bag-item { gap: 1.75rem; padding: 2rem 0; } }
+  .lms-checkout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0 1.4rem;
+    border-radius: 14px;
+    background: var(--sw-deep);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s var(--sw-ease);
+  }
+  .lms-checkout:hover { background: var(--sw-green); }
+  .lms-checkout:active { transform: scale(0.98); }
+  .lms-checkout:disabled { opacity: 0.65; cursor: wait; }
+  .dark .lms-checkout { background: var(--sw-green); }
+  .dark .lms-checkout:hover { background: #367d5d; }
+  /* Plain text button in the accent colour (Apple's "Remove", "Add a promo code"). */
+  .lms-text-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 2rem;
+    color: var(--sw-accent);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .lms-text-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .lms-text-btn:disabled { opacity: 0.6; cursor: default; text-decoration: none; }
+  .lms-field {
+    height: 2.75rem;
+    padding: 0 0.9rem;
+    border-radius: 12px;
+    background: var(--sw-card);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sw-ink) 20%, transparent);
+    color: var(--sw-ink);
+    font-size: 0.95rem;
+    outline: none;
+    transition: box-shadow 0.2s;
+  }
+  .lms-field::placeholder { color: var(--sw-ink-3); letter-spacing: 0; text-transform: none; }
+  html:has(.lms-root) .lms-field:focus-visible { outline: none; box-shadow: inset 0 0 0 1px var(--sw-green), 0 0 0 4px color-mix(in srgb, var(--sw-green) 20%, transparent); }
+  .lms-field[aria-invalid] { box-shadow: inset 0 0 0 1px #d92d20; }
+  /* Switch, after iOS. */
+  .lms-switch {
+    appearance: none;
+    position: relative;
+    flex: none;
+    width: 3.1rem;
+    height: 1.875rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-ink) 16%, transparent);
+    cursor: pointer;
+    transition: background-color 0.25s;
+  }
+  .lms-switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 1.625rem;
+    height: 1.625rem;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+    transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.25, 1.1);
+  }
+  .lms-switch:checked { background: #34c759; }
+  .lms-switch:checked::after { transform: translateX(1.225rem); }
+  .lms-switch:focus-visible { outline: 2px solid var(--sw-accent); outline-offset: 2px; }
+
   /* ── Course catalogue ── */
   .lms-search--lg input { height: 3rem; padding-left: 2.7rem; border-radius: 14px; font-size: 1rem; }
   .lms-search--lg .lms-search-glyph { left: 1rem; width: 1.1rem; height: 1.1rem; }
@@ -1097,7 +1210,9 @@ html:has(.lms-root) body {
   .dark .lms-row-action { background: rgba(255, 255, 255, 0.09); }
   .lms-row:hover .lms-row-action { background: color-mix(in srgb, var(--sw-ink) 11%, transparent); }
   .lms-row:active .lms-row-action { transform: scale(0.96); }
-  .lms-row-action--primary, .lms-row:hover .lms-row-action--primary { background: var(--sw-green); color: #fff; }
+  .lms-row-action--primary, .lms-row:hover .lms-row-action--primary,
+  .dark .lms-row-action--primary { background: var(--sw-green); color: #fff; }
+  .dark .lms-row:hover .lms-row-action--primary { background: #367d5d; }
   .lms-row-action--red { color: #d92d20; }
   .dark .lms-row-action--red { color: #ff6961; }
 
@@ -1455,7 +1570,7 @@ html:has(.lms-root) body {
 
 @media (prefers-reduced-motion: reduce) {
   .lms-rise, .lms-pop, .lms-bar > span { animation: none; }
-  .lms-side-link, .lms-side-btn, .lms-side-chev, .lms-icon-btn, .lms-btn, .lms-tab, .lms-card-hover, .lms-milk-hover, .lms-glass-btn, .lms-segment, .lms-row, .lms-row-action, .lms-cal-num, .lms-pass, .lms-pass-sheen, .lms-pass-action, .lms-notice { transition: none; }
+  .lms-side-link, .lms-side-btn, .lms-side-chev, .lms-icon-btn, .lms-btn, .lms-tab, .lms-card-hover, .lms-milk-hover, .lms-glass-btn, .lms-segment, .lms-row, .lms-row-action, .lms-cal-num, .lms-pass, .lms-pass-sheen, .lms-pass-action, .lms-notice, .lms-switch, .lms-switch::after, .lms-checkout { transition: none; }
   .lms-pass:hover { transform: none; }
   .lms-milk-hover:hover, .lms-milk-hover:active { transform: none; }
   .lms-menu { animation: none; }
@@ -1491,117 +1606,3 @@ html:has(.lms-root) #main-content h1:not(.sw-display, .sw-title) {
 @keyframes lms-shimmer { from { background-position: 100% 0; } to { background-position: -50% 0; } }
 @media (prefers-reduced-motion: reduce) { .lms-skel { animation: none; } }
 
-/* ── Alert (Apple style): sign-out confirmation and other short decisions ──
-   Unlayered and outside .lms-root on purpose: it portals to <body>. */
-.lms-alert-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(0, 0, 0, 0.22);
-  animation: lms-alert-fade 0.2s ease-out both;
-}
-html.dark .lms-alert-scrim { background: rgba(0, 0, 0, 0.48); }
-.lms-alert-scrim[data-closing] { animation: lms-alert-fade-out 0.18s ease-in both; }
-.lms-alert {
-  position: relative;
-  width: min(300px, 100%);
-  padding: 22px 18px 16px;
-  border-radius: 30px;
-  background: rgba(248, 247, 244, 0.86);
-  -webkit-backdrop-filter: blur(40px) saturate(1.8);
-  backdrop-filter: blur(40px) saturate(1.8);
-  box-shadow:
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.7),
-    0 0 0 0.5px rgba(0, 0, 0, 0.08),
-    0 30px 80px -20px rgba(0, 0, 0, 0.35),
-    0 10px 24px -12px rgba(0, 0, 0, 0.2);
-  color: #1c1c1e;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-sans, system-ui), "Segoe UI", Roboto, sans-serif;
-  text-align: center;
-  animation: lms-alert-in 0.34s cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
-}
-html.dark .lms-alert {
-  background: rgba(44, 46, 45, 0.86);
-  box-shadow:
-    inset 0 0 0 0.5px rgba(255, 255, 255, 0.14),
-    0 30px 80px -20px rgba(0, 0, 0, 0.7);
-  color: #f5f5f7;
-}
-.lms-alert-scrim[data-closing] .lms-alert { animation: lms-alert-out 0.18s ease-in both; }
-/* The alert's symbol: an SF-style glyph in a softly tinted circle. */
-.lms-alert-symbol {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  margin: 2px auto 14px;
-  border-radius: 999px;
-  background: rgba(255, 59, 48, 0.12);
-  color: #ff3b30;
-}
-html.dark .lms-alert-symbol { background: rgba(255, 69, 58, 0.18); color: #ff453a; }
-.lms-alert-title {
-  margin: 0;
-  font-family: inherit;
-  font-size: 1.0625rem;
-  font-weight: 600;
-  font-variation-settings: normal;
-  line-height: 1.3;
-  letter-spacing: -0.022em;
-  color: inherit;
-}
-.lms-alert-message {
-  margin: 6px 4px 0;
-  font-size: 0.8125rem;
-  line-height: 1.38;
-  letter-spacing: -0.006em;
-  color: rgba(60, 60, 67, 0.78);
-}
-html.dark .lms-alert-message { color: rgba(235, 235, 245, 0.66); }
-.lms-alert-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 20px;
-}
-@media (max-width: 300px) { .lms-alert-actions { grid-template-columns: 1fr; } }
-.lms-alert-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 2.75rem;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(120, 120, 128, 0.16);
-  color: inherit;
-  font: inherit;
-  font-size: 1.0625rem;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  cursor: pointer;
-  transition: background-color 0.15s, transform 0.2s cubic-bezier(0.2, 0.9, 0.25, 1.12);
-}
-html.dark .lms-alert-btn { background: rgba(120, 120, 128, 0.32); }
-.lms-alert-btn:hover { background: rgba(120, 120, 128, 0.24); }
-html.dark .lms-alert-btn:hover { background: rgba(120, 120, 128, 0.42); }
-.lms-alert-btn:active { transform: scale(0.96); }
-.lms-alert-btn:disabled { cursor: default; opacity: 0.6; }
-.lms-alert-btn:focus-visible { outline: 2px solid #0a84ff; outline-offset: 2px; }
-.lms-alert-btn--destructive { color: #ff3b30; font-weight: 600; }
-html.dark .lms-alert-btn--destructive { color: #ff453a; }
-@keyframes lms-alert-fade { from { opacity: 0; } }
-@keyframes lms-alert-fade-out { to { opacity: 0; } }
-@keyframes lms-alert-in { from { opacity: 0; transform: scale(1.14); } }
-@keyframes lms-alert-out { to { opacity: 0; transform: scale(0.96); } }
-@media (prefers-reduced-motion: reduce) {
-  .lms-alert { animation: lms-alert-fade 0.2s ease-out both; }
-  .lms-alert-scrim[data-closing] .lms-alert { animation: lms-alert-fade-out 0.15s both; }
-}
-@media (prefers-reduced-transparency: reduce) {
-  .lms-alert { background: #f8f7f4; -webkit-backdrop-filter: none; backdrop-filter: none; }
-  html.dark .lms-alert { background: #2c2e2d; }
-}

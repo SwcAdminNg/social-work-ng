@@ -1,9 +1,10 @@
 "use client";
 
+import "@/app/alert.css";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { Clock3 } from "lucide-react";
 
 type MonitoredSession = Session & {
   expiresAt?: unknown;
@@ -14,10 +15,32 @@ function SessionModal() {
   const { data: session, update } = useSession();
   const [showModal, setShowModal] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const continueBtnRef = useRef<HTMLButtonElement>(null);
+  const logoutBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (showModal) continueBtnRef.current?.focus();
+    if (!showModal) return;
+    const frame = requestAnimationFrame(() => continueBtnRef.current?.focus());
+    // Keep focus inside the alert, as a modal alert does.
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const first = logoutBtnRef.current;
+      const last = continueBtnRef.current;
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", onKey, true);
+    };
   }, [showModal]);
 
   useEffect(() => {
@@ -39,14 +62,12 @@ function SessionModal() {
     const interval = setInterval(() => {
       const timeRemaining = expiryTime - Date.now();
 
-      // If less than 60 seconds remaining, show modal
-      if (timeRemaining <= 60000 && timeRemaining > 0) {
+      // Within the last minute (or already past it), ask, and count down while asking.
+      if (timeRemaining <= 60000) {
         setShowModal(true);
-      } else if (timeRemaining <= 0) {
-        // Expired completely
-        setShowModal(true);
+        setSecondsLeft(Math.max(0, Math.ceil(timeRemaining / 1000)));
       }
-    }, 5000); // Check every 5 seconds
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [session]);
@@ -56,6 +77,7 @@ function SessionModal() {
     await update({ action: "refresh" });
     setIsRefreshing(false);
     setShowModal(false);
+    setSecondsLeft(null);
   };
 
   const handleLogout = async () => {
@@ -64,38 +86,48 @@ function SessionModal() {
 
   if (!showModal) return null;
 
+  const countdown =
+    secondsLeft === null
+      ? null
+      : `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, "0")}`;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+    <div className="lms-alert-scrim">
       <div
-        role="dialog"
+        role="alertdialog"
         aria-modal="true"
         aria-labelledby="session-expiring-title"
         aria-describedby="session-expiring-description"
-        className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-gray-800 rounded-3xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center text-center animate-in fade-in zoom-in duration-300"
+        className="lms-alert"
       >
-        <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 mb-6">
-          <AlertTriangle className="w-8 h-8" />
-        </div>
-        <h3 id="session-expiring-title" className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-          Session Expiring Soon
-        </h3>
-        <p id="session-expiring-description" className="text-gray-600 dark:text-gray-400 font-medium mb-8">
-          Your session is about to expire due to inactivity. Would you like to stay signed in?
+        <span className="lms-alert-symbol lms-alert-symbol--warn" aria-hidden="true">
+          <Clock3 className="h-[26px] w-[26px]" strokeWidth={1.9} />
+        </span>
+        <h2 id="session-expiring-title" className="lms-alert-title">
+          {secondsLeft === 0 ? "Your session has ended" : "Still there?"}
+        </h2>
+        <p id="session-expiring-description" className="lms-alert-message">
+          {secondsLeft === 0 ? (
+            "For your security you were signed out after a period of inactivity. Stay signed in to carry on where you left off."
+          ) : (
+            <>
+              For your security you’ll be signed out in{" "}
+              <span className="lms-alert-count" aria-live="polite">{countdown ?? "a minute"}</span>. Your progress is saved.
+            </>
+          )}
         </p>
-        <div className="flex flex-col sm:flex-row w-full gap-4">
-          <button
-            onClick={handleLogout}
-            className="flex-1 px-6 py-3 rounded-full font-bold border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
+        <div className="lms-alert-actions">
+          <button ref={logoutBtnRef} type="button" onClick={handleLogout} disabled={isRefreshing} className="lms-alert-btn">
             Log Out
           </button>
           <button
             ref={continueBtnRef}
+            type="button"
             onClick={handleContinue}
             disabled={isRefreshing}
-            className="flex-1 px-6 py-3 rounded-full font-bold bg-[#2D6A4F] text-white hover:bg-[#1e4d38] transition-colors disabled:opacity-70 flex justify-center items-center"
+            className="lms-alert-btn lms-alert-btn--default"
           >
-            {isRefreshing ? "Refreshing..." : "Continue Session"}
+            {isRefreshing ? "Renewing…" : "Stay Signed In"}
           </button>
         </div>
       </div>

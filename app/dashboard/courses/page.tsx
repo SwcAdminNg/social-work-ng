@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { fetchApi } from "@/lib/fetchApi";
 import {
   EnrolledCoursesDashboard,
@@ -65,6 +66,7 @@ export default async function EnrolledCoursesPage(props: {
   const page = toPositiveInt(searchParams.page, 1);
   const status = normalizeStatus(searchParams.status);
   const isSavedView = firstValue(searchParams.tab) === "saved";
+  const layout = (await cookies()).get("swcl_courses_view")?.value === "list" ? "list" : "grid";
   const listParams = new URLSearchParams({
     page: String(page),
     page_size: String(PAGE_SIZE),
@@ -123,6 +125,7 @@ export default async function EnrolledCoursesPage(props: {
       courses={courses}
       meta={meta}
       activeView={isSavedView ? "SAVED" : status || "ALL"}
+      initialLayout={layout}
       currentPage={page}
       initialSearch={search}
       error={error}

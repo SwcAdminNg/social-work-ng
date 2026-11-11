@@ -6,12 +6,13 @@ import { useEffect, useRef, useState, useTransition } from "react";
 
 const DEBOUNCE_MS = 450;
 
+/** Searches as you type (after a short pause), in the dashboard's large search field. */
 export function ResourceSearchBar({ initialSearch }: { initialSearch: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(initialSearch);
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
   const didMountRef = useRef(false);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export function ResourceSearchBar({ initialSearch }: { initialSearch: string }) 
       }
       params.delete("page");
       startTransition(() => {
-        router.push(`${pathname}?${params.toString()}`);
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
       });
     }, DEBOUNCE_MS);
 
@@ -38,24 +39,28 @@ export function ResourceSearchBar({ initialSearch }: { initialSearch: string }) 
   }, [value]);
 
   return (
-    <div className="relative">
-      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+    <div className="lms-search lms-search--lg" role="search">
+      <label htmlFor="resource-search" className="sr-only">
+        Search resources
+      </label>
+      <Search aria-hidden="true" className="lms-search-glyph" strokeWidth={2.2} />
       <input
+        id="resource-search"
         name="search"
         type="search"
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        placeholder="Search resources by title or topic..."
-        className="h-11 w-full rounded-lg border border-[#e3dfd0] bg-white pl-10 pr-9 text-sm font-semibold text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#363a38] dark:bg-[#1e2120] dark:text-white dark:focus:border-[#52b788]"
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && value) setValue("");
+        }}
+        autoComplete="off"
+        enterKeyHint="search"
+        aria-busy={pending}
+        placeholder="Search resources by title or topic"
       />
       {value && (
-        <button
-          type="button"
-          onClick={() => setValue("")}
-          aria-label="Clear search"
-          className="absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:hover:bg-slate-800 dark:hover:text-slate-200"
-        >
-          <X className="h-3.5 w-3.5" />
+        <button type="button" onClick={() => setValue("")} aria-label="Clear search" className="lms-search-clear">
+          <X className="h-3 w-3" strokeWidth={3} />
         </button>
       )}
     </div>

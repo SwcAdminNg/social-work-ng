@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { getCourseDurationLabel } from "@/lib/courseDuration";
+import { ViewToggle } from "@/components/dashboard/PopUpMenu";
 
 export type ProgressStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
 
@@ -340,6 +341,7 @@ export function EnrolledCoursesDashboard({
   activeView,
   currentPage,
   initialSearch,
+  initialLayout = "grid",
   error,
 }: {
   stats: DashboardStats;
@@ -348,8 +350,10 @@ export function EnrolledCoursesDashboard({
   activeView: CourseView;
   currentPage: number;
   initialSearch: string;
+  initialLayout?: "grid" | "list";
   error: string | null;
 }) {
+  const [layout, setLayout] = useState<"grid" | "list">(initialLayout);
   const [dashboardStats, setDashboardStats] = useState(stats);
   const [view, setView] = useState<CourseView>(activeView);
   const [page, setPage] = useState(currentPage);
@@ -572,7 +576,8 @@ export function EnrolledCoursesDashboard({
             </div>
           </div>
 
-          <div className="lms-search w-full lg:w-[min(340px,32vw)] lg:flex-none">
+          <div className="flex w-full items-center gap-2 lg:w-auto lg:flex-none">
+          <div className="lms-search min-w-0 flex-1 lg:w-[min(340px,32vw)] lg:flex-none">
             <label htmlFor="my-courses-search" className="sr-only">
               Search my courses
             </label>
@@ -599,6 +604,8 @@ export function EnrolledCoursesDashboard({
               </button>
             ) : null}
           </div>
+          <ViewToggle view={layout} onChange={setLayout} cookie="swcl_courses_view" />
+          </div>
         </div>
       </div>
 
@@ -613,6 +620,7 @@ export function EnrolledCoursesDashboard({
 
       {courses.length ? (
         <>
+          {layout === "grid" ? (
           <ul
             aria-busy={isListLoading}
             className={`lms-course-grid m-0 mt-3 list-none p-0 transition-opacity duration-300 ${isListLoading ? "opacity-55" : "opacity-100"}`}
@@ -629,6 +637,24 @@ export function EnrolledCoursesDashboard({
               </li>
             ))}
           </ul>
+          ) : (
+          <ul
+            aria-busy={isListLoading}
+            className={`lms-group m-0 mt-3 list-none p-0 transition-opacity duration-300 ${isListLoading ? "opacity-55" : "opacity-100"}`}
+          >
+            {courses.map((course, index) => (
+              <li key={course.id}>
+                <DashboardCourseRow
+                  course={course}
+                  image={course.thumbnail_url || fallbackImages[index % fallbackImages.length]}
+                  savedOnly={view === "SAVED"}
+                  pending={isPending && pendingCourseId === course.id}
+                  onToggleBookmark={toggleBookmark}
+                />
+              </li>
+            ))}
+          </ul>
+          )}
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
             <p className="m-0 text-sm text-ink-3">
@@ -952,4 +978,81 @@ function statusTone(status: ProgressStatus | null) {
   if (status === "COMPLETED") return "lms-glass-pill--done";
   if (status === "IN_PROGRESS") return "lms-glass-pill--live";
   return "";
+}
+
+function DashboardCourseRow({
+  course,
+  image,
+  savedOnly,
+  pending,
+  onToggleBookmark,
+}: {
+  course: DisplayCourse;
+  image: string;
+  savedOnly: boolean;
+  pending: boolean;
+  onToggleBookmark: (course: DisplayCourse) => void;
+}) {
+  const instructor = getInstructor(course);
+  const status = course.displayStatus;
+  const isComplete = status === "COMPLETED";
+  const label = actionLabel(status, savedOnly, course.wishlist);
+  const href = actionHref(course);
+  const durationLabel = getCourseDurationLabel(course);
+  const tone = course.wishlist ? "orange" : isComplete ? "green" : status === "IN_PROGRESS" ? "blue" : "gray";
+
+  return (
+    <div className="lms-row group">
+      <Link href={href} tabIndex={-1} aria-hidden="true" className="lms-art relative block aspect-[16/10] w-24 flex-none overflow-hidden bg-paper-2 !rounded-[12px] sm:w-32">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={image} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+      </Link>
+      <div className="min-w-0 flex-1">
+        <h2 className="m-0 truncate text-[1rem] font-semibold tracking-[-0.01em] text-ink">
+          <Link href={href} className="lms-stretch text-inherit no-underline">
+            {course.title}
+          </Link>
+        </h2>
+        <p className="m-0 mt-0.5 truncate text-[0.82rem] text-ink-3">
+          {instructor.name}
+          {durationLabel ? ` · ${durationLabel}` : ""}
+        </p>
+        <span className="mt-1.5 flex items-center gap-3 text-[0.8rem]">
+          <span className={`lms-status lms-status--${tone}`}>{course.wishlist ? "Saved" : formatStatus(status)}</span>
+          {!course.wishlist && (
+            <span className="flex min-w-0 flex-1 items-center gap-2 sm:max-w-[14rem]">
+              <span
+                role="progressbar"
+                aria-valuenow={course.displayProgress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${course.title} progress`}
+                className="lms-bar min-w-0 flex-1"
+                data-empty={course.displayProgress === 0 || undefined}
+              >
+                <span style={{ width: `${course.displayProgress}%` }} />
+              </span>
+              <span className="flex-none font-semibold tabular-nums text-ink-2">{course.displayProgress}%</span>
+            </span>
+          )}
+        </span>
+      </div>
+      <div className="relative z-[1] flex flex-none items-center gap-1.5">
+        <span className={`lms-row-action ${isComplete || course.wishlist ? "" : "lms-row-action--primary"} hidden sm:inline-flex`} aria-hidden="true">
+          {label}
+        </span>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => onToggleBookmark(course)}
+          aria-pressed={course.bookmarked}
+          aria-label={course.bookmarked ? `Remove ${course.title} from saved` : `Save ${course.title}`}
+          title={course.bookmarked ? "Saved" : "Save for later"}
+          className={`lms-gpop-x !h-9 !w-9 ${course.bookmarked ? "!text-clay" : ""}`}
+        >
+          <Bookmark className={`h-4 w-4 ${course.bookmarked ? "fill-current" : ""}`} strokeWidth={2} />
+        </button>
+      </div>
+    </div>
+  );
 }

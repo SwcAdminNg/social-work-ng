@@ -1,5 +1,6 @@
 "use client";
 
+import "@/app/alert.css";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconLogout } from "./icons";

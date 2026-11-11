@@ -4,12 +4,12 @@ import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ChevronDown,
   Loader2,
+  Lock,
+  ShieldCheck,
   ShoppingBag,
-  ShoppingCart,
   Tag,
-  Trash2,
-  X,
 } from "lucide-react";
 import { estimateTotalWithTax, formatNaira } from "@/lib/paymentTax";
 
@@ -186,146 +186,96 @@ export default function CartContainer({
     }
   }
 
+  const [promoOpen, setPromoOpen] = useState(false);
+
   return (
-    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-5 pb-8">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-            Cart
-          </h1>
-          <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-            Review selected courses, apply a coupon, and complete checkout in
-            one Paystack payment.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/course-catalogue"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#b7e4c7] bg-white px-4 text-sm font-bold text-[#2D6A4F] no-underline shadow-sm transition hover:bg-[#f0fbf5] dark:border-[#315244] dark:bg-[#222524] dark:text-[#b7e4c7] dark:hover:bg-[#2a3f35]"
-        >
-          <ShoppingBag className="h-4 w-4" />
-          Browse courses
-        </Link>
-      </div>
-
-      {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-          {error}
-        </div>
-      )}
-
+    <div className="mx-auto flex w-full max-w-[980px] flex-col pb-10">
       {hasItems ? (
-        <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="grid gap-3">
-            {sortedItems.map((item) => (
-              <article
-                key={item.course_id}
-                className="grid gap-4 rounded-lg border border-[#dceee4] bg-white p-3 shadow-sm dark:border-[#35514a] dark:bg-[#252827] sm:grid-cols-[160px_minmax(0,1fr)]"
-              >
-                <Link
-                  href={`/dashboard/course-catalogue/${item.course_slug}`}
-                  className="aspect-video overflow-hidden rounded-md bg-[#e7f6ee] sm:aspect-[4/3]"
-                >
-                  <img
-                    src={item.course_thumbnail_url || FALLBACK_IMAGE}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                </Link>
-                <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <h2 className="text-base font-extrabold text-slate-950 dark:text-white">
-                      <Link
-                        href={`/dashboard/course-catalogue/${item.course_slug}`}
-                        className="no-underline hover:text-[#2D6A4F] dark:hover:text-[#b7e4c7]"
-                      >
-                        {item.course_title}
-                      </Link>
-                    </h2>
-                    <p className="mt-1 text-sm font-bold text-[#2D6A4F] dark:text-[#b7e4c7]">
-                      {formatNaira(item.price)}
-                    </p>
-                    {item.added_at && (
-                      <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-                        Added {formatDate(item.added_at)}
+        <>
+          {/* Headline, after the Apple bag: the total first, the next step beside it */}
+          <header className="lms-rise flex flex-col gap-5 pt-1 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="sw-display m-0 text-[clamp(1.8rem,4vw,2.6rem)] leading-[1.08] text-ink">
+                Your bag total is {formatNaira(paymentEstimate.totalWithTax)}.
+              </h1>
+              <p className="m-0 mt-2 text-[0.98rem] text-ink-2">
+                {cart.item_count} course{cart.item_count === 1 ? "" : "s"}, paid in one secure Paystack checkout.
+              </p>
+            </div>
+            <button type="button" onClick={checkout} disabled={checkingOut} className="lms-checkout flex-none sm:w-56">
+              {checkingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+              {checkingOut ? "Starting…" : "Check Out"}
+            </button>
+          </header>
+
+          {error && (
+            <p role="alert" className="m-0 mt-5 rounded-[18px] bg-clay-wash px-5 py-3.5 text-sm font-medium text-ink shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--sw-clay)_35%,transparent)]">
+              {error}
+            </p>
+          )}
+
+          {/* Items */}
+          <ul className="m-0 mt-8 list-none border-t border-line p-0">
+            {sortedItems.map((item) => {
+              const removing = pendingCourseId === item.course_id;
+              const href = `/dashboard/course-catalogue/${item.course_slug}`;
+              return (
+                <li key={item.course_id} className={`lms-bag-item ${removing ? "opacity-50" : ""}`}>
+                  <Link href={href} tabIndex={-1} aria-hidden="true" className="lms-art relative block aspect-[4/3] w-24 flex-none overflow-hidden bg-paper-2 sm:w-40">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.course_thumbnail_url || FALLBACK_IMAGE} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  </Link>
+                  <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <h2 className="sw-title m-0 text-[1.15rem] leading-snug text-ink sm:text-[1.3rem]">
+                        <Link href={href} className="text-inherit no-underline hover:text-accent">
+                          {item.course_title}
+                        </Link>
+                      </h2>
+                      <p className="m-0 mt-1.5 text-[0.85rem] text-ink-3">
+                        Online course · Lifetime access
+                        {item.added_at ? ` · Added ${formatDate(item.added_at)}` : ""}
                       </p>
-                    )}
+                    </div>
+                    <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:gap-2">
+                      <span className="text-[1.15rem] font-semibold tabular-nums tracking-[-0.01em] text-ink">{formatNaira(item.price)}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.course_id)}
+                        disabled={removing}
+                        className="lms-text-btn"
+                      >
+                        {removing && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.course_id)}
-                    disabled={pendingCourseId === item.course_id}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-red-200 bg-white px-3 text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-60 dark:border-red-500/30 dark:bg-[#252827] dark:text-red-300 dark:hover:bg-red-500/10"
-                  >
-                    {pendingCourseId === item.course_id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                    Remove
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
+                </li>
+              );
+            })}
+          </ul>
 
-          <aside className="grid h-max gap-4 xl:sticky xl:top-[92px]">
-            <div className="rounded-lg border border-[#dceee4] bg-white p-4 shadow-sm dark:border-[#35514a] dark:bg-[#252827]">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <h2 className="text-lg font-black text-slate-950 dark:text-white">
-                  Order summary
-                </h2>
-                <span className="rounded-md bg-[#e7f6ee] px-2.5 py-1 text-xs font-black text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-                  {cart.item_count} {cart.item_count === 1 ? "item" : "items"}
-                </span>
+          {/* Summary */}
+          <section aria-label="Order summary" className="lms-rise mt-6 flex flex-col gap-6 sm:ml-auto sm:w-[26rem]">
+            <dl className="m-0 grid gap-2.5 text-[0.95rem]">
+              <SummaryRow label="Subtotal" value={formatNaira(cart.subtotal_amount)} />
+              {discountAmount > 0 && (
+                <SummaryRow label={`Promo code ${appliedCouponCode}`} value={`−${formatNaira(discountAmount)}`} tone="discount" />
+              )}
+              <SummaryRow label="VAT (7.5%)" value={formatNaira(paymentEstimate.taxAmount)} />
+              <div className="mt-2 border-t border-line pt-4">
+                <SummaryRow label="Total" value={formatNaira(paymentEstimate.totalWithTax)} strong />
               </div>
+            </dl>
 
-              <dl className="grid gap-3 text-sm">
-                <SummaryRow label="Subtotal" value={formatNaira(cart.subtotal_amount)} />
-                {discountAmount > 0 && (
-                  <SummaryRow
-                    label={`Coupon ${appliedCouponCode}`}
-                    value={`-${formatNaira(discountAmount)}`}
-                    tone="discount"
-                  />
-                )}
-                <SummaryRow
-                  label="VAT (7.5%)"
-                  value={formatNaira(paymentEstimate.taxAmount)}
-                />
-                <div className="border-t border-[#e6f2eb] pt-3 dark:border-[#35514a]">
-                  <SummaryRow
-                    label="Total"
-                    value={formatNaira(paymentEstimate.totalWithTax)}
-                    strong
-                  />
-                </div>
-              </dl>
-
-              <form onSubmit={validateCoupon} className="mt-5 grid gap-2">
-                <label className="text-sm font-extrabold text-slate-800 dark:text-slate-100">
-                  Coupon code
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    value={couponCode}
-                    onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
-                    className="h-11 min-w-0 flex-1 rounded-md border border-[#dceee4] bg-white px-3 text-sm font-bold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-[#35514a] dark:bg-[#1e2120] dark:text-slate-100 dark:focus:border-[#52b788]"
-                    placeholder="WELCOME20"
-                  />
-                  <button
-                    type="submit"
-                    disabled={validating}
-                    className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md bg-[#2D6A4F] text-white transition hover:bg-[#1B4332] disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-                    aria-label="Apply coupon"
-                  >
-                    {validating ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Tag className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                {coupon && (
+            {/* Promo code: a disclosure, as on apple.com */}
+            <div className="border-t border-line pt-4">
+              {coupon ? (
+                <div className="flex items-center justify-between gap-3">
+                  <span className="lms-filter-token">
+                    <Tag className="h-3.5 w-3.5" aria-hidden="true" />
+                    {appliedCouponCode} applied
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
@@ -333,76 +283,104 @@ export default function CartContainer({
                       setCouponCode("");
                       setCouponError("");
                     }}
-                    className="inline-flex w-max items-center gap-1 text-xs font-bold text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                    className="lms-text-btn"
                   >
-                    <X className="h-3.5 w-3.5" />
-                    Remove coupon
+                    Remove
                   </button>
-                )}
-                {couponError && (
-                  <p className="rounded-md bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-100">
-                    {couponError}
-                  </p>
-                )}
-              </form>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setPromoOpen((value) => !value)}
+                    aria-expanded={promoOpen}
+                    aria-controls="promo-form"
+                    className="lms-text-btn !text-[0.95rem]"
+                  >
+                    Add a promo code
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${promoOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+                  </button>
+                  {promoOpen && (
+                    <form id="promo-form" onSubmit={validateCoupon} className="mt-3 flex gap-2">
+                      <label htmlFor="promo-code" className="sr-only">
+                        Promo code
+                      </label>
+                      <input
+                        id="promo-code"
+                        value={couponCode}
+                        onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
+                        autoComplete="off"
+                        autoFocus
+                        placeholder="Enter code"
+                        aria-invalid={Boolean(couponError) || undefined}
+                        aria-describedby={couponError ? "promo-error" : undefined}
+                        className="lms-field min-w-0 flex-1 uppercase tracking-[0.06em]"
+                      />
+                      <button type="submit" disabled={validating} className="lms-btn lms-btn--quiet flex-none">
+                        {validating && <Loader2 className="h-4 w-4 animate-spin" />}
+                        Apply
+                      </button>
+                    </form>
+                  )}
+                </>
+              )}
+              {couponError && (
+                <p id="promo-error" role="alert" className="m-0 mt-2 text-[0.84rem] text-[#d92d20] dark:text-[#ff6961]">
+                  {couponError}
+                </p>
+              )}
+            </div>
 
-              <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-lg border border-[#dceee4] bg-[#f7fcf9] p-3 dark:border-[#35514a] dark:bg-[#222524]">
-                <input
-                  type="checkbox"
-                  checked={saveCard}
-                  onChange={(event) => setSaveCard(event.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-slate-300 text-[#2D6A4F] focus:ring-[#2D6A4F]"
-                />
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  <span className="block font-bold text-slate-900 dark:text-white">
-                    Save this card
-                  </span>
-                  Keep the new Paystack card for future payments.
-                </span>
-              </label>
+            <label className="flex cursor-pointer items-center justify-between gap-4 border-t border-line pt-4">
+              <span className="min-w-0">
+                <span className="block text-[0.95rem] font-medium text-ink">Save this card</span>
+                <span className="block text-[0.82rem] text-ink-3">Use it for future payments without re-entering it.</span>
+              </span>
+              <input
+                type="checkbox"
+                role="switch"
+                checked={saveCard}
+                onChange={(event) => setSaveCard(event.target.checked)}
+                className="lms-switch"
+              />
+            </label>
 
-              <button
-                type="button"
-                onClick={checkout}
-                disabled={checkingOut}
-                className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-5 text-sm font-extrabold text-white shadow-[0_16px_32px_-20px_rgba(45,106,79,0.95)] transition hover:bg-[#1B4332] disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-              >
-                {checkingOut ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ShoppingCart className="h-4 w-4" />
-                )}
-                {checkingOut ? "Starting checkout..." : "Checkout"}
-              </button>
+            <button type="button" onClick={checkout} disabled={checkingOut} className="lms-checkout w-full">
+              {checkingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+              {checkingOut ? "Starting checkout…" : "Check Out"}
+            </button>
 
-              <button
-                type="button"
-                onClick={clearCart}
-                disabled={clearing || checkingOut}
-                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-[#252827] dark:text-slate-300 dark:hover:bg-slate-800"
-              >
-                {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Clear cart
+            <p className="m-0 flex items-start gap-2 text-[0.8rem] leading-relaxed text-ink-3">
+              <ShieldCheck className="mt-0.5 h-4 w-4 flex-none text-accent" aria-hidden="true" />
+              Payment is processed securely by Paystack. You’ll get access to every course here as soon as it completes.
+            </p>
+
+            <div className="flex items-center justify-between gap-3 border-t border-line pt-4 text-[0.88rem]">
+              <Link href="/dashboard/course-catalogue" className="lms-text-btn no-underline">
+                Continue shopping
+              </Link>
+              <button type="button" onClick={clearCart} disabled={clearing || checkingOut} className="lms-text-btn !text-ink-3 hover:!text-[#d92d20]">
+                {clearing && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Clear bag
               </button>
             </div>
-          </aside>
-        </section>
+          </section>
+        </>
       ) : (
-        <div className="rounded-lg border border-dashed border-[#cfe8da] bg-white px-6 py-16 text-center dark:border-[#35514a] dark:bg-[#252827]">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-md bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-            <ShoppingCart className="h-7 w-7" />
-          </div>
-          <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
-            Your cart is empty
-          </h2>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
-            Add paid courses from the catalogue, then return here to apply a
-            coupon and check out.
+        <div className="lms-rise flex flex-col items-center px-6 pt-10 text-center sm:pt-16">
+          <span className="grid h-20 w-20 place-items-center rounded-[24px] bg-[var(--lms-milk)] text-accent shadow-[inset_0_0_0_1px_var(--lms-milk-line)]">
+            <ShoppingBag className="h-9 w-9" strokeWidth={1.6} />
+          </span>
+          <h1 className="sw-display m-0 mt-6 text-[clamp(1.8rem,4vw,2.5rem)] leading-[1.08] text-ink">Your bag is empty.</h1>
+          <p className="m-0 mt-3 max-w-md text-[1rem] leading-relaxed text-ink-2">
+            Add a course from the catalogue and it will wait here until you’re ready to check out.
           </p>
-          <Link
-            href="/dashboard/course-catalogue"
-            className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#2D6A4F] px-4 text-sm font-bold text-white no-underline transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-          >
+          {error && (
+            <p role="alert" className="m-0 mt-5 rounded-[18px] bg-clay-wash px-5 py-3.5 text-sm font-medium text-ink">
+              {error}
+            </p>
+          )}
+          <Link href="/dashboard/course-catalogue" className="lms-checkout mt-7 w-auto px-8 no-underline">
             Browse courses
           </Link>
         </div>
@@ -423,24 +401,16 @@ function SummaryRow({
   tone?: "discount";
 }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <dt
-        className={
-          strong
-            ? "text-base font-black text-slate-950 dark:text-white"
-            : "font-medium text-slate-500 dark:text-slate-400"
-        }
-      >
-        {label}
-      </dt>
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className={strong ? "text-[1.15rem] font-semibold text-ink" : "text-ink-2"}>{label}</dt>
       <dd
-        className={
+        className={`m-0 tabular-nums ${
           strong
-            ? "text-xl font-black text-slate-950 dark:text-white"
+            ? "text-[1.45rem] font-bold tracking-[-0.02em] text-ink"
             : tone === "discount"
-              ? "font-extrabold text-[#0f8a46] dark:text-[#8de5b5]"
-              : "font-extrabold text-slate-950 dark:text-white"
-        }
+              ? "font-semibold text-accent"
+              : "font-medium text-ink"
+        }`}
       >
         {value}
       </dd>
@@ -462,9 +432,10 @@ function normalizeCart(value: unknown): CartRead {
 function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
+  return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
+    month: "short",
     year: "numeric",
+    timeZone: "Africa/Lagos",
   }).format(date);
 }
