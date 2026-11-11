@@ -11,7 +11,7 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
-import { QuizFocusShell, formatCountdown } from "./QuizFocusMode";
+import { QuizFocusShell, formatCountdown, useAnswerAutosave } from "./QuizFocusMode";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import {
   ChoiceList,
@@ -258,6 +258,11 @@ export function QuizGroupEngine({
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attempt, courseId, itemId]);
+
+  const saveAnswers = useAnswerAutosave(
+    attempt ? `/api/proxy/learning/courses/${courseId}/items/${itemId}/quiz-group/progress` : null,
+    { attempt_id: attempt?.attempt_id, answers },
+  );
 
   const handleStart = async () => {
     setStarting(true);
@@ -517,7 +522,10 @@ export function QuizGroupEngine({
           remainingMs={remainingMs}
           submitting={submitting}
           onSubmit={() => setConfirmOpen(true)}
-          onLeave={() => setFocusOpen(false)}
+          onLeave={() => {
+            saveAnswers(true);
+            setFocusOpen(false);
+          }}
           leaveNote={
             remainingMs != null
               ? "Your answers are saved, but the timer keeps running while you're away. The quiz submits itself when time runs out."

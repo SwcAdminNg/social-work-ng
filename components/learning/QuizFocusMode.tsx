@@ -2,7 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { ChevronLeft, ChevronRight, Clock, LogOut, Send } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
@@ -245,6 +245,64 @@ function LeaveQuizDialog({
       </Dialog.Portal>
     </Dialog.Root>
   );
+}
+
+/**
+ * Keeps a quiz's answers on the server as the learner goes: shortly after each
+ * change, and straight away when the page is hidden or closed. Pass `url: null`
+ * while there's nothing to save. Returns `flush` to save immediately (e.g. on Leave).
+ */
+export function useAnswerAutosave(url: string | null, body: object) {
+  const json = JSON.stringify(body);
+  const latest = useRef({ url, json });
+  const lastSaved = useRef<string | null>(url ? json : null);
+
+  const send = useCallback((keepalive = false) => {
+    const { url: target, json: payload } = latest.current;
+    if (!target || payload === lastSaved.current) return;
+    lastSaved.current = payload;
+    void fetch(target, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive,
+    })
+      .then((res) => {
+        if (!res.ok && lastSaved.current === payload) lastSaved.current = null;
+      })
+      .catch(() => {
+        if (lastSaved.current === payload) lastSaved.current = null;
+      });
+  }, []);
+
+  useEffect(() => {
+    const changedTarget = latest.current.url !== url;
+    latest.current = { url, json };
+    if (!url) return;
+    if (changedTarget) {
+      // Just loaded from the server, so already saved; only save real changes.
+      lastSaved.current = json;
+      return;
+    }
+    const timer = setTimeout(() => send(), 600);
+    return () => clearTimeout(timer);
+  }, [url, json, send]);
+
+  useEffect(() => {
+    if (!url) return;
+    const onHide = () => send(true);
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") send(true);
+    };
+    window.addEventListener("pagehide", onHide);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [url, send]);
+
+  return send;
 }
 
 export function formatCountdown(ms: number) {

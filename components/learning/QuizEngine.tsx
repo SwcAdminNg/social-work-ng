@@ -13,7 +13,7 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
-import { QuizFocusShell } from "./QuizFocusMode";
+import { QuizFocusShell, useAnswerAutosave } from "./QuizFocusMode";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import {
   ChoiceList,
@@ -30,6 +30,8 @@ interface QuizEngineProps {
   itemId: string;
   isCompleted: boolean;
   questions: QuizQuestion[];
+  /** Answers saved on the server for a quiz that's been started but not submitted. */
+  savedAnswers?: Record<string, string[]> | null;
   estimatedMinutes?: number | null;
   maxAttempts?: number | null;
   attemptsUsed?: number | null;
@@ -75,6 +77,7 @@ export function QuizEngine({
   itemId,
   isCompleted,
   questions: initialQuestions,
+  savedAnswers,
   maxAttempts,
   attemptsUsed,
   attemptsRemaining,
@@ -88,12 +91,17 @@ export function QuizEngine({
 }: QuizEngineProps) {
   const router = useRouter();
   const [currentTime] = useState(() => Date.now());
-  const [answers, setAnswers] = useState<Record<string, string[]>>(previousAttempt?.answers || {});
+  // A started-but-unsubmitted quiz picks up its saved answers; otherwise the last
+  // attempt's are shown with its result.
+  const inProgressOnLoad = savedAnswers != null;
+  const [answers, setAnswers] = useState<Record<string, string[]>>(
+    savedAnswers ?? previousAttempt?.answers ?? {},
+  );
   const [submitting, setSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [attemptsUsedThisSession, setAttemptsUsedThisSession] = useState(0);
   const [result, setResult] = useState<QuizResult | null>(
-    previousAttempt
+    previousAttempt && !inProgressOnLoad
       ? {
           passed: previousAttempt.passed ?? null,
           score: previousAttempt.score ?? null,
@@ -194,14 +202,13 @@ export function QuizEngine({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || "Could not start the quiz");
       const next: QuizQuestion[] = data.data?.questions || [];
-      const sameVersion =
-        next.length === questions.length && next.every((q, idx) => q.id === questions[idx]?.id && q.text === questions[idx]?.text);
+      const saved: Record<string, string[]> = data.data?.saved_answers || {};
       setQuestions(next);
+      setAnswers(saved);
+      // Resume on the first question still to answer.
+      const firstOpen = next.findIndex((q) => !(saved[q.id] || []).length);
+      setCurrentQuestionIndex(fresh || firstOpen === -1 ? 0 : firstOpen);
       setVersionReady(true);
-      if (fresh || !sameVersion) {
-        setCurrentQuestionIndex(0);
-        if (!sameVersion) setAnswers({});
-      }
       setFocusOpen(true);
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Could not start the quiz"));
@@ -209,6 +216,13 @@ export function QuizEngine({
       setStarting(false);
     }
   };
+
+  const saveAnswers = useAnswerAutosave(
+    versionReady && !result && !preview
+      ? `/api/proxy/learning/courses/${courseId}/items/${itemId}/quiz/progress`
+      : null,
+    { answers },
+  );
 
   const answeredCount = questions.filter((q) => answers[q.id] && answers[q.id].length > 0).length;
   const hasUnanswered = answeredCount < questions.length;
@@ -328,7 +342,7 @@ export function QuizEngine({
             <div className="lms-group-foot">
               <p>
                 {answeredCount > 0
-                  ? `${answeredCount} of ${questions.length} answered. Your answers are kept while this page stays open.`
+                  ? `${answeredCount} of ${questions.length} answered. Your answers are saved, so you can pick up where you left off.`
                   : "The quiz opens full screen. Answer each question, then submit at the end."}
               </p>
               <button
@@ -338,7 +352,7 @@ export function QuizEngine({
                 className="lms-btn lms-btn--sm"
               >
                 {starting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
-                {starting ? "Preparing…" : answeredCount > 0 ? "Resume Quiz" : "Start Quiz"}
+                {starting ? "Preparing…" : answeredCount > 0 || inProgressOnLoad ? "Resume Quiz" : "Start Quiz"}
               </button>
             </div>
           ) : (
@@ -392,8 +406,11 @@ export function QuizEngine({
           title={title}
           submitting={submitting}
           onSubmit={() => setConfirmOpen(true)}
-          onLeave={() => setFocusOpen(false)}
-          leaveNote="Your answers stay here while this page is open, so you can resume. If you move to another lesson they won't be kept."
+          onLeave={() => {
+            saveAnswers(true);
+            setFocusOpen(false);
+          }}
+          leaveNote="Your answers are saved. You can come back and finish it later."
           index={currentQuestionIndex}
           total={questions.length}
           onPrevious={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
