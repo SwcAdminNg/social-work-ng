@@ -309,6 +309,7 @@ export default async function LearningItemPage(props: {
           <QuizEngine
             courseId={params.course_id}
             itemId={item.id}
+            title={item.title}
             isCompleted={item.is_completed}
             questions={item.questions}
             estimatedMinutes={estimatedMinutes}

@@ -6,14 +6,12 @@ import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   PlayCircle,
   RotateCcw,
-  Send,
   XCircle,
 } from "lucide-react";
+import { QuizFocusShell, formatCountdown } from "./QuizFocusMode";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import {
   ChoiceList,
@@ -103,6 +101,7 @@ interface QuizGroupEngineProps {
 export function QuizGroupEngine({
   courseId,
   itemId,
+  title,
   dueDate,
   isFinalAssessment,
   sectionFirstItemId,
@@ -123,6 +122,8 @@ export function QuizGroupEngine({
   const [error, setError] = useState("");
   const [now, setNow] = useState(() => Date.now());
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // Full-screen focus mode. An attempt resumed after a reload waits for "Resume Quiz".
+  const [focusOpen, setFocusOpen] = useState(false);
 
   const answersRef = useRef(answers);
   useEffect(() => {
@@ -212,6 +213,7 @@ export function QuizGroupEngine({
       });
       setAttemptsUsedThisSession((count) => count + 1);
       setAttempt(null);
+      setFocusOpen(false);
       router.refresh();
     } catch (err: unknown) {
       submittedRef.current = false;
@@ -282,6 +284,7 @@ export function QuizGroupEngine({
       setAnswers(data.data?.saved_answers || {});
       setCurrentQuestionIndex(0);
       setNow(Date.now());
+      setFocusOpen(true);
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to start quiz group"));
     } finally {
@@ -331,8 +334,6 @@ export function QuizGroupEngine({
   const boundedQuestionIndex =
     attemptQuestions.length > 0 ? Math.min(currentQuestionIndex, attemptQuestions.length - 1) : 0;
   const currentQuestionItem = attemptQuestions[boundedQuestionIndex] || null;
-  const canGoPrevious = boundedQuestionIndex > 0;
-  const canGoNext = boundedQuestionIndex < attemptQuestions.length - 1;
 
   const metaItems = [
     `${quizGroup.sections.length} ${quizGroup.sections.length === 1 ? "section" : "sections"}`,
@@ -458,8 +459,8 @@ export function QuizGroupEngine({
                   <p>
                     {canStart
                       ? quizGroup.time_limit_seconds
-                        ? `The ${formatSeconds(quizGroup.time_limit_seconds)} timer starts when you press Start. Your answers save as you go.`
-                        : "Your answers save as you go."
+                        ? `The quiz opens full screen and the ${formatSeconds(quizGroup.time_limit_seconds)} timer starts when you press Start. Your answers save as you go.`
+                        : "The quiz opens full screen. Your answers save as you go."
                       : deadlinePassed
                         ? "The deadline for this quiz has passed."
                         : "You have no attempts left for this quiz."}
@@ -482,134 +483,129 @@ export function QuizGroupEngine({
         </>
       )}
 
-      {attempt && (
-        <div className="space-y-5">
-          <div role="alert" aria-live="assertive" className="sr-only">
-            {timeWarning}
-          </div>
-
+      {attempt && !focusOpen && (
+        <Notice
+          tone="blue"
+          role="status"
+          icon={<Clock className="h-4 w-4" />}
+          title="Quiz in Progress"
+          action={
+            <button type="button" onClick={() => setFocusOpen(true)} className="lms-btn lms-btn--sm">
+              <PlayCircle className="h-4 w-4" />
+              Resume Quiz
+            </button>
+          }
+        >
+          {answeredCount} of {attemptQuestions.length} answered. Your answers are saved.
           {remainingMs != null && (
-            <div className="sticky top-[calc(var(--pl-top,52px)+0.75rem)] z-10 flex justify-end">
-              <span
-                className={`lms-pill h-8 shadow-[0_6px_20px_-10px_rgba(0,0,0,0.35)] backdrop-blur-md ${
-                  remainingMs < 60000
-                    ? "!bg-[#e5483d] !text-white"
-                    : "!bg-[color-mix(in_srgb,var(--sw-card)_88%,transparent)] ring-1 ring-[var(--sw-line)]"
-                }`}
-                aria-label={`Time remaining ${formatCountdown(remainingMs)}`}
-              >
-                <Clock className="!h-4 !w-4" />
-                <span className="tabular-nums">{formatCountdown(remainingMs)}</span>
-              </span>
-            </div>
+            <span className="mt-1 block font-medium text-ink">
+              <span className="tabular-nums">{formatCountdown(remainingMs)}</span> left. The timer keeps running, and
+              the quiz submits itself when it reaches zero.
+            </span>
           )}
-
           {error && (
-            <Notice tone="red" role="alert" icon={<AlertTriangle className="h-4 w-4" />} title="Something Went Wrong">
+            <span role="alert" className="mt-1 block font-medium text-[#d92d20]">
               {error}
-            </Notice>
+            </span>
           )}
-
-          {attemptQuestions.length > 0 && currentQuestionItem ? (
-            <>
-              <QuestionProgress
-                index={boundedQuestionIndex}
-                total={attemptQuestions.length}
-                answered={answeredCount}
-                isAnswered={(idx) => (answers[attemptQuestions[idx].question.id] || []).length > 0}
-                onSelect={setCurrentQuestionIndex}
-              />
-
-              <div>
-                <p className="m-0 mb-1.5 text-[0.8125rem] font-semibold text-ink-3">
-                  Section {currentQuestionItem.sectionIndex + 1} · {currentQuestionItem.sectionTitle}
-                </p>
-                <h2
-                  id={`q-${currentQuestionItem.question.id}`}
-                  className="m-0 font-[family-name:var(--font-roboto)] text-[1.1875rem] font-semibold leading-snug tracking-[-0.01em] text-ink sm:text-[1.3125rem]"
-                >
-                  {currentQuestionItem.question.text}
-                </h2>
-                <p className="mb-3 mt-1.5 text-[0.8125rem] text-ink-3">
-                  {currentQuestionItem.question.allow_multiple_answers
-                    ? "Choose all that apply."
-                    : "Choose one answer."}
-                </p>
-                <ChoiceList
-                  name={currentQuestionItem.question.id}
-                  multiple={currentQuestionItem.question.allow_multiple_answers === true}
-                  options={currentQuestionItem.question.options}
-                  selected={answers[currentQuestionItem.question.id] || []}
-                  labelledBy={`q-${currentQuestionItem.question.id}`}
-                  onToggle={(optId) =>
-                    toggleOption(
-                      currentQuestionItem.question.id,
-                      optId,
-                      currentQuestionItem.question.allow_multiple_answers === true,
-                    )
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
-                  disabled={!canGoPrevious}
-                  className="lms-btn lms-btn--sm lms-btn--quiet"
-                >
-                  <ChevronLeft className="-ml-1 h-4 w-4" />
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, attemptQuestions.length - 1))}
-                  disabled={!canGoNext}
-                  className="lms-btn lms-btn--sm lms-btn--tinted"
-                >
-                  Next
-                  <ChevronRight className="-mr-1 h-4 w-4" />
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="lms-group p-6 text-center text-[0.9375rem] text-ink-2">
-              There are no questions in this quiz yet.
-            </div>
-          )}
-
-          <div className="lms-group">
-            <div className="lms-group-foot !shadow-none">
-              <p>
-                {unansweredCount > 0
-                  ? `${unansweredCount} unanswered. Your answers save as you go; unanswered questions score 0.`
-                  : "Every question has an answer. Your answers save as you go."}
-              </p>
-              <button type="button" onClick={() => setConfirmOpen(true)} disabled={submitting} className="lms-btn lms-btn--sm">
-                {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                {submitting ? "Submitting…" : "Submit Quiz"}
-              </button>
-            </div>
-            <ConfirmSubmitDialog
-              // The timer can still expire while this is open; the auto-submit then takes over.
-              open={confirmOpen && !!attempt}
-              onOpenChange={setConfirmOpen}
-              busy={submitting}
-              title="Submit this quiz?"
-              onConfirm={() => {
-                setConfirmOpen(false);
-                void handleSubmit(false);
-              }}
-            >
-              {unansweredCount > 0
-                ? `You have ${unansweredCount} unanswered question${
-                    unansweredCount === 1 ? "" : "s"
-                  }. They will be scored as 0.`
-                : "All questions have an answer. You won't be able to change them after submitting."}
-            </ConfirmSubmitDialog>
-          </div>
-        </div>
+        </Notice>
       )}
+
+      {attempt && focusOpen && (
+        <QuizFocusShell
+          title={title}
+          remainingMs={remainingMs}
+          submitting={submitting}
+          onSubmit={() => setConfirmOpen(true)}
+          onLeave={() => setFocusOpen(false)}
+          leaveNote={
+            remainingMs != null
+              ? "Your answers are saved, but the timer keeps running while you're away. The quiz submits itself when time runs out."
+              : "Your answers are saved. You can come back and finish it later."
+          }
+          index={boundedQuestionIndex}
+          total={attemptQuestions.length}
+          onPrevious={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
+          onNext={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, attemptQuestions.length - 1))}
+        >
+          <div className="space-y-6">
+            <div role="alert" aria-live="assertive" className="sr-only">
+              {timeWarning}
+            </div>
+
+            {error && (
+              <Notice tone="red" role="alert" icon={<AlertTriangle className="h-4 w-4" />} title="Something Went Wrong">
+                {error}
+              </Notice>
+            )}
+
+            {attemptQuestions.length > 0 && currentQuestionItem ? (
+              <>
+                <QuestionProgress
+                  index={boundedQuestionIndex}
+                  total={attemptQuestions.length}
+                  answered={answeredCount}
+                  isAnswered={(idx) => (answers[attemptQuestions[idx].question.id] || []).length > 0}
+                  onSelect={setCurrentQuestionIndex}
+                />
+
+                <div>
+                  <p className="m-0 mb-1.5 text-[0.8125rem] font-semibold text-ink-3">
+                    Section {currentQuestionItem.sectionIndex + 1} · {currentQuestionItem.sectionTitle}
+                  </p>
+                  <h2
+                    id={`q-${currentQuestionItem.question.id}`}
+                    className="m-0 font-[family-name:var(--font-roboto)] text-[1.1875rem] font-semibold leading-snug tracking-[-0.01em] text-ink sm:text-[1.3125rem]"
+                  >
+                    {currentQuestionItem.question.text}
+                  </h2>
+                  <p className="mb-3 mt-1.5 text-[0.8125rem] text-ink-3">
+                    {currentQuestionItem.question.allow_multiple_answers
+                      ? "Choose all that apply."
+                      : "Choose one answer."}
+                  </p>
+                  <ChoiceList
+                    name={currentQuestionItem.question.id}
+                    multiple={currentQuestionItem.question.allow_multiple_answers === true}
+                    options={currentQuestionItem.question.options}
+                    selected={answers[currentQuestionItem.question.id] || []}
+                    labelledBy={`q-${currentQuestionItem.question.id}`}
+                    onToggle={(optId) =>
+                      toggleOption(
+                        currentQuestionItem.question.id,
+                        optId,
+                        currentQuestionItem.question.allow_multiple_answers === true,
+                      )
+                    }
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="lms-group p-6 text-center text-[0.9375rem] text-ink-2">
+                There are no questions in this quiz yet.
+              </div>
+            )}
+          </div>
+        </QuizFocusShell>
+      )}
+
+      <ConfirmSubmitDialog
+        // The timer can still expire while this is open; the auto-submit then takes over.
+        open={confirmOpen && !!attempt}
+        onOpenChange={setConfirmOpen}
+        busy={submitting}
+        title="Submit this quiz?"
+        onConfirm={() => {
+          setConfirmOpen(false);
+          void handleSubmit(false);
+        }}
+      >
+        {unansweredCount > 0
+          ? `You have ${unansweredCount} unanswered question${
+              unansweredCount === 1 ? "" : "s"
+            }. They will be scored as 0.`
+          : "All questions have an answer. You won't be able to change them after submitting."}
+      </ConfirmSubmitDialog>
     </div>
   );
 }
@@ -620,11 +616,4 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 function formatSeconds(seconds: number) {
   return formatMinutes(Math.round(seconds / 60));
-}
-
-function formatCountdown(ms: number) {
-  const totalSeconds = Math.max(Math.floor(ms / 1000), 0);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }

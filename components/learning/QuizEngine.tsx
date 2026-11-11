@@ -9,11 +9,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  PlayCircle,
   RotateCcw,
-  Send,
   XCircle,
 } from "lucide-react";
-import { IconSpinner } from "@/components/auth/shared/icons";
+import { QuizFocusShell } from "./QuizFocusMode";
 import {
   ChoiceList,
   FinalAssessmentNotice,
@@ -25,6 +25,7 @@ import {
 
 interface QuizEngineProps {
   courseId: string;
+  title: string;
   itemId: string;
   isCompleted: boolean;
   questions: QuizQuestion[];
@@ -43,6 +44,8 @@ interface QuizEngineProps {
   isFinalAssessment?: boolean | null;
   sectionFirstItemId?: string | null;
   isLastSection?: boolean;
+  /** Public course preview: step through the questions in place, with no attempt or submit. */
+  preview?: boolean;
 }
 
 type QuizQuestion = {
@@ -67,6 +70,7 @@ type QuizResult = {
 
 export function QuizEngine({
   courseId,
+  title,
   itemId,
   isCompleted,
   questions,
@@ -79,6 +83,7 @@ export function QuizEngine({
   isFinalAssessment,
   sectionFirstItemId,
   isLastSection,
+  preview = false,
 }: QuizEngineProps) {
   const router = useRouter();
   const [currentTime] = useState(() => Date.now());
@@ -96,6 +101,7 @@ export function QuizEngine({
       : null,
   );
   const [error, setError] = useState("");
+  const [focusOpen, setFocusOpen] = useState(false);
 
   // Once the server-provided attempts data reflects a submission (after router.refresh()),
   // drop the local session counter so we don't double-subtract the same attempt.
@@ -156,6 +162,8 @@ export function QuizEngine({
         courseReset: data.data?.course_reset === true,
       });
       setAttemptsUsedThisSession((count) => count + 1);
+      setFocusOpen(false);
+      setCurrentQuestionIndex(0);
 
       router.refresh();
     } catch (err: unknown) {
@@ -167,11 +175,8 @@ export function QuizEngine({
 
   const answeredCount = questions.filter((q) => answers[q.id] && answers[q.id].length > 0).length;
   const hasUnanswered = answeredCount < questions.length;
-  const isFormDisabled = isReviewingResult || !canSubmit;
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const currentQuestion = questions[currentQuestionIndex] || null;
-  const canGoPrevious = currentQuestionIndex > 0;
-  const canGoNext = currentQuestionIndex < questions.length - 1;
   const attemptLabel =
     effectiveAttemptsRemaining == null
       ? maxAttempts == null
@@ -239,8 +244,10 @@ export function QuizEngine({
                 type="button"
                 onClick={() => {
                   setResult(null);
-                  setAnswers(previousAttempt?.answers || {});
+                  setError("");
+                  setAnswers({});
                   setCurrentQuestionIndex(0);
+                  setFocusOpen(true);
                 }}
                 className="lms-btn lms-btn--sm lms-btn--tinted"
               >
@@ -278,7 +285,28 @@ export function QuizEngine({
         ]}
       />
 
-      {questions.length > 0 && currentQuestion ? (
+      {!preview && !result && canSubmit && (
+        <div className="lms-group">
+          {questions.length > 0 ? (
+            <div className="lms-group-foot">
+              <p>
+                {answeredCount > 0
+                  ? `${answeredCount} of ${questions.length} answered. Your answers are kept while this page stays open.`
+                  : "The quiz opens full screen. Answer each question, then submit at the end."}
+              </p>
+              <button type="button" onClick={() => setFocusOpen(true)} className="lms-btn lms-btn--sm">
+                <PlayCircle className="h-4 w-4" />
+                {answeredCount > 0 ? "Resume Quiz" : "Start Quiz"}
+              </button>
+            </div>
+          ) : (
+            <p className="m-0 p-6 text-center text-[0.9375rem] text-ink-2">There are no questions in this quiz yet.</p>
+          )}
+        </div>
+      )}
+
+      {/* After submitting, step through the questions with the correct answers marked. */}
+      {(showAnswers || preview) && currentQuestion && (
         <div className="space-y-5">
           <QuestionProgress
             index={currentQuestionIndex}
@@ -287,45 +315,12 @@ export function QuizEngine({
             isAnswered={(idx) => (answers[questions[idx].id] || []).length > 0}
             onSelect={setCurrentQuestionIndex}
           />
-
-          <div>
-            <h2
-              id={`q-${currentQuestion.id}`}
-              className="m-0 font-[family-name:var(--font-roboto)] text-[1.1875rem] font-semibold leading-snug tracking-[-0.01em] text-ink sm:text-[1.3125rem]"
-            >
-              {currentQuestion.text}
-            </h2>
-            <p className="mb-3 mt-1.5 text-[0.8125rem] text-ink-3">
-              {currentQuestion.allow_multiple_answers ? "Choose all that apply." : "Choose one answer."}
-            </p>
-            <ChoiceList
-              name={currentQuestion.id}
-              multiple={currentQuestion.allow_multiple_answers === true}
-              options={currentQuestion.options}
-              selected={currentSelected}
-              disabled={isFormDisabled}
-              labelledBy={`q-${currentQuestion.id}`}
-              stateOf={
-                showAnswers
-                  ? (optId) => {
-                      const correct = result?.correctAnswers?.[currentQuestion.id] || [];
-                      if (correct.includes(optId)) return "correct";
-                      if (currentSelected.includes(optId)) return "wrong";
-                      return undefined;
-                    }
-                  : undefined
-              }
-              onToggle={(optId) =>
-                toggleOption(currentQuestion.id, optId, currentQuestion.allow_multiple_answers === true)
-              }
-            />
-          </div>
-
+          {renderQuestion(showAnswers)}
           <div className="flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
-              disabled={!canGoPrevious}
+              disabled={currentQuestionIndex <= 0}
               className="lms-btn lms-btn--sm lms-btn--quiet"
             >
               <ChevronLeft className="-ml-1 h-4 w-4" />
@@ -334,7 +329,7 @@ export function QuizEngine({
             <button
               type="button"
               onClick={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, questions.length - 1))}
-              disabled={!canGoNext}
+              disabled={currentQuestionIndex >= questions.length - 1}
               className="lms-btn lms-btn--sm lms-btn--tinted"
             >
               Next
@@ -342,48 +337,54 @@ export function QuizEngine({
             </button>
           </div>
         </div>
-      ) : (
-        <div className="lms-group p-6 text-center text-[0.9375rem] text-ink-2">
-          There are no questions in this quiz yet.
-        </div>
       )}
 
-      {!isFormDisabled && questions.length > 0 && (
-        <div className="lms-group">
-          {error && (
-            <p role="alert" aria-live="assertive" className="m-0 px-[1.1rem] pt-3.5 text-sm font-medium text-[#d92d20]">
-              {error}
-            </p>
-          )}
-          <div className="lms-group-foot !shadow-none">
-            <p>
-              {hasUnanswered
-                ? `${questions.length - answeredCount} unanswered. Unanswered questions score 0.`
-                : "Every question has an answer."}
-            </p>
-            <button type="button" onClick={() => setConfirmOpen(true)} disabled={submitting} className="lms-btn lms-btn--sm">
-              {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              {submitting ? "Submitting…" : "Submit Quiz"}
-            </button>
+      {focusOpen && !result && canSubmit && currentQuestion && (
+        <QuizFocusShell
+          title={title}
+          submitting={submitting}
+          onSubmit={() => setConfirmOpen(true)}
+          onLeave={() => setFocusOpen(false)}
+          leaveNote="Your answers stay here while this page is open, so you can resume. If you move to another lesson they won't be kept."
+          index={currentQuestionIndex}
+          total={questions.length}
+          onPrevious={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
+          onNext={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, questions.length - 1))}
+        >
+          <div className="space-y-6">
+            {error && (
+              <Notice tone="red" role="alert" icon={<AlertTriangle className="h-4 w-4" />} title="Something Went Wrong">
+                {error}
+              </Notice>
+            )}
+            <QuestionProgress
+              index={currentQuestionIndex}
+              total={questions.length}
+              answered={answeredCount}
+              isAnswered={(idx) => (answers[questions[idx].id] || []).length > 0}
+              onSelect={setCurrentQuestionIndex}
+            />
+            {renderQuestion(false)}
           </div>
-          <ConfirmSubmitDialog
-            open={confirmOpen}
-            onOpenChange={setConfirmOpen}
-            busy={submitting}
-            title="Submit your quiz?"
-            onConfirm={() => {
-              setConfirmOpen(false);
-              void handleSubmit();
-            }}
-          >
-            {hasUnanswered
-              ? `You have ${questions.length - answeredCount} unanswered question${
-                  questions.length - answeredCount === 1 ? "" : "s"
-                }. They will be scored as 0.`
-              : "All questions have an answer. You won't be able to change them after submitting."}
-          </ConfirmSubmitDialog>
-        </div>
+        </QuizFocusShell>
       )}
+
+      <ConfirmSubmitDialog
+        open={confirmOpen && !result}
+        onOpenChange={setConfirmOpen}
+        busy={submitting}
+        title="Submit your quiz?"
+        onConfirm={() => {
+          setConfirmOpen(false);
+          void handleSubmit();
+        }}
+      >
+        {hasUnanswered
+          ? `You have ${questions.length - answeredCount} unanswered question${
+              questions.length - answeredCount === 1 ? "" : "s"
+            }. They will be scored as 0.`
+          : "All questions have an answer. You won't be able to change them after submitting."}
+      </ConfirmSubmitDialog>
 
       {!isReviewingResult && !canSubmit && (
         <Notice tone="gold" icon={<Clock className="h-4 w-4" />} title="Quiz Closed">
@@ -392,6 +393,44 @@ export function QuizEngine({
       )}
     </div>
   );
+
+  function renderQuestion(review: boolean) {
+    if (!currentQuestion) return null;
+    return (
+      <div>
+        <h2
+          id={`q-${currentQuestion.id}`}
+          className="m-0 font-[family-name:var(--font-roboto)] text-[1.1875rem] font-semibold leading-snug tracking-[-0.01em] text-ink sm:text-[1.3125rem]"
+        >
+          {currentQuestion.text}
+        </h2>
+        <p className="mb-3 mt-1.5 text-[0.8125rem] text-ink-3">
+          {currentQuestion.allow_multiple_answers ? "Choose all that apply." : "Choose one answer."}
+        </p>
+        <ChoiceList
+          name={currentQuestion.id}
+          multiple={currentQuestion.allow_multiple_answers === true}
+          options={currentQuestion.options}
+          selected={currentSelected}
+          disabled={review}
+          labelledBy={`q-${currentQuestion.id}`}
+          stateOf={
+            review
+              ? (optId) => {
+                  const correct = result?.correctAnswers?.[currentQuestion.id] || [];
+                  if (correct.includes(optId)) return "correct";
+                  if (currentSelected.includes(optId)) return "wrong";
+                  return undefined;
+                }
+              : undefined
+          }
+          onToggle={(optId) =>
+            toggleOption(currentQuestion.id, optId, currentQuestion.allow_multiple_answers === true)
+          }
+        />
+      </div>
+    );
+  }
 }
 
 function getErrorMessage(error: unknown, fallback: string) {

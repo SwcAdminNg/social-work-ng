@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { Check, ShieldAlert, X } from "lucide-react";
+import { useId, useState, type ReactNode } from "react";
+import { Check, ChevronDown, LayoutGrid, ShieldAlert, X } from "lucide-react";
 
 /** Shared Apple-style pieces for the quiz, quiz group and essay panels. */
 
@@ -82,16 +82,29 @@ export function QuestionProgress({
   isAnswered: (idx: number) => boolean;
   onSelect: (idx: number) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
   const percent = total > 0 ? Math.round((answered / total) * 100) : 0;
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <p className="m-0 text-[0.8125rem] font-semibold text-accent">
           Question {index + 1} of {total}
+          <span className="font-medium text-ink-3"> · {answered} answered</span>
         </p>
-        <p className="m-0 text-[0.8125rem] text-ink-3">
-          {answered} of {total} answered
-        </p>
+        {total > 1 && (
+          <button
+            type="button"
+            className="lms-qjump"
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={() => setOpen((value) => !value)}
+          >
+            <LayoutGrid aria-hidden="true" />
+            All Questions
+            <ChevronDown className="lms-qjump-chev" aria-hidden="true" />
+          </button>
+        )}
       </div>
       <span
         className="lms-meter mt-2.5"
@@ -103,22 +116,32 @@ export function QuestionProgress({
       >
         <span style={{ width: `${percent}%` }} />
       </span>
-      {total > 1 && (
-        <nav className="lms-qnav mt-4" aria-label="Questions">
-          {Array.from({ length: total }, (_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              className="lms-qdot"
-              onClick={() => onSelect(idx)}
-              data-answered={isAnswered(idx) ? "" : undefined}
-              aria-current={idx === index ? "step" : undefined}
-              aria-label={`Question ${idx + 1}, ${isAnswered(idx) ? "answered" : "unanswered"}`}
-            >
-              {idx + 1}
-            </button>
-          ))}
-        </nav>
+      {total > 1 && open && (
+        <div id={panelId} className="lms-qpanel">
+          <nav className="lms-qnav" aria-label="Go to question">
+            {Array.from({ length: total }, (_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className="lms-qdot"
+                onClick={() => {
+                  onSelect(idx);
+                  setOpen(false);
+                }}
+                data-answered={isAnswered(idx) ? "" : undefined}
+                aria-current={idx === index ? "step" : undefined}
+                aria-label={`Question ${idx + 1}, ${isAnswered(idx) ? "answered" : "unanswered"}`}
+              >
+                {idx + 1}
+              </button>
+            ))}
+          </nav>
+          <p className="lms-qlegend" aria-hidden="true">
+            <span><i data-current="" />Current</span>
+            <span><i data-answered="" />Answered</span>
+            <span><i />Not answered</span>
+          </p>
+        </div>
       )}
     </div>
   );

@@ -323,7 +323,9 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                     <QuizEngine
                       courseId={courseId || ""}
                       itemId={previewItem.id}
+                      title={previewItem.title}
                       isCompleted={false}
+                      preview
                       questions={getQuizQuestions(previewItem) || []}
                     />
                   </div>
