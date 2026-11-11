@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { ChevronLeft, ChevronRight, Clock, LogOut, Send, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, LogOut, Send } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { IconSpinner } from "@/components/auth/shared/icons";
@@ -244,19 +244,6 @@ function LeaveQuizDialog({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  );
-}
-
-/** Shown on a retry, so a learner isn't thrown by questions that read differently. */
-export function RetryNote() {
-  return (
-    <div className="flex items-start gap-2 rounded-2xl bg-[color-mix(in_srgb,var(--sw-green)_9%,transparent)] px-3.5 py-2.5 text-[0.8125rem] leading-5 text-ink-2">
-      <Sparkles className="mt-0.5 h-4 w-4 flex-none text-accent" aria-hidden="true" />
-      <span>
-        <strong className="font-semibold text-ink">New wording for this retry.</strong> The questions test the same
-        things as before, reworded and with the answers in a new order.
-      </span>
-    </div>
   );
 }
 

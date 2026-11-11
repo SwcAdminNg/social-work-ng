@@ -11,7 +11,7 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
-import { QuizFocusShell, RetryNote, formatCountdown } from "./QuizFocusMode";
+import { QuizFocusShell, formatCountdown } from "./QuizFocusMode";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import {
   ChoiceList,
@@ -60,8 +60,6 @@ type ActiveAttempt = {
   expires_at?: string | null;
   sections: QuizGroupAttemptSection[];
   saved_answers?: Record<string, string[]> | null;
-  /** A retry reworded by AI. */
-  paraphrased?: boolean | null;
 };
 
 type QuizGroupResult = {
@@ -282,7 +280,6 @@ export function QuizGroupEngine({
         expires_at: data.data?.expires_at,
         sections: data.data?.sections || [],
         saved_answers: data.data?.saved_answers || {},
-        paraphrased: data.data?.paraphrased === true,
       });
       setAnswers(data.data?.saved_answers || {});
       setCurrentQuestionIndex(0);
@@ -544,7 +541,6 @@ export function QuizGroupEngine({
 
             {attemptQuestions.length > 0 && currentQuestionItem ? (
               <>
-                {attempt.paraphrased && <RetryNote />}
                 <QuestionProgress
                   index={boundedQuestionIndex}
                   total={attemptQuestions.length}

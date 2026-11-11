@@ -13,7 +13,7 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
-import { QuizFocusShell, RetryNote } from "./QuizFocusMode";
+import { QuizFocusShell } from "./QuizFocusMode";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import {
   ChoiceList,
@@ -30,8 +30,6 @@ interface QuizEngineProps {
   itemId: string;
   isCompleted: boolean;
   questions: QuizQuestion[];
-  /** The questions above are an AI-reworded retry version already drawn up for this learner. */
-  paraphrased?: boolean | null;
   estimatedMinutes?: number | null;
   maxAttempts?: number | null;
   attemptsUsed?: number | null;
@@ -77,7 +75,6 @@ export function QuizEngine({
   itemId,
   isCompleted,
   questions: initialQuestions,
-  paraphrased: initialParaphrased,
   maxAttempts,
   attemptsUsed,
   attemptsRemaining,
@@ -109,7 +106,6 @@ export function QuizEngine({
   // The version being taken comes from quiz/start: as written the first time,
   // reworded by AI on a retry. Fetched once per attempt.
   const [questions, setQuestions] = useState<QuizQuestion[]>(initialQuestions);
-  const [paraphrased, setParaphrased] = useState(Boolean(initialParaphrased));
   const [versionReady, setVersionReady] = useState(false);
   const [starting, setStarting] = useState(false);
 
@@ -201,7 +197,6 @@ export function QuizEngine({
       const sameVersion =
         next.length === questions.length && next.every((q, idx) => q.id === questions[idx]?.id && q.text === questions[idx]?.text);
       setQuestions(next);
-      setParaphrased(data.data?.paraphrased === true);
       setVersionReady(true);
       if (fresh || !sameVersion) {
         setCurrentQuestionIndex(0);
@@ -410,7 +405,6 @@ export function QuizEngine({
                 {error}
               </Notice>
             )}
-            {paraphrased && <RetryNote />}
             <QuestionProgress
               index={currentQuestionIndex}
               total={questions.length}
