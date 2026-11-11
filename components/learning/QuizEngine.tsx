@@ -5,16 +5,23 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
-  Check,
-  CheckCircle,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock,
   RotateCcw,
   Send,
-  ShieldAlert,
   XCircle,
 } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
+import {
+  ChoiceList,
+  FinalAssessmentNotice,
+  MetaPills,
+  Notice,
+  QuestionProgress,
+  formatDue,
+} from "./AssessmentParts";
 
 interface QuizEngineProps {
   courseId: string;
@@ -63,7 +70,6 @@ export function QuizEngine({
   itemId,
   isCompleted,
   questions,
-  estimatedMinutes,
   maxAttempts,
   attemptsUsed,
   attemptsRemaining,
@@ -164,7 +170,6 @@ export function QuizEngine({
   const isFormDisabled = isReviewingResult || !canSubmit;
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const currentQuestion = questions[currentQuestionIndex] || null;
-  const progressPercent = questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0;
   const canGoPrevious = currentQuestionIndex > 0;
   const canGoNext = currentQuestionIndex < questions.length - 1;
   const attemptLabel =
@@ -181,350 +186,214 @@ export function QuizEngine({
       ? `/learn/${courseId}/item/${sectionFirstItemId}`
       : `/learn/${courseId}`;
 
+  const showAnswers = Boolean(result?.resultVisible && result?.correctAnswers);
+  const currentSelected = currentQuestion ? answers[currentQuestion.id] || [] : [];
+
   return (
-    <div className="mx-auto max-w-[860px] space-y-4">
+    <div className="space-y-5">
       {isFinalAssessment && (
-        <section className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-amber-900/40 dark:bg-amber-950/20">
-          <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
-          <div>
-            <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-              {isLastSection ? "Final exam for this course" : "Final assessment for this module"}
-            </h2>
-            <p className="mt-1 text-sm font-medium leading-6 text-amber-800 dark:text-amber-300">
-              {isLastSection
-                ? "You must pass this to complete the course. Running out of attempts without passing resets the entire course and you'll have to redo it."
-                : "You must pass this to unlock the next module. Running out of attempts without passing resets this module and you'll have to redo it."}{" "}
-              {attemptLabel}.
-            </p>
-          </div>
-        </section>
+        <FinalAssessmentNotice isLastSection={isLastSection}>
+          {isLastSection
+            ? "Pass this to complete the course. Running out of attempts without passing resets the whole course."
+            : "Pass this to unlock the next module. Running out of attempts without passing resets this module."}{" "}
+          {attemptLabel}.
+        </FinalAssessmentNotice>
       )}
 
       {isReset && result && (
-        <section className="rounded-2xl border border-red-200 bg-red-50 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-red-900/40 dark:bg-red-950/20">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-red-600 text-white">
-                <AlertTriangle className="h-5 w-5" />
-              </span>
-              <div>
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
-                  {result.courseReset ? "Course reset" : "Module reset"}
-                </h2>
-                <p className="mt-1 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
-                  {result.message ||
-                    (result.courseReset
-                      ? "You're out of retries. The entire course has been reset."
-                      : "You're out of retries. This module has been reset.")}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => router.push(resetHref)}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
-            >
-              {result.courseReset ? "Restart course" : "Restart module"}
+        <Notice
+          tone="red"
+          role="alert"
+          icon={<AlertTriangle className="h-4 w-4" />}
+          title={result.courseReset ? "Course Reset" : "Module Reset"}
+          action={
+            <button type="button" onClick={() => router.push(resetHref)} className="lms-btn lms-btn--sm">
+              {result.courseReset ? "Restart Course" : "Restart Module"}
             </button>
-          </div>
-        </section>
+          }
+        >
+          {result.message ||
+            (result.courseReset
+              ? "You're out of attempts, so the whole course has been reset."
+              : "You're out of attempts, so this module has been reset.")}
+        </Notice>
       )}
 
       {result && !isReset && (
-        <section
+        <Notice
+          tone={result.resultVisible ? (result.passed ? "green" : "red") : "blue"}
           role="status"
-          aria-live="polite"
-          className={`rounded-2xl border p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] sm:p-5 ${
-          result.resultVisible && result.passed
-            ? "border-[#2D6A4F]/25 bg-[#f0fbf5] dark:border-white/10 dark:bg-[#222524]"
-            : result.resultVisible && result.passed === false
-              ? "border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20"
-              : "border-blue-200 bg-blue-50 dark:border-blue-900/40 dark:bg-blue-950/20"
-        }`}>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
-                result.resultVisible && result.passed
-                  ? "bg-[#2D6A4F] text-white dark:bg-[#52b788] dark:text-[#06130d]"
-                  : result.resultVisible && result.passed === false
-                    ? "bg-red-600 text-white"
-                    : "bg-blue-600 text-white"
-              }`}>
-                {result.resultVisible && result.passed === false ? (
-                  <XCircle className="h-5 w-5" />
-                ) : (
-                  <CheckCircle className="h-5 w-5" />
-                )}
-              </span>
-              <div>
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
-                  {result.resultVisible
-                    ? result.passed
-                      ? "Quiz passed"
-                      : "Try again"
-                    : "Quiz submitted"}
-                </h2>
-                <p className="mt-1 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
-                  {result.resultVisible && typeof result.score === "number"
-                    ? <>Score: <span className="font-semibold text-slate-950 dark:text-white">{result.score}%</span></>
-                    : "Your submission was recorded. Results are not available for this quiz."}
-                </p>
-                {result.message && !result.resultVisible && (
-                  <p className="mt-1 text-xs font-bold text-blue-700 dark:text-blue-300">
-                    {result.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {canSubmit && (
+          icon={
+            result.resultVisible && result.passed === false ? (
+              <XCircle className="h-4 w-4" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )
+          }
+          title={
+            result.resultVisible ? (result.passed ? "You Passed" : "Not Quite") : "Quiz Submitted"
+          }
+          action={
+            canSubmit ? (
               <button
+                type="button"
                 onClick={() => {
                   setResult(null);
                   setAnswers(previousAttempt?.answers || {});
+                  setCurrentQuestionIndex(0);
                 }}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#2D6A4F]/25 bg-white px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-[#e7f6ee] dark:border-white/10 dark:bg-[#252827] dark:text-[#b7e4c7] dark:hover:bg-white/[0.06] sm:w-auto"
+                className="lms-btn lms-btn--sm lms-btn--tinted"
               >
                 <RotateCcw className="h-4 w-4" />
                 {result.resultVisible && result.passed ? "Retake" : "Try Again"}
               </button>
-            )}
-          </div>
-        </section>
+            ) : undefined
+          }
+        >
+          {result.resultVisible && typeof result.score === "number" ? (
+            <>
+              You scored <strong className="font-semibold text-ink">{result.score}%</strong>
+              {typeof passMarkPercentage === "number" ? ` · pass mark ${passMarkPercentage}%` : ""}.
+              {showAnswers ? " Correct answers are marked below." : ""}
+            </>
+          ) : (
+            result.message || "Your answers were recorded. Results aren't shown for this quiz."
+          )}
+        </Notice>
       )}
 
       {!result && isCompleted && !previousAttempt && (
-        <section className="rounded-2xl border border-[#2D6A4F]/25 bg-[#f0fbf5] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#222524]">
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2D6A4F] text-white dark:bg-[#52b788] dark:text-[#06130d]">
-              <CheckCircle className="h-5 w-5" />
-            </span>
-            <div>
-              <h2 className="text-base font-semibold text-slate-950 dark:text-white">Quiz completed</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-300">You have already completed this quiz.</p>
-            </div>
-          </div>
-        </section>
+        <Notice tone="green" icon={<CheckCircle2 className="h-4 w-4" />} title="Quiz Completed">
+          You&apos;ve already completed this quiz.
+        </Notice>
       )}
 
-      <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827]">
-        <div className="border-b border-black/[0.06] px-4 py-3 dark:border-white/10 sm:px-5">
-          <h2 className="text-base font-semibold text-slate-950 dark:text-white">Knowledge Check</h2>
-          <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">{questions.length} questions</span>
-            {typeof passMarkPercentage === "number" && <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">{passMarkPercentage}% pass mark</span>}
-            {typeof estimatedMinutes === "number" && estimatedMinutes > 0 && (
-              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">
-                {formatMinutes(estimatedMinutes)}
-              </span>
-            )}
-            {effectiveAttemptsUsed !== null && <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">{effectiveAttemptsUsed} used</span>}
-            <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">{attemptLabel}</span>
-            {deadline && <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">Due {deadline.toLocaleDateString()}</span>}
+      <MetaPills
+        items={[
+          `${questions.length} ${questions.length === 1 ? "question" : "questions"}`,
+          typeof passMarkPercentage === "number" && `${passMarkPercentage}% to pass`,
+          attemptLabel,
+          effectiveAttemptsUsed ? `${effectiveAttemptsUsed} used` : null,
+          deadline && formatDue(deadline),
+        ]}
+      />
+
+      {questions.length > 0 && currentQuestion ? (
+        <div className="space-y-5">
+          <QuestionProgress
+            index={currentQuestionIndex}
+            total={questions.length}
+            answered={answeredCount}
+            isAnswered={(idx) => (answers[questions[idx].id] || []).length > 0}
+            onSelect={setCurrentQuestionIndex}
+          />
+
+          <div>
+            <h2
+              id={`q-${currentQuestion.id}`}
+              className="m-0 font-[family-name:var(--font-roboto)] text-[1.1875rem] font-semibold leading-snug tracking-[-0.01em] text-ink sm:text-[1.3125rem]"
+            >
+              {currentQuestion.text}
+            </h2>
+            <p className="mb-3 mt-1.5 text-[0.8125rem] text-ink-3">
+              {currentQuestion.allow_multiple_answers ? "Choose all that apply." : "Choose one answer."}
+            </p>
+            <ChoiceList
+              name={currentQuestion.id}
+              multiple={currentQuestion.allow_multiple_answers === true}
+              options={currentQuestion.options}
+              selected={currentSelected}
+              disabled={isFormDisabled}
+              labelledBy={`q-${currentQuestion.id}`}
+              stateOf={
+                showAnswers
+                  ? (optId) => {
+                      const correct = result?.correctAnswers?.[currentQuestion.id] || [];
+                      if (correct.includes(optId)) return "correct";
+                      if (currentSelected.includes(optId)) return "wrong";
+                      return undefined;
+                    }
+                  : undefined
+              }
+              onToggle={(optId) =>
+                toggleOption(currentQuestion.id, optId, currentQuestion.allow_multiple_answers === true)
+              }
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
+              disabled={!canGoPrevious}
+              className="lms-btn lms-btn--sm lms-btn--quiet"
+            >
+              <ChevronLeft className="-ml-1 h-4 w-4" />
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, questions.length - 1))}
+              disabled={!canGoNext}
+              className="lms-btn lms-btn--sm lms-btn--tinted"
+            >
+              Next
+              <ChevronRight className="-mr-1 h-4 w-4" />
+            </button>
           </div>
         </div>
+      ) : (
+        <div className="lms-group p-6 text-center text-[0.9375rem] text-ink-2">
+          There are no questions in this quiz yet.
+        </div>
+      )}
 
-        {questions.length > 0 ? (
-          <>
-            <div className="border-b border-black/[0.05] px-4 py-4 dark:border-white/10 sm:px-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
-                    Question {currentQuestionIndex + 1} of {questions.length}
-                  </p>
-                  <p className="mt-1 text-sm font-bold text-slate-600 dark:text-slate-300">
-                    {answeredCount}/{questions.length} answered
-                  </p>
-                </div>
-                <div
-                  role="progressbar"
-                  aria-valuenow={progressPercent}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label="Quiz progress"
-                  className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#1f2120] sm:w-52"
-                >
-                  <div
-                    className="h-full rounded-full bg-[#2D6A4F] transition-all dark:bg-[#52b788]"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                {questions.map((q, idx) => {
-                  const isAnswered = (answers[q.id] || []).length > 0;
-                  const isCurrent = idx === currentQuestionIndex;
-
-                  return (
-                    <button
-                      key={q.id}
-                      type="button"
-                      onClick={() => setCurrentQuestionIndex(idx)}
-                      aria-label={`Go to question ${idx + 1}${isAnswered ? ", answered" : ", unanswered"}`}
-                      className={`relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border text-sm font-semibold transition ${
-                        isAnswered
-                          ? "border-[#2D6A4F] bg-[#2D6A4F] text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
-                          : "border-slate-200 bg-slate-100 text-slate-500 hover:border-[#2D6A4F]/25 hover:bg-black/[0.04] hover:text-[#2D6A4F] dark:border-white/10 dark:bg-[#1f2120] dark:text-slate-400 dark:hover:border-[#40916c] dark:hover:bg-white/[0.06] dark:hover:text-[#b7e4c7]"
-                      } ${
-                        isCurrent
-                          ? "ring-2 ring-[#F4A261] ring-offset-2 ring-offset-white dark:ring-[#f7c88f] dark:ring-offset-[#252827]"
-                          : ""
-                      }`}
-                    >
-                      {idx + 1}
-                      {isAnswered && (
-                        <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[#2D6A4F] shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:bg-[#06130d] dark:text-[#52b788]">
-                          <Check className="h-3 w-3" />
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {currentQuestion && (
-              <div className="px-4 py-5 sm:px-5">
-                <h3 className="text-base font-semibold leading-7 text-slate-900 dark:text-white">
-                  <span className="mr-2 text-[#2D6A4F] dark:text-[#b7e4c7]">
-                    {currentQuestionIndex + 1}.
-                  </span>
-                  {currentQuestion.text}
-                </h3>
-                <div className="mt-4 grid gap-2">
-                  {currentQuestion.options.map((opt) => {
-                    const isSelected = (answers[currentQuestion.id] || []).includes(opt.id);
-                    const correctAnswersForQuestion =
-                      result?.resultVisible && result?.correctAnswers
-                        ? result.correctAnswers[currentQuestion.id] || []
-                        : null;
-                    const isCorrectOption = correctAnswersForQuestion?.includes(opt.id) ?? false;
-                    const isWronglySelected =
-                      correctAnswersForQuestion !== null && isSelected && !isCorrectOption;
-
-                    return (
-                      <label
-                        key={opt.id}
-                        className={`grid grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-xl border px-3 py-3 transition ${
-                          correctAnswersForQuestion !== null
-                            ? isCorrectOption
-                              ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
-                              : isWronglySelected
-                                ? "border-red-300 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20"
-                                : "border-black/[0.06] bg-[#fdfbf5] dark:border-white/10 dark:bg-[#1f2120]"
-                            : isSelected
-                              ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
-                              : "border-black/[0.06] bg-[#fdfbf5] dark:border-white/10 dark:bg-[#1f2120]"
-                        } ${!isFormDisabled ? "cursor-pointer hover:border-[#2D6A4F]/25 hover:bg-black/[0.04] dark:hover:border-[#40916c] dark:hover:bg-white/[0.06]" : "opacity-90"}`}
-                      >
-                        <input
-                          type={currentQuestion.allow_multiple_answers ? "checkbox" : "radio"}
-                          name={currentQuestion.id}
-                          checked={isSelected}
-                          disabled={isFormDisabled}
-                          onChange={() =>
-                            toggleOption(
-                              currentQuestion.id,
-                              opt.id,
-                              currentQuestion.allow_multiple_answers === true,
-                            )
-                          }
-                          className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#2D6A4F]/25 text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-white/15 dark:bg-[#252827] dark:text-[#52b788] ${currentQuestion.allow_multiple_answers ? "rounded" : ""}`}
-                        />
-                        <span className="text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
-                          {opt.text}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-col gap-2 border-t border-black/[0.05] px-4 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-              <button
-                type="button"
-                onClick={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
-                disabled={!canGoPrevious}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-black/[0.06] bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-black/[0.04] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#252827] dark:text-slate-200 dark:hover:bg-white/[0.06] dark:hover:text-[#b7e4c7] sm:w-auto"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, questions.length - 1))}
-                disabled={!canGoNext}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#2D6A4F]/25 bg-[#fbf8f0] px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#1f2120] dark:text-[#b7e4c7] dark:hover:bg-white/[0.06] sm:w-auto"
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="px-4 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 sm:px-5">
-            No questions are available for this quiz yet.
+      {!isFormDisabled && questions.length > 0 && (
+        <div className="lms-group">
+          {error && (
+            <p role="alert" aria-live="assertive" className="m-0 px-[1.1rem] pt-3.5 text-sm font-medium text-[#d92d20]">
+              {error}
+            </p>
+          )}
+          <div className="lms-group-foot !shadow-none">
+            <p>
+              {hasUnanswered
+                ? `${questions.length - answeredCount} unanswered. Unanswered questions score 0.`
+                : "Every question has an answer."}
+            </p>
+            <button type="button" onClick={() => setConfirmOpen(true)} disabled={submitting} className="lms-btn lms-btn--sm">
+              {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {submitting ? "Submitting…" : "Submit Quiz"}
+            </button>
           </div>
-        )}
+          <ConfirmSubmitDialog
+            open={confirmOpen}
+            onOpenChange={setConfirmOpen}
+            busy={submitting}
+            title="Submit your quiz?"
+            onConfirm={() => {
+              setConfirmOpen(false);
+              void handleSubmit();
+            }}
+          >
+            {hasUnanswered
+              ? `You have ${questions.length - answeredCount} unanswered question${
+                  questions.length - answeredCount === 1 ? "" : "s"
+                }. They will be scored as 0.`
+              : "All questions have an answer. You won't be able to change them after submitting."}
+          </ConfirmSubmitDialog>
+        </div>
+      )}
 
-        {!isFormDisabled && (
-          <div className="border-t border-black/[0.06] px-4 py-4 dark:border-white/10 sm:px-5">
-            {error && (
-              <p role="alert" aria-live="assertive" className="mb-3 text-sm font-bold text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            )}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                {hasUnanswered ? "Unanswered questions will be scored as 0." : "All questions have a selected answer."}
-              </p>
-              <button
-                onClick={() => setConfirmOpen(true)}
-                disabled={submitting}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
-              >
-                {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                {submitting ? "Submitting..." : "Submit"}
-              </button>
-              <ConfirmSubmitDialog
-                open={confirmOpen}
-                onOpenChange={setConfirmOpen}
-                busy={submitting}
-                title="Submit your quiz?"
-                onConfirm={() => {
-                  setConfirmOpen(false);
-                  void handleSubmit();
-                }}
-              >
-                {hasUnanswered
-                  ? `You have ${questions.length - answeredCount} unanswered question${
-                      questions.length - answeredCount === 1 ? "" : "s"
-                    }. They will be scored as 0.`
-                  : "All questions have an answer. You won't be able to change them after submitting."}
-              </ConfirmSubmitDialog>
-            </div>
-          </div>
-        )}
-
-        {!isReviewingResult && !canSubmit && (
-          <div className="border-t border-black/[0.06] px-4 py-4 text-sm font-bold text-slate-600 dark:border-white/10 dark:text-slate-300 sm:px-5">
-            {deadlinePassed ? "The deadline for this quiz has passed." : "You have no attempts remaining for this quiz."}
-          </div>
-        )}
-      </section>
+      {!isReviewingResult && !canSubmit && (
+        <Notice tone="gold" icon={<Clock className="h-4 w-4" />} title="Quiz Closed">
+          {deadlinePassed ? "The deadline for this quiz has passed." : "You have no attempts left for this quiz."}
+        </Notice>
+      )}
     </div>
   );
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
-}
-
-function formatMinutes(minutes: number) {
-  if (minutes < 60) return `${minutes} min`;
-
-  const hours = Math.floor(minutes / 60);
-  const remainder = minutes % 60;
-  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
 }

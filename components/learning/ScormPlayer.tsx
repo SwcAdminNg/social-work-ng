@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Boxes, CheckCircle, Expand, Loader2, RefreshCw, Shrink } from "lucide-react";
+import { Boxes, CheckCircle2, Loader2, Maximize2, Minimize2, RotateCw } from "lucide-react";
 import { MarkCompleteButton } from "./MarkCompleteButton";
 
 type ScormProgress = {
@@ -136,26 +136,31 @@ export function ScormPlayer({
   return (
     <div
       ref={shellRef}
-      className="flex h-[calc(100dvh-220px)] min-h-[480px] w-full flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[#252827] dark:ring-white/10 [&:fullscreen]:h-screen [&:fullscreen]:rounded-none"
+      className="lms-window h-[calc(100dvh-200px)] min-h-[480px] w-full [&:fullscreen]:h-screen [&:fullscreen]:rounded-none"
     >
-      <div className="flex flex-shrink-0 flex-col gap-3 border-b border-black/[0.06] bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#252827]/80 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
+      <div className="lms-window-bar">
+        <div className="flex min-w-0 items-center gap-2.5">
           <span
-            className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
-              completed ? "bg-[#52b788] text-[#06130d]" : "bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]"
-            }`}
+            className={`lms-sym lms-sym--sm ${completed ? "lms-sym--green" : "lms-sym--indigo"}`}
+            aria-hidden="true"
           >
-            {completed ? <CheckCircle className="h-5 w-5" /> : <Boxes className="h-5 w-5" />}
+            {completed ? <CheckCircle2 className="h-4 w-4" /> : <Boxes className="h-4 w-4" />}
           </span>
           <div className="min-w-0">
-            <h2 className="line-clamp-1 text-sm font-semibold text-slate-950 dark:text-white sm:text-base">{title}</h2>
-            <p className="line-clamp-1 text-xs text-slate-500 dark:text-slate-400">
+            <h2 className="m-0 line-clamp-1 font-[family-name:var(--font-roboto)] text-sm font-semibold tracking-normal text-ink">
+              {title}
+            </h2>
+            <p className="m-0 line-clamp-1 text-xs text-ink-3">
               {versionLabel(scorm.scorm_version)} · {statusText}
-              {runtime.savedAt ? " · Progress saved" : scorm.progress?.lesson_location ? " · Resumes where you left off" : ""}
+              {runtime.savedAt
+                ? " · Progress saved"
+                : scorm.progress?.lesson_location
+                  ? " · Picks up where you left off"
+                  : ""}
             </p>
           </div>
         </div>
-        <div className="flex flex-shrink-0 items-center gap-2">
+        <div className="flex flex-shrink-0 items-center gap-1.5">
           {ready && (
             <>
               <button
@@ -164,20 +169,20 @@ export function ScormPlayer({
                   setLoaded(false);
                   setReloadKey((k) => k + 1);
                 }}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10"
-                title="Reload the lesson"
+                className="lms-tool"
+                title="Reload Lesson"
+                aria-label="Reload lesson"
               >
-                <RefreshCw className="h-4 w-4" />
-                <span className="hidden sm:inline">Reload</span>
+                <RotateCw className="h-[1.05rem] w-[1.05rem]" />
               </button>
               <button
                 type="button"
                 onClick={toggleFullscreen}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10"
-                title={fullscreen ? "Exit fullscreen" : "Fullscreen"}
+                className="lms-tool"
+                title={fullscreen ? "Exit Full Screen" : "Enter Full Screen"}
+                aria-label={fullscreen ? "Exit full screen" : "Enter full screen"}
               >
-                {fullscreen ? <Shrink className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
-                <span className="hidden sm:inline">{fullscreen ? "Exit" : "Fullscreen"}</span>
+                {fullscreen ? <Minimize2 className="h-[1.05rem] w-[1.05rem]" /> : <Maximize2 className="h-[1.05rem] w-[1.05rem]" />}
               </button>
             </>
           )}
@@ -186,18 +191,18 @@ export function ScormPlayer({
               in that case on the first save, so this mostly covers packages
               that never call the LMS API at all. */}
           {(scorm.completion_from_package === false || completed) && (
-            <MarkCompleteButton courseId={courseId} itemId={itemId} isCompleted={completed} className="h-9" />
+            <MarkCompleteButton courseId={courseId} itemId={itemId} isCompleted={completed} className="ml-1" />
           )}
         </div>
       </div>
 
-      <div className="relative w-full flex-1 bg-slate-100 dark:bg-[#1a1c1b]">
+      <div className="relative w-full flex-1 bg-[color-mix(in_srgb,var(--sw-ink)_5%,var(--sw-paper))]">
         {ready ? (
           <>
             {!loaded && (
               <div className="absolute inset-0 z-10 grid place-items-center">
-                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                <div className="flex items-center gap-2 text-sm text-ink-3">
+                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                   Loading the lesson…
                 </div>
               </div>
@@ -215,14 +220,16 @@ export function ScormPlayer({
             />
           </>
         ) : (
-          <div className="grid h-full place-items-center p-8 text-center">
-            <div className="max-w-sm">
-              <Boxes className="mx-auto mb-3 h-8 w-8 text-slate-400" />
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">This lesson isn&apos;t available yet</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <div className="grid h-full place-items-center">
+            <div className="lms-unavailable">
+              <Boxes aria-hidden="true" />
+              <h3 className="m-0 font-[family-name:var(--font-roboto)] text-[1.25rem] font-semibold tracking-[-0.01em] text-ink">
+                {scorm.status === "FAILED" ? "Lesson Unavailable" : "Getting This Lesson Ready"}
+              </h3>
+              <p>
                 {scorm.status === "FAILED"
-                  ? "The lesson package couldn't be prepared. Your instructor has been notified."
-                  : "The lesson package is still being prepared. Please check back shortly."}
+                  ? "The lesson package couldn't be prepared. Your instructor has been told."
+                  : "The lesson package is still being prepared. Check back in a few minutes."}
               </p>
             </div>
           </div>

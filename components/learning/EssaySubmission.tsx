@@ -3,8 +3,9 @@
 import { ConfirmSubmitDialog } from "./ConfirmSubmitDialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, FileText, Send, ShieldAlert, Upload, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, FileText, Send, Upload, XCircle } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
+import { FinalAssessmentNotice, MetaPills, formatDue } from "./AssessmentParts";
 
 type EssaySubmissionValue = {
   content_text?: string | null;
@@ -41,7 +42,6 @@ export function EssaySubmission({
   itemId,
   essayQuestion,
   essayDescription,
-  estimatedMinutes,
   submissionMode,
   dueDate,
   submission,
@@ -78,8 +78,6 @@ export function EssaySubmission({
     !isAwaitingModeratedResult &&
     !isBeingMarked &&
     !markingLockedMessage;
-  const awaitingResultMessage =
-    "Submitted - awaiting result. Your essay is being checked and your result will appear here once it is released.";
 
   const handleTextSubmit = async () => {
     setSubmitting(true);
@@ -182,149 +180,142 @@ export function EssaySubmission({
         ? "Unlimited attempts"
         : `${maxAttempts} max attempts`;
 
+  const statusTitle = submission?.is_published
+    ? "Grade Published"
+    : isGraded
+      ? "Reviewed by Your Instructor"
+      : "Submitted, Awaiting Result";
+  const lockedReason = markingLockedMessage
+    ? markingLockedMessage
+    : isAwaitingModeratedResult || isBeingMarked
+      ? "Editing is paused while your essay is being marked."
+      : deadlinePassed
+        ? "The deadline for this essay has passed."
+        : "This essay has been graded and can no longer be resubmitted.";
+  const wordCount = contentText.trim() ? contentText.trim().split(/\s+/).length : 0;
+
   return (
-    <div className="mx-auto max-w-[860px] space-y-4">
+    <div className="space-y-5">
       {isFinalAssessment && (
-        <section className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-amber-900/40 dark:bg-amber-950/20">
-          <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
-          <div>
-            <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-              {isLastSection ? "Final exam for this course" : "Final assessment for this module"}
-            </h2>
-            <p className="mt-1 text-sm font-medium leading-6 text-amber-800 dark:text-amber-300">
-              {isLastSection
-                ? "You must pass this to complete the course."
-                : "You must pass this to unlock the next module."}
-              {typeof passMarkPercentage === "number" ? ` Pass mark: ${passMarkPercentage}%.` : ""}{" "}
-              {typeof attemptsUsed === "number" ? `${attemptsUsed} graded ${attemptsUsed === 1 ? "attempt" : "attempts"} so far. ` : ""}
-              {attemptsLabel}.
-            </p>
-          </div>
-        </section>
+        <FinalAssessmentNotice isLastSection={isLastSection}>
+          {isLastSection ? "Pass this to complete the course." : "Pass this to unlock the next module."}
+          {typeof passMarkPercentage === "number" ? ` Pass mark ${passMarkPercentage}%.` : ""}{" "}
+          {typeof attemptsUsed === "number"
+            ? `${attemptsUsed} graded ${attemptsUsed === 1 ? "attempt" : "attempts"} so far. `
+            : ""}
+          {attemptsLabel}.
+        </FinalAssessmentNotice>
       )}
 
-      <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827]">
-        <div className="border-b border-black/[0.06] px-4 py-3 dark:border-white/10 sm:px-5">
-          <div className="flex flex-wrap gap-2 text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">
-              {mode === "DOCUMENT" ? "Document upload" : "Text response"}
-            </span>
-            {deadline && (
-              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">
-                Due {deadline.toLocaleDateString()}
-              </span>
-            )}
-            {typeof estimatedMinutes === "number" && estimatedMinutes > 0 && (
-              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">
-                {formatMinutes(estimatedMinutes)}
-              </span>
-            )}
-          </div>
-        </div>
+      <MetaPills
+        items={[
+          mode === "DOCUMENT" ? "Document upload" : "Written response",
+          deadline && formatDue(deadline),
+        ]}
+      />
 
-        <div className="px-4 py-4 sm:px-5">
-          <h2 id="essay-question" className="text-lg font-semibold leading-7 text-slate-950 dark:text-white">
-            {essayQuestion || "Essay Assignment"}
-          </h2>
-          {essayDescription && (
-            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600 dark:text-slate-300">
-              {essayDescription}
-            </p>
-          )}
-        </div>
-      </section>
+      <div>
+        <h2
+          id="essay-question"
+          className="m-0 font-[family-name:var(--font-roboto)] text-[1.1875rem] font-semibold leading-snug tracking-[-0.01em] text-ink sm:text-[1.3125rem]"
+        >
+          {essayQuestion || "Essay Assignment"}
+        </h2>
+        {essayDescription && (
+          <p className="mb-0 mt-2 whitespace-pre-line text-[0.9375rem] leading-relaxed text-ink-2">{essayDescription}</p>
+        )}
+      </div>
 
       {hasSubmission && (
-        <section className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827] sm:p-5">
-          <div className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-              <CheckCircle className="h-5 w-5" />
+        <div className="lms-group">
+          <div className="flex items-start gap-3.5 p-[1.1rem]">
+            <span
+              className={`lms-sym lms-sym--sm ${
+                submission?.is_published
+                  ? submission.passed === false && isFinalAssessment
+                    ? "lms-sym--red"
+                    : "lms-sym--green"
+                  : isGraded
+                    ? "lms-sym--blue"
+                    : "lms-sym--gold"
+              }`}
+              aria-hidden="true"
+            >
+              {submission?.is_published ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
             </span>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
-                {submission?.is_published
-                  ? "Grade published"
-                  : isGraded
-                    ? "Instructor review complete"
-                    : "Submitted - awaiting result"}
+              <h3 className="m-0 font-[family-name:var(--font-roboto)] text-[0.9375rem] font-semibold tracking-normal text-ink">
+                {statusTitle}
               </h3>
               {submission?.submitted_at && (
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Submitted {new Intl.DateTimeFormat("en-US", {
-                    month: "short",
+                <p className="m-0 mt-0.5 text-[0.8125rem] text-ink-3">
+                  Submitted{" "}
+                  {new Intl.DateTimeFormat("en-GB", {
                     day: "numeric",
+                    month: "short",
                     year: "numeric",
                     hour: "numeric",
                     minute: "2-digit",
+                    timeZone: "Africa/Lagos",
                   }).format(new Date(submission.submitted_at))}
                 </p>
               )}
-
-              {submission?.is_published && typeof submission.score === "number" && (
-                <div className="mt-3 flex items-center gap-2">
-                  <p className="text-base font-semibold text-slate-950 dark:text-white">
-                    Score: {submission.score}
-                  </p>
-                  {isFinalAssessment && typeof submission.passed === "boolean" && (
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-xl px-2 py-0.5 text-xs font-semibold ${
-                        submission.passed
-                          ? "bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]"
-                          : "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-300"
-                      }`}
-                    >
-                      {submission.passed ? (
-                        <CheckCircle className="h-3.5 w-3.5" />
-                      ) : (
-                        <XCircle className="h-3.5 w-3.5" />
-                      )}
-                      {submission.passed ? "Passed" : "Failed"}
-                    </span>
-                  )}
-                </div>
-              )}
-              {submission?.is_published && submission.feedback && (
-                <p className="mt-3 whitespace-pre-line rounded-xl bg-[#fbf8f0] p-3 text-sm leading-6 text-slate-700 dark:bg-[#1f2120] dark:text-slate-200">
-                  {submission.feedback}
+              {!submission?.is_published && (
+                <p className="m-0 mt-2 text-sm leading-relaxed text-ink-2">
+                  {isGraded
+                    ? "Your instructor has reviewed this essay. The grade hasn't been published yet."
+                    : isAwaitingModeratedResult || isBeingMarked
+                      ? "Your essay is being marked. Your result will appear here once it's released."
+                      : "You can resubmit until marking begins or the deadline passes."}
                 </p>
-              )}
-              {isGraded && !submission?.is_published && (
-                <p className="mt-3 text-sm font-medium text-gray-600 dark:text-gray-300">
-                  Your instructor has reviewed this essay. The grade has not been published yet.
-                </p>
-              )}
-              {!isGraded && (
-                <p className="mt-3 text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {isAwaitingModeratedResult || isBeingMarked
-                    ? awaitingResultMessage
-                    : "You can resubmit until marking begins or the deadline passes."}
-                </p>
-              )}
-
-              {submission?.document_download_url && (
-                <a
-                  href={submission.document_download_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex h-9 items-center gap-2 rounded-lg border border-[#2D6A4F]/25 px-3 text-sm font-bold text-[#2D6A4F] transition hover:bg-black/[0.04] dark:border-white/10 dark:text-[#b7e4c7] dark:hover:bg-white/[0.06]"
-                >
-                  <FileText className="h-4 w-4" />
-                  {submission.document_file_name || "Download submission"}
-                </a>
               )}
             </div>
+            {submission?.is_published && typeof submission.score === "number" && (
+              <div className="text-right">
+                <p className="lms-num lms-score m-0">{submission.score}</p>
+                {isFinalAssessment && typeof submission.passed === "boolean" && (
+                  <span className={`lms-pill mt-1 ${submission.passed ? "lms-pill--green" : "!bg-[#e5483d]/12 !text-[#d92d20]"}`}>
+                    {submission.passed ? <CheckCircle2 /> : <XCircle />}
+                    {submission.passed ? "Passed" : "Not passed"}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-        </section>
+
+          {submission?.is_published && submission.feedback && (
+            <div className="px-[1.1rem] pb-[1.1rem]">
+              <p className="m-0 mb-1.5 text-[0.8125rem] font-semibold text-ink-3">Feedback</p>
+              <p className="lms-well m-0 whitespace-pre-line p-3.5 text-sm leading-relaxed text-ink">
+                {submission.feedback}
+              </p>
+            </div>
+          )}
+
+          {submission?.document_download_url && (
+            <a
+              href={submission.document_download_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="lms-row !shadow-[inset_0_1px_0_var(--sw-line)]"
+            >
+              <span className="lms-sym lms-sym--sm lms-sym--blue" aria-hidden="true">
+                <FileText className="h-4 w-4" />
+              </span>
+              <span className="min-w-0 flex-1 truncate text-[0.9375rem] text-ink">
+                {submission.document_file_name || "Your submission"}
+              </span>
+              <span className="text-[0.8125rem] font-semibold text-accent">Open</span>
+            </a>
+          )}
+        </div>
       )}
 
-      <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827]">
-        <div className="border-b border-black/[0.06] px-4 py-3 dark:border-white/10 sm:px-5">
-          <h3 className="text-base font-semibold text-slate-950 dark:text-white">
-            {hasSubmission ? "Resubmit Essay" : "Submit Essay"}
-          </h3>
-        </div>
-
-        <div className="px-4 py-4 sm:px-5">
+      <div>
+        <h2 className="lms-group-head font-[family-name:var(--font-roboto)] tracking-normal">
+          {hasSubmission ? "Resubmit" : "Your Response"}
+        </h2>
+        <div className="lms-group">
           {mode === "TEXT" ? (
             <textarea
               id="essay-response"
@@ -332,22 +323,18 @@ export function EssaySubmission({
               value={contentText}
               onChange={(event) => setContentText(event.target.value)}
               disabled={!canSubmit || submitting}
-              rows={10}
-              className="min-h-[260px] w-full resize-y rounded-xl border border-black/[0.06] bg-[#fdfbf5] p-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 dark:border-white/10 dark:bg-[#1f2120] dark:text-white dark:focus:border-[#52b788] dark:focus:ring-[#52b788]/10 dark:disabled:bg-[#252827]"
-              placeholder="Write your response here..."
+              rows={12}
+              className="lms-editor"
+              placeholder="Start writing…"
             />
           ) : (
-            <label className={`flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 text-center transition ${
-              canSubmit
-                ? "border-[#2D6A4F]/25 bg-[#fbf8f0] hover:bg-[#eef8f2] dark:border-white/10 dark:bg-[#222524] dark:hover:bg-white/[0.06]"
-                : "cursor-not-allowed border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-[#1f2120]"
-            }`}>
-              <Upload className="mb-3 h-7 w-7 text-[#2D6A4F] dark:text-[#52b788]" />
-              <span className="font-semibold text-slate-950 dark:text-white">
-                {file ? file.name : "Choose essay document"}
+            <label className="lms-drop" aria-disabled={!canSubmit || submitting ? "true" : undefined}>
+              <span className="lms-sym lms-sym--blue mb-2" aria-hidden="true">
+                <Upload className="h-[1.1rem] w-[1.1rem]" />
               </span>
-              <span className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Upload the final file, then submit it for review.
+              <span className="text-[0.9375rem] font-semibold text-ink">{file ? file.name : "Choose a Document"}</span>
+              <span className="text-[0.8125rem] text-ink-3">
+                {file ? "Ready to submit. Choose again to replace it." : "Upload your final file, then submit it for marking."}
               </span>
               <input
                 type="file"
@@ -358,57 +345,50 @@ export function EssaySubmission({
             </label>
           )}
 
-          {error && (
-            <p role="alert" aria-live="assertive" className="mt-3 text-sm font-bold text-red-600 dark:text-red-400">
-              {error}
+          <div className="lms-group-foot">
+            <p>
+              {!canSubmit
+                ? lockedReason
+                : mode === "TEXT"
+                  ? `${wordCount} ${wordCount === 1 ? "word" : "words"} · you can update this until marking begins.`
+                  : "You can update your submission until marking begins."}
             </p>
-          )}
-          {success && (
-            <p role="status" aria-live="polite" className="mt-3 text-sm font-bold text-[#2D6A4F] dark:text-[#52b788]">
-              {success}
-            </p>
-          )}
-          {!canSubmit && (
-            <p className="mt-3 text-sm font-bold text-slate-600 dark:text-slate-300">
-              {markingLockedMessage
-                ? markingLockedMessage
-                : isAwaitingModeratedResult || isBeingMarked
-                  ? "Submitted - awaiting result. Editing is paused while your essay is being checked."
-                  : deadlinePassed
-                ? "The deadline for this essay has passed."
-                : "This essay has been graded and can no longer be resubmitted."}
-            </p>
-          )}
+            <button
+              type="button"
+              onClick={() => setConfirmOpen(true)}
+              disabled={!canSubmit || submitting || (mode === "TEXT" && contentText.trim().length === 0)}
+              className="lms-btn lms-btn--sm"
+            >
+              {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {submitting ? "Submitting…" : hasSubmission ? "Resubmit" : "Submit Essay"}
+            </button>
+          </div>
         </div>
-
-        <div className="flex flex-col gap-3 border-t border-black/[0.06] px-4 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-            {canSubmit ? "Submissions can be updated until marking begins." : "Submission is locked."}
+        {error && (
+          <p role="alert" aria-live="assertive" className="lms-group-note !text-[#d92d20]">
+            {error}
           </p>
-          <button
-            onClick={() => setConfirmOpen(true)}
-            disabled={!canSubmit || submitting || (mode === "TEXT" && contentText.trim().length === 0)}
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
-          >
-            {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            {submitting ? "Submitting..." : hasSubmission ? "Resubmit" : "Submit"}
-          </button>
-          <ConfirmSubmitDialog
-            open={confirmOpen}
-            onOpenChange={setConfirmOpen}
-            busy={submitting}
-            title={hasSubmission ? "Resubmit your essay?" : "Submit your essay?"}
-            confirmLabel={hasSubmission ? "Yes, resubmit" : "Yes, submit"}
-            onConfirm={() => {
-              setConfirmOpen(false);
-              void (mode === "TEXT" ? handleTextSubmit() : handleDocumentSubmit());
-            }}
-          >
-            Your essay goes to be marked and you won&apos;t be able to edit it once marking begins. Make sure this is
-            your final version.
-          </ConfirmSubmitDialog>
-        </div>
-      </section>
+        )}
+        {success && (
+          <p role="status" aria-live="polite" className="lms-group-note !text-accent">
+            {success}
+          </p>
+        )}
+        <ConfirmSubmitDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          busy={submitting}
+          title={hasSubmission ? "Resubmit your essay?" : "Submit your essay?"}
+          confirmLabel={hasSubmission ? "Yes, resubmit" : "Yes, submit"}
+          onConfirm={() => {
+            setConfirmOpen(false);
+            void (mode === "TEXT" ? handleTextSubmit() : handleDocumentSubmit());
+          }}
+        >
+          Your essay goes to be marked and you won&apos;t be able to edit it once marking begins. Make sure this is
+          your final version.
+        </ConfirmSubmitDialog>
+      </div>
     </div>
   );
 }
@@ -433,12 +413,4 @@ function isMarkInProgressStatus(status?: string) {
         "UNDER_APPEAL",
       ].includes(status),
   );
-}
-
-function formatMinutes(minutes: number) {
-  if (minutes < 60) return `${minutes} min`;
-
-  const hours = Math.floor(minutes / 60);
-  const remainder = minutes % 60;
-  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
 }

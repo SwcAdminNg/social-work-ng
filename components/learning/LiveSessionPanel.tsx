@@ -4,13 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   AlertCircle,
-  CalendarCheck,
   CalendarDays,
   CheckCircle2,
   Clock3,
-  ExternalLink,
   Headphones,
   RefreshCw,
+  Timer,
   UserRound,
   Video,
 } from "lucide-react";
@@ -67,7 +66,7 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
 
   if (recordingReady && item.live_session_recording_url) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827]">
+      <div className="lms-stage">
         <VideoPlayer
           url={item.live_session_recording_url}
           courseId={courseId}
@@ -78,302 +77,226 @@ export function LiveSessionPanel({ courseId, item }: LiveSessionPanelProps) {
     );
   }
 
+  const join = async () => {
+    setJoining(true);
+    setJoinError(null);
+    const meetingWindow = window.open("", "_blank");
+
+    if (meetingWindow) {
+      meetingWindow.document.title = "Opening live session";
+      meetingWindow.document.body.innerHTML =
+        '<div style="font-family: system-ui, sans-serif; min-height: 100vh; display: grid; place-items: center; color: #0b1410;"><div><strong>Opening live session...</strong><p style="color: #4a5c52;">Please wait while we create your secure Daily link.</p></div></div>';
+    }
+
+    try {
+      const res = await fetch(`/api/proxy/courses/items/${item.id}/live-session/join`, {
+        method: "POST",
+      });
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        meetingWindow?.close();
+        setJoinError(json?.message || "This live session is not available right now.");
+        return;
+      }
+
+      if (json?.data?.join_url) {
+        if (meetingWindow) {
+          meetingWindow.opener = null;
+          meetingWindow.location.assign(json.data.join_url);
+        } else {
+          setJoinError("Your browser blocked the new tab. Please allow pop-ups and try again.");
+        }
+        return;
+      }
+
+      meetingWindow?.close();
+      setJoinError("The live session join link was not returned.");
+    } catch {
+      meetingWindow?.close();
+      setJoinError("We could not reach the live session service.");
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  const canJoin = item.live_session_can_join === true;
+  const headline = canJoin
+    ? "Open Now"
+    : isEnded
+      ? "Session Ended"
+      : isCancelled
+        ? "Cancelled"
+        : countdown || "Time to be announced";
+
   return (
-    <section className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827]">
-      <div className="bg-slate-950 px-4 py-5 text-white sm:px-5 lg:px-6">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="min-w-0">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <StatusBadge item={item} />
-              {item.is_completed && (
-                <span className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#52b788] px-2.5 text-xs font-semibold text-[#06130d]">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  Complete
-                </span>
-              )}
-            </div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#b7e4c7]">
-              Live classroom
-            </p>
-            <h2 className="mt-2 max-w-3xl text-2xl font-semibold leading-tight text-white sm:text-3xl">
-              {item.title || "Live session"}
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
-              {getHeroDescription(item)}
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/8 p-4 lg:w-[260px]">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-300">
-              {item.live_session_can_join ? "Join window" : "Session starts"}
-            </p>
-            <p className="text-2xl font-semibold text-white">
-              {item.live_session_can_join ? "Open now" : countdown || "Pending"}
-            </p>
-            {scheduledAt && (
-              <p className="text-sm font-semibold text-slate-300">
-                {scheduledAt}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-4 p-4 sm:p-5 lg:p-6">
-        <div className="grid gap-3 md:grid-cols-3">
-          <InfoTile
-            icon={<CalendarDays className="h-5 w-5" />}
-            label="Date"
-            value={scheduledDate || "To be announced"}
-          />
-          <InfoTile
-            icon={<Clock3 className="h-5 w-5" />}
-            label="Time and duration"
-            value={[scheduledTime, duration ? `${duration} min` : null].filter(Boolean).join(" - ") || "Planned session"}
-          />
-          <InfoTile
-            icon={<UserRound className="h-5 w-5" />}
-            label="Presenter"
-            value={formatGuest(item) || "Course instructor"}
-          />
-        </div>
-
-        <div className="rounded-2xl border border-black/[0.06] bg-[#fbf8f0] p-4 dark:border-white/10 dark:bg-[#222524] sm:p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-950 dark:text-white">
-                {getStatusHeadline(item)}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                {getStatusDescription(item)}
-              </p>
-            </div>
-            {item.live_session_can_join ? (
-              <button
-                type="button"
-                onClick={async () => {
-                  setJoining(true);
-                  setJoinError(null);
-                  const meetingWindow = window.open("", "_blank");
-
-                  if (meetingWindow) {
-                    meetingWindow.document.title = "Opening live session";
-                    meetingWindow.document.body.innerHTML =
-                      '<div style="font-family: system-ui, sans-serif; min-height: 100vh; display: grid; place-items: center; color: #0b1410;"><div><strong>Opening live session...</strong><p style="color: #4a5c52;">Please wait while we create your secure Daily link.</p></div></div>';
-                  }
-
-                  try {
-                    const res = await fetch(`/api/proxy/courses/items/${item.id}/live-session/join`, {
-                      method: "POST",
-                    });
-                    const json = await res.json().catch(() => ({}));
-
-                    if (!res.ok) {
-                      meetingWindow?.close();
-                      setJoinError(json?.message || "This live session is not available right now.");
-                      return;
-                    }
-
-                    if (json?.data?.join_url) {
-                      if (meetingWindow) {
-                        meetingWindow.opener = null;
-                        meetingWindow.location.assign(json.data.join_url);
-                      } else {
-                        setJoinError("Your browser blocked the new tab. Please allow pop-ups and try again.");
-                      }
-                      return;
-                    }
-
-                    meetingWindow?.close();
-                    setJoinError("The live session join link was not returned.");
-                  } catch {
-                    meetingWindow?.close();
-                    setJoinError("We could not reach the live session service.");
-                  } finally {
-                    setJoining(false);
-                  }
-                }}
-                disabled={joining}
-                className="inline-flex h-12 flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-wait disabled:opacity-80 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d]"
-              >
-                {joining ? (
-                  <IconSpinner className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ExternalLink className="h-4 w-4" />
-                )}
-                {joining ? "Opening Daily..." : "Join in new tab"}
-              </button>
-            ) : !isEnded && !isCancelled ? (
-              <button
-                type="button"
-                disabled
-                className="inline-flex h-12 flex-shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-100 px-5 text-sm font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-              >
-                <Clock3 className="h-4 w-4" />
-                {countdown || "Not open yet"}
-              </button>
-            ) : null}
-          </div>
-          {joinError && (
-            <p className="mt-3 flex items-start gap-2 text-sm font-semibold text-red-700 dark:text-red-300">
-              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-              <span>{joinError}</span>
-            </p>
+    <div className="space-y-6">
+      <section className="lms-live" aria-labelledby="live-headline">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="lms-live-badge" data-live={canJoin ? "" : undefined}>
+            {canJoin ? "LIVE" : isEnded ? "ENDED" : isCancelled ? "CANCELLED" : "UPCOMING"}
+          </span>
+          {item.is_completed && (
+            <span className="lms-live-badge !bg-[#30d158] !text-[#06130d]">
+              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+              Completed
+            </span>
           )}
         </div>
+        <p
+          id="live-headline"
+          className="lms-num m-0 mt-5 text-[2.25rem] text-white sm:text-[2.75rem]"
+          role="timer"
+          aria-live="off"
+        >
+          {headline}
+        </p>
+        {scheduledAt && <p className="m-0 mt-2 text-[0.9375rem] font-medium text-white/80">{scheduledAt}</p>}
+        <p className="m-0 mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-white/65">{getHeroDescription(item)}</p>
 
-        {!isEnded && !isCancelled && (
-          <div className="grid gap-3 md:grid-cols-3">
-            <PreparationItem
-              icon={<Video className="h-4 w-4" />}
-              title="Daily opens separately"
-              text="Your secure link opens Daily in a new browser tab."
-            />
-            <PreparationItem
-              icon={<Headphones className="h-4 w-4" />}
-              title="Check your setup"
-              text="Use a working microphone, camera, and a stable connection."
-            />
-            <PreparationItem
-              icon={<RefreshCw className="h-4 w-4" />}
-              title="Page refreshes itself"
-              text="Keep this page open and the join state will update."
-            />
+        {(canJoin || (!isEnded && !isCancelled)) && (
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {canJoin ? (
+              <button type="button" onClick={join} disabled={joining} className="lms-btn">
+                {joining ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                {joining ? "Opening Daily…" : "Join Session"}
+              </button>
+            ) : (
+              <button type="button" disabled className="lms-btn">
+                <Clock3 className="h-4 w-4" />
+                Not Open Yet
+              </button>
+            )}
+            <span className="text-[0.8125rem] text-white/60">
+              {canJoin ? "Opens in a new tab." : "The button turns on when the room opens."}
+            </span>
           </div>
         )}
-
-        <div className="flex flex-col gap-3 border-t border-black/[0.06] pt-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            {getCompletionHint(item)}
+        {joinError && (
+          <p role="alert" className="m-0 mt-4 flex items-start gap-2 text-sm font-medium text-[#ff8a80]">
+            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
+            <span>{joinError}</span>
           </p>
-          <MarkCompleteButton
-            courseId={courseId}
-            itemId={item.id}
-            isCompleted={item.is_completed === true}
-            className="h-10"
-          />
+        )}
+      </section>
+
+      <div>
+        <h2 className="lms-group-head font-[family-name:var(--font-roboto)] tracking-normal">Details</h2>
+        <div className="lms-group">
+          <DetailRow tone="red" icon={<CalendarDays className="h-4 w-4" />} label="Date" value={scheduledDate || "To be announced"} />
+          <DetailRow tone="orange" icon={<Clock3 className="h-4 w-4" />} label="Starts" value={scheduledTime || "To be announced"} />
+          {duration ? (
+            <DetailRow tone="blue" icon={<Timer className="h-4 w-4" />} label="Duration" value={formatDuration(duration)} />
+          ) : null}
+          <DetailRow tone="indigo" icon={<UserRound className="h-4 w-4" />} label="Presenter" value={formatGuest(item) || "Course instructor"} />
         </div>
       </div>
-    </section>
-  );
-}
 
-function StatusBadge({ item }: { item: LiveSessionItem }) {
-  const label = item.live_session_can_join
-    ? "Open now"
-    : item.live_session_status === "ENDED"
-      ? "Ended"
-      : item.live_session_status === "CANCELLED"
-        ? "Cancelled"
-        : "Scheduled";
-
-  return (
-    <span className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-xs font-semibold uppercase tracking-wide text-white">
-      {item.live_session_can_join ? (
-        <Video className="h-3.5 w-3.5 text-[#52b788]" />
-      ) : (
-        <CalendarCheck className="h-3.5 w-3.5 text-[#b7e4c7]" />
+      {!isEnded && !isCancelled && (
+        <div>
+          <h2 className="lms-group-head font-[family-name:var(--font-roboto)] tracking-normal">Before You Join</h2>
+          <ul className="lms-group m-0 list-none p-0">
+            <PrepRow tone="green" icon={<Video className="h-4 w-4" />} title="Daily opens in a new tab" text="Your secure link is created when you press Join." />
+            <PrepRow tone="blue" icon={<Headphones className="h-4 w-4" />} title="Check your setup" text="A working microphone, camera and a steady connection." />
+            <PrepRow tone="gray" icon={<RefreshCw className="h-4 w-4" />} title="Keep this page open" text="It checks every minute and turns Join on by itself." />
+          </ul>
+        </div>
       )}
-      {label}
-    </span>
+
+      <div className="lms-group">
+        <div className="lms-group-foot !shadow-none">
+          <p>{getCompletionHint(item)}</p>
+          <MarkCompleteButton courseId={courseId} itemId={item.id} isCompleted={item.is_completed === true} />
+        </div>
+      </div>
+    </div>
   );
 }
 
-function InfoTile({
+const TONES = {
+  red: "lms-sym--red",
+  orange: "lms-sym--orange",
+  blue: "lms-sym--blue",
+  indigo: "lms-sym--indigo",
+  green: "lms-sym--green",
+  gray: "lms-sym--gray",
+} as const;
+
+function DetailRow({
+  tone,
   icon,
   label,
   value,
 }: {
+  tone: keyof typeof TONES;
   icon: React.ReactNode;
   label: string;
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-[#252827]">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+    <div className="lms-detail">
+      <span className={`lms-sym lms-sym--sm ${TONES[tone]}`} aria-hidden="true">
         {icon}
-      </div>
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        {label}
-      </p>
-      <p className="mt-1 text-sm font-semibold leading-5 text-slate-950 dark:text-white">
-        {value}
-      </p>
+      </span>
+      <span className="lms-detail-label">{label}</span>
+      <span className="lms-detail-value">{value}</span>
     </div>
   );
 }
 
-function PreparationItem({
+function PrepRow({
+  tone,
   icon,
   title,
   text,
 }: {
+  tone: keyof typeof TONES;
   icon: React.ReactNode;
   title: string;
   text: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/[0.06] bg-white p-4 dark:border-white/10 dark:bg-[#252827]">
-      <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
+    <li className="lms-detail !items-start">
+      <span className={`lms-sym lms-sym--sm ${TONES[tone]}`} aria-hidden="true">
         {icon}
-      </div>
-      <p className="text-sm font-semibold text-slate-950 dark:text-white">
-        {title}
-      </p>
-      <p className="mt-1 text-sm leading-5 text-slate-600 dark:text-slate-400">
-        {text}
-      </p>
-    </div>
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[0.9375rem] text-ink">{title}</span>
+        <span className="block text-[0.8125rem] leading-snug text-ink-3">{text}</span>
+      </span>
+    </li>
   );
 }
 
 function getHeroDescription(item: LiveSessionItem) {
   if (item.live_session_status === "ENDED") {
-    if (item.live_session_recording_status === "READY") {
-      return "The session has ended and the recording is ready to watch.";
+    if (item.live_session_recording_status === "FAILED") {
+      return "The session has ended. A recording isn't available for this one.";
     }
-    return "The session has ended. The recording will appear here when processing is complete.";
+    return "The session has ended. The recording will appear here once it's ready.";
   }
   if (item.live_session_status === "CANCELLED") {
-    return "This scheduled classroom session is no longer available.";
+    return "This session was cancelled and is no longer taking joins.";
   }
   if (item.live_session_can_join) {
-    return "The live room is open. Join now and Daily will handle the video classroom experience.";
+    return "The room is open. Join now and the class runs in Daily, in its own tab.";
   }
-  return "Review the schedule, keep this page open if you are waiting, and join when the backend opens the room.";
-}
-
-function getStatusHeadline(item: LiveSessionItem) {
-  if (item.live_session_status === "ENDED") {
-    return item.live_session_recording_status === "READY"
-      ? "Recording available"
-      : "Session ended";
-  }
-  if (item.live_session_status === "CANCELLED") return "Session cancelled";
-  if (item.live_session_can_join) return "The join window is open";
-  return "Upcoming live session";
-}
-
-function getStatusDescription(item: LiveSessionItem) {
-  if (item.live_session_status === "ENDED") {
-    if (item.live_session_recording_status === "FAILED") return "";
-    return "Recording processing, check back soon.";
-  }
-  if (item.live_session_status === "CANCELLED") {
-    return "This live session is no longer accepting joins.";
-  }
-  if (item.live_session_can_join) {
-    return "We will create a fresh secure Daily link when you click Join.";
-  }
-  return "The join button becomes available when the backend opens the session window.";
+  return "Keep this page open if you're waiting. Join turns on as soon as the room opens.";
 }
 
 function getCompletionHint(item: LiveSessionItem) {
-  if (item.is_completed) return "This live session is marked complete.";
+  if (item.is_completed) return "You've marked this live session complete.";
   if (item.live_session_status === "ENDED") {
-    return "Mark this complete after attending or watching the recording.";
+    return "Mark this complete once you've attended or watched the recording.";
   }
-  return "After attending the live session, come back here to mark it complete.";
+  return "After the session, come back here and mark it complete.";
+}
+
+function formatDuration(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours} hr ${rest} min` : `${hours} hr`;
 }
 
 function formatGuest(item: LiveSessionItem) {

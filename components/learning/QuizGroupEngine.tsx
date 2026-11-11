@@ -5,18 +5,25 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
-  Check,
-  CheckCircle,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock,
   PlayCircle,
   RotateCcw,
   Send,
-  ShieldAlert,
   XCircle,
 } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
+import {
+  ChoiceList,
+  FinalAssessmentNotice,
+  MetaPills,
+  Notice,
+  QuestionProgress,
+  formatDue,
+  formatMinutes,
+} from "./AssessmentParts";
 
 type QuizGroupOption = { id: string; text: string };
 
@@ -96,7 +103,6 @@ interface QuizGroupEngineProps {
 export function QuizGroupEngine({
   courseId,
   itemId,
-  estimatedMinutes,
   dueDate,
   isFinalAssessment,
   sectionFirstItemId,
@@ -325,409 +331,284 @@ export function QuizGroupEngine({
   const boundedQuestionIndex =
     attemptQuestions.length > 0 ? Math.min(currentQuestionIndex, attemptQuestions.length - 1) : 0;
   const currentQuestionItem = attemptQuestions[boundedQuestionIndex] || null;
-  const progressPercent =
-    attemptQuestions.length > 0 ? Math.round((answeredCount / attemptQuestions.length) * 100) : 0;
   const canGoPrevious = boundedQuestionIndex > 0;
   const canGoNext = boundedQuestionIndex < attemptQuestions.length - 1;
 
+  const metaItems = [
+    `${quizGroup.sections.length} ${quizGroup.sections.length === 1 ? "section" : "sections"}`,
+    typeof quizGroup.pass_mark_percentage === "number" && `${quizGroup.pass_mark_percentage}% to pass`,
+    quizGroup.time_limit_seconds ? `${formatSeconds(quizGroup.time_limit_seconds)} time limit` : null,
+    attemptLabel,
+    deadline && formatDue(deadline),
+  ];
+
   return (
-    <div className="mx-auto max-w-[860px] space-y-4">
+    <div className="space-y-5">
       {isFinalAssessment && (
-        <section className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-amber-900/40 dark:bg-amber-950/20">
-          <ShieldAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
-          <div>
-            <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-              {isLastSection ? "Final exam for this course" : "Final assessment for this module"}
-            </h2>
-            <p className="mt-1 text-sm font-medium leading-6 text-amber-800 dark:text-amber-300">
-              {isLastSection
-                ? "You must pass this to complete the course. Running out of attempts without passing resets the entire course."
-                : "You must pass this to unlock the next module. Running out of attempts without passing resets this module."}{" "}
-              {attemptLabel}.
-            </p>
-          </div>
-        </section>
+        <FinalAssessmentNotice isLastSection={isLastSection}>
+          {isLastSection
+            ? "Pass this to complete the course. Running out of attempts without passing resets the whole course."
+            : "Pass this to unlock the next module. Running out of attempts without passing resets this module."}{" "}
+          {attemptLabel}.
+        </FinalAssessmentNotice>
       )}
 
       {isReset && result && (
-        <section className="rounded-2xl border border-red-200 bg-red-50 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-red-900/40 dark:bg-red-950/20">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-red-600 text-white">
-                <AlertTriangle className="h-5 w-5" />
-              </span>
-              <div>
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
-                  {result.course_reset ? "Course reset" : "Module reset"}
-                </h2>
-                <p className="mt-1 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
-                  {result.message ||
-                    (result.course_reset
-                      ? "You're out of retries. The entire course has been reset."
-                      : "You're out of retries. This module has been reset.")}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => router.push(resetHref)}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
-            >
-              {result.course_reset ? "Restart course" : "Restart module"}
+        <Notice
+          tone="red"
+          role="alert"
+          icon={<AlertTriangle className="h-4 w-4" />}
+          title={result.course_reset ? "Course Reset" : "Module Reset"}
+          action={
+            <button type="button" onClick={() => router.push(resetHref)} className="lms-btn lms-btn--sm">
+              {result.course_reset ? "Restart Course" : "Restart Module"}
             </button>
-          </div>
-        </section>
+          }
+        >
+          {result.message ||
+            (result.course_reset
+              ? "You're out of attempts, so the whole course has been reset."
+              : "You're out of attempts, so this module has been reset.")}
+        </Notice>
       )}
 
       {result && !isReset && !attempt && (
-        <section
-          role="status"
-          aria-live="polite"
-          className={`rounded-2xl border p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] sm:p-5 ${
-            result.result_visible && result.passed
-              ? "border-[#2D6A4F]/25 bg-[#f0fbf5] dark:border-white/10 dark:bg-[#222524]"
-              : result.result_visible && result.passed === false
-                ? "border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20"
-                : "border-blue-200 bg-blue-50 dark:border-blue-900/40 dark:bg-blue-950/20"
-          }`}
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <span
-                className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
-                  result.result_visible && result.passed
-                    ? "bg-[#2D6A4F] text-white dark:bg-[#52b788] dark:text-[#06130d]"
-                    : result.result_visible && result.passed === false
-                      ? "bg-red-600 text-white"
-                      : "bg-blue-600 text-white"
-                }`}
-              >
-                {result.result_visible && result.passed === false ? (
-                  <XCircle className="h-5 w-5" />
-                ) : (
-                  <CheckCircle className="h-5 w-5" />
-                )}
-              </span>
-              <div>
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
-                  {result.result_visible
-                    ? result.passed
-                      ? "Quiz group passed"
-                      : "Try again"
-                    : "Quiz group submitted"}
-                </h2>
-                <p className="mt-1 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
-                  {result.result_visible && typeof result.score === "number" ? (
-                    <>
-                      Score: <span className="font-semibold text-slate-950 dark:text-white">{result.score}%</span>
-                    </>
-                  ) : (
-                    "Your submission was recorded. Results are not available for this quiz group."
-                  )}
-                </p>
-                {result.auto_submitted && (
-                  <p className="mt-1 text-xs font-bold text-amber-700 dark:text-amber-300">
-                    Time&apos;s up - this attempt was submitted automatically.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {canStart && (
-              <button
-                onClick={handleStart}
-                disabled={starting}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#2D6A4F]/25 bg-white px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-[#252827] dark:text-[#b7e4c7] dark:hover:bg-white/[0.06] sm:w-auto"
-              >
-                {starting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
-                {result.passed ? "Retake" : "Try Again"}
-              </button>
+        <div className="space-y-3">
+          <Notice
+            tone={result.result_visible ? (result.passed ? "green" : "red") : "blue"}
+            role="status"
+            icon={
+              result.result_visible && result.passed === false ? (
+                <XCircle className="h-4 w-4" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )
+            }
+            title={result.result_visible ? (result.passed ? "You Passed" : "Not Quite") : "Quiz Submitted"}
+            action={
+              canStart ? (
+                <button
+                  type="button"
+                  onClick={handleStart}
+                  disabled={starting}
+                  className="lms-btn lms-btn--sm lms-btn--tinted"
+                >
+                  {starting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                  {result.passed ? "Retake" : "Try Again"}
+                </button>
+              ) : undefined
+            }
+          >
+            {result.result_visible && typeof result.score === "number" ? (
+              <>
+                You scored <strong className="font-semibold text-ink">{result.score}%</strong>
+                {typeof quizGroup.pass_mark_percentage === "number"
+                  ? ` · pass mark ${quizGroup.pass_mark_percentage}%`
+                  : ""}
+                .
+              </>
+            ) : (
+              "Your answers were recorded. Results aren't shown for this quiz."
             )}
-          </div>
+            {result.auto_submitted && (
+              <span className="mt-1 block font-medium text-[#b26a00] dark:text-[#f0b54a]">
+                Time ran out, so this attempt was submitted for you.
+              </span>
+            )}
+          </Notice>
 
           {result.result_visible && result.sections && result.sections.length > 0 && (
-            <div className="mt-4 grid gap-2 border-t border-black/5 pt-4 dark:border-white/10">
-              {result.sections.map((sec) => (
-                <div
-                  key={sec.section_id}
-                  className="flex items-center justify-between rounded-xl bg-white/60 px-3 py-2 text-sm font-bold text-slate-700 dark:bg-white/5 dark:text-slate-200"
-                >
-                  <span>{sec.title}</span>
-                  <span>
-                    {sec.earned_points}/{sec.total_questions} ({Math.round(sec.score_percent)}%)
-                  </span>
-                </div>
-              ))}
+            <div>
+              <h2 className="lms-group-head font-[family-name:var(--font-roboto)] tracking-normal">Sections</h2>
+              <div className="lms-group">
+                {result.sections.map((sec) => (
+                  <div key={sec.section_id} className="lms-detail">
+                    <span className="lms-detail-label min-w-0 truncate">{sec.title}</span>
+                    <span className="lms-detail-value tabular-nums">
+                      {sec.earned_points} of {sec.total_questions} · {Math.round(sec.score_percent)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-        </section>
+        </div>
       )}
 
-      {!attempt && !result && (
-        <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827]">
-          <div className="border-b border-black/[0.06] px-4 py-3 dark:border-white/10 sm:px-5">
-            <h2 className="text-base font-semibold text-slate-950 dark:text-white">Quiz Group</h2>
-            <div className="mt-2 flex flex-wrap gap-2 text-[0.68rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">
-                {quizGroup.sections.length} sections
-              </span>
-              {typeof quizGroup.pass_mark_percentage === "number" && (
-                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">
-                  {quizGroup.pass_mark_percentage}% pass mark
-                </span>
-              )}
-              {typeof estimatedMinutes === "number" && estimatedMinutes > 0 && (
-                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">
-                  {formatMinutes(estimatedMinutes)}
-                </span>
-              )}
-              {quizGroup.time_limit_seconds ? (
-                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">
-                  {formatSeconds(quizGroup.time_limit_seconds)} time limit
-                </span>
-              ) : null}
-              <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">{attemptLabel}</span>
-              {deadline && (
-                <span className="rounded-xl bg-[#fbf8f0] px-2 py-1 dark:bg-[#1f2120]">
-                  Due {deadline.toLocaleDateString()}
-                </span>
+      {!attempt && (
+        <>
+          <MetaPills items={metaItems} />
+
+          {!result && (
+            <div>
+              <h2 className="lms-group-head font-[family-name:var(--font-roboto)] tracking-normal">In This Quiz</h2>
+              <div className="lms-group">
+                {quizGroup.sections.map((sec, idx) => (
+                  <div key={sec.id} className="lms-detail">
+                    <span className="lms-sym lms-sym--sm lms-sym--indigo text-[0.8125rem] font-semibold" aria-hidden="true">
+                      {idx + 1}
+                    </span>
+                    <span className="lms-detail-label min-w-0 truncate">{sec.title}</span>
+                    <span className="lms-detail-value whitespace-nowrap">
+                      {sec.question_count ?? "?"} {sec.question_count === 1 ? "question" : "questions"}
+                    </span>
+                  </div>
+                ))}
+                <div className="lms-group-foot">
+                  <p>
+                    {canStart
+                      ? quizGroup.time_limit_seconds
+                        ? `The ${formatSeconds(quizGroup.time_limit_seconds)} timer starts when you press Start. Your answers save as you go.`
+                        : "Your answers save as you go."
+                      : deadlinePassed
+                        ? "The deadline for this quiz has passed."
+                        : "You have no attempts left for this quiz."}
+                  </p>
+                  {canStart && (
+                    <button type="button" onClick={handleStart} disabled={starting} className="lms-btn lms-btn--sm">
+                      {starting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+                      {starting ? "Starting…" : "Start Quiz"}
+                    </button>
+                  )}
+                </div>
+              </div>
+              {error && (
+                <p role="alert" aria-live="assertive" className="lms-group-note !text-[#d92d20]">
+                  {error}
+                </p>
               )}
             </div>
-          </div>
-
-          <div className="divide-y divide-[#edf5f0] dark:divide-[#343836]">
-            {quizGroup.sections.map((sec, idx) => (
-              <div key={sec.id} className="flex items-center justify-between px-4 py-3 sm:px-5">
-                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  {idx + 1}. {sec.title}
-                </span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  {sec.question_count ?? "?"} questions
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t border-black/[0.06] px-4 py-4 dark:border-white/10 sm:px-5">
-            {error && (
-              <p role="alert" aria-live="assertive" className="mb-3 text-sm font-bold text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            )}
-            {canStart ? (
-              <button
-                onClick={handleStart}
-                disabled={starting}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
-              >
-                {starting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
-                {starting ? "Starting..." : "Start"}
-              </button>
-            ) : (
-              <p className="text-sm font-bold text-slate-600 dark:text-slate-300">
-                {deadlinePassed
-                  ? "The deadline for this quiz group has passed."
-                  : "You have no attempts remaining for this quiz group."}
-              </p>
-            )}
-          </div>
-        </section>
+          )}
+        </>
       )}
 
       {attempt && (
-        <section className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:border-white/10 dark:bg-[#252827]">
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/[0.06] bg-white/95 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-[#252827]/95 sm:px-5">
-            <h2 className="text-base font-semibold text-slate-950 dark:text-white">Quiz Group</h2>
-            {remainingMs != null && (
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-sm font-semibold ${
-                  remainingMs < 60000
-                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                    : "bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]"
-                }`}
-              >
-                <Clock className="h-4 w-4" />
-                {formatCountdown(remainingMs)}
-              </span>
-            )}
-          </div>
-
+        <div className="space-y-5">
           <div role="alert" aria-live="assertive" className="sr-only">
             {timeWarning}
           </div>
 
-          {error && (
-            <p role="alert" aria-live="assertive" className="px-4 pt-3 text-sm font-bold text-red-600 dark:text-red-400 sm:px-5">
-              {error}
-            </p>
+          {remainingMs != null && (
+            <div className="sticky top-[calc(var(--pl-top,52px)+0.75rem)] z-10 flex justify-end">
+              <span
+                className={`lms-pill h-8 shadow-[0_6px_20px_-10px_rgba(0,0,0,0.35)] backdrop-blur-md ${
+                  remainingMs < 60000
+                    ? "!bg-[#e5483d] !text-white"
+                    : "!bg-[color-mix(in_srgb,var(--sw-card)_88%,transparent)] ring-1 ring-[var(--sw-line)]"
+                }`}
+                aria-label={`Time remaining ${formatCountdown(remainingMs)}`}
+              >
+                <Clock className="!h-4 !w-4" />
+                <span className="tabular-nums">{formatCountdown(remainingMs)}</span>
+              </span>
+            </div>
           )}
 
-          {attemptQuestions.length > 0 ? (
+          {error && (
+            <Notice tone="red" role="alert" icon={<AlertTriangle className="h-4 w-4" />} title="Something Went Wrong">
+              {error}
+            </Notice>
+          )}
+
+          {attemptQuestions.length > 0 && currentQuestionItem ? (
             <>
-              <div className="border-b border-black/[0.05] px-4 py-4 dark:border-white/10 sm:px-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
-                      Question {boundedQuestionIndex + 1} of {attemptQuestions.length}
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-slate-600 dark:text-slate-300">
-                      {answeredCount}/{attemptQuestions.length} answered
-                    </p>
-                  </div>
-                  <div
-                    role="progressbar"
-                    aria-valuenow={progressPercent}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-label="Quiz progress"
-                    className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#1f2120] sm:w-52"
-                  >
-                    <div
-                      className="h-full rounded-full bg-[#2D6A4F] transition-all dark:bg-[#52b788]"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                </div>
+              <QuestionProgress
+                index={boundedQuestionIndex}
+                total={attemptQuestions.length}
+                answered={answeredCount}
+                isAnswered={(idx) => (answers[attemptQuestions[idx].question.id] || []).length > 0}
+                onSelect={setCurrentQuestionIndex}
+              />
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {attemptQuestions.map(({ question }, idx) => {
-                    const isAnswered = (answers[question.id] || []).length > 0;
-                    const isCurrent = idx === boundedQuestionIndex;
-
-                    return (
-                      <button
-                        key={question.id}
-                        type="button"
-                        onClick={() => setCurrentQuestionIndex(idx)}
-                        aria-label={`Go to question ${idx + 1}${isAnswered ? ", answered" : ", unanswered"}`}
-                        className={`relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border text-sm font-semibold transition ${
-                          isAnswered
-                            ? "border-[#2D6A4F] bg-[#2D6A4F] text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 dark:border-[#52b788] dark:bg-[#52b788] dark:text-[#06130d]"
-                            : "border-slate-200 bg-slate-100 text-slate-500 hover:border-[#2D6A4F]/25 hover:bg-black/[0.04] hover:text-[#2D6A4F] dark:border-white/10 dark:bg-[#1f2120] dark:text-slate-400 dark:hover:border-[#40916c] dark:hover:bg-white/[0.06] dark:hover:text-[#b7e4c7]"
-                        } ${
-                          isCurrent
-                            ? "ring-2 ring-[#F4A261] ring-offset-2 ring-offset-white dark:ring-[#f7c88f] dark:ring-offset-[#252827]"
-                            : ""
-                        }`}
-                      >
-                        {idx + 1}
-                        {isAnswered && (
-                          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[#2D6A4F] shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] dark:bg-[#06130d] dark:text-[#52b788]">
-                            <Check className="h-3 w-3" />
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div>
+                <p className="m-0 mb-1.5 text-[0.8125rem] font-semibold text-ink-3">
+                  Section {currentQuestionItem.sectionIndex + 1} · {currentQuestionItem.sectionTitle}
+                </p>
+                <h2
+                  id={`q-${currentQuestionItem.question.id}`}
+                  className="m-0 font-[family-name:var(--font-roboto)] text-[1.1875rem] font-semibold leading-snug tracking-[-0.01em] text-ink sm:text-[1.3125rem]"
+                >
+                  {currentQuestionItem.question.text}
+                </h2>
+                <p className="mb-3 mt-1.5 text-[0.8125rem] text-ink-3">
+                  {currentQuestionItem.question.allow_multiple_answers
+                    ? "Choose all that apply."
+                    : "Choose one answer."}
+                </p>
+                <ChoiceList
+                  name={currentQuestionItem.question.id}
+                  multiple={currentQuestionItem.question.allow_multiple_answers === true}
+                  options={currentQuestionItem.question.options}
+                  selected={answers[currentQuestionItem.question.id] || []}
+                  labelledBy={`q-${currentQuestionItem.question.id}`}
+                  onToggle={(optId) =>
+                    toggleOption(
+                      currentQuestionItem.question.id,
+                      optId,
+                      currentQuestionItem.question.allow_multiple_answers === true,
+                    )
+                  }
+                />
               </div>
 
-              {currentQuestionItem && (
-                <div className="px-4 py-5 sm:px-5">
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#2D6A4F] dark:text-[#b7e4c7]">
-                    Section {currentQuestionItem.sectionIndex + 1}: {currentQuestionItem.sectionTitle}
-                  </p>
-                  <h3 className="text-base font-semibold leading-7 text-slate-900 dark:text-white">
-                    <span className="mr-2 text-[#2D6A4F] dark:text-[#b7e4c7]">
-                      {currentQuestionItem.questionIndex + 1}.
-                    </span>
-                    {currentQuestionItem.question.text}
-                  </h3>
-                  <div className="mt-4 grid gap-2">
-                    {currentQuestionItem.question.options.map((opt) => {
-                      const isSelected = (answers[currentQuestionItem.question.id] || []).includes(opt.id);
-
-                      return (
-                        <label
-                          key={opt.id}
-                          className={`grid cursor-pointer grid-cols-[18px_minmax(0,1fr)] items-start gap-3 rounded-xl border px-3 py-3 transition hover:border-[#2D6A4F]/25 hover:bg-black/[0.04] dark:hover:border-[#40916c] dark:hover:bg-white/[0.06] ${
-                            isSelected
-                              ? "border-[#2D6A4F] bg-[#e7f6ee] dark:border-[#52b788] dark:bg-[#52b788]/12"
-                              : "border-black/[0.06] bg-[#fdfbf5] dark:border-white/10 dark:bg-[#1f2120]"
-                          }`}
-                        >
-                          <input
-                            type={currentQuestionItem.question.allow_multiple_answers ? "checkbox" : "radio"}
-                            name={currentQuestionItem.question.id}
-                            checked={isSelected}
-                            onChange={() =>
-                              toggleOption(
-                                currentQuestionItem.question.id,
-                                opt.id,
-                                currentQuestionItem.question.allow_multiple_answers === true,
-                              )
-                            }
-                            className={`mt-0.5 h-4 w-4 flex-shrink-0 border-[#2D6A4F]/25 text-[#2D6A4F] focus:ring-[#2D6A4F] dark:border-white/15 dark:bg-[#252827] dark:text-[#52b788] ${currentQuestionItem.question.allow_multiple_answers ? "rounded" : ""}`}
-                          />
-                          <span className="text-sm font-medium leading-5 text-slate-700 dark:text-slate-300">
-                            {opt.text}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-2 border-t border-black/[0.05] px-4 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="flex items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={() => setCurrentQuestionIndex((idx) => Math.max(idx - 1, 0))}
                   disabled={!canGoPrevious}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-black/[0.06] bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-black/[0.04] hover:text-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#252827] dark:text-slate-200 dark:hover:bg-white/[0.06] dark:hover:text-[#b7e4c7] sm:w-auto"
+                  className="lms-btn lms-btn--sm lms-btn--quiet"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="-ml-1 h-4 w-4" />
                   Previous
                 </button>
                 <button
                   type="button"
                   onClick={() => setCurrentQuestionIndex((idx) => Math.min(idx + 1, attemptQuestions.length - 1))}
                   disabled={!canGoNext}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#2D6A4F]/25 bg-[#fbf8f0] px-4 text-sm font-semibold text-[#2D6A4F] transition hover:bg-[#e7f6ee] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#1f2120] dark:text-[#b7e4c7] dark:hover:bg-white/[0.06] sm:w-auto"
+                  className="lms-btn lms-btn--sm lms-btn--tinted"
                 >
                   Next
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="-mr-1 h-4 w-4" />
                 </button>
               </div>
             </>
           ) : (
-            <div className="px-4 py-5 text-sm font-bold text-slate-600 dark:text-slate-300 sm:px-5">
-              No questions are available for this quiz group yet.
+            <div className="lms-group p-6 text-center text-[0.9375rem] text-ink-2">
+              There are no questions in this quiz yet.
             </div>
           )}
 
-          <div className="border-t border-black/[0.06] px-4 py-4 dark:border-white/10 sm:px-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                Your progress is saved automatically. Unanswered questions will be scored as 0.
-              </p>
-              <button
-                onClick={() => setConfirmOpen(true)}
-                disabled={submitting}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-14px_rgba(0,0,0,0.12)] shadow-[#2D6A4F]/20 transition hover:bg-[#1B4332] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#52b788] dark:text-[#06130d] dark:hover:bg-[#74c69d] sm:w-auto"
-              >
-                {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                {submitting ? "Submitting..." : "Submit"}
-              </button>
-              <ConfirmSubmitDialog
-                // The timer can still expire while this is open; the auto-submit then takes over.
-                open={confirmOpen && !!attempt}
-                onOpenChange={setConfirmOpen}
-                busy={submitting}
-                title="Submit this quiz?"
-                onConfirm={() => {
-                  setConfirmOpen(false);
-                  void handleSubmit(false);
-                }}
-              >
+          <div className="lms-group">
+            <div className="lms-group-foot !shadow-none">
+              <p>
                 {unansweredCount > 0
-                  ? `You have ${unansweredCount} unanswered question${
-                      unansweredCount === 1 ? "" : "s"
-                    }. They will be scored as 0.`
-                  : "All questions have an answer. You won't be able to change them after submitting."}
-              </ConfirmSubmitDialog>
+                  ? `${unansweredCount} unanswered. Your answers save as you go; unanswered questions score 0.`
+                  : "Every question has an answer. Your answers save as you go."}
+              </p>
+              <button type="button" onClick={() => setConfirmOpen(true)} disabled={submitting} className="lms-btn lms-btn--sm">
+                {submitting ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {submitting ? "Submitting…" : "Submit Quiz"}
+              </button>
             </div>
+            <ConfirmSubmitDialog
+              // The timer can still expire while this is open; the auto-submit then takes over.
+              open={confirmOpen && !!attempt}
+              onOpenChange={setConfirmOpen}
+              busy={submitting}
+              title="Submit this quiz?"
+              onConfirm={() => {
+                setConfirmOpen(false);
+                void handleSubmit(false);
+              }}
+            >
+              {unansweredCount > 0
+                ? `You have ${unansweredCount} unanswered question${
+                    unansweredCount === 1 ? "" : "s"
+                  }. They will be scored as 0.`
+                : "All questions have an answer. You won't be able to change them after submitting."}
+            </ConfirmSubmitDialog>
           </div>
-        </section>
+        </div>
       )}
     </div>
   );
@@ -737,16 +618,8 @@ function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
-function formatMinutes(minutes: number) {
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  const remainder = minutes % 60;
-  return remainder > 0 ? `${hours}h ${remainder}m` : `${hours}h`;
-}
-
 function formatSeconds(seconds: number) {
-  const minutes = Math.round(seconds / 60);
-  return formatMinutes(minutes);
+  return formatMinutes(Math.round(seconds / 60));
 }
 
 function formatCountdown(ms: number) {
