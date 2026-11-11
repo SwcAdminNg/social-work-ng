@@ -1,15 +1,20 @@
 import Link from "next/link";
-import Form from "next/form";
 import { fetchApi } from "@/lib/fetchApi";
 import {
-  CalendarDays,
+  type LiveSession,
+  LiveNowCard,
+  SessionRow,
+  TZ,
+  dayHeading,
+  groupByDay,
+  relative,
+  sessionState,
+} from "./LiveSessionParts";
+import {
+  BookOpen,
   ChevronLeft,
   ChevronRight,
-  Clock3,
-  Radio,
-  Search,
-  UserRound,
-  Video,
+  X,
 } from "lucide-react";
 
 export const metadata = {
@@ -20,24 +25,6 @@ type SearchParams = {
   [key: string]: string | string[] | undefined;
 };
 
-type LiveSession = {
-  item_id: string;
-  title: string;
-  course_id: string;
-  course_title?: string | null;
-  course_slug?: string | null;
-  section_id?: string | null;
-  section_title?: string | null;
-  scheduled_start_at?: string | null;
-  scheduled_end_at?: string | null;
-  duration_minutes?: number | null;
-  guest_name?: string | null;
-  guest_title?: string | null;
-  status?: string | null;
-  can_join?: boolean | null;
-  is_completed?: boolean | null;
-  recording_status?: string | null;
-};
 
 type Meta = {
   page?: number;
@@ -69,38 +56,7 @@ function todayIso() {
   return new Date().toISOString();
 }
 
-function formatDateTime(value?: string | null) {
-  if (!value) return "Schedule pending";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Schedule pending";
 
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function formatTimeRange(start?: string | null, end?: string | null) {
-  if (!start || !end) return formatDateTime(start);
-
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-    return formatDateTime(start);
-  }
-
-  const sameDay = startDate.toDateString() === endDate.toDateString();
-  const startLabel = formatDateTime(start);
-  const endLabel = new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(endDate);
-
-  return sameDay ? `${startLabel} - ${endLabel}` : `${startLabel} - ${formatDateTime(end)}`;
-}
 
 function buildApiQuery({
   view,
@@ -118,7 +74,7 @@ function buildApiQuery({
   const now = todayIso();
 
   if (view === "upcoming") {
-    params.set("start_date", now);
+    params.set("start_date", new Date(Date.now() - 3 * 60 * 60_000).toISOString());
   } else if (view === "past") {
     params.set("end_date", now);
   }
@@ -239,10 +195,6 @@ async function getLiveSessions({
   }
 }
 
-function sessionHref(session: LiveSession) {
-  return `/courses/${session.course_slug || session.course_id}/live-session/${session.item_id}`;
-}
-
 export default async function LiveSessionsPage({
   searchParams,
 }: {
@@ -257,244 +209,159 @@ export default async function LiveSessionsPage({
   const totalPages = Math.max(1, meta.total_pages || (meta.has_next ? page + 1 : page));
   const hasNext = Boolean(meta.has_next ?? page < totalPages);
   const hasPrevious = Boolean(meta.has_previous ?? page > 1);
+  // eslint-disable-next-line react-hooks/purity -- a server render reads the clock once
+  const now = Date.now();
+
+  const live = items.filter((session) => session.can_join);
+  // Upcoming fetches from a little before now so a class already in progress is included; anything finished stays in Past.
+  const listed =
+    view === "upcoming"
+      ? items.filter((session) => !session.can_join && !["ended", "recording"].includes(sessionState(session, now)))
+      : items;
+  const groups = groupByDay(listed);
+  const courseTitle = courseId ? items.find((session) => session.course_id === courseId)?.course_title : undefined;
+  const nextUp = items.find((session) => sessionState(session, now) === "soon" || sessionState(session, now) === "upcoming");
+
+  const summary =
+    view === "upcoming"
+      ? live.length > 0
+        ? `${live.length} session${live.length === 1 ? " is" : "s are"} live now`
+        : nextUp?.scheduled_start_at
+          ? `Next: ${nextUp.title}, ${relative(new Date(nextUp.scheduled_start_at), now).toLowerCase()}`
+          : "Classes from your courses, joined from here. Times are in West Africa Time."
+      : view === "past"
+        ? "Sessions that have already taken place, with recordings where available."
+        : "Every live session from your courses. Times are in West Africa Time.";
 
   return (
-    <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 pb-12">
-      <section className="rounded-xl border border-[#dbeee4] bg-white p-5 shadow-sm dark:border-[#363a38] dark:bg-[#252827] sm:p-6">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#e7f6ee] px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-              <Radio className="h-3.5 w-3.5" />
-              Live learning
-            </div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-              Live sessions
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
-              Browse scheduled classes, join active sessions, and review past
-              live learning events from your enrolled courses.
-            </p>
-          </div>
+    <div className="mx-auto flex w-full max-w-[1040px] flex-col pb-12">
+      <header className="lms-rise pt-1">
+        <h1 className="sw-display m-0 text-[clamp(1.9rem,4vw,2.75rem)] leading-[1.02] text-ink">Live Sessions</h1>
+        <p className="m-0 mt-2 max-w-2xl text-[0.98rem] text-ink-2">{summary}</p>
+      </header>
 
-          <div className="grid grid-cols-3 gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-[#1e2120]">
-            <ViewTab href={buildPageUrl({ view: "upcoming", courseId })} active={view === "upcoming"}>
-              Upcoming
-            </ViewTab>
-            <ViewTab href={buildPageUrl({ view: "past", courseId })} active={view === "past"}>
-              Past
-            </ViewTab>
-            <ViewTab href={buildPageUrl({ view: "all", courseId })} active={view === "all"}>
-              All
-            </ViewTab>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-xl border border-[#e3dfd0] bg-white p-4 shadow-sm dark:border-[#363a38] dark:bg-[#252827]">
-        <Form
-          action="/dashboard/live-sessions"
-          className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center"
-        >
-          <input type="hidden" name="view" value={view} />
-          <label className="relative block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              name="course_id"
-              defaultValue={courseId}
-              placeholder="Filter by course ID"
-              className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#2D6A4F] focus:ring-4 focus:ring-[#2D6A4F]/10 dark:border-slate-800 dark:bg-[#1e2120] dark:text-slate-100 dark:focus:border-[#52b788]"
-            />
-          </label>
-          <button
-            type="submit"
-            className="h-11 rounded-lg bg-[#2D6A4F] px-4 text-sm font-extrabold text-white transition hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d]"
-          >
-            Apply
-          </button>
-          {courseId && (
-            <Link
-              href={buildPageUrl({ view })}
-              className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 px-4 text-sm font-extrabold text-slate-600 no-underline transition hover:border-[#2D6A4F]/40 hover:text-[#2D6A4F] dark:border-slate-800 dark:text-slate-300 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
-            >
-              Clear
-            </Link>
-          )}
-        </Form>
-      </section>
-
-      {error ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm font-semibold text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
-          {error}
-        </div>
-      ) : items.length === 0 ? (
-        <section className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-[#252827] sm:p-14">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-            <CalendarDays className="h-7 w-7" />
-          </div>
-          <p className="text-lg font-extrabold text-slate-800 dark:text-white">
-            No live sessions found.
-          </p>
-          <p className="mx-auto mt-2 max-w-md text-sm font-medium text-slate-500 dark:text-slate-400">
-            {view === "upcoming"
-              ? "Upcoming sessions from your enrolled courses will appear here as soon as they are scheduled."
-              : "Try another view or remove the course filter."}
-          </p>
-        </section>
-      ) : (
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {items.map((session) => (
-            <LiveSessionCard key={session.item_id} session={session} />
+      {/* Happening now: one large card per live session, after the Live banner in the TV app */}
+      {view !== "past" && live.length > 0 && (
+        <section aria-label="Live now" className="mt-6 grid gap-4">
+          {live.map((session) => (
+            <LiveNowCard key={session.item_id} session={session} />
           ))}
         </section>
       )}
 
-      {(hasPrevious || hasNext) && (
-        <nav className="flex items-center justify-center gap-2 pt-2" aria-label="Live session pages">
-          <PageLink
-            href={buildPageUrl({ view, page: page - 1, courseId })}
-            disabled={!hasPrevious}
-            label="Previous page"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Previous</span>
-          </PageLink>
+      <div className="lms-course-bar sticky top-[var(--lms-top)] z-20 -mx-3 mt-5 px-3 py-3 sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
+        <div className="mx-auto flex max-w-[1040px] flex-wrap items-center justify-between gap-2.5">
+          <div role="group" aria-label="Show" className="lms-segmented">
+            {(
+              [
+                ["upcoming", "Upcoming"],
+                ["past", "Past"],
+                ["all", "All"],
+              ] as const
+            ).map(([key, label]) => (
+              <Link
+                key={key}
+                href={buildPageUrl({ view: key, courseId })}
+                aria-current={view === key ? "true" : undefined}
+                className="lms-segment !px-4 no-underline"
+                scroll={false}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+          {courseId && (
+            <span className="lms-filter-token">
+              <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="max-w-[14rem] truncate">{courseTitle ?? "One course"}</span>
+              <Link href={buildPageUrl({ view })} aria-label="Show sessions from every course" className="lms-filter-token-x" scroll={false}>
+                <X className="h-3 w-3" strokeWidth={2.6} />
+              </Link>
+            </span>
+          )}
+        </div>
+      </div>
 
-          <span className="inline-flex h-10 items-center rounded-md bg-slate-50 px-4 text-sm font-extrabold text-slate-600 dark:bg-[#1e2120] dark:text-slate-300">
-            Page {page}
-            {totalPages > 1 ? ` of ${totalPages}` : ""}
+      {error ? (
+        <p role="alert" className="m-0 mt-3 rounded-[18px] bg-clay-wash px-5 py-3.5 text-sm font-medium text-ink shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--sw-clay)_35%,transparent)]">
+          {error}
+        </p>
+      ) : listed.length === 0 && live.length === 0 ? (
+        <div className="lms-milk mt-3 flex flex-col items-center px-6 py-14 text-center sm:py-20">
+          <span className="lms-cal-icon" aria-hidden="true">
+            <span className="lms-cal-icon-month">{new Intl.DateTimeFormat("en-GB", { timeZone: TZ, month: "short" }).format(new Date(now))}</span>
+            <span className="lms-cal-icon-day">{new Intl.DateTimeFormat("en-GB", { timeZone: TZ, day: "numeric" }).format(new Date(now))}</span>
           </span>
+          <h2 className="m-0 mt-5 text-[1.2rem] font-bold tracking-[-0.02em] text-ink">
+            {view === "upcoming" ? "Nothing scheduled" : view === "past" ? "No past sessions" : "No live sessions yet"}
+          </h2>
+          <p className="m-0 mt-2 max-w-md text-[0.95rem] leading-relaxed text-ink-2">
+            {view === "upcoming"
+              ? "When a course you’re enrolled in schedules a live class, it appears here with a Join button when it starts."
+              : courseId
+                ? "This course has no sessions in this view. Try another view or show every course."
+                : "Sessions you could have attended appear here once they have taken place."}
+          </p>
+          {view === "upcoming" && (
+            <Link href={buildPageUrl({ view: "past", courseId })} className="lms-btn lms-btn--quiet mt-6" scroll={false}>
+              See past sessions
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="mt-2 flex flex-col gap-6">
+          {groups.map((group) => {
+            const heading = dayHeading(group.date, now);
+            return (
+              <section key={group.key} aria-label={heading.title}>
+                <h2 className="m-0 mb-2 flex items-baseline gap-2 px-1">
+                  <span className={`text-[1.15rem] font-bold tracking-[-0.02em] ${heading.title === "Today" ? "text-[#ff3b30] dark:text-[#ff453a]" : "text-ink"}`}>
+                    {heading.title}
+                  </span>
+                  {heading.detail && <span className="text-[0.85rem] font-medium text-ink-3">{heading.detail}</span>}
+                </h2>
+                <ul className="lms-group m-0 list-none p-0">
+                  {group.items.map((session) => (
+                    <li key={session.item_id}>
+                      <SessionRow session={session} now={now} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
+      )}
 
-          <PageLink
-            href={buildPageUrl({ view, page: page + 1, courseId })}
-            disabled={!hasNext}
-            label="Next page"
-          >
-            <span className="hidden sm:inline">Next</span>
-            <ChevronRight className="h-4 w-4" />
-          </PageLink>
-        </nav>
+      {(hasPrevious || hasNext) && (
+        <div className="mt-8 flex justify-center sm:justify-end">
+          <nav className="lms-pager" aria-label="Live session pages">
+            {hasPrevious ? (
+              <Link href={buildPageUrl({ view, page: page - 1, courseId })} aria-label="Previous page" className="lms-page no-underline">
+                <ChevronLeft className="h-4 w-4" />
+              </Link>
+            ) : (
+              <span aria-hidden="true" className="lms-page opacity-35">
+                <ChevronLeft className="h-4 w-4" />
+              </span>
+            )}
+            <span className="lms-page" aria-current="page">
+              {page}
+            </span>
+            {totalPages > 1 && <span className="px-1 text-sm text-ink-3">of {totalPages}</span>}
+            {hasNext ? (
+              <Link href={buildPageUrl({ view, page: page + 1, courseId })} aria-label="Next page" className="lms-page no-underline">
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            ) : (
+              <span aria-hidden="true" className="lms-page opacity-35">
+                <ChevronRight className="h-4 w-4" />
+              </span>
+            )}
+          </nav>
+        </div>
       )}
     </div>
   );
 }
 
-function ViewTab({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`inline-flex h-9 items-center justify-center rounded-md px-3 text-xs font-extrabold no-underline transition ${
-        active
-          ? "bg-white text-[#2D6A4F] shadow-sm dark:bg-[#252827] dark:text-[#74c69d]"
-          : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-      }`}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function LiveSessionCard({ session }: { session: LiveSession }) {
-  const canJoin = Boolean(session.can_join);
-  const guest = [session.guest_name, session.guest_title].filter(Boolean).join(", ");
-
-  return (
-    <article className="flex min-h-72 flex-col justify-between rounded-xl border border-[#e3dfd0] bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-md dark:border-[#363a38] dark:bg-[#252827]">
-      <div>
-        <div className="flex items-start justify-between gap-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#e7f6ee] text-[#2D6A4F] dark:bg-[#52b788]/15 dark:text-[#b7e4c7]">
-            <Video className="h-5 w-5" />
-          </span>
-          <span
-            className={`rounded-lg px-2.5 py-1 text-[11px] font-extrabold ${
-              canJoin
-                ? "bg-[#2D6A4F] text-white dark:bg-[#74c69d] dark:text-slate-950"
-                : session.is_completed
-                  ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                  : "bg-blue-50 text-blue-700 dark:bg-blue-400/15 dark:text-blue-200"
-            }`}
-          >
-            {canJoin ? "Join now" : session.is_completed ? "Completed" : session.status || "Scheduled"}
-          </span>
-        </div>
-
-        <h2 className="mt-4 line-clamp-2 text-base font-extrabold leading-6 text-slate-950 dark:text-white">
-          {session.title}
-        </h2>
-        <p className="mt-2 line-clamp-2 text-sm font-semibold leading-5 text-slate-600 dark:text-slate-300">
-          {session.course_title || "Course session"}
-        </p>
-
-        <div className="mt-4 space-y-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-          <p className="flex items-start gap-2">
-            <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#2D6A4F] dark:text-[#74c69d]" />
-            <span>{formatTimeRange(session.scheduled_start_at, session.scheduled_end_at)}</span>
-          </p>
-          {session.duration_minutes ? (
-            <p className="flex items-center gap-2">
-              <Clock3 className="h-4 w-4 shrink-0 text-[#2D6A4F] dark:text-[#74c69d]" />
-              <span>{session.duration_minutes} minutes</span>
-            </p>
-          ) : null}
-          {guest ? (
-            <p className="flex items-center gap-2">
-              <UserRound className="h-4 w-4 shrink-0 text-[#2D6A4F] dark:text-[#74c69d]" />
-              <span className="truncate">{guest}</span>
-            </p>
-          ) : null}
-        </div>
-      </div>
-
-      <Link
-        href={sessionHref(session)}
-        className={`mt-5 inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-extrabold no-underline transition ${
-          canJoin
-            ? "bg-[#2D6A4F] text-white hover:bg-[#1B4332] dark:bg-[#52b788] dark:text-[#06130d]"
-            : "border border-slate-200 text-slate-700 hover:border-[#2D6A4F]/40 hover:text-[#2D6A4F] dark:border-slate-800 dark:text-slate-300 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
-        }`}
-      >
-        {canJoin ? "Join session" : "View details"}
-      </Link>
-    </article>
-  );
-}
-
-function PageLink({
-  href,
-  disabled,
-  label,
-  children,
-}: {
-  href: string;
-  disabled: boolean;
-  label: string;
-  children: React.ReactNode;
-}) {
-  if (disabled) {
-    return (
-      <span
-        aria-disabled="true"
-        className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-extrabold text-slate-300 dark:border-slate-800 dark:bg-[#252827] dark:text-slate-700"
-      >
-        {children}
-      </span>
-    );
-  }
-
-  return (
-    <Link
-      href={href}
-      aria-label={label}
-      className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-extrabold text-slate-700 no-underline transition hover:border-[#2D6A4F]/40 hover:text-[#2D6A4F] dark:border-slate-800 dark:bg-[#252827] dark:text-slate-300 dark:hover:border-[#74c69d] dark:hover:text-[#74c69d]"
-    >
-      {children}
-    </Link>
-  );
-}
