@@ -2,15 +2,15 @@
 
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { LockKeyhole } from "lucide-react";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { PasswordChecklist, PASSWORD_MIN } from "./shared/PasswordChecklist";
 import { FloatingInput } from "./shared/FloatingInput";
 import { PasswordToggle } from "./shared/PasswordToggle";
-import { IconArrowRight, IconLock, IconSpinner } from "./shared/icons";
-import { errorMessage, type HomeStats } from "./shared/types";
+import { AuthAlert, AuthButton, AuthHeader, AuthLinkButton, ChevronLink, Spinner } from "./shared/ui";
+import { errorMessage } from "./shared/types";
 
-function ResetPasswordForm({ statsData }: { statsData?: HomeStats }) {
+function ResetPasswordForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -50,16 +50,12 @@ function ResetPasswordForm({ statsData }: { statsData?: HomeStats }) {
       setConfirmPasswordError("Please confirm your new password.");
       return confirmPasswordRef.current?.focus();
     }
-
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
       setConfirmPasswordError("Passwords do not match.");
-      confirmPasswordRef.current?.focus();
-      return;
+      return confirmPasswordRef.current?.focus();
     }
-
     if (!token) {
-      setError("Reset token is missing from the URL.");
+      setError("This reset link is incomplete. Open the link from your email again, or request a new one.");
       return;
     }
 
@@ -71,7 +67,7 @@ function ResetPasswordForm({ statsData }: { statsData?: HomeStats }) {
         body: JSON.stringify({
           token,
           new_password: password,
-          confirm_password: confirmPassword
+          confirm_password: confirmPassword,
         }),
       });
 
@@ -90,64 +86,29 @@ function ResetPasswordForm({ statsData }: { statsData?: HomeStats }) {
 
   if (done) {
     return (
-      <AuthPageShell variant="reset-password" statsData={statsData}>
-        <div className="mb-8">
-          <p className="sw-eyebrow text-accent mb-4">
-            All set
-          </p>
-          <h1
-            ref={doneHeadingRef}
-            tabIndex={-1}
-            className="sw-display text-[2.1rem] sm:text-[2.6rem] text-ink mb-3 outline-none"
-          >
-            Password reset
-          </h1>
-          <p className="text-[0.98rem] text-ink-2">
-            Your password has been changed successfully. You can now sign in
-            with your new password.
-          </p>
-        </div>
-
-        <Link
-          href="/login"
-          className={`
-            flex items-center justify-center gap-2 mt-2 w-full h-[56px] rounded-full font-semibold text-[0.98rem] text-white no-underline
-            bg-[#14402F] hover:bg-[#0c2a1e] dark:bg-[#2D6A4F] dark:hover:bg-[#3d8c68]
-            shadow-lg shadow-green-900/20 hover:shadow-green-900/30
-            transition-all duration-200 hover:-translate-y-0.5
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2
-          `}
-        >
-          Continue to sign in
-          <IconArrowRight />
-        </Link>
+      <AuthPageShell variant="reset-password" stage="done">
+        <AuthHeader
+          icon="success"
+          headingRef={doneHeadingRef}
+          title="Password changed"
+          subtitle="Your password has been reset. Use your new password the next time you sign in."
+        />
+        <AuthLinkButton href="/login">Continue to sign in</AuthLinkButton>
       </AuthPageShell>
     );
   }
 
   return (
-    <AuthPageShell variant="reset-password" statsData={statsData}>
-      {/* Heading */}
-      <div className="mb-8">
-        <p className="sw-eyebrow text-accent mb-4">
-          Set new password
-        </p>
-        <h1 className="sw-display text-[2.1rem] sm:text-[2.6rem] text-ink mb-3">
-          Reset your password
-        </h1>
-        <p className="text-[0.98rem] text-ink-2">
-          Your new password must be different from previously used passwords.
-        </p>
-      </div>
+    <AuthPageShell variant="reset-password" stage="form">
+      <AuthHeader
+        icon={<LockKeyhole size={28} strokeWidth={1.8} />}
+        title="Choose a new password"
+        subtitle="Use at least 8 characters. A longer passphrase is easier to remember and harder to guess."
+      />
 
-      {error && (
-        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
-          {error}
-        </div>
-      )}
+      {error && <AuthAlert>{error}</AuthAlert>}
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} noValidate className="au-form">
         <FloatingInput
           ref={passwordRef}
           id="password"
@@ -158,20 +119,14 @@ function ResetPasswordForm({ statsData }: { statsData?: HomeStats }) {
             setPassword(v);
             if (passwordError) setPasswordError("");
           }}
-          icon={<IconLock />}
           autoComplete="new-password"
           required
+          autoFocus
           capsLockWarning
           describedById={password ? "reset-password-rules" : undefined}
           error={passwordError}
-          suffix={
-            <PasswordToggle
-              visible={showPassword}
-              onToggle={() => setShowPassword((v) => !v)}
-            />
-          }
+          suffix={<PasswordToggle visible={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
         />
-
         <FloatingInput
           ref={confirmPasswordRef}
           id="confirmPassword"
@@ -182,71 +137,38 @@ function ResetPasswordForm({ statsData }: { statsData?: HomeStats }) {
             setConfirmPassword(v);
             if (confirmPasswordError) setConfirmPasswordError("");
           }}
-          icon={<IconLock />}
           autoComplete="new-password"
           required
           capsLockWarning
           error={confirmPasswordError}
-          suffix={
-            <PasswordToggle
-              visible={showConfirmPassword}
-              onToggle={() => setShowConfirmPassword((v) => !v)}
-            />
-          }
+          suffix={<PasswordToggle visible={showConfirmPassword} onToggle={() => setShowConfirmPassword((v) => !v)} />}
         />
         {password && <PasswordChecklist id="reset-password-rules" password={password} confirm={confirmPassword} />}
 
-        {/* Submit button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className={`
-            relative mt-2 w-full h-[56px] rounded-full font-semibold text-[0.98rem] text-white
-            bg-[#14402F] hover:bg-[#0c2a1e] dark:bg-[#2D6A4F] dark:hover:bg-[#3d8c68]
-            shadow-lg shadow-green-900/20 hover:shadow-green-900/30
-            transition-all duration-200 hover:-translate-y-0.5
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2
-            disabled:opacity-70 disabled:cursor-not-allowed disabled:translate-y-0
-            overflow-hidden
-          `}
-        >
-          {loading ? (
-            <span className="flex items-center justify-center gap-2.5">
-              <IconSpinner className="w-4 h-4 text-white/80" />
-              Resetting…
-            </span>
-          ) : (
-            <span className="flex items-center justify-center gap-2">
-              Reset password
-              <IconArrowRight />
-            </span>
-          )}
-        </button>
+        <AuthButton type="submit" busy={loading} busyLabel="Saving…" className="mt-2">
+          Change password
+        </AuthButton>
       </form>
 
-      {/* Login link */}
-      <p className="mt-6 text-center text-[0.85rem] text-gray-500 dark:text-gray-400">
-        <Link
-          href="/login"
-          className="font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"
-        >
-          Back to sign in
-        </Link>
-      </p>
+      <div className="au-links">
+        <ChevronLink href="/login">Back to sign in</ChevronLink>
+      </div>
     </AuthPageShell>
   );
 }
 
-export default function ResetPassword({ statsData }: { statsData?: HomeStats }) {
+export default function ResetPassword() {
   return (
-    <Suspense fallback={
-      <AuthPageShell variant="reset-password" statsData={statsData}>
-        <div className="flex items-center justify-center p-10">
-          <IconSpinner className="w-6 h-6 text-[#2D6A4F] dark:text-[#52b788] animate-spin" />
-        </div>
-      </AuthPageShell>
-    }>
-      <ResetPasswordForm statsData={statsData} />
+    <Suspense
+      fallback={
+        <AuthPageShell variant="reset-password">
+          <div className="flex justify-center p-10 text-ink-3">
+            <Spinner size={26} />
+          </div>
+        </AuthPageShell>
+      }
+    >
+      <ResetPasswordForm />
     </Suspense>
   );
 }

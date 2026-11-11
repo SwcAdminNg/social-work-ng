@@ -1,7 +1,6 @@
 import { pageMetadata } from "@/lib/site";
 import ResetPassword from "@/components/auth/ResetPassword";
 import { Suspense } from "react";
-import { fetchApi } from "@/lib/fetchApi";
 
 export const metadata = pageMetadata({
   title: "Reset password | Social Work Consultancy Ltd",
@@ -10,17 +9,10 @@ export const metadata = pageMetadata({
   index: false,
 });
 
-export default async function ResetPasswordPage() {
-  const res = await fetchApi("/home/stats", { next: { revalidate: 3600 } });
-  let stats = null;
-  if (res.ok) {
-    const data = await res.json().catch(() => ({}));
-    stats = data?.data || null;
-  }
-
+export default function ResetPasswordPage() {
   return (
     <Suspense fallback={null}>
-      <ResetPassword statsData={stats} />
+      <ResetPassword />
     </Suspense>
   );
 }

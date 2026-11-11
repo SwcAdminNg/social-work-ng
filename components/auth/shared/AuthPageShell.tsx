@@ -1,41 +1,66 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import HydrationGate from "@/components/site/HydrationGate";
-import { BrandPanel, MobileBrandLogo } from "./BrandPanel";
+import type { HomeStats } from "./types";
+import "./auth.css";
 
 type AuthVariant = "login" | "register" | "forgot-password" | "reset-password";
-type HomeStats = { total_number_of_students?: number; number_of_published_courses?: number } | null;
 
+/**
+ * The frame of every sign-in screen, after Apple's account sign-in: the
+ * wordmark and a way back at the top, one glass sheet in the middle over a
+ * slowly drifting brand glow, and the legal line at the foot.
+ *
+ * `stage` names the current step; changing it replays the entry motion, so
+ * moving from password to code feels like a new sheet sliding in.
+ */
 export function AuthPageShell({
   children,
-  variant = "login",
-  statsData,
+  stage,
+  wide,
 }: {
   children: React.ReactNode;
   variant?: AuthVariant;
   statsData?: HomeStats;
+  stage?: string;
+  wide?: boolean;
 }) {
   return (
-    <HydrationGate className="flex min-h-[100dvh] bg-paper">
-      <BrandPanel variant={variant} statsData={statsData} />
+    <HydrationGate className="au au-page">
+      <div className="au-aura" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
 
-      <main className="relative flex flex-1 flex-col">
-        <div className="flex justify-end px-5 pt-5 sm:px-8">
-          <Link
-            href="/"
-            className="group inline-flex min-h-[44px] items-center gap-2.5 rounded-full border border-line px-4 text-sm font-semibold text-ink no-underline transition-colors duration-300 hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink"
-          >
-            <ArrowLeft size={16} aria-hidden="true" className="transition-transform duration-500 ease-sw group-hover:-translate-x-1" />
-            Back to website
-          </Link>
-        </div>
-        <div className="flex flex-1 items-center justify-center px-5 pb-12 pt-6 sm:px-10 lg:px-14 xl:px-20">
-          <div className="w-full max-w-[460px]" data-reveal style={{ ["--d" as string]: "0.35s" }}>
-            <MobileBrandLogo />
+      <header className="au-top">
+        <Link href="/" className="au-brand" aria-label="Social Work Consultancy Ltd home">
+          <Image src="/images/logo/swc-logo-on-light.webp" alt="" width={480} height={133} className="dark:hidden" priority />
+          <Image src="/images/logo/swc-logo-on-dark.webp" alt="" width={480} height={133} className="hidden dark:block" priority />
+        </Link>
+        <Link href="/" className="au-pill">
+          <ChevronLeft size={16} strokeWidth={2.4} aria-hidden="true" />
+          Website
+        </Link>
+      </header>
+
+      <main className="au-main">
+        <div className="au-sheet" data-wide={wide || undefined}>
+          <div key={stage ?? "main"} className="au-stage">
             {children}
           </div>
         </div>
       </main>
+
+      <footer className="au-foot">
+        <span>Copyright © {new Date().getFullYear()} Social Work Consultancy Ltd. All rights reserved.</span>
+        <nav aria-label="Legal">
+          <Link href="/privacy-policy">Privacy Policy</Link>
+          <span aria-hidden="true">|</span>
+          <Link href="/terms-of-service">Terms of Service</Link>
+        </nav>
+      </footer>
     </HydrationGate>
   );
 }

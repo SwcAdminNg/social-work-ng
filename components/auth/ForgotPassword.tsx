@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import { KeyRound } from "lucide-react";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
-import { IconArrowRight, IconMail, IconSpinner } from "./shared/icons";
-import { errorMessage, type HomeStats } from "./shared/types";
+import { AuthAlert, AuthButton, AuthHeader, ChevronLink } from "./shared/ui";
+import { errorMessage } from "./shared/types";
 
-export default function ForgotPassword({ statsData }: { statsData?: HomeStats }) {
+export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -58,74 +58,45 @@ export default function ForgotPassword({ statsData }: { statsData?: HomeStats })
 
   if (sent) {
     return (
-      <AuthPageShell variant="forgot-password">
-        <div className="mb-8">
-          <p className="sw-eyebrow text-accent mb-4">
-            Check your inbox
+      <AuthPageShell variant="forgot-password" stage="sent">
+        <AuthHeader
+          icon="success"
+          headingRef={sentHeadingRef}
+          title="Check your email"
+          subtitle={
+            <>
+              We sent a link to reset your password to <strong>{email}</strong>. It may take a minute to arrive.
+            </>
+          }
+        />
+        <AuthButton type="button" variant="quiet" onClick={() => setSent(false)}>
+          Use a different email
+        </AuthButton>
+        <div className="au-links">
+          <p>
+            Didn&apos;t get it? Check your spam folder, or{" "}
+            <button type="button" className="au-link" onClick={() => setSent(false)}>
+              send it again
+            </button>
+            .
           </p>
-          <h1
-            ref={sentHeadingRef}
-            tabIndex={-1}
-            className="sw-display text-[2.1rem] sm:text-[2.6rem] text-ink mb-3 outline-none"
-          >
-            Reset link sent
-          </h1>
-          <p className="text-[0.98rem] text-ink-2">
-            We&apos;ve sent a password reset link to{" "}
-            <span className="font-semibold text-gray-700 dark:text-gray-300">
-              {email}
-            </span>
-            . Follow the link in the email to choose a new password.
-          </p>
+          <ChevronLink href="/login">Back to sign in</ChevronLink>
         </div>
-
-        <p className="text-center text-[0.85rem] text-gray-500 dark:text-gray-400">
-          Didn&apos;t get the email?{" "}
-          <button
-            type="button"
-            onClick={() => setSent(false)}
-            className="font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"
-          >
-            Try again
-          </button>
-        </p>
-
-        <p className="mt-10 text-center text-[0.85rem] text-gray-500 dark:text-gray-400">
-          <Link
-            href="/login"
-            className="font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"
-          >
-            Back to sign in
-          </Link>
-        </p>
       </AuthPageShell>
     );
   }
 
   return (
-    <AuthPageShell variant="forgot-password" statsData={statsData}>
-      {/* Heading */}
-      <div className="mb-8">
-        <p className="sw-eyebrow text-accent mb-4">
-          Forgot password
-        </p>
-        <h1 className="sw-display text-[2.1rem] sm:text-[2.6rem] text-ink mb-3">
-          Forgot your password?
-        </h1>
-        <p className="text-[0.98rem] text-ink-2">
-          Enter the email associated with your account and we&apos;ll send you a
-          link to reset your password.
-        </p>
-      </div>
+    <AuthPageShell variant="forgot-password" stage="form">
+      <AuthHeader
+        icon={<KeyRound size={28} strokeWidth={1.8} />}
+        title="Reset your password"
+        subtitle="Enter the email address you use with your account and we'll send you a link to choose a new password."
+      />
 
-      {error && (
-        <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium">
-          {error}
-        </div>
-      )}
+      {error && <AuthAlert>{error}</AuthAlert>}
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} noValidate className="au-form">
         <FloatingInput
           ref={emailRef}
           id="email"
@@ -136,51 +107,22 @@ export default function ForgotPassword({ statsData }: { statsData?: HomeStats })
             setEmail(v);
             if (emailError) setEmailError("");
           }}
-          icon={<IconMail />}
           autoComplete="email"
           inputMode="email"
           required
+          autoFocus
           error={emailError}
         />
-
-        {/* Submit button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className={`
-            relative mt-2 w-full h-[56px] rounded-full font-semibold text-[0.98rem] text-white
-            bg-[#14402F] hover:bg-[#0c2a1e] dark:bg-[#2D6A4F] dark:hover:bg-[#3d8c68]
-            shadow-lg shadow-green-900/20 hover:shadow-green-900/30
-            transition-all duration-200 hover:-translate-y-0.5
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2
-            disabled:opacity-70 disabled:cursor-not-allowed disabled:translate-y-0
-            overflow-hidden
-          `}
-        >
-          {loading ? (
-            <span className="flex items-center justify-center gap-2.5">
-              <IconSpinner className="w-4 h-4 text-white/80" />
-              Sending link…
-            </span>
-          ) : (
-            <span className="flex items-center justify-center gap-2">
-              Send reset link
-              <IconArrowRight />
-            </span>
-          )}
-        </button>
+        <AuthButton type="submit" busy={loading} busyLabel="Sending link…" className="mt-2">
+          Continue
+        </AuthButton>
       </form>
 
-      {/* Login link */}
-      <p className="mt-6 text-center text-[0.85rem] text-gray-500 dark:text-gray-400">
-        Remember your password?{" "}
-        <Link
-          href="/login"
-          className="font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"
-        >
-          Sign in
-        </Link>
-      </p>
+      <div className="au-links">
+        <p>
+          Remembered it? <ChevronLink href="/login">Sign in</ChevronLink>
+        </p>
+      </div>
     </AuthPageShell>
   );
 }

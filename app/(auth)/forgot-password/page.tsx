@@ -1,7 +1,6 @@
 import { pageMetadata } from "@/lib/site";
 import ForgotPassword from "@/components/auth/ForgotPassword";
 import { Suspense } from "react";
-import { fetchApi } from "@/lib/fetchApi";
 
 export const metadata = pageMetadata({
   title: "Forgot password | Social Work Consultancy Ltd",
@@ -10,17 +9,10 @@ export const metadata = pageMetadata({
   index: false,
 });
 
-export default async function ForgotPasswordPage() {
-  const res = await fetchApi("/home/stats", { next: { revalidate: 3600 } });
-  let stats = null;
-  if (res.ok) {
-    const data = await res.json().catch(() => ({}));
-    stats = data?.data || null;
-  }
-
+export default function ForgotPasswordPage() {
   return (
     <Suspense fallback={null}>
-      <ForgotPassword statsData={stats} />
+      <ForgotPassword />
     </Suspense>
   );
 }
