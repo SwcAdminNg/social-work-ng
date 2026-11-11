@@ -43,26 +43,13 @@ export default async function OrdersContainer({
   }
 
   return (
-    <div className="w-full h-full max-w-8xl mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Payment & Billing
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Manage saved cards, course purchases, and subscription payments.
-        </p>
-      </div>
+    <div className="mx-auto flex w-full max-w-[760px] flex-col gap-8 pb-12">
+      <header className="lms-rise pt-1">
+        <h1 className="sw-display m-0 text-[clamp(1.9rem,4vw,2.75rem)] leading-[1.02] text-ink">Payment &amp; Billing</h1>
+        <p className="m-0 mt-2 text-[0.98rem] text-ink-2">Your saved cards, purchases and receipts.</p>
+      </header>
 
       <PaymentMethodsPanel />
-
-      <div className="mb-4">
-        <h2 className="text-lg font-black text-gray-900 dark:text-white">
-          Order history
-        </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Receipts and transaction updates from your account.
-        </p>
-      </div>
 
       <OrdersList
         initialData={transactions}

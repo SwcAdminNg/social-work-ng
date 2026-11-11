@@ -9,10 +9,13 @@ export const metadata = {
 
 export default function SettingsPage() {
   return (
-    <div className="p-4 md:p-0 space-y-10">
+    <div className="mx-auto flex w-full max-w-[720px] flex-col gap-8 pb-12">
       <ProfileSettings />
-      <PasskeySettings />
-      <SecuritySettings />
+      <div className="flex flex-col gap-8">
+        <p className="m-0 -mb-4 px-1 text-[1.25rem] font-bold tracking-[-0.02em] text-ink">Sign-In &amp; Security</p>
+        <PasskeySettings />
+        <SecuritySettings />
+      </div>
     </div>
   );
 }

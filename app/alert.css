@@ -7,19 +7,18 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.38);
   animation: lms-alert-fade 0.2s ease-out both;
 }
-html.dark .lms-alert-scrim { background: rgba(0, 0, 0, 0.48); }
+html.dark .lms-alert-scrim { background: rgba(0, 0, 0, 0.6); }
 .lms-alert-scrim[data-closing] { animation: lms-alert-fade-out 0.18s ease-in both; }
 .lms-alert {
   position: relative;
   width: min(320px, 100%);
   padding: 22px 18px 16px;
   border-radius: 30px;
-  background: rgba(248, 247, 244, 0.86);
-  -webkit-backdrop-filter: blur(40px) saturate(1.8);
-  backdrop-filter: blur(40px) saturate(1.8);
+  /* Solid, so nothing behind the alert shows through it. */
+  background: #f8f7f4;
   box-shadow:
     inset 0 0 0 0.5px rgba(255, 255, 255, 0.7),
     0 0 0 0.5px rgba(0, 0, 0, 0.08),
@@ -31,7 +30,7 @@ html.dark .lms-alert-scrim { background: rgba(0, 0, 0, 0.48); }
   animation: lms-alert-in 0.34s cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
 }
 html.dark .lms-alert {
-  background: rgba(44, 46, 45, 0.86);
+  background: #2c2e2d;
   box-shadow:
     inset 0 0 0 0.5px rgba(255, 255, 255, 0.14),
     0 30px 80px -20px rgba(0, 0, 0, 0.7);

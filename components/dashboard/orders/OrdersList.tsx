@@ -1,7 +1,6 @@
 "use client";
 
-import { EmptyState } from "@/components/dashboard/EmptyState";
-import { IconReceipt } from "@/components/dashboard/icons";
+import { ChevronLeft, ChevronRight, Repeat, ShoppingBag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReceiptDownloadButton } from "./ReceiptDownloadButton";
 import { formatNaira } from "@/lib/paymentTax";
@@ -36,26 +35,17 @@ export default function OrdersList({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  if (error) {
-    return (
-      <div className="p-6 rounded-2xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400">
-        <p className="font-semibold text-sm">{error}</p>
-      </div>
-    );
+  const months: { key: string; label: string; items: Transaction[] }[] = [];
+  for (const txn of initialData ?? []) {
+    const date = new Date(txn.created_at);
+    const key = Number.isNaN(date.getTime()) ? "unknown" : MONTH_KEY.format(date);
+    const label = Number.isNaN(date.getTime()) ? "Undated" : MONTH_LABEL.format(date);
+    const last = months[months.length - 1];
+    if (last?.key === key) last.items.push(txn);
+    else months.push({ key, label, items: [txn] });
   }
 
-  if (!initialData || initialData.length === 0) {
-    return (
-      <EmptyState
-        icon={IconReceipt}
-        title="No orders yet"
-        description="Your course purchases and payment receipts will be listed here."
-      />
-    );
-  }
-
-  const totalPages = Math.ceil(totalItems / limit);
-
+  const totalPages = Math.max(1, Math.ceil((totalItems || initialData?.length || 0) / limit));
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
     const params = new URLSearchParams(searchParams.toString());
@@ -63,229 +53,113 @@ export default function OrdersList({
     router.push(`?${params.toString()}`);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status?.toUpperCase()) {
-      case "SUCCESS":
-        return (
-          <span className="inline-flex max-w-full items-center justify-center rounded-full border border-green-200 bg-green-100 px-2.5 py-1 text-xs font-bold text-green-700 dark:border-green-800/50 dark:bg-green-900/30 dark:text-green-400">
-            Successful
-          </span>
-        );
-      case "PENDING":
-        return (
-          <span className="inline-flex max-w-full items-center justify-center rounded-full border border-yellow-200 bg-yellow-100 px-2.5 py-1 text-xs font-bold text-yellow-700 dark:border-yellow-800/50 dark:bg-yellow-900/30 dark:text-yellow-400">
-            Pending
-          </span>
-        );
-      case "FAILED":
-        return (
-          <span className="inline-flex max-w-full items-center justify-center rounded-full border border-red-200 bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700 dark:border-red-800/50 dark:bg-red-900/30 dark:text-red-400">
-            Failed
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex max-w-full items-center justify-center rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-            {status}
-          </span>
-        );
-    }
-  };
-
   return (
-    <div className="flex flex-col gap-6">
-      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-100 dark:border-gray-800 rounded-3xl shadow-sm overflow-hidden">
-        {/* Mobile Cards View */}
-        <div className="grid grid-cols-1 gap-4 p-4 md:hidden">
-          {initialData.map((txn) => (
-            <div
-              key={txn.id}
-              className="min-w-0 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
-            >
-              <div className="grid min-w-0 gap-3">
-                <div className="flex min-w-0 items-start justify-between gap-3">
-                  <span className="min-w-0 break-words text-sm font-bold text-gray-900 dark:text-white">
-                    {formatTransactionType(txn.transaction_type)}
-                  </span>
-                  <div className="flex-shrink-0">{getStatusBadge(txn.status)}</div>
-                </div>
+    <section className="lms-settings-section" aria-labelledby="history-head">
+      <h2 id="history-head" className="lms-settings-head">Purchase History</h2>
 
-                <div className="min-w-0 rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-950/50">
-                  <span className="block text-[0.65rem] font-bold uppercase text-gray-400">
-                    Reference
-                  </span>
-                  <span className="mt-1 block break-all font-mono text-xs font-semibold text-gray-600 dark:text-gray-300">
-                    {txn.reference}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-1 gap-3 border-t border-gray-100 pt-4 dark:border-gray-800 min-[380px]:grid-cols-2">
-                <div className="min-w-0">
-                  <span className="mb-1 block text-[0.65rem] font-bold uppercase text-gray-400">
-                    Date
-                  </span>
-                  <span className="block text-sm font-medium leading-5 text-gray-600 dark:text-gray-300">
-                    {new Intl.DateTimeFormat("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                      hour12: true,
-                    }).format(new Date(txn.created_at))}
-                  </span>
-                </div>
-                <div className="min-w-0 min-[380px]:text-right">
-                  <span className="mb-1 block text-[0.65rem] font-bold uppercase text-gray-400">
-                    Amount
-                  </span>
-                  <span className="block break-words text-lg font-bold text-gray-900 dark:text-white">
-                    {formatNaira(txn.amount, 2)}
-                  </span>
-                  {hasDiscount(txn) && (
-                    <span className="mt-1 block text-xs font-semibold text-[#0f8a46] dark:text-[#8de5b5]">
-                      Saved {formatNaira(Number(txn.discount_amount))}
-                    </span>
-                  )}
-                  {hasTax(txn) && (
-                    <span className="mt-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">
-                      VAT {formatNaira(Number(txn.tax_amount))}
-                    </span>
-                  )}
-                </div>
-              </div>
-              {canDownloadReceipt(txn) && (
-                <div className="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
-                  <ReceiptDownloadButton reference={txn.reference} />
-                </div>
-              )}
+      {error ? (
+        <p role="alert" className="m-0 rounded-[18px] bg-clay-wash px-5 py-3.5 text-sm font-medium text-ink shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--sw-clay)_35%,transparent)]">
+          {error}
+        </p>
+      ) : months.length === 0 ? (
+        <div className="lms-group flex flex-col items-center px-6 py-10 text-center">
+          <span className="grid h-14 w-14 place-items-center rounded-full bg-[var(--lms-milk)] text-accent">
+            <ShoppingBag className="h-6 w-6" strokeWidth={1.8} />
+          </span>
+          <h3 className="m-0 mt-4 text-[1.02rem] font-semibold text-ink">No purchases yet</h3>
+          <p className="m-0 mt-1.5 max-w-sm text-[0.88rem] leading-relaxed text-ink-3">
+            Course purchases and their receipts will be listed here.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-5">
+          {months.map((month) => (
+            <div key={month.key}>
+              <p className="m-0 mb-1.5 px-4 text-[0.85rem] font-semibold text-ink-2">{month.label}</p>
+              <ul className="lms-group m-0 list-none p-0">
+                {month.items.map((txn) => {
+                  const status = statusInfo(txn.status);
+                  const subscription = txn.transaction_type?.toUpperCase().includes("SUBSCRIPTION");
+                  return (
+                    <li key={txn.id} className="lms-form-row !items-start !gap-3 !py-3">
+                      <span className={`lms-sym ${subscription ? "lms-sym--indigo" : "lms-sym--green"} mt-0.5`}>
+                        {subscription ? <Repeat className="h-[18px] w-[18px]" aria-hidden="true" /> : <ShoppingBag className="h-[18px] w-[18px]" aria-hidden="true" />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="m-0 text-[0.92rem] font-medium text-ink">{formatTransactionType(txn.transaction_type)}</p>
+                        <p className="m-0 mt-0.5 text-[0.78rem] text-ink-3">
+                          {DATE_TIME.format(new Date(txn.created_at))}
+                          <span className="hidden sm:inline">
+                            {" · "}
+                            <span className="font-mono tracking-[0.03em]">{txn.reference}</span>
+                          </span>
+                        </p>
+                        {(hasDiscount(txn) || hasTax(txn)) && (
+                          <p className="m-0 mt-0.5 text-[0.75rem] text-ink-3">
+                            {hasDiscount(txn) && <span className="font-medium text-accent">Saved {formatNaira(Number(txn.discount_amount))}</span>}
+                            {hasDiscount(txn) && hasTax(txn) && " · "}
+                            {hasTax(txn) && `Includes VAT ${formatNaira(Number(txn.tax_amount))}`}
+                          </p>
+                        )}
+                        {canDownloadReceipt(txn) && (
+                          <div className="mt-1.5">
+                            <ReceiptDownloadButton reference={txn.reference} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-none text-right">
+                        <p className={`m-0 text-[0.98rem] font-semibold tabular-nums tracking-[-0.01em] ${status.tone === "red" ? "text-ink-3 line-through decoration-1" : "text-ink"}`}>
+                          {formatNaira(txn.amount, 2)}
+                        </p>
+                        <span className={`lms-status lms-status--${status.tone} mt-0.5 text-[0.75rem]`}>{status.label}</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           ))}
         </div>
+      )}
 
-        {/* Desktop Table View */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/50">
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Transaction
-                </th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Receipt
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {initialData.map((txn) => (
-                <tr
-                  key={txn.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors duration-150"
-                >
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-900 dark:text-white">
-                        {formatTransactionType(txn.transaction_type)}
-                      </span>
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">
-                        Ref: {txn.reference}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                      {new Intl.DateTimeFormat("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                        hour12: true,
-                      }).format(new Date(txn.created_at))}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">
-                      {formatNaira(txn.amount, 2)}
-                    </span>
-                    {hasDiscount(txn) && (
-                      <span className="ml-2 text-xs font-bold text-[#0f8a46] dark:text-[#8de5b5]">
-                        -{formatNaira(Number(txn.discount_amount))}
-                      </span>
-                    )}
-                    {hasTax(txn) && (
-                      <span className="ml-2 text-xs font-bold text-gray-500 dark:text-gray-400">
-                        VAT {formatNaira(Number(txn.tax_amount))}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    {getStatusBadge(txn.status)}
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    {canDownloadReceipt(txn) ? (
-                      <ReceiptDownloadButton reference={txn.reference} />
-                    ) : (
-                      <span className="text-xs font-semibold text-gray-400 dark:text-gray-500">
-                        Not available
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-2">
-          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-            Showing{" "}
-            <span className="font-bold text-gray-900 dark:text-white">
-              {(currentPage - 1) * limit + 1}
-            </span>{" "}
-            to{" "}
-            <span className="font-bold text-gray-900 dark:text-white">
-              {Math.min(currentPage * limit, totalItems)}
-            </span>{" "}
-            of{" "}
-            <span className="font-bold text-gray-900 dark:text-white">
-              {totalItems}
-            </span>{" "}
-            orders
+        <div className="mt-5 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+          <p className="m-0 text-sm text-ink-3">
+            {(currentPage - 1) * limit + 1}–{Math.min(currentPage * limit, totalItems)} of {totalItems}
           </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F]"
-            >
-              Previous
+          <nav className="lms-pager" aria-label="Purchase pages">
+            <button type="button" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} aria-label="Previous page" className="lms-page">
+              <ChevronLeft className="h-4 w-4" />
             </button>
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F]"
-            >
-              Next
+            <span className="lms-page" aria-current="page">
+              {currentPage}
+            </span>
+            <span className="px-1 text-sm text-ink-3">of {totalPages}</span>
+            <button type="button" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} aria-label="Next page" className="lms-page">
+              <ChevronRight className="h-4 w-4" />
             </button>
-          </div>
+          </nav>
         </div>
       )}
-    </div>
+    </section>
   );
+}
+
+const MONTH_KEY = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos", year: "numeric", month: "2-digit" });
+const MONTH_LABEL = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", month: "long", year: "numeric" });
+const DATE_TIME = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true });
+
+function statusInfo(status: string): { label: string; tone: "green" | "orange" | "red" | "gray" } {
+  switch (status?.toUpperCase()) {
+    case "SUCCESS":
+      return { label: "Paid", tone: "green" };
+    case "PENDING":
+      return { label: "Pending", tone: "orange" };
+    case "FAILED":
+      return { label: "Failed", tone: "red" };
+    default:
+      return { label: status ? status.charAt(0) + status.slice(1).toLowerCase() : "Unknown", tone: "gray" };
+  }
 }
 
 function canDownloadReceipt(txn: Transaction) {
@@ -297,9 +171,10 @@ function canDownloadReceipt(txn: Transaction) {
 }
 
 function formatTransactionType(type: string) {
-  if (type?.toUpperCase() === "CART_PURCHASE") return "Cart purchase";
+  if (type?.toUpperCase() === "CART_PURCHASE") return "Course bundle";
   if (type?.toUpperCase() === "COURSE_PURCHASE") return "Course purchase";
-  return type?.replace(/_/g, " ") || "Transaction";
+  const words = type?.replace(/_/g, " ").toLowerCase() || "transaction";
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 function hasDiscount(txn: Transaction) {

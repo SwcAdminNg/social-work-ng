@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { Check, Cloud, Fingerprint, KeyRound, Laptop, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Cloud, KeyRound, Laptop, Pencil, Plus, Trash2 } from "lucide-react";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import {
   addPasskey,
@@ -99,69 +99,29 @@ export function PasskeySettings() {
   };
 
   return (
-    <div className="max-w-4xl">
-      <div className="bg-white dark:bg-[#1a1c1b] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#2D6A4F]/10 flex items-center justify-center flex-shrink-0">
-              <Fingerprint className="w-6 h-6 text-[#2D6A4F] dark:text-[#52b788]" aria-hidden="true" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Passkeys</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xl">
-                Sign in with your fingerprint, face or screen lock instead of a password and code. Your
-                fingerprint never leaves your device.
-              </p>
-            </div>
-          </div>
-          {supported && (
-            <button
-              type="button"
-              onClick={() => add.mutate()}
-              disabled={add.isPending}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2D6A4F] px-5 text-sm font-semibold text-white transition-all hover:bg-[#1B4332] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70 shadow-md shadow-[#2D6A4F]/20"
-            >
-              {add.isPending ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
-              {add.isPending ? "Follow your device’s prompt…" : passkeys.length ? "Add another passkey" : "Add a passkey"}
-            </button>
-          )}
-        </div>
-
-        {!supported && (
-          <p className="mb-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
-            This browser does not support passkeys. Try the latest Chrome, Safari, Edge or Firefox.
-          </p>
-        )}
-
+    <section className="lms-settings-section" aria-labelledby="passkeys-head">
+      <h2 id="passkeys-head" className="lms-settings-head">Passkeys</h2>
+      <div className="lms-group">
         {isPending ? (
-          <div className="flex h-24 items-center justify-center">
-            <IconSpinner className="h-6 w-6 animate-spin text-[#2D6A4F]" />
+          <div className="flex h-16 items-center justify-center">
+            <IconSpinner className="h-5 w-5 animate-spin text-accent" />
           </div>
         ) : isError ? (
-          <p className="text-sm text-red-600 dark:text-red-400">We could not load your passkeys. Refresh the page to try again.</p>
-        ) : passkeys.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 p-6 text-center dark:border-gray-800">
-            <KeyRound className="mx-auto mb-3 h-8 w-8 text-gray-400" aria-hidden="true" />
-            <p className="font-semibold text-gray-900 dark:text-white">No passkeys yet</p>
-            <p className="mx-auto mt-1 max-w-md text-sm text-gray-500 dark:text-gray-400">
-              Add one on each phone or computer you use. Passkeys saved to iCloud Keychain or Google Password Manager also
-              work on your other signed-in devices.
-            </p>
-          </div>
+          <p className="m-0 px-4 py-3.5 text-[0.9rem] text-[#d92d20] dark:text-[#ff6961]">We could not load your passkeys. Refresh the page to try again.</p>
         ) : (
-          <ul className="divide-y divide-gray-100 dark:divide-gray-800" aria-label="Your passkeys">
+          <ul className="m-0 list-none p-0" aria-label="Your passkeys">
             {passkeys.map((passkey) => {
               const editing = editingId === passkey.id;
               const confirming = confirmId === passkey.id;
               return (
-                <li key={passkey.id} className="flex flex-wrap items-center gap-4 py-4">
-                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[#2D6A4F]/10 text-[#2D6A4F] dark:bg-[#52b788]/10 dark:text-[#52b788]">
-                    {passkey.synced ? <Cloud className="h-5 w-5" aria-hidden="true" /> : <Laptop className="h-5 w-5" aria-hidden="true" />}
-                  </div>
+                <li key={passkey.id} className="lms-form-row !gap-3 !py-2.5">
+                  <span className="lms-sym lms-sym--gray">
+                    {passkey.synced ? <Cloud className="h-[18px] w-[18px]" aria-hidden="true" /> : <Laptop className="h-[18px] w-[18px]" aria-hidden="true" />}
+                  </span>
                   <div className="min-w-0 flex-1">
                     {editing ? (
                       <form
-                        className="flex flex-wrap items-center gap-2"
+                        className="flex items-center gap-2"
                         onSubmit={(e) => {
                           e.preventDefault();
                           if (draftName.trim()) rename.mutate({ id: passkey.id, name: draftName.trim() });
@@ -175,24 +135,23 @@ export function PasskeySettings() {
                           maxLength={100}
                           autoFocus
                           onKeyDown={(e) => e.key === "Escape" && setEditingId(null)}
-                          className="h-10 min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-base text-gray-900 outline-none focus:border-[#2D6A4F] focus:ring-2 focus:ring-[#2D6A4F]/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                          className="lms-field h-9 min-w-0 flex-1 !rounded-[9px] text-[0.92rem]"
                         />
-                        <button type="submit" disabled={rename.isPending} className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#2D6A4F] text-white" aria-label="Save name">
-                          {rename.isPending ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        <button type="submit" disabled={rename.isPending} className="lms-text-btn !font-semibold">
+                          {rename.isPending ? <IconSpinner className="h-4 w-4 animate-spin" /> : "Done"}
                         </button>
-                        <button type="button" onClick={() => setEditingId(null)} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300" aria-label="Cancel renaming">
-                          <X className="h-4 w-4" />
+                        <button type="button" onClick={() => setEditingId(null)} className="lms-text-btn !text-ink-3">
+                          Cancel
                         </button>
                       </form>
                     ) : (
                       <>
-                        <p className="truncate text-sm font-bold text-gray-900 dark:text-white">{passkey.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="m-0 truncate text-[0.92rem] font-medium text-ink">{passkey.name}</p>
+                        <p className="m-0 truncate text-[0.78rem] text-ink-3">
                           {[
                             passkey.provider,
-                            passkey.synced ? "Synced across your devices" : "This device only",
-                            `Added ${dateFormat.format(new Date(passkey.created_at))}`,
-                            passkey.last_used_at ? `Last used ${relative(passkey.last_used_at)}` : "Not used yet",
+                            passkey.synced ? "Synced" : "This device only",
+                            passkey.last_used_at ? `Used ${relative(passkey.last_used_at)}` : `Added ${dateFormat.format(new Date(passkey.created_at))}`,
                           ]
                             .filter(Boolean)
                             .join(" · ")}
@@ -201,28 +160,32 @@ export function PasskeySettings() {
                     )}
                   </div>
                   {!editing && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-none items-center gap-3">
                       {confirming ? (
                         <>
-                          <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Remove this passkey?</span>
-                          <button
-                            type="button"
-                            onClick={() => remove.mutate(passkey.id)}
-                            disabled={remove.isPending}
-                            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-red-600 px-3 text-xs font-semibold text-white hover:bg-red-700"
-                          >
-                            {remove.isPending ? <IconSpinner className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Remove
-                          </button>
-                          <button type="button" onClick={() => setConfirmId(null)} className="h-9 rounded-lg border border-gray-200 px-3 text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                          <button type="button" onClick={() => setConfirmId(null)} className="lms-text-btn !text-ink-3">
                             Keep
+                          </button>
+                          <button type="button" onClick={() => remove.mutate(passkey.id)} disabled={remove.isPending} className="lms-text-btn !font-semibold !text-[#d92d20] dark:!text-[#ff6961]">
+                            {remove.isPending && <IconSpinner className="h-3.5 w-3.5 animate-spin" />}
+                            Remove
                           </button>
                         </>
                       ) : (
                         <>
-                          <button type="button" onClick={() => startRename(passkey)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white" aria-label={`Rename ${passkey.name}`}>
+                          <button type="button" onClick={() => startRename(passkey)} className="lms-gpop-x !h-8 !w-8" aria-label={`Rename ${passkey.name}`} title="Rename">
                             <Pencil className="h-4 w-4" />
                           </button>
-                          <button type="button" onClick={() => { setConfirmId(passkey.id); setEditingId(null); }} className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10" aria-label={`Remove ${passkey.name}`}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setConfirmId(passkey.id);
+                              setEditingId(null);
+                            }}
+                            className="lms-gpop-x !h-8 !w-8 hover:!text-[#d92d20]"
+                            aria-label={`Remove ${passkey.name}`}
+                            title="Remove"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </>
@@ -232,9 +195,36 @@ export function PasskeySettings() {
                 </li>
               );
             })}
+            {supported && (
+              <li>
+                <button type="button" onClick={() => add.mutate()} disabled={add.isPending} className="lms-form-row lms-form-action">
+                  <span className="lms-sym lms-sym--green">
+                    {add.isPending ? <IconSpinner className="h-4 w-4 animate-spin" /> : <Plus className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden="true" />}
+                  </span>
+                  <span className="flex-1 text-left">
+                    {add.isPending ? "Follow your device’s prompt…" : passkeys.length ? "Add Another Passkey" : "Add a Passkey"}
+                  </span>
+                </button>
+              </li>
+            )}
+            {!supported && passkeys.length === 0 && (
+              <li className="lms-form-row !gap-3">
+                <span className="lms-sym lms-sym--gray">
+                  <KeyRound className="h-[18px] w-[18px]" aria-hidden="true" />
+                </span>
+                <span className="text-[0.9rem] text-ink-3">No passkeys on this account.</span>
+              </li>
+            )}
           </ul>
         )}
       </div>
-    </div>
+      <div className="lms-settings-foot">
+        <p className="m-0">
+          {supported
+            ? "Sign in with your fingerprint, face or screen lock instead of a password and code. Your fingerprint never leaves your device, and passkeys saved to iCloud Keychain or Google Password Manager work on your other devices too."
+            : "This browser doesn’t support passkeys. Try the latest Chrome, Safari, Edge or Firefox."}
+        </p>
+      </div>
+    </section>
   );
 }
