@@ -5,8 +5,9 @@ import Link from "next/link";
 import { AuthPageShell } from "./shared/AuthPageShell";
 import { FloatingInput } from "./shared/FloatingInput";
 import { IconArrowRight, IconMail, IconSpinner } from "./shared/icons";
+import { errorMessage, type HomeStats } from "./shared/types";
 
-export default function ForgotPassword({ statsData }: { statsData?: any }) {
+export default function ForgotPassword({ statsData }: { statsData?: HomeStats }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -48,8 +49,8 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
       }
 
       setSent(true);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(errorMessage(err, "Something went wrong. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -70,7 +71,7 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
             Reset link sent
           </h1>
           <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
-            We've sent a password reset link to{" "}
+            We&apos;ve sent a password reset link to{" "}
             <span className="font-semibold text-gray-700 dark:text-gray-300">
               {email}
             </span>
@@ -79,7 +80,7 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
         </div>
 
         <p className="text-center text-[0.85rem] text-gray-500 dark:text-gray-400">
-          Didn't get the email?{" "}
+          Didn&apos;t get the email?{" "}
           <button
             type="button"
             onClick={() => setSent(false)}
@@ -112,7 +113,7 @@ export default function ForgotPassword({ statsData }: { statsData?: any }) {
           Forgot your password?
         </h1>
         <p className="text-[0.87rem] text-gray-500 dark:text-gray-400">
-          Enter the email associated with your account and we'll send you a
+          Enter the email associated with your account and we&apos;ll send you a
           link to reset your password.
         </p>
       </div>

@@ -10,6 +10,8 @@ export function ResourceCard({ resource }: { resource: ResourceRead }) {
     <article className="group flex min-h-[340px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#95d5b2] hover:shadow-lg dark:border-slate-800 dark:bg-slate-950">
       <Link href={href} className="relative block aspect-[16/9] overflow-hidden bg-[#e7f6ee] dark:bg-slate-900">
         {resource.thumbnail_url ? (
+          // Thumbnails come from any host an admin pastes in, which next/image would have to allow-list.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={resource.thumbnail_url}
             alt=""

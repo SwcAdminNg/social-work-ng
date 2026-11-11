@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 
 export function OtpInput({
   length = 6,
@@ -18,7 +18,8 @@ export function OtpInput({
   autoFocus?: boolean;
 }) {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
-  const [firedComplete, setFiredComplete] = useState(false);
+  // The code the form was last told about, so it hears about each complete code once.
+  const firedFor = useRef<string | null>(null);
 
   useEffect(() => {
     if (autoFocus) inputsRef.current[0]?.focus();
@@ -26,13 +27,11 @@ export function OtpInput({
   }, []);
 
   useEffect(() => {
-    if (value.length === length) {
-      if (!firedComplete) {
-        setFiredComplete(true);
-        onComplete?.(value);
-      }
-    } else {
-      setFiredComplete(false);
+    if (value.length !== length) {
+      firedFor.current = null;
+    } else if (firedFor.current !== value) {
+      firedFor.current = value;
+      onComplete?.(value);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, length]);

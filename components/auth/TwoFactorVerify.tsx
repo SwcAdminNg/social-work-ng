@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { ShieldCheck, Smartphone, Mail, ArrowLeft } from "lucide-react";
 import { OtpInput } from "./shared/OtpInput";
 import { IconSpinner } from "./shared/icons";
+import { errorMessage, type SessionData } from "./shared/types";
 
 export function TwoFactorVerify({
   challengeToken,
@@ -13,7 +14,7 @@ export function TwoFactorVerify({
 }: {
   challengeToken: string;
   method: "EMAIL" | "TOTP";
-  onComplete: (session: any) => void;
+  onComplete: (session: SessionData) => void;
   onBack?: () => void;
 }) {
   const [code, setCode] = useState("");
@@ -42,8 +43,8 @@ export function TwoFactorVerify({
         throw new Error(data.message || "Invalid or expired code");
       }
       onComplete(data.data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(errorMessage(err, "Something went wrong. Please try again."));
       setCode("");
       setConfirming(false);
     }
@@ -73,8 +74,8 @@ export function TwoFactorVerify({
           return prev - 1;
         });
       }, 1000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(errorMessage(err, "Something went wrong. Please try again."));
     } finally {
       setResending(false);
     }

@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ? data.data
       : data?.data?.items || [];
 
-    items.forEach((course: any) => {
+    items.forEach((course: { slug?: string; id?: string }) => {
       if (course.slug || course.id) {
         sitemapRoutes.push({
           url: `${baseUrl}/courses/${course.slug || course.id}`,

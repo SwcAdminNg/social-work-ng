@@ -11,13 +11,14 @@ import { PasskeyButton, PasskeyContinueCard, usePasskeySignIn } from "./shared/P
 import { TwoFactorSetup } from "./TwoFactorSetup";
 import { TwoFactorVerify } from "./TwoFactorVerify";
 import { IconArrowRight, IconCheck, IconLock, IconUser, IconSpinner } from "./shared/icons";
+import { errorMessage, type HomeStats, type SessionData } from "./shared/types";
 
 type Step =
   | { name: "credentials" }
   | { name: "setup"; challengeToken: string }
   | { name: "verify"; challengeToken: string; method: "EMAIL" | "TOTP" };
 
-export default function Login({ statsData }: { statsData?: any }) {
+export default function Login({ statsData }: { statsData?: HomeStats }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -40,11 +41,11 @@ export default function Login({ statsData }: { statsData?: any }) {
     onError: (message) => setError(message),
     onSession: async (sessionData) => {
       setError("");
-      await finalizeSession(sessionData);
+      await finalizeSession(sessionData as SessionData);
     },
   });
 
-  const finalizeSession = async (sessionData: any) => {
+  const finalizeSession = async (sessionData: SessionData) => {
     setFinalizeError("");
     try {
       const res = await signIn("credentials", {
@@ -59,8 +60,8 @@ export default function Login({ statsData }: { statsData?: any }) {
 
       const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
       router.push(callbackUrl);
-    } catch (err: any) {
-      setFinalizeError(err.message || "Failed to sign in. Please try again.");
+    } catch (err) {
+      setFinalizeError(errorMessage(err, "Failed to sign in. Please try again."));
     }
   };
 
@@ -111,8 +112,8 @@ export default function Login({ statsData }: { statsData?: any }) {
       } else {
         throw new Error("Failed to sign in. Please check your credentials.");
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(errorMessage(err, "Something went wrong. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -319,7 +320,7 @@ export default function Login({ statsData }: { statsData?: any }) {
 
       {/* Register link */}
       <p className="text-center text-[0.85rem] text-gray-500 dark:text-gray-400">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link
           href="/register"
           className="font-semibold text-[#2D6A4F] dark:text-[#52b788] hover:text-[#1e4d38] dark:hover:text-white no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] dark:focus-visible:ring-[#52b788] rounded"

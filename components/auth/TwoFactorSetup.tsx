@@ -1,10 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ShieldCheck, Smartphone, Mail, Copy, Check, ArrowLeft, TriangleAlert } from "lucide-react";
 import { OtpInput } from "./shared/OtpInput";
 import { IconSpinner } from "./shared/icons";
+import { errorMessage, type SessionData } from "./shared/types";
 
 type SetupApi =
   | { kind: "challenge"; challengeToken: string }
@@ -45,7 +47,7 @@ export function TwoFactorSetup({
   description = "Choose how you'd like to receive your sign-in codes.",
 }: {
   api: SetupApi;
-  onComplete: (result: any) => void;
+  onComplete: (result: SessionData) => void;
   onBack?: () => void;
   currentMethod?: Method | null;
   title?: string;
@@ -119,8 +121,8 @@ export function TwoFactorSetup({
         startCooldown();
         setStep("email");
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(errorMessage(err, "Something went wrong. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -140,8 +142,8 @@ export function TwoFactorSetup({
         throw new Error(data.message || "Could not resend code. Please try again.");
       }
       startCooldown();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(errorMessage(err, "Something went wrong. Please try again."));
     }
   };
 
@@ -159,8 +161,8 @@ export function TwoFactorSetup({
         throw new Error(data.message || "Invalid or expired code");
       }
       onComplete(data.data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(errorMessage(err, "Something went wrong. Please try again."));
       setCode("");
       setConfirming(false);
     }
@@ -266,7 +268,7 @@ export function TwoFactorSetup({
           {totpQrDataUri && (
             <div className="flex justify-center mb-5">
               <div className="p-3 rounded-2xl bg-white border border-gray-200 dark:border-white/10">
-                <img src={totpQrDataUri} alt="Scan this QR code with your authenticator app" width={176} height={176} />
+                <Image src={totpQrDataUri} alt="Scan this QR code with your authenticator app" width={176} height={176} unoptimized />
               </div>
             </div>
           )}

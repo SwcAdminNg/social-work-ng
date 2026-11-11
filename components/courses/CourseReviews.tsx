@@ -9,63 +9,95 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Dialog from "@radix-ui/react-dialog";
 import { IconSpinner } from "@/components/auth/shared/icons";
 
+type Review = {
+  id: string;
+  rating: number;
+  review_text?: string;
+  created_at: string;
+  reply_text?: string | null;
+  reply_created_at?: string | null;
+  user?: { first_name?: string; last_name?: string } | null;
+};
+
+type ReviewPage = { items: Review[]; pages: number };
+
+/** One page of a course's reviews, or null when it could not be loaded. */
+async function loadReviews(courseId: string, pageNumber: number): Promise<ReviewPage | null> {
+  try {
+    const res = await fetch(`/api/proxy/courses/${courseId}/reviews?page=${pageNumber}&limit=10`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    // Assuming pagination structure matches standard Fastapi/SQLAlchemy pagination
+    const items = Array.isArray(data?.data) ? data.data : data?.data?.items || [];
+    return { items, pages: data?.data?.pages || 1 };
+  } catch (error) {
+    console.error("Failed to fetch reviews", error);
+    return null;
+  }
+}
+
+/** The signed-in learner's own review: the review, null for none, undefined if the request failed. */
+async function loadUserReview(courseId: string): Promise<Review | null | undefined> {
+  try {
+    const res = await fetch(`/api/proxy/courses/${courseId}/reviews/me`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.data?.id ? (data.data as Review) : null;
+  } catch (e) {
+    console.error("Failed to fetch user review", e);
+    return undefined;
+  }
+}
+
 interface CourseReviewsProps {
   courseId: string;
 }
 
 export function CourseReviews({ courseId }: CourseReviewsProps) {
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [userReview, setUserReview] = useState<any>(null);
+  const [userReview, setUserReview] = useState<Review | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
   const router = useRouter();
 
-  const fetchReviews = useCallback(async (pageNumber: number) => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/proxy/courses/${courseId}/reviews?page=${pageNumber}&limit=10`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        // Assuming pagination structure matches standard Fastapi/SQLAlchemy pagination
-        const items = Array.isArray(data?.data) ? data.data : data?.data?.items || [];
-        setReviews(items);
-        setTotalPages(data?.data?.pages || 1);
-      }
-    } catch (error) {
-      console.error("Failed to fetch reviews", error);
-    } finally {
-      setLoading(false);
+  // State is only set once a response arrives, so the effect below never sets it synchronously.
+  const applyReviews = useCallback((result: ReviewPage | null) => {
+    if (result) {
+      setReviews(result.items);
+      setTotalPages(result.pages);
     }
-  }, [courseId]);
+    setLoading(false);
+  }, []);
 
-  const fetchUserReview = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/proxy/courses/${courseId}/reviews/me`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.data?.id) {
-          setUserReview(data.data);
-        } else {
-          setUserReview(null);
-        }
-      } else {
-        setUserReview(null);
-      }
-    } catch (e) {
-      console.error("Failed to fetch user review", e);
-    }
-  }, [courseId]);
+  const fetchReviews = useCallback(
+    (pageNumber: number) => loadReviews(courseId, pageNumber).then(applyReviews),
+    [courseId, applyReviews],
+  );
+
+  const fetchUserReview = useCallback(
+    () =>
+      loadUserReview(courseId).then((review) => {
+        if (review !== undefined) setUserReview(review);
+      }),
+    [courseId],
+  );
 
   useEffect(() => {
-    fetchReviews(page);
-    fetchUserReview();
-  }, [page, fetchReviews, fetchUserReview]);
+    let active = true;
+    loadReviews(courseId, page).then((result) => {
+      if (active) applyReviews(result);
+    });
+    loadUserReview(courseId).then((review) => {
+      if (active && review !== undefined) setUserReview(review);
+    });
+    return () => {
+      active = false;
+    };
+  }, [courseId, page, applyReviews]);
 
   const handleDelete = async () => {
     if (!reviewToDelete) return;
@@ -87,7 +119,7 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
       } else {
         toast.error("Failed to delete review");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while deleting the review.");
     } finally {
       setDeletingId(null);
@@ -242,7 +274,10 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-4 mt-8">
           <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
+            onClick={() => {
+              setLoading(true);
+              setPage(p => Math.max(1, p - 1));
+            }}
             disabled={page === 1}
             className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
@@ -252,7 +287,10 @@ export function CourseReviews({ courseId }: CourseReviewsProps) {
             Page {page} of {totalPages}
           </span>
           <button
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            onClick={() => {
+              setLoading(true);
+              setPage(p => Math.min(totalPages, p + 1));
+            }}
             disabled={page === totalPages}
             className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useSyncExternalStore } from "react";
 
 type Theme = "light" | "dark";
 
@@ -16,25 +16,41 @@ export function useTheme() {
   return useContext(ThemeContext);
 }
 
+const CHANGE_EVENT = "swcl:theme-change";
+
+/** The saved choice, or the system preference when nothing is saved. */
+function readTheme(): Theme {
+  try {
+    const saved = localStorage.getItem("theme");
+    if (saved === "dark" || saved === "light") return saved;
+  } catch {
+    // Storage can be blocked; fall back to the system preference.
+  }
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function subscribe(onChange: () => void) {
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  window.addEventListener(CHANGE_EVENT, onChange);
+  window.addEventListener("storage", onChange); // another tab switched theme
+  media.addEventListener("change", onChange);
+  return () => {
+    window.removeEventListener(CHANGE_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+    media.removeEventListener("change", onChange);
+  };
+}
+
 export default function ThemeProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  // "light" while rendering on the server, then the visitor's theme once in the browser.
+  const theme = useSyncExternalStore(subscribe, readTheme, () => "light" as Theme);
   const [headerToggle, setHeaderToggle] = useState(false);
 
-  // On mount: read saved preference or system preference
-  useEffect(() => {
-    const saved = localStorage.getItem("theme") as Theme | null;
-    if (saved === "dark" || saved === "light") {
-      setTheme(saved);
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark");
-    }
-  }, []);
-
-  // Apply / remove .dark class on <html> whenever theme changes
+  // Apply / remove .dark class on <html> whenever theme changes, and remember it.
   useEffect(() => {
     const root = document.documentElement;
     if (theme === "dark") {
@@ -42,10 +58,21 @@ export default function ThemeProvider({
     } else {
       root.classList.remove("dark");
     }
-    localStorage.setItem("theme", theme);
+    try {
+      localStorage.setItem("theme", theme);
+    } catch {
+      // Storage can be blocked; the theme still applies for this visit.
+    }
   }, [theme]);
 
-  const toggle = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+  const toggle = () => {
+    try {
+      localStorage.setItem("theme", theme === "dark" ? "light" : "dark");
+    } catch {
+      // Without storage the switch cannot persist; nothing else to do.
+    }
+    window.dispatchEvent(new Event(CHANGE_EVENT));
+  };
 
   return (
     <ThemeContext.Provider value={{ theme, toggle, headerToggle, setHeaderToggle }}>

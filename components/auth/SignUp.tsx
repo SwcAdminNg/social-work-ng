@@ -18,8 +18,9 @@ import {
   IconUser,
 } from "./shared/icons";
 import { Camera } from "lucide-react";
+import { errorMessage, type HomeStats, type SessionData } from "./shared/types";
 
-export default function SignUp({ statsData }: { statsData?: any }) {
+export default function SignUp({ statsData }: { statsData?: HomeStats }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [challengeToken, setChallengeToken] = useState<string | null>(null);
@@ -37,9 +38,12 @@ export default function SignUp({ statsData }: { statsData?: any }) {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [loadedSuggestions, setSuggestions] = useState<string[]>([]);
+  const suggestions = firstName && lastName ? loadedSuggestions : [];
   const [checkingUsername, setCheckingUsername] = useState(false);
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [availability, setUsernameAvailable] = useState<boolean | null>(null);
+  // Answers from the server only count while they still fit what is typed.
+  const usernameAvailable = username.length >= 3 ? availability : null;
 
   const firstNameRef = useRef<HTMLInputElement>(null);
   const lastNameRef = useRef<HTMLInputElement>(null);
@@ -51,23 +55,18 @@ export default function SignUp({ statsData }: { statsData?: any }) {
 
   // Fetch suggestions when first & last name change
   useEffect(() => {
-    if (!firstName || !lastName) {
-      setSuggestions([]);
-      return;
-    }
+    if (!firstName || !lastName) return;
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/proxy/username/suggestions?first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}`);
         const data = await res.json().catch(() => ({}));
         if (res.ok && data?.data?.suggestions) {
           setSuggestions(data.data.suggestions);
-          // Auto-fill if empty
-          if (!username) {
-            setUsername(data.data.suggestions[0]);
-          }
+          // Fill in the username only if the visitor has not typed one.
+          setUsername((current) => current || data.data.suggestions[0]);
         }
-      } catch (err) {
-        // Silently ignore suggestion errors to not block user
+      } catch {
+        // Suggestions are a convenience; failing to load them should not get in the way.
       }
     }, 600);
     return () => clearTimeout(timer);
@@ -75,10 +74,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
 
   // Check username availability when user types
   useEffect(() => {
-    if (!username || username.length < 3) {
-      setUsernameAvailable(null);
-      return;
-    }
+    if (username.length < 3) return;
     const timer = setTimeout(async () => {
       setCheckingUsername(true);
       try {
@@ -89,7 +85,7 @@ export default function SignUp({ statsData }: { statsData?: any }) {
         } else {
           setUsernameAvailable(null);
         }
-      } catch (err) {
+      } catch {
         setUsernameAvailable(null);
       } finally {
         setCheckingUsername(false);
@@ -176,14 +172,14 @@ export default function SignUp({ statsData }: { statsData?: any }) {
         throw new Error("Failed to create account.");
       }
       setChallengeToken(token);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(errorMessage(err, "Something went wrong. Please try again."));
     } finally {
       setLoading(false);
     }
   };
 
-  const finalizeSession = async (sessionData: any) => {
+  const finalizeSession = async (sessionData: SessionData) => {
     setFinalizeError("");
     try {
       const res = await signIn("credentials", {
@@ -200,8 +196,8 @@ export default function SignUp({ statsData }: { statsData?: any }) {
         searchParams.get("callbackUrl") ||
         "/dashboard/settings?profile_photo=certificate-onboarding";
       router.push(callbackUrl);
-    } catch (err: any) {
-      setFinalizeError(err.message || "Something went wrong. Please try again.");
+    } catch (err) {
+      setFinalizeError(errorMessage(err, "Something went wrong. Please try again."));
     }
   };
 

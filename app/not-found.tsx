@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { Compass, ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+const noopSubscribe = () => () => {};
 
 export default function NotFound() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // False while rendering on the server, true once the page is running in the browser,
+  // so the entry animation plays after hydration.
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
   return (
     <>
@@ -74,10 +74,10 @@ export default function NotFound() {
             className={`space-y-4 mb-10 transition-all duration-700 delay-300 transform ${mounted ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"}`}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
-              Looks like you've wandered off the path.
+              Looks like you&apos;ve wandered off the path.
             </h2>
             <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 max-w-xl mx-auto leading-relaxed">
-              The page you're looking for doesn't exist or has been moved. Let's
+              The page you&apos;re looking for doesn&apos;t exist or has been moved. Let&apos;s
               get you back to learning and growing.
             </p>
           </div>
