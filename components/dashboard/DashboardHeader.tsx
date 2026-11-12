@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Form from "next/form";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useSession } from "next-auth/react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Award,
   Camera,
@@ -23,18 +22,24 @@ import { useSidebar } from "./SidebarContext";
 import { badgeLabel, useBadgeCounts } from "./BadgeCounts";
 import { getPageTitle } from "./nav-items";
 import { NotificationCenter } from "./notifications/NotificationCenter";
-import { LogoutButton } from "./LogoutButton";
+import { LogoutButton, LogoutDialog } from "./LogoutButton";
 import { IconChatBubble } from "./icons";
+import { SearchPalette } from "./search/SearchPalette";
 
 /** Example searches the placeholder types out, in turn. */
 const TYPING_PHRASES = [
-  "Search courses, topics, instructors",
+  "Search courses, resources, pages",
   "Try “child protection”",
+  "Try “certificates”",
   "Try “case management”",
+  "Try “live sessions”",
+  "Try “two-factor”",
   "Try “mental health first aid”",
-  "Try “ethics in social work”",
-  "Try “counselling skills”",
 ];
+
+const subscribeNever = () => () => {};
+/** "⌘K" on Apple devices, "Ctrl K" everywhere else. */
+const shortcutLabel = () => (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘K" : "Ctrl K");
 
 const menuLinks = [
   { label: "Certificates", href: "/dashboard/certificates", icon: Award },
@@ -75,22 +80,23 @@ export function DashboardHeader() {
   const counts = useBadgeCounts();
   const { theme, toggle } = useTheme();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const searchHintRef = useRef<HTMLSpanElement>(null);
+  const searchOpenRef = useRef(false);
+  const shortcut = useSyncExternalStore(subscribeNever, shortcutLabel, () => "Ctrl K");
+  const openSearch = useCallback(() => {
+    setProfileOpen(false);
+    setSearchOpen(true);
+  }, []);
+  useEffect(() => {
+    searchOpenRef.current = searchOpen;
+  }, [searchOpen]);
 
-  const defaultSearch = searchParams.get("search") ?? "";
-  const [query, setQuery] = useState(defaultSearch);
-  const [syncedSearch, setSyncedSearch] = useState(defaultSearch);
-  // Follow the URL when it changes (a new search, or leaving the catalogue).
-  if (syncedSearch !== defaultSearch) {
-    setSyncedSearch(defaultSearch);
-    setQuery(defaultSearch);
-  }
   const displayName = session?.user?.name || session?.user?.email?.split("@")[0] || "Learner";
   const email = session?.user?.email || "";
   const firstName = displayName.trim().split(/\s+/)[0] || "there";
@@ -125,13 +131,13 @@ export function DashboardHeader() {
     };
   }, [profileOpen]);
 
-  // The placeholder types out example searches, then erases them, like a
-  // person typing. It is written straight to the input (no re-renders), rests
-  // while the field is focused or the tab is hidden, and stays still for
-  // people who ask for reduced motion. The field's name comes from its label.
+  // The hint types out example searches, then erases them, like a person
+  // typing. It is written straight to the element (no re-renders), rests
+  // while search is open or the tab is hidden, and stays still for people
+  // who ask for reduced motion. The button's name comes from its aria-label.
   useEffect(() => {
-    const input = searchRef.current;
-    if (!input) return;
+    const hint = searchHintRef.current;
+    if (!hint) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let phrase = 0;
@@ -140,9 +146,9 @@ export function DashboardHeader() {
     let timer: ReturnType<typeof setTimeout>;
 
     const step = () => {
-      const resting = document.activeElement === input || document.hidden;
+      const resting = searchOpenRef.current || document.hidden;
       if (resting) {
-        input.placeholder = TYPING_PHRASES[0];
+        hint.textContent = TYPING_PHRASES[0];
         phrase = 0;
         length = TYPING_PHRASES[0].length;
         deleting = false;
@@ -167,30 +173,36 @@ export function DashboardHeader() {
         phrase = (phrase + 1) % TYPING_PHRASES.length;
         delay = 350;
       }
-      input.placeholder = TYPING_PHRASES[phrase].slice(0, length) || " ";
+      hint.textContent = TYPING_PHRASES[phrase].slice(0, length) || " ";
       timer = setTimeout(step, delay);
     };
 
     timer = setTimeout(step, 2600);
     return () => {
       clearTimeout(timer);
-      input.placeholder = TYPING_PHRASES[0];
+      hint.textContent = TYPING_PHRASES[0];
     };
   }, []);
 
-  // "/" jumps to search from anywhere that is not already a text field.
+  // Ctrl/⌘K toggles search from anywhere; "/" opens it from anywhere that
+  // is not already a text field.
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        if (searchOpenRef.current) setSearchOpen(false);
+        else openSearch();
+        return;
+      }
       if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
       if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
       event.preventDefault();
-      setSearchOpen(true);
-      requestAnimationFrame(() => searchRef.current?.focus());
+      openSearch();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, []);
+  }, [openSearch]);
 
   return (
     <header className="lms-top sticky top-0 z-30 px-2 sm:px-4 lg:px-6">
@@ -212,72 +224,42 @@ export function DashboardHeader() {
           </p>
         </div>
 
-        <Form
-          action="/dashboard/course-catalogue"
-          role="search"
-          className={`min-w-0 items-center gap-1 sm:static sm:flex ${
-            searchOpen ? "lms-search-sheet absolute inset-0 z-10 flex px-1" : "hidden"
-          }`}
-        >
-          <label htmlFor="dashboard-search" className="sr-only">
-            Search the course catalogue
-          </label>
-          <div className="lms-search min-w-0 flex-1">
-            <Search aria-hidden="true" className="lms-search-glyph" strokeWidth={2.2} />
-            <input
-              ref={searchRef}
-              id="dashboard-search"
-              name="search"
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key !== "Escape") return;
-                if (query) setQuery("");
-                else {
-                  setSearchOpen(false);
-                  event.currentTarget.blur();
-                }
-              }}
-              autoComplete="off"
-              enterKeyHint="search"
-              placeholder={TYPING_PHRASES[0]}
-            />
-            {query ? (
-              <button
-                type="button"
-                aria-label="Clear search"
-                onClick={() => {
-                  setQuery("");
-                  searchRef.current?.focus();
-                }}
-                className="lms-search-clear"
-              >
-                <X className="h-3 w-3" strokeWidth={3} />
-              </button>
-            ) : (
-              <kbd aria-hidden="true" className="lms-search-kbd">
-                /
-              </kbd>
-            )}
+        <div role="search" className="hidden min-w-0 sm:block">
+          <div className="lms-search min-w-0">
+            <button
+              type="button"
+              onClick={openSearch}
+              aria-haspopup="dialog"
+              aria-expanded={searchOpen}
+              aria-keyshortcuts="Control+K Meta+K /"
+              aria-label="Search pages, courses, resources and community"
+              className="lms-search-trigger"
+            >
+              <Search aria-hidden="true" className="lms-search-glyph" strokeWidth={2.2} />
+              <span ref={searchHintRef} aria-hidden="true">
+                {TYPING_PHRASES[0]}
+              </span>
+            </button>
+            <kbd aria-hidden="true" className="lms-search-kbd lms-search-kbd--wide">
+              {shortcut}
+            </kbd>
           </div>
-          <button
-            type="button"
-            onClick={() => setSearchOpen(false)}
-            className="h-11 flex-none cursor-pointer px-2.5 text-[0.95rem] font-medium text-accent sm:hidden"
-          >
-            Cancel
-          </button>
-        </Form>
+        </div>
+
+        <SearchPalette
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          onToggleTheme={toggle}
+          onSignOut={() => setSignOutOpen(true)}
+        />
+        <LogoutDialog open={signOutOpen} onClose={() => setSignOutOpen(false)} />
 
         <div className="flex flex-none items-center justify-end gap-0.5 sm:gap-1">
           <button
             type="button"
-            onClick={() => {
-              setSearchOpen(true);
-              requestAnimationFrame(() => searchRef.current?.focus());
-            }}
-            aria-label="Search courses"
+            onClick={openSearch}
+            aria-haspopup="dialog"
+            aria-label="Search"
             className="lms-icon-btn sm:hidden"
           >
             <Search className="h-5 w-5" strokeWidth={1.9} />
