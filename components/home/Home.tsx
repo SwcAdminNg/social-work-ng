@@ -1,114 +1,345 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight, FileText, Heart, Mail, MapPin, Monitor, Phone, Plus, Users, Waypoints, type LucideIcon } from "lucide-react";
+import HeroTabs from "./HeroTabs";
+import HomeContactForm from "./HomeContactForm";
 import s from "./Home.module.css";
 
-const cx = (...names: string[]) => names.join(" ");
+const SERVICES = [
+  {
+    title: "E-Learning and Professional Development",
+    text: "Developing knowledge, confidence and practical capability for people at every stage of their professional journey, from those exploring social work to experienced practitioners.",
+    image: "/images/home/swcl/service-elearning.webp",
+    alt: "A woman in a yellow blouse works on a laptop at a wooden desk.",
+    link: { label: "Explore professional learning", href: "/courses" },
+  },
+  {
+    title: "Research and Evaluation",
+    text: "We help organisations understand their needs and strengthen their response through research, needs assessments, consultation and programme evaluation.",
+    image: "/images/home/swcl/service-research.webp",
+    alt: "A professional marks up printed charts and reports beside a laptop.",
+    link: { label: "Explore research services", href: "/contact?topic=partnership" },
+  },
+  {
+    title: "Policy and Advocacy",
+    text: "Turning evidence and experience into clearer guidance, through policy development and review, implementation support and advocacy planning.",
+    image: "/images/home/swcl/service-policy.webp",
+    alt: "A white civic building with a green dome under a blue sky.",
+    link: { label: "Explore policy and advocacy", href: "/contact?topic=partnership" },
+  },
+];
+
+const LEARNING: { title: string; text: string; image: string; alt: string; icon: LucideIcon; link: { label: string; href: string } }[] = [
+  {
+    title: "Introductory and Foundation Learning",
+    text: "Build a clear starting point. Explore the purpose, values and responsibilities of social work alongside the practical realities of supporting people.",
+    image: "/images/home/swcl/learning-foundation.webp",
+    alt: "A woman in a patterned dress studies at a laptop.",
+    icon: Monitor,
+    link: { label: "Explore foundation learning", href: "/courses" },
+  },
+  {
+    title: "Continuing Professional Development",
+    text: "Deepen your understanding and strengthen specific areas of practice relevant to your responsibilities and interests.",
+    image: "/images/home/swcl/learning-cpd.webp",
+    alt: "A group of professionals talk around a table with notebooks and a laptop.",
+    icon: Users,
+    link: { label: "Explore CPD opportunities", href: "/courses" },
+  },
+  {
+    title: "Facilitated and Organisational Learning",
+    text: "Develop shared understanding across your team with facilitated sessions and tailored programmes built around your service priorities.",
+    image: "/images/home/swcl/learning-organisational.webp",
+    alt: "An open report with charts and a pen lies on a desk beside stacked books.",
+    icon: FileText,
+    link: { label: "Discuss training for your team", href: "/contact?topic=partnership" },
+  },
+];
+
+const CATEGORIES: { title: string; text: string; icon: LucideIcon }[] = [
+  {
+    title: "Professional Skills and Practice",
+    text: "Strengthen your understanding of situations, your ability to work with people and your decision-making.",
+    icon: Users,
+  },
+  {
+    title: "Digital and Innovative Practice",
+    text: "Use technology thoughtfully to support professional work, with care for confidentiality and accessibility.",
+    icon: Waypoints,
+  },
+  {
+    title: "Law, Policy and Advocacy",
+    text: "Understand the rights, laws and policies that shape decisions and services.",
+    icon: Heart,
+  },
+];
+
+const FAQS: { q: string; a: string[] }[] = [
+  {
+    q: "What does Social Work Consultancy Ltd do?",
+    a: [
+      "SWCL provides professional learning and consultancy services focused on social work and related fields. Our core areas are training and development, research and evaluation, and policy and advocacy.",
+      "We support individuals in developing their professional capability and organisations seeking to strengthen their people, programmes and approaches.",
+    ],
+  },
+  {
+    q: "Who are your services designed for?",
+    a: [
+      "Our services are for social workers, students, educators, carers, NGOs, community organisations, public institutions, and professionals in related fields.",
+      "Suitability depends on the service or course. We encourage prospective clients and learners to review the relevant information or contact us to discuss their needs.",
+    ],
+  },
+  {
+    q: "What is the relationship between SWCL and socialworknigeria.org?",
+    a: [
+      "Socialworknigeria.org is Social Work Consultancy Ltd’s dedicated e-learning platform.",
+      "SWCL is the wider organisation, providing training alongside research, policy, advocacy and consultancy services. The platform supports the professional learning aspect of this work.",
+    ],
+  },
+  {
+    q: "Do your courses lead to a professional social work qualification?",
+    a: [
+      "The status and purpose of each course should be checked in its individual description.",
+      "Short courses and CPD activities support learning and professional development. They should not be assumed to replace a qualifying social work programme or to meet professional registration requirements unless this is explicitly stated and supported.",
+    ],
+  },
+  {
+    q: "Are your courses accredited?",
+    a: [
+      "Accreditation applies to specific courses or programmes as stated. Please check the individual course description for the accrediting body, the scope of recognition and any available certificate.",
+      "Contact us before enrolling if you need to confirm whether a course meets a particular employer, professional or educational requirement.",
+    ],
+  },
+  {
+    q: "Can you develop training around our organisation’s needs?",
+    a: [
+      "We welcome enquiries regarding tailored learning.",
+      "We begin by discussing your team’s roles, existing knowledge, practice challenges and desired outcomes. This helps establish whether we can provide suitable support and what the learning should cover.",
+    ],
+  },
+  {
+    q: "What research and evaluation services can we discuss with you?",
+    a: [
+      "Enquiries may relate to needs assessments, stakeholder consultations, programme evaluations, research studies, and the development of practical reports or recommendations.",
+      "Before agreeing to a project, we clarify its purpose, questions, methods, timescale, responsibilities and intended use.",
+    ],
+  },
+  {
+    q: "How can SWCL support policy and advocacy work?",
+    a: [
+      "We welcome discussions on policy development and review, consultation, policy briefs, advocacy planning and stakeholder engagement.",
+      "The scope is agreed upon your objectives, the available evidence, the people affected and the expertise required.",
+    ],
+  },
+  {
+    q: "How do you approach work with different communities and organisations?",
+    a: [
+      "We seek to understand the context before recommending an approach.",
+      "This includes considering cultural context, language, accessibility, local resources, and the perspectives of those affected by the work. We encourage participation and create space to question assumptions.",
+    ],
+  },
+  {
+    q: "How can an organisation partner with SWCL?",
+    a: [
+      "Potential areas for collaboration include professional learning, research, resource development, knowledge exchange, and initiatives that widen access to development opportunities.",
+      "Contact us with your organisation’s priorities and the contribution you would like to make. We can then explore shared objectives, responsibilities and a suitable scope of work.",
+    ],
+  },
+  {
+    q: "How do we get started?",
+    a: [
+      "Send an enquiry explaining what you need, who the work will support, and any timescale you have in mind.",
+      "We will use this information to discuss the request, clarify expectations, and identify an appropriate next step.",
+    ],
+  },
+];
 
 export default function Home() {
   return (
     <div className={s.page}>
-      <section className={s.hero} aria-labelledby="hero-heading">
-        <div className={s.heroContent}>
-          <h1 id="hero-heading">Practical learning for social work in Nigeria and beyond</h1>
-          <p>Develop your knowledge, skills and judgement to work with children, families and communities.</p>
-          <div className={s.buttonGroup}>
-            <Link className={cx(s.button, s.buttonGold)} href="/courses">Explore Courses</Link>
-            <Link className={cx(s.button, s.buttonOutline)} href="/mentorship">Explore Mentorship</Link>
-          </div>
-        </div>
-        <div className={s.heroImage} data-nav-bg="#123e29">
-          <Image
-            src="/images/home/elearning/hero-learners.webp"
-            alt="Three adult learners work together with a laptop and notebooks in a bright library."
-            fill
-            priority
-            sizes="(max-width: 760px) 100vw, 53vw"
-          />
-        </div>
-      </section>
+      <HeroTabs />
 
-      <section className={cx(s.pathways, s.sectionPad)} aria-labelledby="pathways-heading">
-        <div className={s.container}>
-          <div className={s.sectionIntro}>
-            <h2 id="pathways-heading">Professional learning from Social Work Consultancy Ltd</h2>
-            <p>Accessible, practice-focused learning for social work and allied practice in Nigeria and beyond.</p>
-          </div>
-          <div className={s.pathwayGrid}>
-            <article className={s.pathwayCard}>
-              <svg className={s.lineIcon} viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="8" width="40" height="33" rx="3" /><path d="m12 41-7 13h54l-7-13M24 48h16" /></svg>
-              <h3><Link href="/courses">Explore Courses</Link></h3>
-              <p>Build practical knowledge and connect social work ideas with the responsibilities of your role.</p>
-            </article>
-            <article className={s.pathwayCard}>
-              <svg className={s.lineIcon} viewBox="0 0 64 64" aria-hidden="true"><circle cx="24" cy="17" r="9" /><circle cx="46" cy="19" r="7" /><path d="M6 53V43c0-10 8-17 18-17s18 7 18 17v10M44 31c9 0 15 6 15 14v8" /></svg>
-              <h3><Link href="/mentorship">Explore Mentorship</Link></h3>
-              <p>Explore guidance, reflection and professional development through mentorship.</p>
-            </article>
-            <article className={s.pathwayCard}>
-              <svg className={s.lineIcon} viewBox="0 0 64 64" aria-hidden="true"><path d="M32 15C23 8 12 7 5 9v43c9-3 19-1 27 5 8-6 18-8 27-5V9c-7-2-18-1-27 6Zm0 0v42" /></svg>
-              <h3><Link href="/resources">Use Practice Resources</Link></h3>
-              <p>Explore tools, guides and reading to support your learning and day-to-day practice.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section className={cx(s.featuredSection, s.container)} aria-labelledby="featured-heading">
-        <div className={cx(s.splitPanel, s.featuredPanel)}>
-          <div className={s.panelCopy}>
-            <p className={s.eyebrow}>Featured Course</p>
-            <h2 id="featured-heading">Introduction to Social Work Practice</h2>
-            <p>A practical introduction to core concepts, values and everyday practice in the Nigerian context.</p>
-            {/* Point to the course detail URL once it is confirmed. */}
-            <Link className={cx(s.button, s.buttonGreen)} href="/courses">View Course Overview</Link>
-          </div>
-          <div className={s.panelImage}>
+      {/* Introduction */}
+      <section className={s.intro} aria-labelledby="intro-heading">
+        <div className={`${s.container} ${s.introGrid}`}>
+          <div className={s.introImage}>
             <Image
-              src="/images/home/elearning/featured-course.webp"
-              alt="An adult learner writes in a notebook during a class."
+              src="/images/home/swcl/intro-listening.webp"
+              alt="A social worker smiles and takes notes while listening to a woman across a desk."
               fill
-              sizes="(max-width: 760px) 100vw, 42vw"
+              sizes="(max-width: 860px) 100vw, 50vw"
             />
           </div>
-        </div>
-      </section>
-
-      <section className={cx(s.practiceSection, s.container)} aria-labelledby="practice-heading">
-        <div className={s.practiceIcon} aria-hidden="true">
-          <svg className={s.lineIcon} viewBox="0 0 64 64"><circle cx="32" cy="12" r="8" /><circle cx="13" cy="29" r="7" /><circle cx="51" cy="29" r="7" /><path d="M18 61v-9c0-8 6-14 14-14s14 6 14 14v9M3 57V46c0-6 4-10 10-10h5M61 57V46c0-6-4-10-10-10h-5" /></svg>
-        </div>
-        <div className={s.practiceText}>
-          <h2 id="practice-heading">Apply what you learn</h2>
-          <p>Practice scenario. A family faces concerns about a child’s welfare and financial stress, while local services are limited. How would you assess their needs, prioritise support and work with the family and community to identify realistic next steps?</p>
-        </div>
-      </section>
-
-      <section className={s.teamSection} aria-labelledby="team-heading">
-        <div className={cx(s.splitPanel, s.teamPanel, s.container)}>
-          <div className={s.panelCopy}>
-            <h2 id="team-heading">Develop learning for your team</h2>
-            <p>Discuss professional learning that responds to your team’s roles, practice challenges and development goals.</p>
-            <Link className={cx(s.button, s.buttonGreen)} href="/contact">Discuss Training or Partnership</Link>
-          </div>
-          <div className={s.panelImage}>
-            <Image
-              src="/images/home/elearning/team-training.webp"
-              alt="Three professionals discuss learning and practice together."
-              fill
-              sizes="(max-width: 760px) 100vw, 50vw"
-            />
+          <div>
+            <p className={s.eyebrow}>Social Work Consultancy Ltd.</p>
+            <h2 id="intro-heading" className={s.h2}>Building the Knowledge and Capacity Behind Better Services</h2>
+            <p className={s.body}>
+              Social Work Consultancy Ltd is a professional learning and consultancy organisation dedicated to strengthening
+              social work and related services. We support the people and organisations working to improve the lives of
+              children, families and communities, particularly in contexts where needs are complex and resources are limited.
+            </p>
+            <p className={s.body}>
+              Our work brings together training and professional development, research and evaluation, policy and advocacy,
+              and tailored organisational support, linking relevant international learning to Nigerian and wider Global South contexts.
+            </p>
+            <Link className={s.textLink} href="/about-us">
+              Learn more about SWCL <ArrowRight size={16} aria-hidden="true" />
+            </Link>
           </div>
         </div>
       </section>
 
-      <section className={s.closingCta} aria-labelledby="closing-heading">
+      {/* Services */}
+      <section id="services" className={s.tinted} aria-labelledby="services-heading">
         <div className={s.container}>
-          <h2 id="closing-heading">Choose a course that fits your goals</h2>
-          <p>Find practical, relevant learning to strengthen your social work knowledge and practice.</p>
-          <div className={s.buttonGroup}>
-            <Link className={cx(s.button, s.buttonGold)} href="/courses">Explore Courses</Link>
-            <Link className={cx(s.button, s.buttonOutline)} href="/contact">Contact Us</Link>
+          <header className={s.sectionHead}>
+            <p className={s.eyebrow}>Our Services</p>
+            <h2 id="services-heading" className={s.h2}>Connected Services for Stronger Practice and Organisations</h2>
+            <p className={s.lead}>
+              Learning, evidence and policy work best when they inform one another. Our three core service areas help
+              individuals and organisations build capability, understand what needs to change and take practical steps.
+            </p>
+          </header>
+          <div className={s.grid3}>
+            {SERVICES.map((item) => (
+              <article key={item.title} className={s.serviceCard}>
+                <div className={s.serviceImage}>
+                  <Image src={item.image} alt={item.alt} fill sizes="(max-width: 860px) 100vw, 33vw" />
+                </div>
+                <div className={s.serviceBody}>
+                  <h3 className={s.h3Serif}>{item.title}</h3>
+                  <p>{item.text}</p>
+                  <Link className={s.textLink} href={item.link.href}>
+                    {item.link.label} <ArrowRight size={16} aria-hidden="true" />
+                  </Link>
+                </div>
+              </article>
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* Learning and categories */}
+      <section className={s.plain} aria-labelledby="learning-heading">
+        <div className={s.container}>
+          <header className={s.sectionHead}>
+            <p className={s.eyebrow}>Learning</p>
+            <h2 id="learning-heading" className={s.h2}>Learning That Strengthens What You Do in Practice</h2>
+            <p className={s.lead}>
+              Our learning approach connects professional knowledge with everyday responsibilities, helping learners
+              understand not only what an approach involves, but when it may be useful and how context affects its application.
+            </p>
+          </header>
+          <div className={s.grid3}>
+            {LEARNING.map((item) => {
+              const Icon = item.icon;
+              return (
+                <article key={item.title} className={s.learnCard}>
+                  <div className={s.learnImage}>
+                    <Image src={item.image} alt={item.alt} fill sizes="(max-width: 860px) 100vw, 33vw" />
+                  </div>
+                  <div className={s.learnBody}>
+                    <span className={s.learnIcon} aria-hidden="true">
+                      <Icon size={22} />
+                    </span>
+                    <h3 className={s.h3Sans}>{item.title}</h3>
+                    <p>{item.text}</p>
+                    <Link className={s.textLink} href={item.link.href}>
+                      {item.link.label} <ArrowRight size={16} aria-hidden="true" />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <header className={`${s.sectionHead} ${s.subHead}`}>
+            <p className={s.eyebrow}>Our Course Categories</p>
+            <h2 className={s.h2}>Explore Learning That Reflects Your Responsibilities</h2>
+            <p className={s.lead}>
+              Our learning priorities bring together core practice skills, responsible use of digital tools, and an
+              understanding of the laws and policies that shape services.
+            </p>
+          </header>
+          <div className={s.grid3}>
+            {CATEGORIES.map((item) => {
+              const Icon = item.icon;
+              return (
+                <article key={item.title} className={s.categoryCard}>
+                  <Icon className={s.categoryIcon} size={38} aria-hidden="true" />
+                  <div>
+                    <h3 className={s.h3Sans}>{item.title}</h3>
+                    <p>{item.text}</p>
+                    <Link className={s.textLink} href="/courses">
+                      View courses <ArrowRight size={16} aria-hidden="true" />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className={s.ctaBand}>
+            <div>
+              <h2 className={s.ctaTitle}>Invest in Your Development. Strengthen Your Contribution.</h2>
+              <p>Explore current learning opportunities and choose learning that fits your role and development goals.</p>
+            </div>
+            <Link className={s.btnGold} href="/courses">
+              Visit Our Learning Platform <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQs */}
+      <section className={s.tinted} aria-labelledby="faq-heading">
+        <div className={`${s.container} ${s.faqGrid}`}>
+          <div>
+            <p className={s.eyebrow}>FAQs</p>
+            <h2 id="faq-heading" className={s.h2}>Understanding SWCL and How We Can Support You</h2>
+            <p className={s.body}>
+              Find answers to common questions about our services, learning opportunities and how to work with us.
+            </p>
+          </div>
+          <div className={s.faqList}>
+            {FAQS.map((item) => (
+              <details key={item.q} className={s.faqItem}>
+                <summary>
+                  <span>{item.q}</span>
+                  <Plus className={s.faqPlus} size={18} aria-hidden="true" />
+                </summary>
+                <div className={s.faqAnswer}>
+                  {item.a.map((para) => <p key={para}>{para}</p>)}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section className={s.plain} aria-labelledby="contact-heading">
+        <div className={`${s.container} ${s.contactGrid}`}>
+          <div>
+            <p className={s.eyebrow}>Get in Touch</p>
+            <h2 id="contact-heading" className={s.h2}>Let Us Turn Your Priorities into a Practical Plan</h2>
+            <p className={s.body}>
+              Whether you are developing your workforce, exploring a research question, reviewing a policy or seeking a
+              partner, tell us about the issue you want to address. You do not need a fully developed brief to start a conversation.
+            </p>
+            <ul className={s.contactList}>
+              <li><MapPin size={20} aria-hidden="true" /> Flat C3, Okonkwo Estate, Jos, Plateau State, Nigeria</li>
+              <li>
+                <Mail size={20} aria-hidden="true" />
+                <a href="mailto:support@socialworknigeria.org">support@socialworknigeria.org</a>
+              </li>
+              <li>
+                <Phone size={20} aria-hidden="true" />
+                <a href="tel:+2348064047702">+234 806 404 7702</a>
+              </li>
+            </ul>
+          </div>
+          <HomeContactForm />
         </div>
       </section>
     </div>

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     url: "/",
     title: "SWCL E-Learning | Social Work Consultancy Ltd",
     description,
-    images: ["/images/home/elearning/hero-learners.webp"],
+    images: ["/images/home/swcl/hero-team.webp"],
   },
 };
 
