@@ -2772,6 +2772,41 @@ html:has(.lms-root) #main-content .lms-unavailable h1 { margin: 0; font-size: 1.
   }
   .lms-order-track li[data-state="todo"] { opacity: 0.6; }
 
+  /* Phones: one step per row, nodes joined by a vertical line that fills
+     downward as each step completes (each line hangs from its own step). */
+  @media (max-width: 639.98px) {
+    .lms-order-track { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .lms-order-track li { flex-direction: row; align-items: flex-start; gap: 0.85rem; padding-bottom: 1.25rem; }
+    .lms-order-track li:last-child { padding-bottom: 0; }
+    .lms-order-track li > .lms-order-node { flex: none; }
+    .lms-order-track li > :last-child { flex: 1; padding-top: 0.08rem; }
+    .lms-order-track li:nth-child(n)::before,
+    .lms-order-track li:nth-child(n)::after { content: none; animation: none; }
+    .lms-order-track li:not(:last-child)::before,
+    .lms-order-track li:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: calc(1.375rem + 0.3rem);
+      bottom: 0.3rem;
+      left: calc(0.6875rem - 1.5px);
+      width: 3px;
+      height: auto;
+      border-radius: 3px;
+      transform: none;
+    }
+    .lms-order-track li:not(:last-child)::before { background: color-mix(in srgb, var(--sw-ink) 12%, transparent); }
+    .lms-order-track li:not(:last-child)::after { background: #2d9d6a; transform: scaleY(0); transform-origin: top; }
+    .lms-order-track li[data-state="done"]:not(:last-child)::after {
+      animation: lms-order-fill-y 0.7s var(--sw-ease) forwards;
+      animation-delay: calc(0.55s + var(--i) * 0.35s);
+    }
+    .lms-order-track li[data-state="done"]:has(+ li[data-state="fail"])::after { background: #ef4b3f; }
+    .lms-order-track li[data-state="done"]:has(+ li[data-state="now"])::after { background: #f08a24; }
+  }
+  @media (max-width: 639.98px) and (prefers-reduced-motion: reduce) {
+    .lms-order-track li[data-state="done"]:not(:last-child)::after { animation: none; transform: none; }
+  }
+
   .lms-order-thumb { flex: none; width: 4rem; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 9px; background: var(--sw-paper-2); box-shadow: inset 0 0 0 0.5px var(--sw-line); }
   .lms-order-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .lms-order-link,
@@ -2825,6 +2860,7 @@ html:has(.lms-root) #main-content h1.lms-order-plain { font-size: 1.15rem; font-
 
 @keyframes lms-order-pop { from { opacity: 0; transform: scale(0.6); } }
 @keyframes lms-order-fill { to { transform: translateY(-50%) scaleX(1); } }
+@keyframes lms-order-fill-y { to { transform: scaleY(1); } }
 @keyframes lms-order-beat { 50% { transform: scale(0.55); opacity: 0.5; } }
 
 @media (prefers-reduced-motion: reduce) {
