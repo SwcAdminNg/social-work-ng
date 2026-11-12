@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { ChevronLeft, ChevronRight, Clock, LogOut, Send } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, CloudCheck, CloudOff, CloudUpload, LogOut, Send } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { IconSpinner } from "@/components/auth/shared/icons";
@@ -43,6 +43,8 @@ interface QuizFocusShellProps {
   title: string;
   /** Countdown for timed attempts; omit for untimed quizzes. */
   remainingMs?: number | null;
+  /** Whether the learner's answers are on the server yet. */
+  saveStatus?: SaveStatus;
   submitting: boolean;
   /** Opens the submit confirmation. */
   onSubmit: () => void;
@@ -60,6 +62,7 @@ interface QuizFocusShellProps {
 export function QuizFocusShell({
   title,
   remainingMs,
+  saveStatus,
   submitting,
   onSubmit,
   onLeave,
@@ -103,6 +106,7 @@ export function QuizFocusShell({
         <span className="flex-1 sm:hidden" />
 
         <div className="flex flex-none items-center gap-2">
+          {saveStatus && <SaveIndicator status={saveStatus} />}
           {remainingMs != null && (
             <span
               className="lms-quiz-timer"
@@ -247,20 +251,34 @@ function LeaveQuizDialog({
   );
 }
 
+export type SaveStatus = "saved" | "saving" | "offline";
+
 /**
  * Keeps a quiz's answers on the server as the learner goes: shortly after each
  * change, and straight away when the page is hidden or closed. Pass `url: null`
- * while there's nothing to save. Returns `flush` to save immediately (e.g. on Leave).
+ * while there's nothing to save. `status` drives the cloud icon in the quiz bar;
+ * `flush` saves immediately (e.g. on Leave). A failed save retries every few
+ * seconds and as soon as the connection comes back.
  */
 export function useAnswerAutosave(url: string | null, body: object) {
   const json = JSON.stringify(body);
   const latest = useRef({ url, json });
-  const lastSaved = useRef<string | null>(url ? json : null);
+  const lastSent = useRef<string | null>(url ? json : null);
+  // What the server has confirmed, for the status. Reset when the target changes
+  // (a fresh load from the server is already saved).
+  const [confirmed, setConfirmed] = useState({ url, json });
+  const [inFlight, setInFlight] = useState(0);
+  const [failed, setFailed] = useState(false);
+  if (confirmed.url !== url) {
+    setConfirmed({ url, json });
+    setFailed(false);
+  }
 
   const send = useCallback((keepalive = false) => {
     const { url: target, json: payload } = latest.current;
-    if (!target || payload === lastSaved.current) return;
-    lastSaved.current = payload;
+    if (!target || payload === lastSent.current) return;
+    lastSent.current = payload;
+    setInFlight((n) => n + 1);
     void fetch(target, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -268,11 +286,15 @@ export function useAnswerAutosave(url: string | null, body: object) {
       keepalive,
     })
       .then((res) => {
-        if (!res.ok && lastSaved.current === payload) lastSaved.current = null;
+        if (!res.ok) throw new Error(String(res.status));
+        setConfirmed((prev) => (prev.url === target ? { url: target, json: payload } : prev));
+        setFailed(false);
       })
       .catch(() => {
-        if (lastSaved.current === payload) lastSaved.current = null;
-      });
+        if (lastSent.current === payload) lastSent.current = null;
+        setFailed(true);
+      })
+      .finally(() => setInFlight((n) => Math.max(n - 1, 0)));
   }, []);
 
   useEffect(() => {
@@ -280,8 +302,7 @@ export function useAnswerAutosave(url: string | null, body: object) {
     latest.current = { url, json };
     if (!url) return;
     if (changedTarget) {
-      // Just loaded from the server, so already saved; only save real changes.
-      lastSaved.current = json;
+      lastSent.current = json;
       return;
     }
     const timer = setTimeout(() => send(), 600);
@@ -294,15 +315,56 @@ export function useAnswerAutosave(url: string | null, body: object) {
     const onVisibility = () => {
       if (document.visibilityState === "hidden") send(true);
     };
+    const onOnline = () => send();
     window.addEventListener("pagehide", onHide);
+    window.addEventListener("online", onOnline);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       window.removeEventListener("pagehide", onHide);
+      window.removeEventListener("online", onOnline);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [url, send]);
 
-  return send;
+  // Keep trying while a save has failed.
+  useEffect(() => {
+    if (!url || !failed) return;
+    const retry = setInterval(() => send(), 5000);
+    return () => clearInterval(retry);
+  }, [url, failed, send]);
+
+  const status: SaveStatus =
+    failed ? "offline" : inFlight > 0 || json !== confirmed.json ? "saving" : "saved";
+  return { flush: send, status };
+}
+
+const SAVE_LABELS: Record<SaveStatus, string> = {
+  saved: "Saved",
+  saving: "Saving…",
+  offline: "Not saved, retrying",
+};
+
+/** Google Docs style sync state: a cloud that ticks once the server has the answers. */
+function SaveIndicator({ status }: { status: SaveStatus }) {
+  const Icon = status === "saved" ? CloudCheck : status === "saving" ? CloudUpload : CloudOff;
+  return (
+    <span
+      className="lms-quiz-sync"
+      data-status={status}
+      role="status"
+      aria-live="polite"
+      title={
+        status === "offline"
+          ? "We couldn't save your latest answers. We'll keep trying; stay on this page."
+          : status === "saving"
+            ? "Saving your answers…"
+            : "All answers saved"
+      }
+    >
+      <Icon aria-hidden="true" />
+      <span className="lms-quiz-sync-label">{SAVE_LABELS[status]}</span>
+    </span>
+  );
 }
 
 export function formatCountdown(ms: number) {

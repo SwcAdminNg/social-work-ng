@@ -217,7 +217,7 @@ export function QuizEngine({
     }
   };
 
-  const saveAnswers = useAnswerAutosave(
+  const autosave = useAnswerAutosave(
     versionReady && !result && !preview
       ? `/api/proxy/learning/courses/${courseId}/items/${itemId}/quiz/progress`
       : null,
@@ -404,10 +404,11 @@ export function QuizEngine({
       {focusOpen && !result && canSubmit && currentQuestion && (
         <QuizFocusShell
           title={title}
+          saveStatus={autosave.status}
           submitting={submitting}
           onSubmit={() => setConfirmOpen(true)}
           onLeave={() => {
-            saveAnswers(true);
+            autosave.flush(true);
             setFocusOpen(false);
           }}
           leaveNote="Your answers are saved. You can come back and finish it later."

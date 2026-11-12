@@ -259,7 +259,7 @@ export function QuizGroupEngine({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attempt, courseId, itemId]);
 
-  const saveAnswers = useAnswerAutosave(
+  const autosave = useAnswerAutosave(
     attempt ? `/api/proxy/learning/courses/${courseId}/items/${itemId}/quiz-group/progress` : null,
     { attempt_id: attempt?.attempt_id, answers },
   );
@@ -520,10 +520,11 @@ export function QuizGroupEngine({
         <QuizFocusShell
           title={title}
           remainingMs={remainingMs}
+          saveStatus={autosave.status}
           submitting={submitting}
           onSubmit={() => setConfirmOpen(true)}
           onLeave={() => {
-            saveAnswers(true);
+            autosave.flush(true);
             setFocusOpen(false);
           }}
           leaveNote={
