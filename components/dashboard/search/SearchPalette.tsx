@@ -1,7 +1,7 @@
 "use client";
 
 import "./search.css";
-import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
@@ -74,6 +74,28 @@ const KIND_LOOK: Record<SearchHit["kind"] | "page", { icon: LucideIcon; tone: Ro
   "live-session": { icon: Radio, tone: "live" },
   page: { icon: BookOpen, tone: "page" },
 };
+
+/* Layout facts the markup (not just the CSS) needs to follow. */
+const COMPACT_QUERY = "(max-width: 479.98px)";
+const KEYBOARD_QUERY = "(min-width: 640px) and (pointer: fine)";
+const watch = (query: string) => (onChange: () => void) => {
+  const list = window.matchMedia(query);
+  list.addEventListener("change", onChange);
+  return () => list.removeEventListener("change", onChange);
+};
+const subscribeCompact = watch(COMPACT_QUERY);
+const subscribeKeyboard = watch(KEYBOARD_QUERY);
+const isCompact = () => window.matchMedia(COMPACT_QUERY).matches;
+const isKeyboardLayout = () => window.matchMedia(KEYBOARD_QUERY).matches;
+
+/** Marks which edges of the tab strip hide more tabs, so they can fade. */
+function updateFade(strip: HTMLElement | null) {
+  if (!strip) return;
+  const max = strip.scrollWidth - strip.clientWidth;
+  const edges = [strip.scrollLeft > 2 && "start", strip.scrollLeft < max - 2 && "end"].filter(Boolean).join(" ");
+  if (edges) strip.dataset.fade = edges;
+  else delete strip.dataset.fade;
+}
 
 const RECENT_KEY = "swcl_search_recent";
 const RECENT_MAX = 6;
@@ -180,6 +202,9 @@ export function SearchPalette({
   const baseId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const scopesRef = useRef<HTMLDivElement>(null);
+  const compact = useSyncExternalStore(subscribeCompact, isCompact, () => false);
+  const keyboardLayout = useSyncExternalStore(subscribeKeyboard, isKeyboardLayout, () => true);
   const cache = useRef(new Map<string, SearchResponse>());
   const restoreFocus = useRef<HTMLElement | null>(null);
 
@@ -341,6 +366,23 @@ export function SearchPalette({
     return map;
   }, [trimmed, fresh]);
 
+  // The selected tab stays visible in the strip (Tab can walk past the edge),
+  // and the edge fades follow resizes and the counts appearing.
+  useEffect(() => {
+    if (!open) return;
+    const strip = scopesRef.current;
+    if (!strip) return;
+    const tab = strip.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (tab) {
+      const left = tab.offsetLeft - strip.clientWidth / 2 + tab.offsetWidth / 2;
+      strip.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    }
+    updateFade(strip);
+    const observer = new ResizeObserver(() => updateFade(strip));
+    observer.observe(strip);
+    return () => observer.disconnect();
+  }, [open, scope, counts]);
+
   // Keep the highlighted row in view.
   useEffect(() => {
     if (!activeRow) return;
@@ -478,7 +520,7 @@ export function SearchPalette({
             aria-activedescendant={activeRow ? optionId(activeRow) : undefined}
             aria-autocomplete="list"
             aria-label="Search pages, courses, resources and community"
-            placeholder="Search pages, courses, resources, community…"
+            placeholder={compact ? "Search everything…" : "Search pages, courses, resources, community…"}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -504,12 +546,24 @@ export function SearchPalette({
             </button>
           )}
           <button type="button" className="lms-cmdk-esc" onClick={onClose}>
-            <span className="max-sm:hidden">esc</span>
-            <span className="sm:hidden">Cancel</span>
+            {keyboardLayout ? (
+              <>
+                <span aria-hidden="true">esc</span>
+                <span className="sr-only">Close search</span>
+              </>
+            ) : (
+              "Cancel"
+            )}
           </button>
         </div>
 
-        <div role="tablist" aria-label="Search in" className="lms-cmdk-scopes lms-scroll">
+        <div
+          ref={scopesRef}
+          role="tablist"
+          aria-label="Search in"
+          className="lms-cmdk-scopes"
+          onScroll={(event) => updateFade(event.currentTarget)}
+        >
           {SCOPES.map(({ key, label }) => {
             const selected = scope === key;
             const count = counts[key];
