@@ -1,6 +1,6 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { fetchApi } from "@/lib/fetchApi";
-import { siteFonts } from "@/lib/fonts";
+import { preloadSiteFonts, siteFonts } from "@/lib/fonts";
 import "../lms.css";
 
 type DashboardUser = {
@@ -24,6 +24,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  preloadSiteFonts();
   const user = await getDashboardUser();
 
   return (

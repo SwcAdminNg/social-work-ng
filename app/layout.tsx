@@ -1,19 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Roboto } from "next/font/google";
 import { shareImages, site } from "@/lib/site";
+import "./fonts.css";
 import "./globals.css";
+import { bodyFont, preloadBodyFont } from "@/lib/fonts";
 import ThemeProvider from "@/components/generic/ThemeProvider";
 import ThemeToggle from "@/components/generic/ThemeToggle";
 import { auth } from "@/auth";
 import SessionMonitor from "@/components/auth/SessionMonitor";
 import QueryProvider from "@/components/generic/QueryProvider";
 import { Toaster } from "sonner";
-
-const roboto = Roboto({
-  variable: "--font-roboto",
-  weight: ["400", "500", "700"],
-  subsets: ["latin"],
-});
 
 // Defaults for every page. Public pages add their own with pageMetadata().
 export const metadata: Metadata = {
@@ -50,10 +45,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+  preloadBodyFont();
 
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning data-scroll-behavior="smooth">
-      <body className={`${roboto.className} antialiased`}>
+      <body className={`${bodyFont} antialiased`}>
         <ThemeProvider>
           <QueryProvider>
             <SessionMonitor session={session}>

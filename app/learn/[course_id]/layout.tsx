@@ -1,11 +1,12 @@
 import { fetchApi } from "@/lib/fetchApi";
 import { notFound, redirect } from "next/navigation";
 import { CoursePlayerShell } from "@/components/learning/CourseSidebar";
-import { siteFonts } from "@/lib/fonts";
+import { preloadSiteFonts, siteFonts } from "@/lib/fonts";
 import "../../lms.css";
 import { getCourseResources } from "@/lib/resources";
 
 export default async function LearningLayout(props: { params: Promise<{ course_id: string }>, children: React.ReactNode }) {
+  preloadSiteFonts();
   const params = await props.params;
   const [res, resourcesResult] = await Promise.all([
     fetchApi(`/learning/courses/${params.course_id}/curriculum`, { next: { revalidate: 0 } }),
