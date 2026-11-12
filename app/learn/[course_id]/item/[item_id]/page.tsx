@@ -10,6 +10,7 @@ import { LinkResourcePanel } from "@/components/learning/LinkResourcePanel";
 import { LiveSessionPanel } from "@/components/learning/LiveSessionPanel";
 import { LessonDescription } from "@/components/learning/LessonDescription";
 import { ScormPlayer } from "@/components/learning/ScormPlayer";
+import { JadAssistant } from "@/components/learning/jad/JadAssistant";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -277,6 +278,10 @@ export default async function LearningItemPage(props: {
               />
             </div>
           </div>
+        )}
+
+        {(item.item_type === "DOCUMENT" || item.item_type === "SCORM") && (
+          <JadAssistant key={item.id} courseId={params.course_id} itemId={item.id} lessonTitle={item.title} />
         )}
 
         {item.item_type === "SCORM" && (

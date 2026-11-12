@@ -2887,3 +2887,530 @@ html:has(.lms-root) #main-content h1.lms-order-plain { font-size: 1.15rem; font-
   .lms-order-track li[data-state="done"] + li::after { animation: none !important; transform: translateY(-50%) scaleX(1); }
   .lms-order-track li[data-state="now"] .lms-order-node::after { animation: none; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   JAD AI study companion. A translucent panel that floats beside the
+   lesson on wide screens and rises as a sheet on phones. It grows from
+   the "Ask JAD" button and leaves the same way it came.
+   ════════════════════════════════════════════════════════════════════ */
+@property --jad-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+
+@layer components {
+  .jad-orb {
+    --jad-angle: 210deg;
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    color: #fff;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.6), transparent 46%),
+      conic-gradient(from var(--jad-angle), #1b4332, #40916c, #74c69d, #eba937, #2d6a4f, #1b4332);
+    box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35), 0 3px 10px -3px rgba(20, 64, 47, 0.55);
+  }
+  .jad-orb svg { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25)); }
+  .jad-orb[data-active] { animation: jad-spin 2.4s linear infinite, jad-glow 1.6s ease-in-out infinite; }
+
+  /* Launcher: a glass capsule in the corner. */
+  .jad-launch {
+    position: fixed;
+    right: max(1.25rem, env(safe-area-inset-right));
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    z-index: 44;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    height: 3rem;
+    padding: 0 1.15rem 0 0.5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-card) 80%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    box-shadow:
+      inset 0 0 0 0.5px color-mix(in srgb, var(--sw-ink) 12%, transparent),
+      0 10px 30px -12px rgba(12, 42, 30, 0.45),
+      0 2px 6px -2px rgba(12, 42, 30, 0.18);
+    color: var(--sw-ink);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    transform-origin: bottom right;
+    transition: transform 0.45s var(--sw-ease), opacity 0.25s ease, box-shadow 0.3s;
+    animation: jad-pop 0.5s var(--sw-ease) 0.3s both;
+  }
+  .jad-launch:hover {
+    box-shadow:
+      inset 0 0 0 0.5px color-mix(in srgb, var(--sw-ink) 18%, transparent),
+      0 14px 34px -12px rgba(12, 42, 30, 0.5),
+      0 2px 6px -2px rgba(12, 42, 30, 0.2);
+  }
+  .jad-launch:active { transform: scale(0.95); transition-duration: 0.1s; }
+  .jad-launch[data-hidden] { opacity: 0; transform: scale(0.85); pointer-events: none; }
+
+  /* Trigger for pages with their own bar (the quiz). */
+  .jad-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    height: 2.25rem;
+    padding: 0 0.85rem 0 0.3rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-ink) 6%, transparent);
+    color: var(--sw-ink);
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.4s var(--sw-ease);
+  }
+  .jad-trigger:hover { background: color-mix(in srgb, var(--sw-ink) 10%, transparent); }
+  .jad-trigger:active { transform: scale(0.95); transition-duration: 0.1s; }
+  @media (max-width: 639px) {
+    .jad-trigger { padding-right: 0.3rem; }
+    .jad-trigger-label { display: none; }
+  }
+
+  .jad-scrim { display: none; }
+
+  .jad-panel {
+    position: fixed;
+    z-index: 58;
+    top: calc(var(--lms-top, 64px) + 0.75rem);
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    width: min(26rem, calc(100vw - 2rem));
+    max-height: 46rem;
+    margin-top: auto;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    background: color-mix(in srgb, var(--sw-card) 92%, transparent);
+    -webkit-backdrop-filter: blur(40px) saturate(170%);
+    backdrop-filter: blur(40px) saturate(170%);
+    box-shadow:
+      inset 0 0 0 0.5px color-mix(in srgb, var(--sw-ink) 13%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 40px 80px -30px rgba(12, 42, 30, 0.45),
+      0 12px 28px -14px rgba(12, 42, 30, 0.25);
+    color: var(--sw-ink);
+    transform-origin: bottom right;
+    transition: transform 0.4s var(--sw-ease);
+    animation: jad-in 0.46s var(--sw-ease) both;
+  }
+  .dark .jad-panel {
+    background: color-mix(in srgb, #262928 93%, transparent);
+    box-shadow:
+      inset 0 0 0 0.5px rgba(255, 255, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 40px 80px -30px rgba(0, 0, 0, 0.8);
+  }
+  .jad-panel[data-settled] { animation: none; }
+  .jad-panel[data-dragging] { animation: none; transition: none; }
+  .jad-panel[data-phase="closing"] { animation: jad-out 0.3s cubic-bezier(0.64, 0, 0.78, 0) both; pointer-events: none; }
+  /* In the quiz the bar is shorter and there is no launcher to grow from. */
+  .jad-panel:not([data-floating]) { top: 4.5rem; transform-origin: top right; }
+
+  .jad-grab { flex: none; }
+  .jad-grabber { display: none; }
+  .jad-head {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.85rem 0.75rem 0.65rem 1rem;
+  }
+  html:has(.lms-root) .jad-title {
+    margin: 0;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 650;
+    font-variation-settings: normal;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .jad-sub {
+    margin: 0.1rem 0 0;
+    overflow: hidden;
+    color: var(--sw-ink-3);
+    font-size: 0.78rem;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .jad-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    border-radius: 50%;
+    color: var(--sw-ink-2);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, transform 0.4s var(--sw-ease);
+  }
+  .jad-icon > svg { width: 1.1rem; height: 1.1rem; }
+  .jad-icon:hover:not(:disabled) { background: color-mix(in srgb, var(--sw-ink) 7%, transparent); color: var(--sw-ink); }
+  .jad-icon:active:not(:disabled) { transform: scale(0.9); transition-duration: 0.1s; }
+  .jad-icon:disabled { opacity: 0.35; cursor: default; }
+
+  /* Content scrolls under soft edges rather than hard dividers. */
+  .jad-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.5rem 1.15rem 1.25rem;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 0.9rem, #000 calc(100% - 0.9rem), transparent);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 0.9rem, #000 calc(100% - 0.9rem), transparent);
+    scrollbar-width: thin;
+  }
+
+  .jad-hello {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.9rem;
+    padding: 1.5rem 0.25rem 0.5rem;
+    animation: jad-rise 0.6s var(--sw-ease) 0.12s both;
+  }
+  html:has(.lms-root) .jad-hello h3 {
+    margin: 0.35rem 0 0;
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+  }
+  .jad-hello h3 span { display: block; color: var(--sw-ink-3); }
+  .jad-hello p { margin: 0; max-width: 32ch; color: var(--sw-ink-2); font-size: 0.9rem; line-height: 1.5; }
+
+  .jad-thread { display: flex; flex-direction: column; gap: 1.1rem; margin: 0; padding: 0.5rem 0 0; list-style: none; }
+  .jad-msg { animation: jad-rise 0.4s var(--sw-ease) both; }
+  .jad-msg--user { align-self: flex-end; max-width: 86%; }
+  .jad-msg--user p {
+    margin: 0;
+    padding: 0.55rem 0.9rem;
+    border-radius: 1.2rem 1.2rem 0.35rem 1.2rem;
+    background: var(--sw-deep);
+    color: #fff;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+  .dark .jad-msg--user p { background: var(--sw-green); }
+  .jad-msg--ai { max-width: 100%; color: var(--sw-ink); font-size: 0.9375rem; line-height: 1.6; }
+
+  .jad-md { overflow-wrap: anywhere; }
+  .jad-md > :first-child { margin-top: 0; }
+  .jad-md > :last-child { margin-bottom: 0; }
+  .jad-md p { margin: 0.65em 0; }
+  .jad-md ul, .jad-md ol { margin: 0.55em 0; padding-left: 1.25em; }
+  .jad-md ul { list-style: disc; }
+  .jad-md ol { list-style: decimal; }
+  .jad-md li { margin: 0.3em 0; padding-left: 0.15em; }
+  .jad-md li::marker { color: var(--sw-ink-3); }
+  .jad-md strong { font-weight: 650; }
+  .jad-md h4 { margin: 1em 0 0.35em; font-size: 0.95rem; font-weight: 650; letter-spacing: -0.01em; }
+  .jad-md code {
+    padding: 0.1em 0.35em;
+    border-radius: 0.35rem;
+    background: color-mix(in srgb, var(--sw-ink) 7%, transparent);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.86em;
+  }
+  /* A soft cursor at the end of the text while it is still arriving. */
+  .jad-msg--ai[data-streaming] .jad-md > :last-child::after {
+    content: "";
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    margin-left: 0.3em;
+    border-radius: 50%;
+    background: var(--sw-accent);
+    vertical-align: 0.05em;
+    animation: jad-blink 1s ease-in-out infinite;
+  }
+
+  .jad-thinking {
+    display: inline-block;
+    margin: 0;
+    background: linear-gradient(90deg, var(--sw-ink-3) 0%, var(--sw-ink-3) 35%, var(--sw-ink) 50%, var(--sw-ink-3) 65%, var(--sw-ink-3) 100%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 500;
+    animation: jad-shimmer 1.6s linear infinite;
+  }
+  .jad-thinking::after { content: "\2026"; }
+
+  .jad-actions { display: flex; gap: 0.15rem; margin: 0.45rem 0 0 -0.4rem; }
+  .jad-actions button {
+    display: grid;
+    place-items: center;
+    width: 1.875rem;
+    height: 1.875rem;
+    border-radius: 0.6rem;
+    color: var(--sw-ink-3);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, transform 0.4s var(--sw-ease);
+  }
+  .jad-actions button > svg { width: 0.95rem; height: 0.95rem; }
+  .jad-actions button:hover { background: color-mix(in srgb, var(--sw-ink) 7%, transparent); color: var(--sw-ink); }
+  .jad-actions button:active { transform: scale(0.88); transition-duration: 0.1s; }
+  .jad-actions button[aria-pressed="true"] { color: var(--sw-accent); }
+  .jad-actions button[aria-pressed="true"] > svg { fill: color-mix(in srgb, var(--sw-accent) 22%, transparent); }
+
+  .jad-error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+    margin-top: 0.4rem;
+    color: var(--sw-error);
+    font-size: 0.86rem;
+  }
+  .jad-error button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-ink) 7%, transparent);
+    color: var(--sw-ink);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .jad-error button > svg { width: 0.85rem; height: 0.85rem; }
+
+  .jad-foot { position: relative; flex: none; padding: 0.15rem 0 0; }
+  .jad-jump {
+    position: absolute;
+    top: -2.75rem;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    margin-left: -1.0625rem;
+    border-radius: 50%;
+    background: var(--sw-card);
+    box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--sw-ink) 14%, transparent), 0 6px 16px -6px rgba(0, 0, 0, 0.3);
+    color: var(--sw-ink);
+    cursor: pointer;
+    animation: jad-rise 0.3s var(--sw-ease) both;
+  }
+  .jad-jump > svg { width: 1rem; height: 1rem; }
+
+  /* Suggestions: one row of pills that scrolls sideways. */
+  .jad-pills {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.2rem 1rem 0.65rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 1rem;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1rem, #000 calc(100% - 1.5rem), transparent);
+    mask-image: linear-gradient(to right, transparent 0, #000 1rem, #000 calc(100% - 1.5rem), transparent);
+  }
+  .jad-pills::-webkit-scrollbar { display: none; }
+  .jad-pill {
+    flex: none;
+    height: 2.125rem;
+    padding: 0 0.9rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sw-ink) 5%, transparent);
+    box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--sw-ink) 12%, transparent);
+    color: var(--sw-ink);
+    font-size: 0.82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: background-color 0.2s, transform 0.4s var(--sw-ease);
+    animation: jad-rise 0.45s var(--sw-ease) both;
+  }
+  .jad-pill:nth-child(2) { animation-delay: 0.04s; }
+  .jad-pill:nth-child(3) { animation-delay: 0.08s; }
+  .jad-pill:nth-child(4) { animation-delay: 0.12s; }
+  .jad-pill:nth-child(n + 5) { animation-delay: 0.16s; }
+  .jad-pill:hover { background: color-mix(in srgb, var(--sw-ink) 9%, transparent); }
+  .jad-pill:active { transform: scale(0.95); transition-duration: 0.1s; }
+
+  .jad-notice { margin: 0 1rem 0.6rem; color: var(--sw-error); font-size: 0.84rem; line-height: 1.4; }
+
+  .jad-compose {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin: 0 0.75rem;
+    padding: 0.3rem 0.3rem 0.3rem 1rem;
+    border-radius: 1.4rem;
+    background: var(--sw-card);
+    box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--sw-ink) 16%, transparent), 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.25s;
+  }
+  .dark .jad-compose { background: #2f3331; }
+  .jad-compose:focus-within {
+    box-shadow: inset 0 0 0 1px var(--sw-accent), 0 0 0 4px color-mix(in srgb, var(--sw-accent) 14%, transparent);
+  }
+  /* While JAD answers, a slow glow travels round the box. */
+  .jad-compose[data-busy]::before {
+    content: "";
+    position: absolute;
+    inset: -1.5px;
+    z-index: -1;
+    border-radius: inherit;
+    background: conic-gradient(from var(--jad-angle), #74c69d, #eba937, #40916c, #74c69d);
+    filter: blur(1px);
+    animation: jad-spin 2.6s linear infinite;
+  }
+  .jad-compose[data-busy]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--sw-card);
+  }
+  .dark .jad-compose[data-busy]::after { background: #2f3331; }
+  .jad-field { position: relative; flex: 1; min-width: 0; }
+  .jad-field textarea {
+    display: block;
+    width: 100%;
+    max-height: 8.25rem;
+    padding: 0.5rem 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--sw-ink);
+    font: inherit;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    resize: none;
+  }
+  html:has(.lms-root) .jad-field textarea:focus-visible { outline: none; }
+  .jad-ghost {
+    position: absolute;
+    inset: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.36rem;
+    color: var(--sw-ink-3);
+    font-size: 0.9375rem;
+    pointer-events: none;
+    animation: jad-ghost 0.5s var(--sw-ease) both;
+  }
+  .jad-ghost-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .jad-ghost kbd {
+    flex: none;
+    padding: 0.05rem 0.35rem;
+    border-radius: 0.35rem;
+    box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--sw-ink) 22%, transparent);
+    color: var(--sw-ink-3);
+    font: 600 0.66rem/1.4 ui-sans-serif, system-ui, sans-serif;
+  }
+  @media (pointer: coarse) { .jad-ghost kbd { display: none; } }
+
+  .jad-send {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--sw-deep);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.4s var(--sw-ease), opacity 0.2s;
+  }
+  .dark .jad-send { background: var(--sw-green); }
+  .jad-send > svg { width: 1.1rem; height: 1.1rem; stroke-width: 2.4; }
+  .jad-send:active:not(:disabled) { transform: scale(0.88); transition-duration: 0.1s; }
+  .jad-send:disabled { background: color-mix(in srgb, var(--sw-ink) 14%, transparent); color: var(--sw-card); cursor: default; }
+  .jad-send--stop, .dark .jad-send--stop { background: var(--sw-ink); color: var(--sw-paper); }
+  .jad-send--stop > svg { width: 0.8rem; height: 0.8rem; fill: currentColor; }
+
+  .jad-fine {
+    margin: 0;
+    padding: 0.5rem 1rem 0.75rem;
+    color: var(--sw-ink-3);
+    font-size: 0.7rem;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  /* Phones: a sheet from the bottom edge, with a scrim and a drag handle. */
+  @media (max-width: 767px) {
+    .jad-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 57;
+      display: block;
+      background: rgba(4, 18, 11, 0.32);
+      animation: lms-quiz-fade 0.3s ease-out both;
+    }
+    .jad-scrim[data-phase="closing"] { animation: jad-fade-out 0.3s ease-in both; }
+    .jad-panel,
+    .jad-panel:not([data-floating]) {
+      top: auto;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: auto;
+      height: min(88dvh, 46rem);
+      max-height: none;
+      border-radius: 1.4rem 1.4rem 0 0;
+      transform-origin: bottom center;
+      animation-name: jad-sheet-in;
+    }
+    .jad-panel[data-phase="closing"] { animation-name: jad-sheet-out; }
+    .jad-grab { touch-action: none; cursor: grab; }
+    .jad-grabber {
+      display: block;
+      width: 2.25rem;
+      height: 0.3rem;
+      margin: 0.45rem auto 0;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--sw-ink) 22%, transparent);
+    }
+    .jad-head { padding-top: 0.4rem; }
+    .jad-fine { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+    .jad-launch { right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); }
+  }
+}
+
+@keyframes jad-in { from { opacity: 0; transform: translate(0.75rem, 0.75rem) scale(0.94); filter: blur(6px); } }
+@keyframes jad-out { to { opacity: 0; transform: translate(0.75rem, 0.75rem) scale(0.94); filter: blur(6px); } }
+@keyframes jad-sheet-in { from { transform: translateY(100%); } }
+@keyframes jad-sheet-out { to { transform: translateY(100%); } }
+@keyframes jad-fade-out { to { opacity: 0; } }
+@keyframes jad-pop { from { opacity: 0; transform: scale(0.85) translateY(0.5rem); } }
+@keyframes jad-rise { from { opacity: 0; transform: translateY(0.4rem); } }
+@keyframes jad-ghost { from { opacity: 0; transform: translateY(0.35rem); } }
+@keyframes jad-spin { to { --jad-angle: 570deg; } }
+@keyframes jad-glow { 50% { box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35), 0 0 16px 1px rgba(116, 198, 157, 0.55); } }
+@keyframes jad-blink { 50% { opacity: 0.25; transform: scale(0.8); } }
+@keyframes jad-shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .jad-launch, .jad-hello, .jad-msg, .jad-pill, .jad-ghost, .jad-jump,
+  .jad-orb[data-active], .jad-compose[data-busy]::before,
+  .jad-msg--ai[data-streaming] .jad-md > :last-child::after { animation: none !important; }
+  .jad-thinking { animation: none; color: var(--sw-ink-3); background: none; }
+  .jad-panel, .jad-panel:not([data-floating]) { animation: lms-quiz-fade 0.16s ease-out both !important; }
+  .jad-panel[data-settled] { animation: none !important; }
+  .jad-panel[data-phase="closing"] { animation: jad-fade-out 0.16s ease-in both !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .jad-panel, .jad-launch { background: var(--sw-card); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .dark .jad-panel { background: #262928; }
+}
+@media (prefers-contrast: more) {
+  .jad-panel, .jad-compose, .jad-pill { box-shadow: inset 0 0 0 1.5px var(--sw-ink); }
+}

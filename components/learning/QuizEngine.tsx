@@ -14,6 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { QuizFocusShell, useAnswerAutosave } from "./QuizFocusMode";
+import { JadAssistant, JadOrb } from "./jad/JadAssistant";
 import { IconSpinner } from "@/components/auth/shared/icons";
 import {
   ChoiceList,
@@ -228,6 +229,10 @@ export function QuizEngine({
   const hasUnanswered = answeredCount < questions.length;
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const currentQuestion = questions[currentQuestionIndex] || null;
+  // JAD AI coaches on practice quizzes only, never on a scored final assessment.
+  const jadEnabled = !preview && !isFinalAssessment;
+  const [jadOpen, setJadOpen] = useState(false);
+  const [jadAvailable, setJadAvailable] = useState(false);
   const attemptLabel =
     effectiveAttemptsRemaining == null
       ? maxAttempts == null
@@ -405,10 +410,28 @@ export function QuizEngine({
         <QuizFocusShell
           title={title}
           saveStatus={autosave.status}
+          actions={
+            jadEnabled && jadAvailable ? (
+              <button
+                type="button"
+                className="jad-trigger"
+                onClick={() => setJadOpen((v) => !v)}
+                aria-expanded={jadOpen}
+                aria-label="Ask JAD AI about this question"
+              >
+                <JadOrb size={28} />
+                <span className="jad-trigger-label">Ask JAD</span>
+              </button>
+            ) : null
+          }
           submitting={submitting}
-          onSubmit={() => setConfirmOpen(true)}
+          onSubmit={() => {
+            setJadOpen(false);
+            setConfirmOpen(true);
+          }}
           onLeave={() => {
             autosave.flush(true);
+            setJadOpen(false);
             setFocusOpen(false);
           }}
           leaveNote="Your answers are saved. You can come back and finish it later."
@@ -433,6 +456,19 @@ export function QuizEngine({
             {renderQuestion(false)}
           </div>
         </QuizFocusShell>
+      )}
+
+      {jadEnabled && (
+        <JadAssistant
+          courseId={courseId}
+          itemId={itemId}
+          lessonTitle={title}
+          questionId={focusOpen && !result ? currentQuestion?.id : null}
+          launcher={focusOpen && !result ? "none" : "floating"}
+          open={jadOpen}
+          onOpenChange={setJadOpen}
+          onAvailable={setJadAvailable}
+        />
       )}
 
       <ConfirmSubmitDialog

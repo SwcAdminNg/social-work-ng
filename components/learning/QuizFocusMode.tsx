@@ -45,6 +45,8 @@ interface QuizFocusShellProps {
   remainingMs?: number | null;
   /** Whether the learner's answers are on the server yet. */
   saveStatus?: SaveStatus;
+  /** Extra controls in the top bar (e.g. Ask JAD on a practice quiz). */
+  actions?: ReactNode;
   submitting: boolean;
   /** Opens the submit confirmation. */
   onSubmit: () => void;
@@ -63,6 +65,7 @@ export function QuizFocusShell({
   title,
   remainingMs,
   saveStatus,
+  actions,
   submitting,
   onSubmit,
   onLeave,
@@ -106,6 +109,7 @@ export function QuizFocusShell({
         <span className="flex-1 sm:hidden" />
 
         <div className="flex flex-none items-center gap-2">
+          {actions}
           {saveStatus && <SaveIndicator status={saveStatus} />}
           {remainingMs != null && (
             <span
