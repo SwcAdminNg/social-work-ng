@@ -2803,6 +2803,25 @@ html:has(.lms-root) #main-content .lms-unavailable h1 { margin: 0; font-size: 1.
     .lms-order-track li[data-state="done"]:has(+ li[data-state="fail"])::after { background: #ef4b3f; }
     .lms-order-track li[data-state="done"]:has(+ li[data-state="now"])::after { background: #f08a24; }
   }
+  /* Wider screens: the track spans the card edge to edge. The first step
+     hugs the left, the middle one is centred, the last hugs the right, and
+     each line runs exactly between two nodes (0.3rem clear of each).
+     With column width W, gap g and node radius r, both links are
+     1.5W + g - 3r - 2(0.3rem) long. */
+  @media (min-width: 640px) {
+    .lms-order-track li:nth-child(2) { align-items: center; text-align: center; }
+    .lms-order-track li:nth-child(3) { align-items: flex-end; text-align: right; }
+    .lms-order-track li:nth-child(2)::before,
+    .lms-order-track li:nth-child(2)::after {
+      left: calc(-100% - 0.5rem + 1.375rem + 0.3rem);
+      width: calc(150% + 0.5rem - 2.0625rem - 0.6rem);
+    }
+    .lms-order-track li:nth-child(3)::before,
+    .lms-order-track li:nth-child(3)::after {
+      left: calc(-50% - 0.5rem + 0.6875rem + 0.3rem);
+      width: calc(150% + 0.5rem - 2.0625rem - 0.6rem);
+    }
+  }
   @media (max-width: 639.98px) and (prefers-reduced-motion: reduce) {
     .lms-order-track li[data-state="done"]:not(:last-child)::after { animation: none; transform: none; }
   }
