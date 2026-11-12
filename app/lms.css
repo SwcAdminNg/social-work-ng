@@ -2570,15 +2570,15 @@ html:has(.lms-root) #main-content .lms-unavailable h1 { margin: 0; font-size: 1.
     padding-top: max(0.625rem, env(safe-area-inset-top));
     border-bottom: 1px solid var(--sw-line);
     background: color-mix(in srgb, var(--sw-card) 82%, transparent);
-    backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
   }
   .lms-quiz-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
   .lms-quiz-foot {
     border-top: 1px solid var(--sw-line);
     background: color-mix(in srgb, var(--sw-card) 82%, transparent);
-    backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
     padding: 0.75rem 1rem max(0.75rem, env(safe-area-inset-bottom));
   }
   .lms-quiz-timer {
