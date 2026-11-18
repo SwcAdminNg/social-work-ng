@@ -210,7 +210,7 @@ export default async function CourseDetailsPage(props: { params: Promise<{ slug:
 
           <section className={s.block} aria-labelledby="curriculum-heading">
             <h2 id="curriculum-heading" className={s.blockTitle}>Course outline</h2>
-            <CourseCurriculum courseId={course.id} sections={course.sections as never} />
+            <CourseCurriculum courseId={course.id} courseSlug={course.slug || course.id} sections={course.sections as never} />
           </section>
 
           {instructors.length > 0 && (

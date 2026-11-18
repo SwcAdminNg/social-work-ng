@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Boxes, CalendarDays, ChevronDown, ChevronUp, PlayCircle, FileText, HelpCircle, X, Eye, ExternalLink, Link2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Boxes, CalendarDays, ChevronDown, ChevronUp, PlayCircle, FileText, HelpCircle, X, Eye, ExternalLink, Link2, Loader2 } from "lucide-react";
 import { HlsVideoPlayer } from "@/components/learning/HlsVideoPlayer";
 import { QuizEngine } from "@/components/learning/QuizEngine";
 
@@ -66,7 +66,15 @@ type GuestInstructor = {
   is_guest?: boolean | null;
 };
 
-export function CourseCurriculum({ courseId, sections }: { courseId?: string; sections: CurriculumSection[] }) {
+export function CourseCurriculum({
+  courseId,
+  courseSlug,
+  sections,
+}: {
+  courseId?: string;
+  courseSlug?: string;
+  sections: CurriculumSection[];
+}) {
   // Store expanded state for each section ID. Initialize the first section as expanded.
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
@@ -263,26 +271,8 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
                     <p>Video content is processing or unavailable.</p>
                   </div>
                 )
-              ) : previewItem.item_type === "DOCUMENT" ? (
-                (() => {
-                  const docUrl = previewItem.document?.file_url || previewItem.document?.content_url || previewItem.document?.url || previewItem.document_url || previewItem.content_url;
-                  if (docUrl) {
-                    return (
-                      <iframe
-                        src={docUrl.toLowerCase().endsWith('.pdf') ? docUrl : `https://docs.google.com/viewer?url=${encodeURIComponent(docUrl)}&embedded=true`}
-                        className="w-full h-[600px] bg-white rounded-xl"
-                        title={previewItem.title}
-                      />
-                    );
-                  }
-                  return (
-                    <div className="text-center text-gray-400 bg-gray-900 rounded-xl p-12 border border-gray-800">
-                      <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <h4 className="text-white text-xl font-bold mb-2">{previewItem.document?.file_name || previewItem.title}</h4>
-                      <p>This document is available for preview, but the file link is not provided by the server.</p>
-                    </div>
-                  );
-                })()
+              ) : previewItem.item_type === "DOCUMENT" || previewItem.item_type === "SCORM" ? (
+                <SignedPreview key={previewItem.id} courseSlug={courseSlug || courseId || ""} item={previewItem} />
               ) : previewItem.item_type === "LINKS" ? (
                 (() => {
                   const link = getLinkPayload(previewItem);
@@ -347,6 +337,137 @@ export function CourseCurriculum({ courseId, sections }: { courseId?: string; se
       )}
     </>
   );
+}
+
+type PreviewPayload = {
+  item_type?: string | null;
+  view_url?: string | null;
+  download_url?: string | null;
+  file_name?: string | null;
+  mime_type?: string | null;
+  launch_url?: string | null;
+};
+
+/**
+ * Documents and interactive (SCORM) lessons need a fresh signed link from the API
+ * each time they are opened, so the public curriculum can't carry one. This asks
+ * for it when the preview opens. SCORM runs in preview mode: nothing is saved.
+ */
+function SignedPreview({ courseSlug, item }: { courseSlug: string; item: CurriculumItem }) {
+  const [state, setState] = useState<
+    { status: "loading" } | { status: "error"; message: string } | { status: "ready"; data: PreviewPayload }
+  >({ status: "loading" });
+  const [frameLoaded, setFrameLoaded] = useState(false);
+  const isScorm = item.item_type === "SCORM";
+
+  // Mounted with key={item.id}, so each item starts from the loading state.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/proxy/courses/${encodeURIComponent(courseSlug)}/items/${encodeURIComponent(item.id)}/preview`, {
+      cache: "no-store",
+    })
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!res.ok || !body?.data) {
+          setState({ status: "error", message: body?.message || "This preview couldn't be opened. Please try again." });
+          return;
+        }
+        setState({ status: "ready", data: body.data as PreviewPayload });
+      })
+      .catch(() => {
+        if (!cancelled) setState({ status: "error", message: "This preview couldn't be opened. Please check your connection and try again." });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [courseSlug, item.id]);
+
+  if (state.status === "loading") {
+    return (
+      <div className="text-center text-gray-300" role="status">
+        <Loader2 className="mx-auto mb-4 h-10 w-10 animate-spin opacity-70" />
+        <p>{isScorm ? "Loading interactive lesson…" : "Loading document…"}</p>
+      </div>
+    );
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className="max-w-md text-center text-gray-400">
+        {isScorm ? <Boxes className="mx-auto mb-4 h-16 w-16 opacity-50" /> : <FileText className="mx-auto mb-4 h-16 w-16 opacity-50" />}
+        <p>{state.message}</p>
+      </div>
+    );
+  }
+
+  const data = state.data;
+  const src = isScorm ? data.launch_url : documentFrameUrl(data);
+  if (!src) {
+    return (
+      <div className="text-center text-gray-400">
+        <HelpCircle className="mx-auto mb-4 h-16 w-16 opacity-50" />
+        <p>Preview is not available for this item.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex w-full flex-col gap-3 self-stretch">
+      <div className="relative h-[68vh] min-h-[420px] w-full overflow-hidden rounded-xl bg-white">
+        {!frameLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        )}
+        <iframe
+          src={src}
+          title={item.title}
+          onLoad={() => setFrameLoaded(true)}
+          className="h-full w-full border-0"
+          referrerPolicy="no-referrer"
+          allow={isScorm ? "autoplay; fullscreen; encrypted-media" : undefined}
+          allowFullScreen={isScorm}
+        />
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-300">
+        <span>
+          {isScorm
+            ? "Preview mode - your progress isn't saved. Enrol to complete this lesson and earn credit."
+            : data.file_name || item.title}
+        </span>
+        <span className="flex gap-2">
+          {!isScorm && data.download_url && (
+            <a
+              href={data.download_url}
+              className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-1.5 font-semibold text-white transition hover:bg-white/20"
+            >
+              <FileText className="h-4 w-4" />
+              Download
+            </a>
+          )}
+          <a
+            href={src}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-1.5 font-semibold text-white transition hover:bg-white/20"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Open in new tab
+          </a>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function documentFrameUrl(data: PreviewPayload) {
+  const url = data.view_url || data.download_url;
+  if (!url) return null;
+  const isPdf =
+    (data.mime_type || "").toLowerCase().includes("pdf") || (data.file_name || "").toLowerCase().endsWith(".pdf");
+  // Browsers render PDFs inline; other formats (e.g. .docx) go through a viewer.
+  return isPdf ? url : `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
 }
 
 function isQuizItem(item: CurriculumItem) {

@@ -2,7 +2,7 @@
 
 /**
  * JAD AI, the study companion on document, SCORM and practice-quiz lessons.
- * (JAD: Mr. Job, Mr. Anthony and Dr. Philip, the founders of Social Work Consultancy.)
+ * (JAD: Mr. Job, Mr. Anthony and Dr. Dike, the founders of Social Work Consultancy.)
  *
  * Desktop: a floating panel docked to the right, alongside the lesson (no scrim, so
  * the learner can keep reading). Phone: a bottom sheet that can be dragged down to
